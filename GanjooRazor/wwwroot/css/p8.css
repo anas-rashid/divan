@@ -1410,9 +1410,13 @@ audio {
 }
 
 .circled-number-container {
-    width: 100%;
-    display: inline-table;
+    width: 100%;    
     direction: ltr;
+    display: inline-flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 2px;
+    column-gap: 5px;
 }
 
 .circled-number, .circled-number-diff, .navbar-help-button {
