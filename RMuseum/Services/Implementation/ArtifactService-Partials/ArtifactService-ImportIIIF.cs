@@ -234,20 +234,24 @@ namespace RMuseum.Services.Implementation
             if (token.Type == JTokenType.String)
                 return token.Value<string>();
 
-            // IIIF v3 language map
+            if (token.Type == JTokenType.Array)
+                return token.First?.ToString() ?? "";
+
             if (token.Type == JTokenType.Object)
             {
                 var firstProp = token.Children<JProperty>().FirstOrDefault();
                 if (firstProp != null)
                 {
-                    var arr = firstProp.Value as JArray;
-                    if (arr != null && arr.Count > 0)
-                        return arr[0].ToString();
+                    if (firstProp.Value.Type == JTokenType.Array)
+                        return firstProp.Value.First?.ToString() ?? "";
+
+                    return firstProp.Value.ToString();
                 }
             }
 
             return token.ToString();
         }
+
 
         private async Task<RServiceResult<List<RArtifactItemRecord>>> _InternalIIIFImport(string json, ImportJob job, string friendlyUrl, RMuseumDbContext context, RArtifactMasterRecord book, List<RTagValue> meta)
         {
@@ -263,13 +267,14 @@ namespace RMuseum.Services.Implementation
                 string bookName =
                      _IIIFGetLabel(parsed["label"]);
 
-                if (parsed.SelectToken("description") != null)
+                if (_IIIFGetLabel(parsed["description"]) != null)
                 {
-                    bookName += " - " + parsed.SelectToken("description").Value<string>();
+                    bookName += " - " + _IIIFGetLabel(parsed["description"]);
                 }
                 book.Name = book.NameInEnglish = book.Description = book.DescriptionInEnglish = bookName;
 
                 RTagValue tag;
+
 
                 tag = await TagHandler.PrepareAttribute(context, "Title", book.Name, 1);
                 meta.Add(tag);
@@ -279,17 +284,27 @@ namespace RMuseum.Services.Implementation
 
                 if (parsed.SelectToken("attribution") != null)
                 {
-                    tag = await TagHandler.PrepareAttribute(context, "Attribution", parsed.SelectToken("attribution").Value<string>(), 1);
+                    tag = await TagHandler.PrepareAttribute(context, "Attribution", _IIIFGetLabel(parsed["attribution"]), 1);
                     meta.Add(tag);
                 }
+
 
                 if (parsed.SelectToken("metadata") != null)
                 {
                     foreach (JToken metadata in parsed.SelectToken("metadata"))
                     {
-                        if(metadata.SelectToken("label") != null && metadata.SelectToken("value") != null)
+                        var metaLabel = _IIIFGetLabel(metadata["label"]);
+                        var metaValue = _IIIFGetLabel(metadata["value"]);
+
+                       
+
+                        if (metaLabel != null && metaValue  != null)
                         {
-                            tag = await TagHandler.PrepareAttribute(context, metadata.SelectToken("label").Value<string>(), metadata.SelectToken("value").Value<string>(), 1);
+                            tag = await TagHandler.PrepareAttribute(
+                           context,
+                           metaLabel,
+                           metaValue,
+                           1);
                             meta.Add(tag);
                         }
                     }
@@ -299,7 +314,7 @@ namespace RMuseum.Services.Implementation
                 List<string> labels = new List<string>();
                 foreach (JToken structure in parsed.SelectTokens("$.structures[*].label"))
                 {
-                    labels.Add(structure.Value<string>());
+                    labels.Add(_IIIFGetLabel(structure));
                 }
 
                 int order = 0;
@@ -315,6 +330,8 @@ namespace RMuseum.Services.Implementation
                     canvases = parsed["sequences"]?
                                     .First()?["canvases"] as JArray;
                 }
+                if (canvases == null || canvases.Count == 0)
+                    return new RServiceResult<List<RArtifactItemRecord>>(null, "No canvases found");
                 int pageCount = canvases.Count;
                 foreach (JToken canvas in canvases)
                 {
