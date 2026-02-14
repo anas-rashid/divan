@@ -226,6 +226,29 @@ namespace RMuseum.Services.Implementation
             }
         }
 
+        private string _IIIFGetLabel(JToken token)
+        {
+            if (token == null)
+                return "";
+
+            if (token.Type == JTokenType.String)
+                return token.Value<string>();
+
+            // IIIF v3 language map
+            if (token.Type == JTokenType.Object)
+            {
+                var firstProp = token.Children<JProperty>().FirstOrDefault();
+                if (firstProp != null)
+                {
+                    var arr = firstProp.Value as JArray;
+                    if (arr != null && arr.Count > 0)
+                        return arr[0].ToString();
+                }
+            }
+
+            return token.ToString();
+        }
+
         private async Task<RServiceResult<List<RArtifactItemRecord>>> _InternalIIIFImport(string json, ImportJob job, string friendlyUrl, RMuseumDbContext context, RArtifactMasterRecord book, List<RTagValue> meta)
         {
             List<RArtifactItemRecord> pages = new List<RArtifactItemRecord>();
@@ -233,10 +256,14 @@ namespace RMuseum.Services.Implementation
             using (var client = new HttpClient())
             {
                 var parsed = JObject.Parse(json);
-                string bookName =
-                    parsed.SelectToken("label").Value<string>();
 
-                if(parsed.SelectToken("description") != null)
+                bool isV3 = parsed["@context"] != null &&
+                   parsed["@context"].ToString().Contains("/presentation/3/");
+
+                string bookName =
+                     _IIIFGetLabel(parsed["label"]);
+
+                if (parsed.SelectToken("description") != null)
                 {
                     bookName += " - " + parsed.SelectToken("description").Value<string>();
                 }
@@ -276,8 +303,19 @@ namespace RMuseum.Services.Implementation
                 }
 
                 int order = 0;
-                var canvases = parsed.SelectToken("sequences").First().SelectToken("canvases").ToArray();
-                int pageCount = canvases.Length;
+
+                JArray canvases;
+
+                if (isV3)
+                {
+                    canvases = parsed["items"] as JArray;
+                }
+                else
+                {
+                    canvases = parsed["sequences"]?
+                                    .First()?["canvases"] as JArray;
+                }
+                int pageCount = canvases.Count;
                 foreach (JToken canvas in canvases)
                 {
                     order++;
@@ -287,10 +325,27 @@ namespace RMuseum.Services.Implementation
                         importJobUpdaterDb.Update(job);
                         await importJobUpdaterDb.SaveChangesAsync();
                     }
-                    string label = canvas.SelectToken("label").Value<string>();
+                    string label = _IIIFGetLabel(canvas["label"]);
                     if (labels.Where(l => l.IndexOf(label) != -1).SingleOrDefault() != null)
                         label = labels.Where(l => l.IndexOf(label) != -1).SingleOrDefault();
-                    string imageUrl = canvas.SelectTokens("images[*]").First().SelectToken("resource").SelectToken("@id").Value<string>();
+                    string imageUrl;
+
+                    if (isV3)
+                    {
+                        imageUrl = canvas["items"]?
+                            .First()?["items"]?
+                            .First()?["body"]?["id"]?
+                            .ToString();
+                    }
+                    else
+                    {
+                        imageUrl = canvas.SelectTokens("images[*]")
+                            .First()
+                            .SelectToken("resource")
+                            .SelectToken("@id")
+                            .Value<string>();
+                    }
+
                     if (imageUrl.Contains("default.jpg"))
                     {
                         Uri uri = new Uri(imageUrl);
