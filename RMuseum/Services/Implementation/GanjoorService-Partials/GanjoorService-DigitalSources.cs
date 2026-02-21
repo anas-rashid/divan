@@ -1,16 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
-using RMuseum.Models.Ganjoor;
-using System;
-using System.Data;
-using System.Linq;
+﻿using DNTPersianUtils.Core;
+using Microsoft.EntityFrameworkCore;
 using RMuseum.DbContext;
-using System.Collections.Generic;
-using RSecurityBackend.Services.Implementation;
-using DNTPersianUtils.Core;
-using System.Globalization;
-using System.Threading.Tasks;
+using RMuseum.Migrations;
+using RMuseum.Models.Ganjoor;
+using RMuseum.Models.Ganjoor.ViewModels;
 using RSecurityBackend.Models.Generic;
+using RSecurityBackend.Services.Implementation;
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Drawing;
+using System.Globalization;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace RMuseum.Services.Implementation
 {
@@ -222,10 +225,14 @@ namespace RMuseum.Services.Implementation
                                        }
 
                                        var digitalSources = await context.DigitalSources.ToArrayAsync();
+                                       Dictionary<int, List<int>> digitalSourcesCats = new Dictionary<int, List<int>>();
                                        int totalCoupletsCount = 0;
                                        foreach (var digitalSource in digitalSources)
                                        {
                                            digitalSource.CoupletsCount = 0;
+
+                                           List<int> cats = new List<int>();
+
                                            var poems = await context.GanjoorPoems.AsNoTracking().Where(p => p.SourceUrlSlug == digitalSource.UrlSlug).ToArrayAsync();
                                            foreach (var poem in poems)
                                            {
@@ -236,8 +243,13 @@ namespace RMuseum.Services.Implementation
                                                     (v.VersePosition == VersePosition.Right || v.VersePosition == VersePosition.CenteredVerse1)
                                                     ).CountAsync();
                                                digitalSource.CoupletsCount += coupletCount;
+                                               if(!cats.Contains(poem.CatId))
+                                               {
+                                                   cats.Add(poem.CatId);
+                                               }
                                            }
                                            totalCoupletsCount += digitalSource.CoupletsCount;
+                                           digitalSourcesCats.Add(digitalSource.Id, cats);
                                            context.Update(digitalSource);
                                            await jobProgressServiceEF.UpdateJob(job.Id, 50, digitalSource.FullName);
                                        }
@@ -315,6 +327,59 @@ namespace RMuseum.Services.Implementation
                                        var dbPage = await context.GanjoorPages.Where(p => p.FullUrl == "/sources").SingleAsync();
                                        await _UpdatePageHtmlText(context, editingUserId, dbPage, "به روزرسانی خودکار صفحهٔ آمار منابع", htmlText);
 
+                                       await jobProgressServiceEF.UpdateJob(job.Id, 80, "Rebuild Sources SubPages");
+                                       foreach (var digitalSource in digitalSources)
+                                       {
+                                           List<GanjoorCatViewModel> includedCats = new List<GanjoorCatViewModel>();
+                                           foreach (var catId in digitalSourcesCats[digitalSource.Id])
+                                           {
+                                               var resCat = await _GetCatById(context, catId, false, false, false);
+                                               var cat = resCat.Result.Cat;
+                                               if(cat.Ancestors.Any())
+                                               {
+                                                   var lastParent = cat.Ancestors.Last();
+                                                   if (includedCats.Any(f => f.Id == lastParent.Id))
+                                                       continue;
+                                                   var resParent = await _GetCatById(context, lastParent.Id, false, false, false);
+                                                   var parent = resParent.Result.Cat;
+                                                   bool includesAllChildren = false;
+                                                   foreach (var child in parent.Children)
+                                                   {
+                                                       if(!digitalSourcesCats[digitalSource.Id].Contains(child.Id))
+                                                       {
+                                                           includesAllChildren = true;
+                                                           break;
+                                                       }
+                                                   }
+                                                   if(includesAllChildren)
+                                                   {
+                                                       includedCats.Add(parent);
+                                                   }
+                                                   else
+                                                   {
+                                                       includedCats.Add(cat);
+                                                   }
+                                               }
+                                               else
+                                               {
+                                                   includedCats.Add(cat);
+                                               }                                               
+                                           }
+
+                                           List<GanjoorCatViewModel> finalCats = new List<GanjoorCatViewModel>();
+                                           foreach (var cat in includedCats)
+                                           {
+                                               if(!cat.Ancestors.Any())
+                                               {
+                                                   finalCats.Add(cat);
+                                               }
+                                               else
+                                               {
+                                                   var parent = cat.Ancestors.Last();
+                                                   
+                                               }
+                                           }
+                                       }
 
                                        await jobProgressServiceEF.UpdateJob(job.Id, 100, $"total: {totalCoupletsCount} - untagged: {untaggaed}", true);
                                    }
