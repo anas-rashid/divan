@@ -342,12 +342,12 @@ namespace RMuseum.Services.Implementation
                                                        continue;
                                                    var resParent = await _GetCatById(context, lastParent.Id, false, false, false);
                                                    var parent = resParent.Result.Cat;
-                                                   bool includesAllChildren = false;
+                                                   bool includesAllChildren = true;
                                                    foreach (var child in parent.Children)
                                                    {
                                                        if(!digitalSourcesCats[digitalSource.Id].Contains(child.Id))
                                                        {
-                                                           includesAllChildren = true;
+                                                           includesAllChildren = false;
                                                            break;
                                                        }
                                                    }
@@ -375,8 +375,41 @@ namespace RMuseum.Services.Implementation
                                                }
                                                else
                                                {
-                                                   var parent = cat.Ancestors.Last();
-                                                   
+                                                   var thisCat = cat;
+                                                   var lastParent = cat.Ancestors.Last();
+                                                   if(lastParent != null)
+                                                   {
+                                                       var resParent = await _GetCatById(context, lastParent.Id, false, false, false);
+                                                       var parent = resParent.Result.Cat;
+                                                       while (parent != null)
+                                                       {
+                                                           bool includesAllChildren = false;
+                                                           foreach (var child in parent.Children)
+                                                           {
+                                                               if (!includedCats.Any(c => c.Id == child.Id))
+                                                               {
+                                                                   includesAllChildren = true;
+                                                                   break;
+                                                               }
+                                                           }
+                                                           if (includesAllChildren)
+                                                           {
+                                                               thisCat = parent;
+                                                               lastParent = thisCat.Ancestors.Last();
+                                                               if(lastParent == null)
+                                                               {
+                                                                   break;
+                                                               }
+                                                               resParent = await _GetCatById(context, lastParent.Id, false, false, false);
+                                                               parent = resParent.Result.Cat;
+                                                           }
+                                                           else
+                                                           {
+                                                               break;
+                                                           }
+                                                       }
+                                                   }
+                                                   finalCats.Add(thisCat);
                                                }
                                            }
                                        }
