@@ -412,6 +412,33 @@ namespace RMuseum.Services.Implementation
                                                    finalCats.Add(thisCat);
                                                }
                                            }
+
+                                           var dbPageDigitalPage = await context.GanjoorPages.Where(p => p.FullUrl == $"/sources/{digitalSource.UrlSlug}").FirstOrDefaultAsync();
+                                           if(dbPageDigitalPage != null)
+                                           {
+                                               htmlText = $"<p>{digitalSource.FullName} منبع دیجیتال بخش‌های زیر است:</p>{Environment.NewLine}";
+                                               htmlText += $"<table>{Environment.NewLine}" +
+                                                    $"<tr class=\"h\">{Environment.NewLine}" +
+                                                    $"<td class=\"c1\">ردیف</td>{Environment.NewLine}" +
+                                                    $"<td class=\"c2\">نام بخش</td>{Environment.NewLine}" +
+                                                    $"</tr>{Environment.NewLine}";
+                                               int rowIndex = 0;
+                                               foreach (var cat in finalCats)
+                                               {
+                                                   if (rowIndex % 2 == 0)
+                                                       htmlText += $"<tr class=\"e\">{Environment.NewLine}";
+                                                   else
+                                                       htmlText += $"<tr>{Environment.NewLine}";
+
+                                                   htmlText += $"<td class=\"c1\">{(rowIndex + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                                   htmlText += $"<td class=\"c2\"><a href=\"{cat.FullUrl}\">{cat.Title}</a></td>{Environment.NewLine}";
+                                                   htmlText += $"</tr>{Environment.NewLine}";
+                                                   rowIndex++;
+                                               }
+                                               htmlText += $"</table>{Environment.NewLine}";
+
+                                               await _UpdatePageHtmlText(context, editingUserId, dbPageDigitalPage, "به روزرسانی خودکار صفحهٔ آمار منابع", htmlText);
+                                           }
                                        }
 
                                        await jobProgressServiceEF.UpdateJob(job.Id, 100, $"total: {totalCoupletsCount} - untagged: {untaggaed}", true);
