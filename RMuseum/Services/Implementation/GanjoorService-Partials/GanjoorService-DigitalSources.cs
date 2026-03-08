@@ -416,7 +416,7 @@ namespace RMuseum.Services.Implementation
                                            var dbPageDigitalPage = await context.GanjoorPages.Where(p => p.FullUrl == $"/sources/{digitalSource.UrlSlug}").FirstOrDefaultAsync();
                                            if(dbPageDigitalPage != null)
                                            {
-                                               htmlText = $"<p>{digitalSource.FullName} منبع دیجیتال بخش‌های زیر است:</p>{Environment.NewLine}";
+                                               htmlText = $"<p>{digitalSource.FullName} منبع دیجیتال {LanguageUtils.FormatMoney(digitalSource.CoupletsCount)} بیت شعر بخش‌های زیر است:</p>{Environment.NewLine}";
                                                htmlText += $"<table>{Environment.NewLine}" +
                                                     $"<tr class=\"h\">{Environment.NewLine}" +
                                                     $"<td class=\"c1\">ردیف</td>{Environment.NewLine}" +
