@@ -8,7 +8,10 @@ This is a fork of [GanjoorService](https://github.com/ganjoor/GanjoorService) (G
 - **Urdu basics:** pages are `lang="ur"`. The home page, footer and century groups (Hijri centuries, e.g. "تیرہویں صدی ہجری") are in Urdu. Deeper pages, such as admin and account pages, are still Persian.
 - **Fonts:** Noto Nastaliq Urdu by default, with a **نستعلیق / نسخ** switch (Noto Naskh Arabic) at the bottom left. The choice is remembered per browser.
 - **Footer:** links to Ganjoor-only services (Hafez divination, music index, etc.) are removed. Links to the Wikisource source, the data and the code are added.
-- **Linux/Docker:** `Dockerfile` + `docker-compose.yml` (SQL Server 2022, API, site, Caddy for HTTPS). The code itself is unchanged apart from the text above.
+- **Linux/Docker:** `Dockerfile` + `docker-compose.yml` (SQL Server 2022, API, site, Caddy for HTTPS).
+- **Config fixes so env vars work:** the four places that read `appsettings.json` directly now also read environment variables. The JWT issuer follows `RSecurityBackend:ApplicationName` instead of the hard-coded "Ganjoor". `deploy/entrypoint.sh` copies the settings that RSecurityBackend reads only from `appsettings.json` (connection string, secret, app name, admin email) into the file at container start.
+- **Links:** `ganjoor.net` links to the site's own pages are now relative. Links to Ganjoor's other services (blog, audio, etc.) are left as they are.
+- **Locale:** `ur-PK`.
 
 ## Deploy (Ubuntu/Debian x86-64, e.g. Vultr)
 
@@ -29,7 +32,7 @@ SQL Server needs about 2 GB of RAM. Use a plan with at least 4 GB in total.
 
 ### Load the data
 
-1. Open `https://SITE_DOMAIN/login` and sign in with `ADMIN_EMAIL` and any password that meets the password rules. That first login creates the admin account.
+1. Open `https://SITE_DOMAIN/login` and sign in with `ADMIN_EMAIL` and the password **`Test!123`**. The first login creates the admin account with that fixed password (RSecurityBackend's default; upstream's guide is wrong about this). **Change it right away** in the user panel.
 2. On the import page that opens (or **Admin → مالی و سایت → درون‌ریزی دادهٔ عمومی**), choose **Internet URL** and enter:
    ```
    https://cdn.jsdelivr.net/gh/anas-rashid/divan-data@main/
@@ -47,8 +50,9 @@ git pull && docker compose up -d --build
 ## Build locally (macOS/Linux)
 
 ```sh
-dotnet build RMuseum/RMuseum.csproj -p:EnableWindowsTargeting=true
-dotnet build GanjooRazor/GanjooRazor.csproj -p:EnableWindowsTargeting=true
+cd RMuseum   # its global.json pins SDK 10.0.302; newer SDKs fail on some upstream Razor views
+dotnet build RMuseum.csproj -p:EnableWindowsTargeting=true
+dotnet build ../GanjooRazor/GanjooRazor.csproj -p:EnableWindowsTargeting=true
 ```
 
 Running it needs SQL Server, so use the Docker setup above. SQL Server's image is x86-64 only.

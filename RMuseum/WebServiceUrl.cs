@@ -15,7 +15,7 @@ namespace RMuseum
                 if (!string.IsNullOrEmpty(_url))
                     return _url;
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")
+                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables() // divan: honour env overrides (Docker)
                     .Build();
                 _url = configuration["WebServiceUrl"];
                 return _url;

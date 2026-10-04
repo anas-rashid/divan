@@ -29,7 +29,7 @@ namespace RMuseum.DbContext
         public RMuseumDbContext(DbContextOptions<RMuseumDbContext> options) : base(options)
         {
             IConfigurationRoot configuration = new ConfigurationBuilder()
-                   .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")
+                   .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables() // divan: honour env overrides (Docker)
                    .Build();
             if (bool.Parse(configuration["DatabaseMigrate"]))
             {

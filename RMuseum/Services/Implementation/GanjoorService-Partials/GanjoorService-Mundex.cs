@@ -44,7 +44,7 @@ namespace RMuseum.Services.Implementation
                                     .ToListAsync();
 
             IConfigurationRoot configuration = new ConfigurationBuilder()
-                                          .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")
+                                          .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables() // divan: honour env overrides (Docker)
                                           .Build();
             ImageFileServiceEF imageFileService = new ImageFileServiceEF(context, configuration);
 

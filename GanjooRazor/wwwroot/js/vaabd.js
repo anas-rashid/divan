@@ -140,7 +140,7 @@ function vaabSelectionChanged() {
         target: '_blank',
     });
     $search.attr({
-        href: text.indexOf(' ') == -1 ? 'https://ganjoor.net/search?s=' + encodeURI(text) : 'https://ganjoor.net/search?s="' + encodeURI(text) + '"',
+        href: text.indexOf(' ') == -1 ? '/search?s=' + encodeURI(text) : '/search?s="' + encodeURI(text) + '"',
         title: 'جستجوی عبارت در دیوان',
         target: '_blank',
     });

@@ -142,7 +142,7 @@ namespace RMuseum
                     ValidateAudience = false,
                     ValidAudience = "Everyone",
                     ValidateIssuer = true,
-                    ValidIssuer = "Ganjoor",
+                    ValidIssuer = Configuration.GetSection("RSecurityBackend")["ApplicationName"] ?? "Ganjoor", // divan: issuer follows ApplicationName (the token issuer)
 
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{Configuration.GetSection("Security")["Secret"]}")),

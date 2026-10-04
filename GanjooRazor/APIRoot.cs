@@ -18,7 +18,7 @@ namespace GanjooRazor
                 if (!string.IsNullOrEmpty(_url))
                     return _url;
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")
+                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables() // divan: honour env overrides (Docker)
                     .Build();
                 _url = configuration["APIRoot"];
                 return _url;
@@ -39,7 +39,7 @@ namespace GanjooRazor
                 if (!string.IsNullOrEmpty(_InternetUrl))
                     return _InternetUrl;
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")
+                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables() // divan: honour env overrides (Docker)
                     .Build();
                 _InternetUrl = configuration["GlobalAPIRoot"];
                 return _InternetUrl;
@@ -64,7 +64,7 @@ namespace GanjooRazor
                 if (!string.IsNullOrEmpty(_semanticSearchUrl))
                     return _semanticSearchUrl;
                 IConfigurationRoot configuration = new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json")
+                    .SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("appsettings.json").AddEnvironmentVariables() // divan: honour env overrides (Docker)
                     .Build();
                 _semanticSearchUrl = configuration["SemanticSearchAPIRoot"];
                 return _semanticSearchUrl;
