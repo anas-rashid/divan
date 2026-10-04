@@ -1,3 +1,5 @@
+> **This is Divan (دیوان)**, a fork of GanjoorService that serves classical Urdu poetry and prose. See [DIVAN.md](DIVAN.md) for what changed and how to deploy it. The original README follows.
+
 # GanjoorService
 Ganjoor museum and ganjoor.net own backend (ASP.NET Core Web API) and frontend (Razor Pages) code
 

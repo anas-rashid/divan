@@ -261,3 +261,4 @@ __pycache__/
 *.pyc
 /Museum/dist/js
 /Museum/src/dist
+.env

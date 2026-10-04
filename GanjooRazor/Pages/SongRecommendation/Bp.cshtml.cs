@@ -1,4 +1,4 @@
-using GanjooRazor.Models.BeepTunes;
+﻿using GanjooRazor.Models.BeepTunes;
 using GanjooRazor.Utils;
 using GSpotifyProxy.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -151,7 +151,7 @@ namespace GanjooRazor.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
                
 

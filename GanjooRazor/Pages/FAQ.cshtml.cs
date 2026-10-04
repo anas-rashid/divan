@@ -33,7 +33,7 @@ namespace GanjooRazor.Pages
                 return maintenanceResult;
             }
 
-            ViewData["Title"] = $"گنجور » پرسش‌های متداول";
+            ViewData["Title"] = $"دیوان » پرسش‌های متداول";
             InitializeCommonPageState();
 
             var (poetsOk, poets, poetsError) = await _poetCache.GetPoetsAsync(EditorCacheBypass);

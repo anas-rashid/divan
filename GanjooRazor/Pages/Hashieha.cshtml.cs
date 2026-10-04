@@ -135,7 +135,7 @@ namespace GanjooRazor.Pages
                 Contributions = JsonConvert.DeserializeObject<UserContributionsViewModel>(await responseContributions.Content.ReadAsStringAsync());
 
 
-                ViewData["Title"] = $"گنجور » حاشیه‌گذاری‌های {Profile.NickName}";
+                ViewData["Title"] = $"دیوان » حاشیه‌گذاری‌های {Profile.NickName}";
 
                 Title = $"حاشیه‌گذاری‌های {Profile.NickName}";
                 HomeLink = $"/hashieha?userid={filterUserId}";
@@ -217,7 +217,7 @@ namespace GanjooRazor.Pages
                 htmlText += $"</div>{Environment.NewLine}";
             }
 
-            ViewData["Title"] = $"گنجور » {Title}";
+            ViewData["Title"] = $"دیوان » {Title}";
             PagingToolsHtml = htmlText;
 
             return Page();

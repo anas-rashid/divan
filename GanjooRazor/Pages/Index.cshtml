@@ -6,17 +6,17 @@
 }
 
 @section Head {
-    <meta name="description" content="جستجو در شعر فارسی">
+    <meta name="description" content="اردو کی کلاسیکی شاعری اور نثر">
 }
 
 @if (Model.OfflineMode)
 {
     <div class="notice">
         <p>
-            از آنجا که شما با شبکهٔ داخلی اطلاعات ایران وصل شده‌اید در حال مشاهدهٔ یک نسخهٔ آفلاین از گنجور هستید.
+            از آنجا که شما با شبکهٔ داخلی اطلاعات ایران وصل شده‌اید در حال مشاهدهٔ یک نسخهٔ آفلاین از دیوان هستید.
         </p>
         <p>
-            این یک نسخهٔ آفلاین با اطلاعات قدیمی از سایت گنجور است که برای ایرانیان داخل کشور که اینترنتشان قطع است در دسترس قرار گرفته است.
+            این یک نسخهٔ آفلاین با اطلاعات قدیمی از سایت دیوان است که برای ایرانیان داخل کشور که اینترنتشان قطع است در دسترس قرار گرفته است.
         </p>
         <p>
             بعضی امکاناتِ نیازمند اینترنت حذف شده و برخی قابلیتها نیز ممکن است به درستی کار نکند.
@@ -25,7 +25,7 @@
             امکانات نام‌نویسی و درج حاشیه نیز در آن غیرفعال است. اگر می‌توانید جایی اطلاعاتی وارد کنید انتظار ذخیرهٔ آن را به طور دائم نداشته باشید.
         </p>
         <p>
-            نسخهٔ به‌روز گنجور روی اینترنت تا پایان قطعی اینترنت در ایران برای آی.پی‌های خارج از ایران در دسترس است.
+            نسخهٔ به‌روز دیوان روی اینترنت تا پایان قطعی اینترنت در ایران برای آی.پی‌های خارج از ایران در دسترس است.
         </p>
     </div>
 }
@@ -33,10 +33,10 @@ else if (Model.ReadOnlyMode)
 {
     <div class="notice">
         <p>
-            گنجور در حال حاضر در وضعیت فقط‌خواندنی است.
+            دیوان اس وقت صرف پڑھنے کے لیے دستیاب ہے۔
         </p>
         <p>
-            امکانات نام‌نویسی و درج حاشیه نیز در آن غیرفعال است. اگر می‌توانید جایی اطلاعاتی وارد کنید انتظار ذخیرهٔ آن را به طور دائم نداشته باشید.
+            رکنیت اور حاشیہ لکھنے کی سہولت فی الحال بند ہے؛ یہاں درج کی گئی کوئی بھی چیز محفوظ نہیں رہے گی۔
         </p>
     </div>
 }
@@ -50,7 +50,7 @@ else if (Model.ReadOnlyMode)
 else
 {
     <div id="hdr">
-        <h1><a href="/" title="گنجور"><img src="/image/gdap.png" alt="گنجور" class="home-logo"></a></h1>
+        <h1><a href="/" title="دیوان" class="divan-wordmark">دیوان</a></h1>
     </div>
 
     <div id="fa">
@@ -58,12 +58,12 @@ else
         <div class="actionbox">
             <form action="/search" method="get" id="searchhorm">
                 <span class="home-search-input-wrap">
-                    <input type="text" name="s" id="s" placeholder="جستجو" class="inputText" size="35" value="" oninput="onHomeSearchInput(this.value)">
-                    <span id="home-search-clear" class="home-search-clear" style="display:none" title="پاک‌کردن" onclick="clearHomeSearch()">×</span>
+                    <input type="text" name="s" id="s" placeholder="تلاش" class="inputText" size="35" value="" oninput="onHomeSearchInput(this.value)">
+                    <span id="home-search-clear" class="home-search-clear" style="display:none" title="صاف کریں" onclick="clearHomeSearch()">×</span>
                 </span>
                 <input type="hidden" name="es" id="es" value="1">
                 <select name="author" id="author">
-                    <option value="0" selected>در آثار همهٔ سخنوران</option>
+                    <option value="0" selected>تمام شعرا کے کلام میں</option>
                     @{
                         foreach (RMuseum.Models.Ganjoor.ViewModels.GanjoorPoetViewModel poet in Model.Poets)
                         {
@@ -71,12 +71,12 @@ else
                         }
                     }
                 </select>
-                <input type="submit" value="بیاب">
+                <input type="submit" value="تلاش کریں">
             </form>
         </div>
 
         <div class="spacer" id="home-found-poets" style="display:none"></div>
-        <p class="up-hint" id="home-search-hint" style="display:none"><small>برای جستجو در متون «بیاب» را بزنید، فهرست زیر تنها حاصل جستجو در فهرست سخنوران و کتابهاست.</small></p>
+        <p class="up-hint" id="home-search-hint" style="display:none"><small>متن میں تلاش کے لیے «تلاش کریں» دبائیں؛ نیچے کی فہرست صرف شعرا اور کتابوں کے ناموں میں تلاش کا نتیجہ ہے۔</small></p>
 
         <partial name="_InlineLoginPartial" model="Model" />
 
@@ -85,7 +85,7 @@ else
 
                     <div id="home-popular-poets-row">
                         <div class="century">
-                            سخنوران پرمخاطب
+                            مقبول شعرا
                         </div>
 
                         @{
@@ -115,7 +115,7 @@ else
 
                     @{
                         <div class="century" id="cl">
-                            دسته‌بندی بر اساس قرن
+                            صدیوں کے لحاظ سے
                         </div>
 
                         <div id="real-centuries">
@@ -163,7 +163,7 @@ else
                                 @if (poetGroup.Id == 0)
                                 {
                                     <div class="century" id="cl">
-                                        دسته‌بندی بر اساس قرن
+                                        صدیوں کے لحاظ سے
                                     </div>
                                     <div class="circled-number-container">
                                         @foreach (var g in Model.PoetGroups)
@@ -187,24 +187,24 @@ else
 
                     <div class="century" id="gmap">
                         <a href="/map">
-                            نقشهٔ خاستگاه سخنوران
+                            شعرا کی جائے پیدائش کا نقشہ
                         </a>
                     </div>
                     <div class="spacer">
                         <div class="poet">
-                            <a href="/map"><img src="/image/map.gif" alt="نقشهٔ گنجور"></a>
+                            <a href="/map"><img src="/image/map.gif" alt="دیوان کا نقشہ"></a>
                         </div>
                     </div>
 
                     <div class="century" id="books-shelf-caption">
-                        قفسهٔ کتابها
+                        کتابوں کی الماری
                     </div>
                     <div id="books-shelf-outer">
-                        <button type="button" class="books-shelf-handle books-shelf-handle-right" aria-label="نمایش کتابهای بیشتر در سمت راست" onclick="scrollBooksShelf(220)">‹</button>
+                        <button type="button" class="books-shelf-handle books-shelf-handle-right" aria-label="دائیں جانب مزید کتابیں" onclick="scrollBooksShelf(220)">‹</button>
                         <div id="books-shelf-wrap">
-                            <div id="books-shelf" aria-label="قفسهٔ کتابها"></div>
+                            <div id="books-shelf" aria-label="کتابوں کی الماری"></div>
                         </div>
-                        <button type="button" class="books-shelf-handle books-shelf-handle-left" aria-label="نمایش کتابهای بیشتر در سمت چپ" onclick="scrollBooksShelf(-220)">›</button>
+                        <button type="button" class="books-shelf-handle books-shelf-handle-left" aria-label="بائیں جانب مزید کتابیں" onclick="scrollBooksShelf(-220)">›</button>
                     </div>
 
                 </div>

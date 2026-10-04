@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GanjooRazor.Utils;
@@ -53,7 +53,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    return new BadRequestObjectResult("لطفاً از گنجور خارج و مجددا به آن وارد شوید.");
+                    return new BadRequestObjectResult("لطفاً از دیوان خارج و مجددا به آن وارد شوید.");
                 }
             }
             return new JsonResult(true);
@@ -73,7 +73,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    return new BadRequestObjectResult("لطفاً از گنجور خارج و مجددا به آن وارد شوید.");
+                    return new BadRequestObjectResult("لطفاً از دیوان خارج و مجددا به آن وارد شوید.");
                 }
             }
             return new JsonResult(true);

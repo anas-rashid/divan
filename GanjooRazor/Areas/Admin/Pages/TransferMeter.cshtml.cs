@@ -1,4 +1,4 @@
-using GanjooRazor.Utils;
+﻿using GanjooRazor.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
@@ -98,7 +98,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    FatalError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    FatalError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
             }
             return Page();

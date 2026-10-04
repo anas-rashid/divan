@@ -61,16 +61,16 @@ namespace GanjooRazor.Pages
             ViewData["TrackingScript"] = Configuration["TrackingScript"] != null && string.IsNullOrEmpty(Request.Cookies["Token"]) ? Configuration["TrackingScript"].Replace("loggedon", "") : Configuration["TrackingScript"];
             if (PhaseSendEmail)
             {
-                ViewData["Title"] = "گنجور » فراموشی گذرواژه » ورود ایمیل";
+                ViewData["Title"] = "دیوان » فراموشی گذرواژه » ورود ایمیل";
             }
             else
             if (PhaseSendEmail)
             {
-                ViewData["Title"] = "گنجور » فراموشی گذرواژه » ورود رمز دریافتی در ایمیل";
+                ViewData["Title"] = "دیوان » فراموشی گذرواژه » ورود رمز دریافتی در ایمیل";
             }
             else
             {
-                ViewData["Title"] = "گنجور » فراموشی گذرواژه » مرحلهٔ نهایی";
+                ViewData["Title"] = "دیوان » فراموشی گذرواژه » مرحلهٔ نهایی";
             }
         }
 
@@ -90,7 +90,7 @@ namespace GanjooRazor.Pages
 
             ForgotPasswordViewModel = new UnverifiedSignUpViewModel()
             {
-                ClientAppName = "وبگاه گنجور",
+                ClientAppName = "وبگاه دیوان",
                 Language = "fa-IR",
                 CallbackUrl = $"{Configuration["SiteUrl"]}/resetpassword"
             };
@@ -215,7 +215,7 @@ namespace GanjooRazor.Pages
 
             LoginViewModel loginViewModel = new LoginViewModel()
             {
-                ClientAppName = "وبگاه گنجور",
+                ClientAppName = "وبگاه دیوان",
                 Language = "fa-IR",
                 Username = postViewModel.Email,
                 Password = postViewModel.Password

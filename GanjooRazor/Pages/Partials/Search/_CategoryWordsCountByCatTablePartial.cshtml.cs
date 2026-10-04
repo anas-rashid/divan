@@ -15,7 +15,7 @@ namespace GanjooRazor.Pages
         {
             get
             {
-                return Whole ? "گنجور" : "این بخش";
+                return Whole ? "دیوان" : "این بخش";
             }
         }
     }

@@ -1,4 +1,4 @@
-using GanjooRazor.Pages;
+﻿using GanjooRazor.Pages;
 using GanjooRazor.Utils;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -527,7 +527,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                         UrlSlug = tag,
                         ShortName = name,
                         FullName = name,
-                        SourceType = "همراهان گنجور"
+                        SourceType = "همراهان دیوان"
                     };
                 }
 

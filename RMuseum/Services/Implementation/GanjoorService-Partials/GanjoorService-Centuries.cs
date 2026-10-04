@@ -47,7 +47,7 @@ namespace RMuseum.Services.Implementation
                 }
                 res.Add(model);
             }
-            var fa = new CultureInfo("fa-IR");
+            var fa = new CultureInfo("ur-PK");
             foreach (var dbCentury in dbCenturies)
             {
                 GanjoorCenturyViewModel model = new GanjoorCenturyViewModel()
@@ -106,7 +106,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 1,
-                        Name = "قرن سوم",
+                        Name = "تیسری صدی ہجری",
                         StartYear = 0,
                         EndYear = 299,
                         ShowInTimeLine = true,
@@ -114,7 +114,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 2,
-                        Name = "قرن چهارم",
+                        Name = "چوتھی صدی ہجری",
                         StartYear = 300,
                         EndYear = 399,
                         ShowInTimeLine = true,
@@ -122,7 +122,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 3,
-                        Name = "قرن پنجم",
+                        Name = "پانچویں صدی ہجری",
                         StartYear = 400,
                         EndYear = 499,
                         ShowInTimeLine = true,
@@ -130,7 +130,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 4,
-                        Name = "قرن ششم",
+                        Name = "چھٹی صدی ہجری",
                         StartYear = 500,
                         EndYear = 599,
                         ShowInTimeLine = true,
@@ -138,7 +138,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 5,
-                        Name = "قرن هفتم",
+                        Name = "ساتویں صدی ہجری",
                         StartYear = 600,
                         EndYear = 699,
                         ShowInTimeLine = true,
@@ -146,7 +146,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 6,
-                        Name = "قرن هشتم",
+                        Name = "آٹھویں صدی ہجری",
                         StartYear = 700,
                         EndYear = 799,
                         ShowInTimeLine = true,
@@ -154,7 +154,7 @@ namespace RMuseum.Services.Implementation
                      new GanjoorCentury()
                     {
                         HalfCenturyOrder = 7,
-                        Name = "قرن نهم",
+                        Name = "نویں صدی ہجری",
                         StartYear = 800,
                         EndYear = 899,
                         ShowInTimeLine = true,
@@ -162,7 +162,7 @@ namespace RMuseum.Services.Implementation
                      new GanjoorCentury()
                     {
                         HalfCenturyOrder = 8,
-                        Name = "قرن دهم",
+                        Name = "دسویں صدی ہجری",
                         StartYear = 900,
                         EndYear = 999,
                         ShowInTimeLine = true,
@@ -170,7 +170,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 9,
-                        Name = "قرن یازدهم",
+                        Name = "گیارہویں صدی ہجری",
                         StartYear = 1000,
                         EndYear = 1099,
                         ShowInTimeLine = true,
@@ -179,7 +179,7 @@ namespace RMuseum.Services.Implementation
                      new GanjoorCentury()
                     {
                         HalfCenturyOrder = 10,
-                        Name = "قرن دوازدهم",
+                        Name = "بارہویں صدی ہجری",
                         StartYear = 1100,
                         EndYear = 1199,
                         ShowInTimeLine = true,
@@ -187,7 +187,7 @@ namespace RMuseum.Services.Implementation
                      new GanjoorCentury()
                     {
                         HalfCenturyOrder = 11,
-                        Name = "قرن سیزدهم",
+                        Name = "تیرہویں صدی ہجری",
                         StartYear = 1200,
                         EndYear = 1299,
                         ShowInTimeLine = true,
@@ -195,7 +195,7 @@ namespace RMuseum.Services.Implementation
                     new GanjoorCentury()
                     {
                         HalfCenturyOrder = 12,
-                        Name = "قرن چهاردهم",
+                        Name = "چودہویں صدی ہجری",
                         StartYear = 1300,
                         EndYear = 1500,
                         ShowInTimeLine = true,

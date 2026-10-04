@@ -1,4 +1,4 @@
-using DNTPersianUtils.Core;
+﻿using DNTPersianUtils.Core;
 using GanjooRazor.Utils;
 using KontorService.Models.Reporting.ViewModels;
 using Microsoft.AspNetCore.Http;
@@ -855,13 +855,13 @@ namespace GanjooRazor.Pages
 
         private void BuildPoetPageTitleAndBreadCrumbs(GoogleBreadCrumbList breadCrumbList)
         {
-            ViewData["Title"] = $"گنجور » {GanjoorPage.PoetOrCat.Poet.Nickname}";
+            ViewData["Title"] = $"دیوان » {GanjoorPage.PoetOrCat.Poet.Nickname}";
             breadCrumbList.AddItem(GanjoorPage.PoetOrCat.Poet.Nickname, GanjoorPage.PoetOrCat.Cat.FullUrl, $"{APIRoot.InternetUrl + GanjoorPage.PoetOrCat.Poet.ImageUrl}");
         }
 
         private void BuildCatPageTitleAndBreadCrumbs(GoogleBreadCrumbList breadCrumbList)
         {
-            string title = $"گنجور » ";
+            string title = $"دیوان » ";
             bool poetCat = true;
             foreach (var gran in GanjoorPage.PoetOrCat.Cat.Ancestors)
             {
@@ -876,7 +876,7 @@ namespace GanjooRazor.Pages
 
         private void BuildPoemPageTitleAndBreadCrumbs(GoogleBreadCrumbList breadCrumbList)
         {
-            ViewData["Title"] = $"گنجور » {GanjoorPage.Poem.FullTitle}";
+            ViewData["Title"] = $"دیوان » {GanjoorPage.Poem.FullTitle}";
             bool poetCat = true;
             foreach (var gran in GanjoorPage.Poem.Category.Cat.Ancestors)
             {
@@ -905,7 +905,7 @@ namespace GanjooRazor.Pages
             if (GanjoorPage.PoetOrCat != null)
             {
                 bool poetCat = true;
-                string fullTitle = "گنجور » ";
+                string fullTitle = "دیوان » ";
                 if (GanjoorPage.PoetOrCat.Cat.Ancestors.Count == 0)
                 {
                     fullTitle += $"{GanjoorPage.PoetOrCat.Poet.Nickname} » ";
@@ -924,7 +924,7 @@ namespace GanjooRazor.Pages
             }
             else
             {
-                ViewData["Title"] = $"گنجور » {GanjoorPage.FullTitle}";
+                ViewData["Title"] = $"دیوان » {GanjoorPage.FullTitle}";
             }
             breadCrumbList.AddItem(GanjoorPage.Title, GanjoorPage.FullUrl, "https://i.ganjoor.net/cat.png");
         }

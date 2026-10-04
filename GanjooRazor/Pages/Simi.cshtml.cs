@@ -236,7 +236,7 @@ namespace GanjooRazor.Pages
 
             if (!anyParamsGiven)
             {
-                ViewData["Title"] = $"گنجور » شعر‌ها یا ابیات مشابه";
+                ViewData["Title"] = $"دیوان » شعر‌ها یا ابیات مشابه";
                 return Page();
             }
 
@@ -403,7 +403,7 @@ namespace GanjooRazor.Pages
                 htmlText += $"</div>{Environment.NewLine}";
             }
 
-            ViewData["Title"] = $"گنجور » {title}";
+            ViewData["Title"] = $"دیوان » {title}";
             PagingToolsHtml = htmlText;
 
             return Page();

@@ -1,4 +1,4 @@
-using GanjooRazor.Models.MuseumLink;
+﻿using GanjooRazor.Models.MuseumLink;
 using GanjooRazor.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -41,7 +41,7 @@ namespace GanjooRazor.Pages
             LoggedIn = !string.IsNullOrEmpty(Request.Cookies["Token"]);
             if(!LoggedIn)
             {
-                LastError = $"برای پیشنهاد تصاویر مرتبط با اشعار لازم است ابتدا با نام کاربری خود وارد گنجور شوید. </p><p><a href=\"/login/?redirect={RelatedImageSuggestionModel.GanjoorUrl}\")>ورود به گنجور</a>";
+                LastError = $"برای پیشنهاد تصاویر مرتبط با اشعار لازم است ابتدا با نام کاربری خود وارد دیوان شوید. </p><p><a href=\"/login/?redirect={RelatedImageSuggestionModel.GanjoorUrl}\")>ورود به دیوان</a>";
             }
             else
             if (Request.Query["final"] == "1")
@@ -74,7 +74,7 @@ namespace GanjooRazor.Pages
                     }
                     else
                     {
-                        LastError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                        LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                     }
                 }
             }

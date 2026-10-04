@@ -41,7 +41,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
             }
 
@@ -56,7 +56,7 @@ namespace GanjooRazor.Areas.Admin.Pages
             using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
             {
                 if (!await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                    return BadRequest("لطفاً از گنجور خارج و مجددا به آن وارد شوید.");
+                    return BadRequest("لطفاً از دیوان خارج و مجددا به آن وارد شوید.");
 
                 var newRole = new { name = name, description = description };
                 var response = await secureClient.PostAsync($"{APIRoot.Url}/api/roles", new StringContent(JsonConvert.SerializeObject(newRole), Encoding.UTF8, "application/json"));
@@ -75,7 +75,7 @@ namespace GanjooRazor.Areas.Admin.Pages
             using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
             {
                 if (!await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                    return BadRequest("لطفاً از گنجور خارج و مجددا به آن وارد شوید.");
+                    return BadRequest("لطفاً از دیوان خارج و مجددا به آن وارد شوید.");
 
                 var response = await secureClient.DeleteAsync($"{APIRoot.Url}/api/roles/{roleName}");
                 if (!response.IsSuccessStatusCode)
@@ -93,7 +93,7 @@ namespace GanjooRazor.Areas.Admin.Pages
             using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
             {
                 if (!await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                    return BadRequest("لطفاً از گنجور خارج و مجددا به آن وارد شوید.");
+                    return BadRequest("لطفاً از دیوان خارج و مجددا به آن وارد شوید.");
 
                 var response = await secureClient.GetAsync($"{APIRoot.Url}/api/roles/permissions/{roleName}");
                 if (!response.IsSuccessStatusCode)
@@ -112,7 +112,7 @@ namespace GanjooRazor.Areas.Admin.Pages
             using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
             {
                 if (!await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                    return BadRequest("لطفاً از گنجور خارج و مجددا به آن وارد شوید.");
+                    return BadRequest("لطفاً از دیوان خارج و مجددا به آن وارد شوید.");
 
                 string body;
                 using (var reader = new StreamReader(Request.Body))

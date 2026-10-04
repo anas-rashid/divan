@@ -1,4 +1,4 @@
-using GanjooRazor.Utils;
+﻿using GanjooRazor.Utils;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
@@ -78,7 +78,7 @@ namespace GanjooRazor.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
             }
 

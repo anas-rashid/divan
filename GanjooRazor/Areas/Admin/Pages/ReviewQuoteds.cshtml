@@ -1,4 +1,4 @@
-@page
+﻿@page
 @using DNTPersianUtils.Core
 @model GanjooRazor.Areas.Admin.Pages.ReviewQuotedsModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
@@ -87,7 +87,7 @@ else
         </div>
 
         <div class="up-field">
-            <label>مصرع اول مرتبط (خارج از گنجور)</label>
+            <label>مصرع اول مرتبط (خارج از دیوان)</label>
             <div class="up-field-static">@Model.GanjoorQuotedPoem.RelatedCoupletVerse1</div>
         </div>
         <div class="up-field">
@@ -95,7 +95,7 @@ else
             <input type="checkbox" disabled @(Model.GanjoorQuotedPoem.RelatedCoupletVerse1ShouldBeEmphasized ? "checked=\"checked\"" : "") />
         </div>
         <div class="up-field">
-            <label>مصرع دوم مرتبط (خارج از گنجور)</label>
+            <label>مصرع دوم مرتبط (خارج از دیوان)</label>
             <div class="up-field-static">@Model.GanjoorQuotedPoem.RelatedCoupletVerse2</div>
         </div>
         <div class="up-field">

@@ -175,22 +175,22 @@ namespace GanjooRazor.Pages
             {
                 if (CatFullTitle != "")
                 {
-                    ViewData["Title"] = $"گنجور » نتایج جستجو برای {Query} در بخش {CatFullTitle}";
+                    ViewData["Title"] = $"دیوان » نتایج جستجو برای {Query} در بخش {CatFullTitle}";
                 }
                 else
                 {
-                    ViewData["Title"] = $"گنجور » نتایج جستجو برای {Query} در آثار {poetName?.Name}";
+                    ViewData["Title"] = $"دیوان » نتایج جستجو برای {Query} در آثار {poetName?.Name}";
                 }
             }
             else
             {
                 if (!string.IsNullOrEmpty(Query))
                 {
-                    ViewData["Title"] = $"گنجور » نتایج جستجو برای {Query}";
+                    ViewData["Title"] = $"دیوان » نتایج جستجو برای {Query}";
                 }
                 else
                 {
-                    ViewData["Title"] = $"گنجور » جستجو";
+                    ViewData["Title"] = $"دیوان » جستجو";
                 }
             }
 

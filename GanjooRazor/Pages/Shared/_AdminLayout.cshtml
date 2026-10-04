@@ -1,6 +1,6 @@
 ﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 <!DOCTYPE html>
-<html lang="fa-IR" dir="rtl">
+<html lang="ur" dir="rtl">
 <head>
     <meta charset="utf-8" />
     <meta name="robots" content="noindex, nofollow" />
@@ -13,10 +13,11 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <link href="/dist/skin/blue.monday/css/jplayer.blue.monday.min.css" rel="stylesheet" type="text/css" />
     <link href="~/css/p8.css" asp-append-version="true" rel="stylesheet" type="text/css" />
+    <partial name="_DivanHead" />
     <link href="~/css/user-panel.css" asp-append-version="true" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="/css/leaflet.css?version=2">
     <link rel="shortcut icon" href="/favicon.ico?version=1" type="image/x-icon" />
-    <link rel="search" type="application/opensearchdescription+xml" title="گنجور" href="https://ganjoor.net/search.xml" />
+    <link rel="search" type="application/opensearchdescription+xml" title="دیوان" href="https://ganjoor.net/search.xml" />
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/js/leaflet.js"></script>
     <script src="~/js/leaflet-providers.js"></script>
@@ -198,7 +199,7 @@
         }
 
         async function regeneratePublicData() {
-            var ok = await upConfirm('آیا از بازسازی و ارسال دادهٔ عمومی گنجور (مخزن گیت) اطمینان دارید؟ ممکن است مدتی طول بکشد.');
+            var ok = await upConfirm('آیا از بازسازی و ارسال دادهٔ عمومی دیوان (مخزن گیت) اطمینان دارید؟ ممکن است مدتی طول بکشد.');
             if (!ok) return;
 
             var url = '?handler=RegeneratePublicData';
@@ -390,7 +391,7 @@
         
 
         async function exportAll() {
-            var ok = await upConfirm('آیا از تولید مجدد همهٔ فایلهای گنجور رومیزی اطمینان دارید؟');
+            var ok = await upConfirm('آیا از تولید مجدد همهٔ فایلهای دیوان رومیزی اطمینان دارید؟');
             if (!ok) return;
 
             var url = '?handler=ExportAll';
@@ -402,7 +403,7 @@
                     upToast('خطا رخ داد.', 'error');
                 },
                 success: function() {
-                    upToast('فرایند تولید مجدد همهٔ فایلهای گنجور رومیزی شروع شد.', 'success');
+                    upToast('فرایند تولید مجدد همهٔ فایلهای دیوان رومیزی شروع شد.', 'success');
                 },
 
             });
@@ -477,7 +478,7 @@
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand" asp-area="" asp-page="/Index" title="گنجور"><img src="/image/gdapk.png" alt="گنجور" style="width:auto;margin:auto;" /></a>
+                <a class="navbar-brand" asp-area="" asp-page="/Index" title="دیوان"><img src="/image/gdapk.png" alt="دیوان" style="width:auto;margin:auto;" /></a>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>

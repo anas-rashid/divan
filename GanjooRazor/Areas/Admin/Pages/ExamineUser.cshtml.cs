@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Threading.Tasks;
 using GanjooRazor.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +39,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
             }
             return Page();

@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model GanjooRazor.Areas.User.Pages.MySessionsModel
 @using DNTPersianUtils.Core
 @using System.Linq
@@ -9,7 +9,7 @@
 }
 <div class="up-page-header">
     <h1>@ViewData["Title"]</h1>
-    <div class="up-page-subtitle">دستگاه‌ها و مرورگرهایی که هم‌اکنون با حساب کاربری شما وارد گنجور شده‌اند. اگر دستگاهی را نمی‌شناسید یا دیگر از آن استفاده نمی‌کنید، آن را از این فهرست خارج کنید.</div>
+    <div class="up-page-subtitle">دستگاه‌ها و مرورگرهایی که هم‌اکنون با حساب کاربری شما وارد دیوان شده‌اند. اگر دستگاهی را نمی‌شناسید یا دیگر از آن استفاده نمی‌کنید، آن را از این فهرست خارج کنید.</div>
 </div>
 @if (Model.LastError == "" && Model.Sessions != null && Model.Sessions.Count(s => s.Id != Model.CurrentSessionId) > 0)
 {

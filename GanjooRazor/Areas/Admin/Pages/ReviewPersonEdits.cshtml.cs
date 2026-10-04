@@ -140,7 +140,7 @@ namespace GanjooRazor.Areas.Admin.Pages
         public async Task<IActionResult> OnPostModerateAsync([FromBody] PersonEditSuggestionModerationRequest pms)
         {
             if (string.IsNullOrEmpty(Request.Cookies["Token"]))
-                return new BadRequestObjectResult("لطفاً از گنجور خارج و مجدداً به آن وارد شوید.");
+                return new BadRequestObjectResult("لطفاً از دیوان خارج و مجدداً به آن وارد شوید.");
 
             if (pms == null || string.IsNullOrEmpty(pms.Result))
             {
@@ -185,7 +185,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    return new BadRequestObjectResult("لطفاً از گنجور خارج و مجدداً به آن وارد شوید.");
+                    return new BadRequestObjectResult("لطفاً از دیوان خارج و مجدداً به آن وارد شوید.");
                 }
             }
         }

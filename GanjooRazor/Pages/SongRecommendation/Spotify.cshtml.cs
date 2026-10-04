@@ -171,7 +171,7 @@ namespace GanjooRazor.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
 
                 await _GetSuggestedSongs();
@@ -225,7 +225,7 @@ namespace GanjooRazor.Pages
                         }
                         else
                         {
-                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از گنجور خارج و مجددا به آن وارد شوید."));
+                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از دیوان خارج و مجددا به آن وارد شوید."));
                         }
                     }
                 }
@@ -413,7 +413,7 @@ namespace GanjooRazor.Pages
                         }
                         else
                         {
-                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از گنجور خارج و مجددا به آن وارد شوید."));
+                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از دیوان خارج و مجددا به آن وارد شوید."));
                         }
                     }
                 }
@@ -524,7 +524,7 @@ namespace GanjooRazor.Pages
                         }
                         else
                         {
-                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از گنجور خارج و مجددا به آن وارد شوید."));
+                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از دیوان خارج و مجددا به آن وارد شوید."));
                         }
                     }
                 }
@@ -627,7 +627,7 @@ namespace GanjooRazor.Pages
                         }
                         else
                         {
-                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از گنجور خارج و مجددا به آن وارد شوید."));
+                            return new BadRequestObjectResult(JsonConvert.DeserializeObject<string>("لطفاً از دیوان خارج و مجددا به آن وارد شوید."));
                         }
                     }
                 }

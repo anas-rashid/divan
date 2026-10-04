@@ -98,7 +98,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    FatalError = "لطفاً از گنجور خارج و مجددا به آن وارد شوید.";
+                    FatalError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
                 }
             }
             return Page();
@@ -171,7 +171,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                 }
                 else
                 {
-                    return new BadRequestObjectResult("لطفاً از گنجور خارج و مجدداً به آن وارد شوید.");
+                    return new BadRequestObjectResult("لطفاً از دیوان خارج و مجدداً به آن وارد شوید.");
                 }
             }
         }

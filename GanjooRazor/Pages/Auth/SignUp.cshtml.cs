@@ -59,16 +59,16 @@ namespace GanjooRazor.Pages
             ViewData["TrackingScript"] = Configuration["TrackingScript"] != null && string.IsNullOrEmpty(Request.Cookies["Token"]) ? Configuration["TrackingScript"].Replace("loggedon", "") : Configuration["TrackingScript"];
             if (SignupPhase1)
             {
-                ViewData["Title"] = "گنجور » نام‌نویسی » ورود ایمیل";
+                ViewData["Title"] = "دیوان » نام‌نویسی » ورود ایمیل";
             }
             else
             if (SignupVerifyEmailPhase)
             {
-                ViewData["Title"] = "گنجور » نام‌نویسی » ورود رمز دریافتی در ایمیل";
+                ViewData["Title"] = "دیوان » نام‌نویسی » ورود رمز دریافتی در ایمیل";
             }
             else
             {
-                ViewData["Title"] = "گنجور » نام‌نویسی » مرحلهٔ نهایی";
+                ViewData["Title"] = "دیوان » نام‌نویسی » مرحلهٔ نهایی";
             }
         }
         public async Task<IActionResult> OnGetAsync()
@@ -87,7 +87,7 @@ namespace GanjooRazor.Pages
 
             SignUpViewModel = new UnverifiedSignUpViewModel()
             {
-                ClientAppName = "وبگاه گنجور",
+                ClientAppName = "وبگاه دیوان",
                 Language = "fa-IR",
                 CallbackUrl = $"{Configuration["SiteUrl"]}/signup"
             };
@@ -227,7 +227,7 @@ namespace GanjooRazor.Pages
 
             LoginViewModel loginViewModel = new LoginViewModel()
             {
-                ClientAppName = "وبگاه گنجور",
+                ClientAppName = "وبگاه دیوان",
                 Language = "fa-IR",
                 Username = postViewModel.Email,
                 Password = postViewModel.Password

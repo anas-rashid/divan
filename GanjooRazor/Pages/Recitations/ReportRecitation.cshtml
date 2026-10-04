@@ -7,15 +7,16 @@
 }
 
 <!DOCTYPE html>
-<html lang="fa-IR" dir="rtl">
+<html lang="ur" dir="rtl">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(HttpContext).RequestToken" />
-    <title>گنجور » گزارش خطا در خوانش</title>
+    <title>دیوان » گزارش خطا در خوانش</title>
     <script src="/lib/jquery/dist/jquery.min.js"></script>
     <link href="~/css/p8.css" asp-append-version="true" rel="stylesheet" type="text/css" />
+    <partial name="_DivanHead" />
     <link href="~/dist/skin/pink.flag/css/jplayer.pink.flag.min.css" rel="stylesheet" type="text/css" />
     <style>
         label {
@@ -55,10 +56,10 @@
             <div class="width-100per">
                 <div class="width-100per text-align-center">
                     <p class="alert-text">
-                        برای ثبت خطا در خوانش‌ها لازم است ابتدا با نام کاربری خود وارد گنجور شوید.
+                        برای ثبت خطا در خوانش‌ها لازم است ابتدا با نام کاربری خود وارد دیوان شوید.
                     </p>
                     <p class="text-align-center">
-                        <a href=@Html.Raw($"/login/?redirect=/ReportRecitation/?a={Model.Report.RecitationId}")>ورود به گنجور</a>
+                        <a href=@Html.Raw($"/login/?redirect=/ReportRecitation/?a={Model.Report.RecitationId}")>ورود به دیوان</a>
                     </p>
                 </div>
             </div>

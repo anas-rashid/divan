@@ -903,7 +903,7 @@ function revealCommentFromUrlHash() {
 
 function rateComment(commentId, value, loggedIn, divSuffix) {
     if (!loggedIn) {
-        alert('برای رأی دادن به حاشیه‌ها لازم است با نام کاربری خود وارد گنجور شوید.');
+        alert('برای رأی دادن به حاشیه‌ها لازم است با نام کاربری خود وارد دیوان شوید.');
         return;
     }
 
@@ -1211,7 +1211,7 @@ function postComment(coupletIndex, buttonSelector) {
 
 function replyComment(commentId, loggedIn, divSuffix) {
     if (!loggedIn) {
-        alert('برای پاسخگویی لازم است با نام کاربری خود وارد گنجور شوید.');
+        alert('برای پاسخگویی لازم است با نام کاربری خود وارد دیوان شوید.');
         return;
     }
     $("#refComment").html($('#comment-text-' + commentId + divSuffix).html());

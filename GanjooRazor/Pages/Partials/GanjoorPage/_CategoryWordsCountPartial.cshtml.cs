@@ -36,7 +36,7 @@ namespace GanjooRazor.Pages
         {
             get
             {
-                return CatId == 0 ? "گنجور" : "این بخش";
+                return CatId == 0 ? "دیوان" : "این بخش";
             }
         }
 

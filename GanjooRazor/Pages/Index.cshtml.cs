@@ -93,7 +93,7 @@ namespace GanjooRazor.Pages
             }
             catch
             {
-                LastError = "خطا در دسترسی به وب سرویس گنجور";
+                LastError = "خطا در دسترسی به وب سرویس دیوان";
                 return false;
             }
         }
@@ -171,7 +171,7 @@ namespace GanjooRazor.Pages
                 return LoggedIn ? Redirect(targetUrl) : Redirect($"/login?redirect={targetUrl}");
             }
 
-            ViewData["Title"] = "گنجور";
+            ViewData["Title"] = "دیوان";
 
             return Page();
         }

@@ -141,7 +141,7 @@ function vaabSelectionChanged() {
     });
     $search.attr({
         href: text.indexOf(' ') == -1 ? 'https://ganjoor.net/search?s=' + encodeURI(text) : 'https://ganjoor.net/search?s="' + encodeURI(text) + '"',
-        title: 'جستجوی عبارت در گنجور',
+        title: 'جستجوی عبارت در دیوان',
         target: '_blank',
     });
     $quran.attr({

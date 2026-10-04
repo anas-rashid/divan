@@ -1,0 +1,15 @@
+﻿@* divan: Urdu fonts (Nastaliq default / Naskh option) + overrides, included in every page <head> after p8.css *@
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&family=Noto+Naskh+Arabic:wght@400..700&display=swap" rel="stylesheet" />
+<link href="~/css/divan.css" asp-append-version="true" rel="stylesheet" type="text/css" />
+<script>
+    // divan: Nastaliq (default) / Naskh font choice, applied before render to avoid a flash
+    try { if (localStorage.getItem("divan-font") === "naskh") document.documentElement.classList.add("font-naskh"); } catch (e) { }
+    function toggleDivanFont() {
+        var naskh = document.documentElement.classList.toggle("font-naskh");
+        try { localStorage.setItem("divan-font", naskh ? "naskh" : "nastaliq"); } catch (e) { }
+        var t = document.getElementById("font-toggle");
+        if (t) t.textContent = naskh ? "نسخ" : "نستعلیق";
+    }
+</script>
