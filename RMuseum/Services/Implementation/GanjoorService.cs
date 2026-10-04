@@ -1963,14 +1963,7 @@ namespace RMuseum.Services.Implementation
                 };
 
 
-                PoemMusicTrackViewModel[] tracks = null;
-                if (songs)
-                {
-                    var songsRes = await GetPoemSongs(id, true, PoemMusicTrackType.All);
-                    if (!string.IsNullOrEmpty(songsRes.ExceptionString))
-                        return new RServiceResult<GanjoorPoemCompleteViewModel>(null, songsRes.ExceptionString);
-                    tracks = songsRes.Result;
-                }
+                PoemMusicTrackViewModel[] tracks = null; // divan: music features removed (models kept so they can be rebuilt later)
 
                 GanjoorCommentSummaryViewModel[] poemComments = null;
 

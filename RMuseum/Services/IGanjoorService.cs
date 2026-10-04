@@ -209,15 +209,6 @@ namespace RMuseum.Services
         Task<RServiceResult<PoemRelatedImage[]>> GetPoemImages(int id);
 
         /// <summary>
-        /// get poem related songs
-        /// </summary>
-        /// <param name="id"></param>
-        /// <param name="approved"></param>
-        /// <param name="trackType"></param>
-        /// <returns></returns>
-        Task<RServiceResult<PoemMusicTrackViewModel[]>> GetPoemSongs(int id, bool approved, PoemMusicTrackType trackType = PoemMusicTrackType.All);
-
-        /// <summary>
         /// get poem comments
         /// </summary>
         /// <param name="poemId"></param>
@@ -277,14 +268,6 @@ namespace RMuseum.Services
         /// <param name="poemId"></param>
         /// <returns></returns>
         Task<RServiceResult<GanjoorPoemCorrectionViewModel>> GetLastUnreviewedUserCorrectionForPoem(Guid userId, int poemId);
-
-        /// <summary>
-        /// user suggested songs
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="paging"></param>
-        /// <returns></returns>
-        Task<RServiceResult<(PaginationMetadata PagingMeta, PoemMusicTrackViewModel[] Items)>> GetUserSuggestedSongs(Guid userId, PagingParameterModel paging);
 
         /// <summary>
         /// get user or all corrections
@@ -357,70 +340,10 @@ namespace RMuseum.Services
         void UpdateRelatedSections(int metreId, string rhyme);
 
         /// <summary>
-        /// next unreviewed track
-        /// </summary>
-        /// <param name="skip"></param>
-        /// <param name="suggestedById"></param>
-        /// <returns></returns>
-        Task<RServiceResult<PoemMusicTrackViewModel>> GetNextUnreviewedSong(int skip, Guid suggestedById);
-
-        /// <summary>
-        /// get track of user song suggestions
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        Task<RServiceResult<UserSongSuggestionsHistory>> GetUserSongsSuggestionsStatistics(Guid userId);
-
-        /// <summary>
-        /// suggest song
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <param name="song"></param>
-        /// <returns></returns>
-        Task<RServiceResult<PoemMusicTrackViewModel>> SuggestSong(Guid userId, PoemMusicTrackViewModel song);
-
-        /// <summary>
-        /// get unreviewed count
-        /// </summary>
-        /// <param name="suggestedById"></param>
-        /// <returns></returns>
-        Task<RServiceResult<int>> GetUnreviewedSongsCount(Guid suggestedById);
-
-        /// <summary>
-        /// review song
-        /// </summary>
-        /// <param name="song"></param>
-        /// <returns></returns>
-        Task<RServiceResult<PoemMusicTrackViewModel>> ReviewSong(PoemMusicTrackViewModel song);
-
-        /// <summary>
-        /// direct insert song
-        /// </summary>
-        /// <param name="song"></param>
-        /// <returns></returns>
-        Task<RServiceResult<PoemMusicTrackViewModel>> DirectInsertSong(PoemMusicTrackViewModel song);
-
-        /// <summary>
         /// get song by id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-
-        Task<RServiceResult<PoemMusicTrackViewModel>> GetPoemSongById(int id);
-
-        /// <summary>
-        /// modify a published song
-        /// </summary>
-        /// <param name="song"></param>
-        /// <returns></returns>
-        Task<RServiceResult<PoemMusicTrackViewModel>> ModifyPublishedSong(PoemMusicTrackViewModel song);
-
-        /// <summary>
-        /// delete poem song by id
-        /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        Task<RServiceResult<bool>> DeletePoemSongById(int id);
 
         /// <summary>
         /// new comment
@@ -861,12 +784,6 @@ namespace RMuseum.Services
         /// </summary>
         /// <returns></returns>
         RServiceResult<bool> StartUpdatingStatsPage(Guid editingUserId);
-
-        /// <summary>
-        /// start updating mundex page
-        /// </summary>
-        /// <returns></returns>
-        RServiceResult<bool> StartUpdatingMundexPage(Guid editingUserId);
 
 
         /// <summary>

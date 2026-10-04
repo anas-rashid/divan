@@ -84,9 +84,6 @@ namespace GanjooRazor
                 options.Conventions.AddPageRoute("/Auth/SignUp", "/SignUp");
                 options.Conventions.AddPageRoute("/Auth/ResetPassword", "/ResetPassword");
 
-                options.Conventions.AddPageRoute("/SongRecommendation/Bp", "/Bp");
-                options.Conventions.AddPageRoute("/SongRecommendation/Golha", "/Golha");
-                options.Conventions.AddPageRoute("/SongRecommendation/Spotify", "/Spotify");
 
                 options.Conventions.AddPageRoute("/ImageRecommendation/Pin", "/Pin");
 

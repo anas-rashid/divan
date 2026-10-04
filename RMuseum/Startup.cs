@@ -279,7 +279,6 @@ namespace RMuseum
             services.AddTransient<IGanjoorService, GanjoorService>();
 
             //music catalogue service
-            services.AddTransient<IMusicCatalogueService, MusicCatalogueService>();
 
             //long running job service
             services.AddTransient<ILongRunningJobProgressService, LongRunningJobProgressServiceEF>();
