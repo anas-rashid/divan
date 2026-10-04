@@ -18,12 +18,14 @@ stop() { pkill -f "dotnet RMuseum.dll" || true; pkill -f "dotnet DivanRazor.dll"
 if [ "${1:-}" = stop ]; then stop; echo stopped; exit 0; fi
 
 # 1. SQL Server (x86-64 image; runs under Rosetta on Apple Silicon)
-if ! docker ps --format '{{.Names}}' | grep -qx divan-mssql; then
+if [ -z "$(docker ps -q -f name=^divan-mssql$)" ]; then
   docker start divan-mssql 2>/dev/null || docker run -d --name divan-mssql --platform linux/amd64 \
     -e ACCEPT_EULA=Y -e MSSQL_PID=Express -e "MSSQL_SA_PASSWORD=$SA_PASSWORD" -p 1433:1433 \
     -v divan-mssql:/var/opt/mssql --restart unless-stopped mcr.microsoft.com/mssql/server:2022-latest
-  echo "waiting for SQL Server..."; until docker logs divan-mssql 2>&1 | grep -q "ready for client connections"; do sleep 3; done
 fi
+# wait until SQL Server accepts queries (also covers a container auto-started by Docker/Colima a moment ago)
+echo "waiting for SQL Server..."
+until docker exec divan-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P "$SA_PASSWORD" -Q "SELECT 1" >/dev/null 2>&1; do sleep 3; done
 
 # 2. publish (from RMuseum/: its global.json pins the SDK newer Razor compilers can't build with)
 stop
@@ -49,14 +51,14 @@ d['RSecurityBackend']['FirstUserEmail'] = os.environ['RSecurityBackend__FirstUse
 json.dump(d, open(f, 'w', encoding='utf-8'), ensure_ascii=False, indent=2)
 PY
 ASPNETCORE_URLS=http://localhost:5100 nohup dotnet RMuseum.dll > "$RUN/logs/api.log" 2>&1 &)
-until grep -q "Now listening" "$RUN/logs/api.log" 2>/dev/null; do sleep 2; done
-curl -s -o /dev/null http://localhost:5100/api/divan/poets  # first request creates/migrates the database
+# wait for the API (its log level hides "Now listening" outside Development); the first request creates/migrates the database
+until curl -s -o /dev/null --max-time 300 http://localhost:5100/api/divan/poets; do sleep 2; done
 
 # 4. site
 (cd "$RUN/site" && APIRoot=http://localhost:5100 GlobalAPIRoot=http://localhost:5100 SiteUrl=http://localhost:5200 \
   DataProtectionPersistPath=$RUN/keys TrackingScript="" SemanticSearchAPIRoot="" ASPNETCORE_URLS=http://localhost:5200 \
   nohup dotnet DivanRazor.dll > "$RUN/logs/site.log" 2>&1 &)
-until grep -q "Now listening" "$RUN/logs/site.log" 2>/dev/null; do sleep 2; done
+until curl -s -o /dev/null http://localhost:5200/; do sleep 2; done
 
 # 5. optional data import (background job; ~1 hour for all 11k poems; re-running only adds what's missing)
 if [ "${1:-}" = import ]; then

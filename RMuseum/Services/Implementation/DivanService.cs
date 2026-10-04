@@ -152,7 +152,7 @@ namespace RMuseum.Services.Implementation
             if (cat == null)
                 return new RServiceResult<Guid>(Guid.Empty);
             var poet = await _context.DivanPoets.Where(p => p.Id == cat.PoetId).AsNoTracking().SingleOrDefaultAsync();
-            return new RServiceResult<Guid>((Guid)poet.RImageId);
+            return new RServiceResult<Guid>(poet?.RImageId ?? Guid.Empty); // divan: no portrait -> placeholder (was a null cast -> 500)
         }
 
         /// <summary>
