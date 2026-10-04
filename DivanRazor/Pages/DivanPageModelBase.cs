@@ -28,7 +28,7 @@ namespace DivanRazor.Pages
         /// Message shown whenever an action requiring a session couldn't prepare an authenticated
         /// client (expired/missing cookies).
         /// </summary>
-        protected const string NotLoggedInMessage = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
+        protected const string NotLoggedInMessage = "براہِ کرم دیوان سے خروج کر کے دوبارہ داخل ہوں.";
 
         /// <summary>
         /// HttpClient instance for unauthenticated/public calls (injected, shared/pooled by the DI

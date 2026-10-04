@@ -10,32 +10,32 @@
 else
 {
     <div class="up-modal-explorer">
-        <h2>کاوش در شخصیت‌ها</h2>
+        <h2>شخصیات کی تلاش</h2>
 
         @if (Model.FamilyTreeRoots != null && Model.FamilyTreeRoots.Count > 0)
         {
-            <h3>تبارنامه‌ها</h3>
+            <h3>شجرے</h3>
             <ul>
                 @foreach (var root in Model.FamilyTreeRoots)
                 {
                     <li>
                         <a href="javascript:void(0)" onclick="PersonWindow.open(@root.Id)">@root.FamilyTreeCaption</a>
                         <small>(@root.Name)</small>
-                        — <a href="javascript:void(0)" onclick="FamilyTreeWindow.open(@root.Id)"><small>نمایش نمودار</small></a>
+                        — <a href="javascript:void(0)" onclick="FamilyTreeWindow.open(@root.Id)"><small>خاکہ دکھائیں</small></a>
                     </li>
                 }
             </ul>
         }
 
-        <h3>شبکهٔ روابط همهٔ شخصیت‌ها</h3>
+        <h3>تمام شخصیات کے روابط کا جال</h3>
         <p class="up-hint"><small>
-            روی یک گره کلیک کنید تا فقط ارتباط‌های همان شخص برجسته شود (کلیک دوباره برای بازگشت)؛ روی نام یک شخصیت (زیر گره یا در جدول) کلیک کنید تا اطلاعات کامل او باز شود.
-            برای پیمایش نمودار آن را با ماوس بکشید و با غلتک ماوس بزرگ/کوچک کنید.
+            کسی گرہ پر کلک کریں تاکہ صرف اسی شخص کے روابط نمایاں ہوں (واپسی کے لیے دوبارہ کلک کریں)؛ کسی شخصیت کے نام پر کلک کریں تو اس کی مکمل معلومات کھل جائیں گی۔
+            خاکے کو ماؤس سے کھینچیں اور ماؤس کے پہیے سے بڑا/چھوٹا کریں.
         </small></p>
 
         <div style="margin-bottom:10px;">
-            <input type="text" id="pge-search" placeholder="جستجوی نام شخصیت..." style="width:240px;" />
-            <a role="button" id="pge-reset" class="up-btn up-btn--ghost up-btn--sm">نمایش همه</a>
+            <input type="text" id="pge-search" placeholder="شخصیت کا نام تلاش کریں..." style="width:240px;" />
+            <a role="button" id="pge-reset" class="up-btn up-btn--ghost up-btn--sm">سب دکھائیں</a>
         </div>
 
         <div id="pge-legend" class="pg-legend"></div>
@@ -50,10 +50,10 @@ else
             <table class="up-table">
                 <thead>
                     <tr>
-                        <th>شخص اول</th>
-                        <th>نوع ارتباط</th>
-                        <th>شخص دوم</th>
-                        <th>یادداشت</th>
+                        <th>پہلا شخص</th>
+                        <th>رشتے کی نوعیت</th>
+                        <th>دوسرا شخص</th>
+                        <th>نوٹ</th>
                     </tr>
                 </thead>
                 <tbody id="pge-table-body"></tbody>

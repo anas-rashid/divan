@@ -34,7 +34,7 @@ namespace DivanRazor.Pages
         {
             get
             {
-                return IsBookmarked ? "حذف نشان" : "نشان کردن";
+                return IsBookmarked ? "نشان ہٹائیں" : "نشان لگائیں";
             }
         }
 

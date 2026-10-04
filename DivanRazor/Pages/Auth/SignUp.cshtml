@@ -24,7 +24,7 @@
             @if (Model.LoggedIn)
             {
                 <div class="background-red color-white">
-                    <p>شما پیشتر نام‌نویسی کرده‌اید!</p>
+                    <p>آپ پہلے سے رکن ہیں!</p>
                 </div>
             }
             else
@@ -36,10 +36,10 @@
 
                         <tr class="nobackground">
                             <td class="noborder">
-                                <span class="inputlabel">پست الکترونیکی: </span>
+                                <span class="inputlabel">ای میل: </span>
                             </td>
                             <td class="noborder">
-                                <input type="email" asp-for="SignUpViewModel.Email" class="signupemail" placeholder="پست الکترونیکی" />
+                                <input type="email" asp-for="SignUpViewModel.Email" class="signupemail" placeholder="ای میل" />
                             </td>
                         </tr>
 
@@ -47,7 +47,7 @@
                             <td class="noborder" colspan="2">
                                 <div class="notice width-100per">
                                     <p>
-                                        برای نام‌نویسی در دیوان نیاز به یک ایمیل دارید. فرایند نام‌نویسی با ارسال یک رمز به ایمیل (پست الکترونیکی) شما ادامه پیدا می‌کند و اگر ایمیلتان درست نباشد یا به آن دسترسی نداشته باشید نمی‌توانید در دیوان نام‌نویسی کنید.
+                                        دیوان کی رکنیت کے لیے ای میل درکار ہے۔ رکنیت کا عمل آپ کی ای میل پر ایک کوڈ بھیج کر آگے بڑھتا ہے؛ اگر ای میل درست نہ ہو یا آپ کو اس تک رسائی نہ ہو تو رکنیت ممکن نہیں.
                                     </p>
                                 </div>
                             </td>
@@ -55,10 +55,10 @@
 
                         <tr class="nobackground">
                             <td class="noborder">
-                                <span class="inputlabel">تصویر امنیتی:</span>
+                                <span class="inputlabel">حفاظتی تصویر:</span>
                             </td>
                             <td class="noborder">
-                                <img src="@Model.CaptchaImageUrl" alt="تصویر امنیتی" width="100" />
+                                <img src="@Model.CaptchaImageUrl" alt="حفاظتی تصویر" width="100" />
                                 <input type="hidden" asp-for="SignUpViewModel.ClientAppName" />
                                 <input type="hidden" asp-for="SignUpViewModel.Language" />
                                 <input type="hidden" asp-for="SignUpViewModel.CallbackUrl" />
@@ -70,7 +70,7 @@
                             <td class="noborder" colspan="2">
                                 <div class="notice width-100per">
                                     <p>
-                                        تصویر امنیتی بالا کمک می‌کند بین کاربران واقعی و رباتها و برنامه‌های کامپیوتری تمایز قائل شویم. لطفاً عددی را که در تصویر امنیتی بالا می‌بینید در کادر زیر وارد کنید:
+                                        اوپر کی حفاظتی تصویر حقیقی صارفین اور خودکار پروگراموں میں فرق کرنے میں مدد دیتی ہے۔ براہِ کرم تصویر میں نظر آنے والا عدد نیچے کے خانے میں لکھیں:
                                     </p>
                                 </div>
 
@@ -79,26 +79,26 @@
 
                         <tr class="nobackground">
                             <td class="noborder">
-                                <span class="inputlabel">عدد تصویر امنیتی: </span>
+                                <span class="inputlabel">حفاظتی تصویر کا عدد: </span>
                             </td>
                             <td class="noborder">
-                                <input asp-for="SignUpViewModel.CaptchaValue" class="signupemail" placeholder="عدد تصویر امنیتی" />
+                                <input asp-for="SignUpViewModel.CaptchaValue" class="signupemail" placeholder="حفاظتی تصویر کا عدد" />
                             </td>
                         </tr>
 
                         <tr class="nobackground">
-                            <td class="noborder" colspan="2"><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="ادامه" /></td>
+                            <td class="noborder" colspan="2"><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="جاری رکھیں" /></td>
                         </tr>
 
                         <tr class="nobackground">
                             <td class="noborder" colspan="2">
                                 <div class="background-red color-white"><p>@Model.LastError</p></div>
                                 <div class="notice width-100per">
-                                    <p>لطفاً به نکات زیر توجه کنید:</p>
-                                    <p>۱. اگر پیشتر در گنجینهٔ دیوان یا پیشخان خوانشگران دیوان نام‌نویسی کرده‌اید می‌توانید با همان اطلاعات کاربری در دیوان وارد شوید و نیاز به و امکان نام‌نویسی مجدد با همان ایمیل را ندارید. </p>
-                                    <p>۲. برای مطالعهٔ اشعار نیازی به نام‌نویسی ندارید. نام‌نویسی برای درج حاشیه و مشارکت در سایت مورد نیاز است.</p>
-                                    <p>۳. دیوان اطلاعاتی راجع به این که شما با نام کاربری خود چه صفحاتی را مطالعه می‌کنید جمع آوری نمی‌کند. برای اطمینان مفاد صفحهٔ <a href="/privacy">حریم خصوصی</a> را مطالعه بفرمایید.</p>
-                                    <p>۴. بعد از نام‌نویسی امکان حذف حساب کاربری خود را دارید. با این کار اطلاعات خاص شما مثل حاشیه‌ها و خوانش‌ها حذف می‌شود و مشارکت‌های شما مثل ویرایش‌ها و ... به نام کاربر سیستم دیوان ثبت می‌شود.</p>
+                                    <p>براہِ کرم ان نکات پر دھیان دیں:</p>
+                                    <p>۱. اگر آپ پہلے سے دیوان کے رکن ہیں تو انہی معلومات سے داخل ہوں؛ اسی ای میل سے دوبارہ رکنیت ممکن نہیں. </p>
+                                    <p>۲. اشعار پڑھنے کے لیے رکنیت ضروری نہیں؛ حاشیہ لکھنے اور سائٹ میں حصہ لینے کے لیے رکنیت درکار ہے.</p>
+                                    <p>۳. دیوان یہ معلومات جمع نہیں کرتا کہ آپ اپنے اکاؤنٹ سے کون سے صفحات پڑھتے ہیں۔ اطمینان کے لیے <a href="/privacy">رازداری</a> کا صفحہ پڑھ لیں.</p>
+                                    <p>۴. رکنیت کے بعد آپ اپنا اکاؤنٹ حذف کر سکتے ہیں؛ اس سے آپ کے حاشیے اور قرأتیں حذف ہو جائیں گی اور ترامیم جیسی شراکتیں دیوان کے نظامی صارف کے نام منتقل ہو جائیں گی.</p>
                                 </div>
                             </td>
                         </tr>
@@ -117,26 +117,26 @@
 
                         <tr class="nobackground">
                             <td class="noborder">
-                                <span class="inputlabel">رمز دریافتی:</span>
+                                <span class="inputlabel">موصولہ کوڈ:</span>
                             </td>
                             <td class="noborder">
-                                <input asp-for="Secret" class="signupemail" placeholder="رمز دریافتی" />
+                                <input asp-for="Secret" class="signupemail" placeholder="موصولہ کوڈ" />
                             </td>
                         </tr>
 
                         <tr class="nobackground">
                             <td class="noborder" colspan="2">
                                 <div class="notice width-100per">
-                                    <p>لطفاً پست الکترونیکی خود را بررسی کنید. در صورتی که نشانی پست الکترونیکی خود را درست وارد کرده باشید نامه‌ای از دیوان دریافت کرده‌اید که حاوی یک رمز است. </p>
-                                    <p>رمز دریافتی را در کادر بالا وارد کرده، روی «ادامه» بزنید.</p>
-                                    <p><span class="red-color">تذکر:</span> ممکن است نامه به پوشهٔ اسپم منتقل شده باشد.</p>
+                                    <p>براہِ کرم اپنی ای میل دیکھیں۔ اگر پتا درست لکھا تھا تو دیوان کی طرف سے ایک کوڈ والی ای میل آئی ہوگی. </p>
+                                    <p>موصولہ کوڈ اوپر کے خانے میں لکھ کر «جاری رکھیں» دبائیں.</p>
+                                    <p><span class="red-color">یاد دہانی:</span> ممکن ہے ای میل اسپام فولڈر میں چلی گئی ہو.</p>
                                 </div>
                             </td>
                         </tr>
 
                         <tr class="nobackground">
-                            <td class="noborder"><a role="button" class="pagebutton" href="/signup">مرحلهٔ قبل</a></td>
-                            <td class="noborder"><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="ادامه" /></td>
+                            <td class="noborder"><a role="button" class="pagebutton" href="/signup">پچھلا مرحلہ</a></td>
+                            <td class="noborder"><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="جاری رکھیں" /></td>
                         </tr>
 
                     </table>
@@ -161,28 +161,28 @@
 
                         <tr class="nobackground">
                             <td class="noborder">
-                                <span class="inputlabel">نام خانوادگی: </span>
+                                <span class="inputlabel">خاندانی نام: </span>
                             </td>
                             <td class="noborder">
-                                <input asp-for="FinalViewModel.SurName" class="rtl-right width-100per" placeholder="نام خانوادگی" />
-                            </td>
-                        </tr>
-
-                        <tr class="nobackground">
-                            <td class="noborder">
-                                <span class="inputlabel">گذرواژه: </span>
-                            </td>
-                            <td class="noborder">
-                                <input asp-for="FinalViewModel.Password" id="password" class="signupemail" placeholder="گذرواژه" />
+                                <input asp-for="FinalViewModel.SurName" class="rtl-right width-100per" placeholder="خاندانی نام" />
                             </td>
                         </tr>
 
                         <tr class="nobackground">
                             <td class="noborder">
-                                <span class="inputlabel">تکرار گذرواژه: </span>
+                                <span class="inputlabel">پاس ورڈ: </span>
                             </td>
                             <td class="noborder">
-                                <input asp-for="FinalViewModel.PasswordConfirmation" class="signupemail" placeholder="تکرار گذرواژه" />
+                                <input asp-for="FinalViewModel.Password" id="password" class="signupemail" placeholder="پاس ورڈ" />
+                            </td>
+                        </tr>
+
+                        <tr class="nobackground">
+                            <td class="noborder">
+                                <span class="inputlabel">پاس ورڈ دوبارہ: </span>
+                            </td>
+                            <td class="noborder">
+                                <input asp-for="FinalViewModel.PasswordConfirmation" class="signupemail" placeholder="پاس ورڈ دوبارہ" />
                             </td>
                         </tr>
 
@@ -191,14 +191,14 @@
                                 <input type="hidden" asp-for="FinalViewModel.Email" />
                                 <input type="hidden" asp-for="FinalViewModel.Secret" />
                                 <div class="notice width-100per">
-                                    <p>گذرواژه باید دست کم شامل <span class="red-color"><strong>۶</strong></span> حرف باشد و از ترکیبی از <span class="red-color"><strong>اعداد و حروف انگلیسی</strong></span> تشکیل شده باشد.</p>
-                                    <p>حروف و اعداد نباید تکراری باشند و وجود <span class="red-color"><strong>حداقل یک عدد</strong></span> و <span class="red-color"><strong>یک حرف کوچک انگلیسی</strong></span> در گذرواژه الزامی است.</p>
+                                    <p>پاس ورڈ میں کم از کم <span class="red-color"><strong>۶</strong></span> حروف ہوں اور یہ <span class="red-color"><strong>اعداد اور انگریزی حروف</strong></span> کے امتزاج سے بنا ہو.</p>
+                                    <p>حروف اور اعداد مکرر نہ ہوں اور <span class="red-color"><strong>کم از کم ایک عدد</strong></span> و <span class="red-color"><strong>ایک چھوٹا انگریزی حرف</strong></span> پاس ورڈ میں لازمی ہے.</p>
                                 </div>
                             </td>
                         </tr>
 
                         <tr class="nobackground">
-                            <td class="noborder" colspan="2"><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="ادامه" /></td>
+                            <td class="noborder" colspan="2"><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="جاری رکھیں" /></td>
                         </tr>
 
                     </table>

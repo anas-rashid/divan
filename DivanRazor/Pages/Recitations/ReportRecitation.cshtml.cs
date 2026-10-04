@@ -109,7 +109,7 @@ namespace DivanRazor.Pages
                 else
                 {
                     Recitation = JsonConvert.DeserializeObject<PublicRecitationViewModel>(await response.Content.ReadAsStringAsync());
-                    RecitationInfo = $"{Recitation.AudioTitle} به خوانش {Recitation.AudioArtist}";
+                    RecitationInfo = $"{Recitation.AudioTitle} قرأت {Recitation.AudioArtist}";
 
                     var pageUrlResponse = await _httpClient.GetAsync($"{APIRoot.Url}/api/divan/pageurl?id={Recitation.PoemId}");
                     if (!pageUrlResponse.IsSuccessStatusCode)
@@ -220,7 +220,7 @@ namespace DivanRazor.Pages
 
             if (string.IsNullOrEmpty(Report.ReasonText))
             {
-                LastError = "مشکل مشخص نشده است. ";
+                LastError = "مسئلہ متعین نہیں. ";
                 return Page();
             }
 
@@ -228,7 +228,7 @@ namespace DivanRazor.Pages
 
             if (string.IsNullOrEmpty(Report.ReasonText))
             {
-                LastError = "مشکل مشخص نشده است. ";
+                LastError = "مسئلہ متعین نہیں. ";
                 return Page();
             }
 
@@ -253,7 +253,7 @@ namespace DivanRazor.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
+                    LastError = "براہِ کرم دیوان سے خروج کر کے دوبارہ داخل ہوں.";
                 }
             }
 

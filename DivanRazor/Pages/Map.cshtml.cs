@@ -54,7 +54,7 @@ namespace DivanRazor.Pages
                 new DivanCenturyViewModel()
                 {
                     Id = 0,
-                    Name = "همهٔ اعصار",
+                    Name = "تمام ادوار",
                     ShowInTimeLine = true,
                     Poets = await _PreparePoets()
                 }

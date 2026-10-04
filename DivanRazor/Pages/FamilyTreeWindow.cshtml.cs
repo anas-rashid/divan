@@ -53,7 +53,7 @@ namespace DivanRazor.Pages
             RootPerson = JsonConvert.DeserializeObject<DivanRelatedPerson>(await personResponse.Content.ReadAsStringAsync());
             if (RootPerson == null)
             {
-                LastError = "شخصیتی با این کد پیدا نشد.";
+                LastError = "اس کوڈ کی کوئی شخصیت نہیں ملی.";
                 return Page();
             }
 

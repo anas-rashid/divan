@@ -41,7 +41,7 @@ namespace DivanRazor.Pages
             LoggedIn = !string.IsNullOrEmpty(Request.Cookies["Token"]);
             if(!LoggedIn)
             {
-                LastError = $"برای پیشنهاد تصاویر مرتبط با اشعار لازم است ابتدا با نام کاربری خود وارد دیوان شوید. </p><p><a href=\"/login/?redirect={RelatedImageSuggestionModel.DivanUrl}\")>ورود به دیوان</a>";
+                LastError = $"اشعار سے متعلق تصاویر تجویز کرنے کے لیے پہلے دیوان میں داخل ہوں. </p><p><a href=\"/login/?redirect={RelatedImageSuggestionModel.DivanUrl}\")>دیوان میں داخلہ</a>";
             }
             else
             if (Request.Query["final"] == "1")
@@ -74,7 +74,7 @@ namespace DivanRazor.Pages
                     }
                     else
                     {
-                        LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
+                        LastError = "براہِ کرم دیوان سے خروج کر کے دوبارہ داخل ہوں.";
                     }
                 }
             }

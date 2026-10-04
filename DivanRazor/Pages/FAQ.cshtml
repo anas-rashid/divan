@@ -21,7 +21,7 @@ else
             <div id="maincnt">
                 <div class="poem">
                     <h2>
-                        <a href="/faq">پرسش‌های متداول</a>
+                        <a href="/faq">عام سوالات</a>
                     </h2>
                     @if (Model.Question != null)
                     {
@@ -47,8 +47,8 @@ else
                                 {
                                     <div class="related-images-frame" id="item-@item.Id">
                                         <div class="century">
-                                            @item.Question <a role="button" title="جمع شود / باز شود" class="cursor-pointer" onclick="switch_section('item-section-@item.Id', 'item-collapse-button-@item.Id')"><i class="notranslate info-buttons collapse_circle_down" id="item-collapse-button-@item.Id"></i></a>
-                                            <a role="button" title="نشانی این پرسش" class="cursor-pointer" href="/faq?id=@item.Id"><i class="notranslate info-buttons copylink-icon"></i></a>
+                                            @item.Question <a role="button" title="سمیٹیں / کھولیں" class="cursor-pointer" onclick="switch_section('item-section-@item.Id', 'item-collapse-button-@item.Id')"><i class="notranslate info-buttons collapse_circle_down" id="item-collapse-button-@item.Id"></i></a>
+                                            <a role="button" title="اس سوال کا ربط" class="cursor-pointer" href="/faq?id=@item.Id"><i class="notranslate info-buttons copylink-icon"></i></a>
                                         </div>
                                         <div id="item-section-@item.Id" style="display:none">
                                             <div class="divan-comment">

@@ -2,7 +2,7 @@
 @model DivanRazor.Pages.LoginModel
 @{
     Layout = null;
-    ViewData["Title"] = "ورود کاربر";
+    ViewData["Title"] = "داخلہ";
 }
 
 <!DOCTYPE html>
@@ -33,11 +33,11 @@
                             </td>
                         </tr>
                         <tr>
-                            <td><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="خروج از حساب کاربری" /></td>
+                            <td><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="اکاؤنٹ سے خروج" /></td>
                         </tr>
                         <tr>
                             <td>
-                                <a role="button" class="pagebutton" href="/">برگشت به دیوان</a>
+                                <a role="button" class="pagebutton" href="/">دیوان پر واپس جائیں</a>
                             </td>
                         </tr>
                     </table>
@@ -51,30 +51,30 @@
                     <table>
                         <tr>
                             <td>
-                                <span class="inputlabel">پست الکترونیکی: </span>
+                                <span class="inputlabel">ای میل: </span>
                             </td>
                             <td>
-                                <input type="email" asp-for="LoginViewModel.Username" placeholder="پست الکترونیکی" />
+                                <input type="email" asp-for="LoginViewModel.Username" placeholder="ای میل" />
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <span class="inputlabel">گذرواژه: </span>
+                                <span class="inputlabel">پاس ورڈ: </span>
                             </td>
                             <td>
-                                <input type="password" asp-for="LoginViewModel.Password" id="password" placeholder="گذرواژه" />
+                                <input type="password" asp-for="LoginViewModel.Password" id="password" placeholder="پاس ورڈ" />
                             </td>
                         </tr>
                         <tr>
-                            <td colspan="2"><input type="submit" name="submit" id="submit" style="direction:rtl;text-align:center" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="ورود" /></td>
+                            <td colspan="2"><input type="submit" name="submit" id="submit" style="direction:rtl;text-align:center" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="داخل ہوں" /></td>
                         </tr>
                         <tr>
-                            <td><a role="button" class="pagebutton" href="/signup">نام‌نویسی</a></td>
-                            <td><a role="button" class="pagebutton" href="/resetpassword">فراموشی گذرواژه</a></td>
+                            <td><a role="button" class="pagebutton" href="/signup">رکنیت</a></td>
+                            <td><a role="button" class="pagebutton" href="/resetpassword">پاس ورڈ بھول گئے</a></td>
                         </tr>
                         <tr>
                             <td colspan="2">
-                                <a role="button" class="pagebutton" href="/">برگشت به دیوان</a>
+                                <a role="button" class="pagebutton" href="/">دیوان پر واپس جائیں</a>
                             </td>
                         </tr>
 

@@ -36,7 +36,7 @@ namespace DivanRazor.Pages
         {
             get
             {
-                return CatId == 0 ? "دیوان" : "این بخش";
+                return CatId == 0 ? "دیوان" : "یہ حصہ";
             }
         }
 

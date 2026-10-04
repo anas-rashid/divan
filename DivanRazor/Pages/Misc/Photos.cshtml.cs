@@ -107,7 +107,7 @@ namespace DivanRazor.Pages
                 Poets = await _PreparePoets();
             }
 
-            ViewData["Title"] = Poet == null ? "پیشنهاد تصویر برای سخنوران" : $"پیشنهاد تصویر برای {Poet.Nickname}";
+            ViewData["Title"] = Poet == null ? "شعرا کے لیے تصویر تجویز کریں" : $"تصویر تجویز کریں: {Poet.Nickname}";
 
             return Page();
         }
@@ -129,7 +129,7 @@ namespace DivanRazor.Pages
         {
             if (string.IsNullOrEmpty(contents))
             {
-                return Task.FromResult(SpecLineErrorPartial("متن خالی است."));
+                return Task.FromResult(SpecLineErrorPartial("متن خالی ہے."));
             }
 
             return WithSecureClientAsync(async secureClient =>
@@ -164,13 +164,13 @@ namespace DivanRazor.Pages
         public async Task<IActionResult> OnPostAsync(PoetPhotoSuggestionUploadModel Upload)
         {
             if (string.IsNullOrEmpty(Upload.Title))
-                LastError = "عنوان خالی است.";
+                LastError = "عنوان خالی ہے.";
             else
                if (string.IsNullOrEmpty(Upload.Description))
-                LastError = "توضیح خالی است.";
+                LastError = "وضاحت خالی ہے.";
             else
                if (Upload.Image == null)
-                LastError = "تصویر انتخاب نشده است.";
+                LastError = "تصویر منتخب نہیں.";
             else
                 // Kept as its own using/PrepareClient block rather than WithSecureClientAsync: this
                 // handler needs to fall through to OnGetAsync() regardless of outcome (success,

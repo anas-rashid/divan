@@ -33,7 +33,7 @@ namespace DivanRazor.Pages
                 return maintenanceResult;
             }
 
-            ViewData["Title"] = $"دیوان » پرسش‌های متداول";
+            ViewData["Title"] = $"دیوان » عام سوالات";
             InitializeCommonPageState();
 
             var (poetsOk, poets, poetsError) = await _poetCache.GetPoetsAsync(EditorCacheBypass);
@@ -52,7 +52,7 @@ namespace DivanRazor.Pages
                     LastError = await ReadErrorMessageAsync(response);
                     if (string.IsNullOrEmpty(LastError))
                     {
-                        LastError = $"خطا در دریافت اطلاعات پرسش مد نظر - کد خطا = {response.StatusCode}";
+                        LastError = $"سوال کی معلومات لانے میں خرابی - خرابی کا کوڈ = {response.StatusCode}";
                     }
                     return Page();
                 }

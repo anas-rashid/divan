@@ -2,7 +2,7 @@
 @model ErrorModel
 @{
     Layout = null;
-    ViewData["Title"] = "خطای پیش‌بینی نشده";
+    ViewData["Title"] = "غیر متوقع خرابی";
 }
 
 <!DOCTYPE html>
@@ -64,31 +64,25 @@
         <h1><a href="/" title="دیوان"><img src="/image/gdap.png" alt="دیوان" style="width:auto;margin:auto;" /></a></h1>
     </div>
 
-    <h1 class="text-danger">خطای پیش‌بینی نشده</h1>
-    <h2 class="text-danger">متأسفانه نمایش صفحهٔ مد نظر شما با خطا مواجه شد.</h2>
-    <p>اگر این خطا با تازه‌سازی صفحه رفع نشد ممکن است سرور دیوان دچار کمبود منابع شده باشد یا اشکالی پیش آمده باشد که رسیدگی به آن تا ساعاتی دیگر میسر نباشد. در این صورت می‌توانید از وبگاههای جایگزین یا موارد پیشنهادی زیر استفاده کنید:</p>
-    <div class="century"><strong>وبگاه قدیمی دیوان</strong></div>
-    <div class="century">دریافت دیوان رومیزی</div>
-    <div class="century"><a href="http://pozh.org/saaghar/">دریافت ساغر</a></div>
-    <div class="century">نرم‌افزارهای اندرویدی سازگار با دیوان</div>
-    <div class="century">نرم‌افزارهای سازگار با دیوان برای آیفون و آی‌پد</div>
-    <div class="century"><a href="https://github.com/ganjoor/">نرم‌افزارهای بازمتن دیوان</a></div>
+    <h1 class="text-danger">غیر متوقع خرابی</h1>
+    <h2 class="text-danger">افسوس، مطلوبہ صفحہ دکھاتے ہوئے خرابی پیش آئی.</h2>
+    <p>اگر صفحہ دوبارہ لوڈ کرنے سے بھی یہ خرابی دور نہ ہو تو ممکن ہے دیوان کے سرور پر بوجھ ہو یا کوئی مسئلہ ہو جسے حل ہونے میں کچھ وقت لگے۔ براہِ کرم کچھ دیر بعد دوبارہ کوشش کریں:</p>
 
     @if (Model.ShowRequestId)
     {
         <p>
-            <strong>شناسهٔ درخواست:</strong> <code>@Model.RequestId</code>
+            <strong>درخواست کی شناخت:</strong> <code>@Model.RequestId</code>
         </p>
     }
 
-    <h3>جزئیات خطا برای پیگیری برنامه‌نویس</h3>
+    <h3>پروگرامر کے لیے خرابی کی تفصیل</h3>
 
-    <h4>پیغام خطا:</h4>
+    <h4>خرابی کا پیغام:</h4>
     <p style="direction:ltr;color:red">
         @ViewData["Exception"]
     </p>
 
-    <h4>مسیر خطا:</h4>
+    <h4>خرابی کا راستہ:</h4>
 
     <pre>
     <code style="direction:ltr" class="stacktrace" data-bind="text: content">

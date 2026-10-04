@@ -80,7 +80,7 @@ namespace DivanRazor.Pages
             }
             ClaimedQuotes = JArray.Parse(await responseClaimedQuotes.Content.ReadAsStringAsync()).ToObject<List<DivanQuotedPoemViewModel>>();
 
-            ViewData["Title"] = Poet == null ? "نقل قول‌های شاعران" : $"نقل قول‌ها و شعرهای مرتبط {Poet.Nickname}";
+            ViewData["Title"] = Poet == null ? "شعرا کے اقتباسات" : $"اقتباسات اور متعلقہ اشعار {Poet.Nickname}";
 
             return Page();
         }

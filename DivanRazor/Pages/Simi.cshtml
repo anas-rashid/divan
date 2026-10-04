@@ -67,15 +67,15 @@
                 <div class="sitem actionbox">
                     <div class="related-images-frame">
                         <form method="get" id="simiform">
-                            <label for="a" class="width-100per">سخنور:</label>
+                            <label for="a" class="width-100per">شاعر:</label>
                             <script>
                                 function syncInputs(){
                                 document.getElementById('poets-search').value = document.getElementById('fake-poet-search').value;
                                 doSearchInRhythmsCombo('poets-search', 'a');
                                 }
                             </script>
-                            <input class="width-100per" type="text" id="fake-poet-search" placeholder="جستجوی سخنور" oninput="syncInputs()" autocomplete="off" size="50" />
-                            <input type="hidden" id="poets-search" placeholder="جستجوی سخنور" list="inputPoets" autocomplete="off" size="50" />
+                            <input class="width-100per" type="text" id="fake-poet-search" placeholder="شاعر تلاش کریں" oninput="syncInputs()" autocomplete="off" size="50" />
+                            <input type="hidden" id="poets-search" placeholder="شاعر تلاش کریں" list="inputPoets" autocomplete="off" size="50" />
                             <datalist id="inputPoets">
                                 @if (Model.Poets != null)
                                     @foreach (var poet in Model.Poets)
@@ -87,11 +87,11 @@
                                 @{
                                     if (Model.PoetId != 0)
                                     {
-                                        <option value="0">در آثار همهٔ سخنوران</option>
+                                        <option value="0">تمام شعرا کے کلام میں</option>
                                     }
                                     else
                                     {
-                                        <option value="0" selected>در آثار همهٔ سخنوران</option>
+                                        <option value="0" selected>تمام شعرا کے کلام میں</option>
                                     }
 
                                     if (Model.Poets != null)
@@ -111,8 +111,8 @@
                                 }
                             </select>
 
-                            <label for="v" class="width-100per">وزن:</label>
-                            <input class="width-100per" type="text" id="select-search" placeholder="جستجوی وزن" oninput="doSearchInRhythmsCombo('select-search', 'v')" list="inputRhythms" autocomplete="off" size="50" />
+                            <label for="v" class="width-100per">بحر:</label>
+                            <input class="width-100per" type="text" id="select-search" placeholder="بحر تلاش کریں" oninput="doSearchInRhythmsCombo('select-search', 'v')" list="inputRhythms" autocomplete="off" size="50" />
                             <datalist id="inputRhythms">
                                 @if (Model.RhythmsByVerseCount != null)
                                     @foreach (var rhythm in Model.RhythmsByVerseCount)
@@ -125,21 +125,21 @@
                                 {
                                     if (Model.Metre == rhythm.Rhythm)
                                     {
-                                        <option value="@rhythm.Rhythm" selected>@(rhythm.Rhythm == "" ? "هیچکدام" : rhythm.Rhythm == "null" ? "وزن‌یابی نشده" : rhythm.Rhythm)</option>
+                                        <option value="@rhythm.Rhythm" selected>@(rhythm.Rhythm == "" ? "کوئی نہیں" : rhythm.Rhythm == "null" ? "بحر متعین نہیں" : rhythm.Rhythm)</option>
                                     }
                                     else
                                     {
-                                        <option value="@rhythm.Rhythm">@(rhythm.Rhythm == "" ? "هیچکدام" : rhythm.Rhythm == "null" ? "وزن‌یابی نشده" : rhythm.Rhythm)</option>
+                                        <option value="@rhythm.Rhythm">@(rhythm.Rhythm == "" ? "کوئی نہیں" : rhythm.Rhythm == "null" ? "بحر متعین نہیں" : rhythm.Rhythm)</option>
                                     }
 
                                 }
                             </select>
 
-                            <label for="g" class="width-100per">قافیه:</label>
-                            <input type="text" name="g" id="g" class="width-100per" value="@Model.Rhyme" placeholder="حروف قافیه" />
+                            <label for="g" class="width-100per">قافیہ:</label>
+                            <input type="text" name="g" id="g" class="width-100per" value="@Model.Rhyme" placeholder="حروفِ قافیہ" />
 
 
-                            <label for="v" class="width-100per">زبان غالب:</label>
+                            <label for="v" class="width-100per">غالب زبان:</label>
 
                             <select id="l" name="l" class="width-100per">
                                 @foreach (var language in Model.Languages)
@@ -156,7 +156,7 @@
                                 }
                             </select>
 
-                            <label for="f" class="width-100per">قالب شعر:</label>
+                            <label for="f" class="width-100per">صنفِ سخن:</label>
 
                             <select id="f" name="f" class="width-100per">
                                 @foreach (var poemFormat in System.Enum.GetValues(typeof(RMuseum.Models.Divan.DivanPoemFormat)))
@@ -165,11 +165,11 @@
                                     {
                                         if (RMuseum.Models.Divan.DivanPoemFormat.Unknown == Model.Format)
                                         {
-                                            <option value="@((int)poemFormat)" selected>همهٔ قالب‌ها</option>
+                                            <option value="@((int)poemFormat)" selected>تمام اصناف</option>
                                         }
                                         else
                                         {
-                                            <option value="@((int)poemFormat)">همهٔ قالب‌ها</option>
+                                            <option value="@((int)poemFormat)">تمام اصناف</option>
                                         }
                                     }
                                     else
@@ -187,13 +187,13 @@
 
                                 }
                             </select>
-                            <label for="c1" class="width-100per">حداقل تعداد ابیات:</label>
-                            <input type="number" name="c1" id="c1" class="width-100per" value="@Model.CoupletCountsFrom" placeholder="حداقل تعداد ابیات" />
-                            <label for="c2" class="width-100per">حداکثر تعداد ابیات:</label>
-                            <input type="number" name="c2" id="c2" class="width-100per" value="@Model.CoupletCountsTo" placeholder="حداکثر تعداد ابیات" />
+                            <label for="c1" class="width-100per">اشعار کی کم از کم تعداد:</label>
+                            <input type="number" name="c1" id="c1" class="width-100per" value="@Model.CoupletCountsFrom" placeholder="اشعار کی کم از کم تعداد" />
+                            <label for="c2" class="width-100per">اشعار کی زیادہ سے زیادہ تعداد:</label>
+                            <input type="number" name="c2" id="c2" class="width-100per" value="@Model.CoupletCountsTo" placeholder="اشعار کی زیادہ سے زیادہ تعداد" />
 
-                            <label class="width-100per">کلیدواژه (جستجو در کل صفحهٔ شعر، برای جستجوی بهتر از <a href="/search?s=@Model.Query">صفحهٔ جستجو</a> استفاده کنید):</label>
-                            <input type="text" name="s" id="s" class="width-100per" value="@Model.Query" placeholder="کلیدواژه" />
+                            <label class="width-100per">کلیدی لفظ (پورے صفحے میں تلاش؛ بہتر تلاش کے لیے <a href="/search?s=@Model.Query">تلاش کا صفحہ</a> استعمال کریں):</label>
+                            <input type="text" name="s" id="s" class="width-100per" value="@Model.Query" placeholder="کلیدی لفظ" />
                             @if (Model.ExactSearch)
                             {
                                 <input type="hidden" name="es" id="es" value="1" />
@@ -202,15 +202,15 @@
                             @if (Model.CatId != 0)
                             {
                                 <div class="width-100per">
-                                    تنها در بخش <a href="@Model.CatFullUrl">@Model.CatFullTitle</a>
+                                    صرف اس حصے میں <a href="@Model.CatFullUrl">@Model.CatFullTitle</a>
                                 </div>
                             }
 
-                            <input type="submit" class="width-100per margin-top-5px" value="اعمال ورودی‌ها" />
+                            <input type="submit" class="width-100per margin-top-5px" value="شرائط لاگو کریں" />
 
                             @if (Model.CanEdit)
                             {
-                                <a onclick="redirectToTransferMeter()" class="pagebutton" role="button">انتقال وزن</a>
+                                <a onclick="redirectToTransferMeter()" class="pagebutton" role="button">بحر منتقل کریں</a>
                             }
 
                         </form>
@@ -231,14 +231,14 @@
                 @if (Model.Poems == null)
                 {
                     <div class="sitem">
-                        <p>لطفاً اطلاعات ورودی برای ابیات مد نظر را وارد کنید.</p>
+                        <p>براہِ کرم مطلوبہ اشعار کی معلومات درج کریں.</p>
                     </div>
                 }
                 else
                if (Model.Poems.Count == 0)
                 {
                     <div class="sitem">
-                        <p>شعری با مشخصات مورد نظر شما پیدا نشد.</p>
+                        <p>مطلوبہ شعر نہیں ملا.</p>
                     </div>
                 }
                 else
@@ -254,12 +254,12 @@
                                 @Html.Raw(poem.HtmlText)
                             </div>
                             <div>
-                                @($"{(poem.CoupletsCount ?? 0).ToPersianNumbers()} بیت")
+                                @($"{(poem.CoupletsCount ?? 0).ToPersianNumbers()} شعر")
                             </div>
 
                             <div class="poet">
                                 <img src="@($"{DivanRazor.APIRoot.InternetUrl}{poem.Category.Poet.ImageUrl}")" alt="@($"{poem.Category.Poet.Nickname}")" />
-                                <a role="button" onclick="deletePoetFromSearch(@poem.Category.Poet.Id, '@(poem.Category.Poet.Nickname)')" class="actionlink" title="حذف @($"{poem.Category.Poet.Nickname}") از نتایج"><i class="notranslate noindent-info-button close-button"></i></a>
+                                <a role="button" onclick="deletePoetFromSearch(@poem.Category.Poet.Id, '@(poem.Category.Poet.Nickname)')" class="actionlink" title="ہٹائیں @($"{poem.Category.Poet.Nickname}") نتائج سے"><i class="notranslate noindent-info-button close-button"></i></a>
                             </div>
 
                             <div class="spacer">&nbsp;</div>
@@ -267,7 +267,7 @@
                             <div>
                                 @if (Model.LoggedIn)
                                 {
-                                    <a href="/User/Section?poemId=@poem.Id&index=@poem.SectionIndex" role="button" class="cursor-pointer" title="ویرایش">
+                                    <a href="/User/Section?poemId=@poem.Id&index=@poem.SectionIndex" role="button" class="cursor-pointer" title="ترمیم">
                                         <div class="circled-number">
                                             <i class="notranslate noindent-info-button edit-poem-button"></i>
                                         </div>
@@ -278,7 +278,7 @@
                                         <table>
                                             <tr>
                                                 <td>
-                                                    <label for="select-search-@poem.Id-@poem.SectionIndex">جستجوی وزن:</label><br />
+                                                    <label for="select-search-@poem.Id-@poem.SectionIndex">بحر تلاش کریں:</label><br />
                                                     <input type="text" id="select-search-@poem.Id-@poem.SectionIndex" value="" oninput="doSearchInRhythmsCombo('select-search-@poem.Id-@poem.SectionIndex', 'rhythm-new-@poem.Id-@poem.SectionIndex')" list="inputRhythms-@poem.Id-@poem.SectionIndex" autocomplete="off" size="50" />
                                                     <datalist id="inputRhythms-@poem.Id-@poem.SectionIndex">
                                                         @if (Model.RhythmsByVerseCount != null)
@@ -292,12 +292,12 @@
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <label for="rhythm-new-@poem.Id-@poem.SectionIndex">وزن انتخاب شده:</label>
+                                                    <label for="rhythm-new-@poem.Id-@poem.SectionIndex">منتخب بحر:</label>
                                                     <br />
                                                     <select id="rhythm-new-@poem.Id-@poem.SectionIndex" name="rhythm-new-@poem.Id-@poem.SectionIndex">
                                                         @foreach (var rhythm in Model.RhythmsAlphabetically)
                                                         {
-                                                            <option value="@rhythm.Rhythm">@(rhythm.Rhythm == "" ? "هیچکدام" : rhythm.Rhythm == "null" ? "وزن‌یابی نشده" : rhythm.Rhythm)</option>
+                                                            <option value="@rhythm.Rhythm">@(rhythm.Rhythm == "" ? "کوئی نہیں" : rhythm.Rhythm == "null" ? "بحر متعین نہیں" : rhythm.Rhythm)</option>
                                                         }
                                                     </select>
 
@@ -305,7 +305,7 @@
                                             </tr>
                                             <tr>
                                                 <td>
-                                                    <a role="button" id="savecorrections-@poem.Id-@poem.SectionIndex" style="cursor:pointer;width:100%;color:white;background-color:green;display:block" onclick="sendSectionMetreSuggection(@poem.Id, @poem.SectionIndex)">ذخیره</a>
+                                                    <a role="button" id="savecorrections-@poem.Id-@poem.SectionIndex" style="cursor:pointer;width:100%;color:white;background-color:green;display:block" onclick="sendSectionMetreSuggection(@poem.Id, @poem.SectionIndex)">محفوظ کریں</a>
                                                 </td>
                                             </tr>
                                         </table>
@@ -322,7 +322,7 @@
                     @Html.Raw(Model.PagingToolsHtml)
                     <div class="spacer">&nbsp;</div>
                     <div>
-                        تعداد کل نتایج: @Model.PaginationMetadata.totalCount.ToPersianNumbers()
+                        کل نتائج: @Model.PaginationMetadata.totalCount.ToPersianNumbers()
                     </div>
                 }
 

@@ -11,12 +11,12 @@ else
 {
     <div class="up-modal-familytree">
         <h2>
-            تبارنامهٔ @(string.IsNullOrEmpty(Model.RootPerson.FamilyTreeCaption) ? Model.RootPerson.Name : Model.RootPerson.FamilyTreeCaption)
-            <a href="javascript:void(0)" onclick="PersonWindow.open(@Model.RootPerson.Id)" class="up-btn up-btn--ghost up-btn--sm">مشاهدهٔ اطلاعات این شخصیت</a>
+            شجرۂ @(string.IsNullOrEmpty(Model.RootPerson.FamilyTreeCaption) ? Model.RootPerson.Name : Model.RootPerson.FamilyTreeCaption)
+            <a href="javascript:void(0)" onclick="PersonWindow.open(@Model.RootPerson.Id)" class="up-btn up-btn--ghost up-btn--sm">اس شخصیت کی معلومات دیکھیں</a>
         </h2>
         <p class="up-hint"><small>
-            برای مشاهدهٔ توضیحات هر شخصیت، روی آن کلیک کنید. برای پیمایش نمودار آن را با ماوس بکشید و با غلتک ماوس بزرگ/کوچک کنید.
-            این نمودار محدود به فرزندان این شخصیت نیست؛ تمام خویشاوندان به‌هم‌پیوسته (از جمله نیاکان و خانوادهٔ همسر) را نشان می‌دهد.
+            کسی شخصیت کی تفصیل کے لیے اس پر کلک کریں۔ خاکے کو ماؤس سے کھینچیں اور ماؤس کے پہیے سے بڑا/چھوٹا کریں۔
+            یہ خاکہ صرف اولاد تک محدود نہیں؛ تمام جڑے ہوئے رشتہ دار (بشمول آبا و اجداد اور سسرال) دکھاتا ہے.
         </small></p>
 
         <div id="familytree-container" style="position:relative;width:100%;height:65vh;border:1px solid #d8cdb8;border-radius:6px;overflow:hidden;background:#faf7f0;">

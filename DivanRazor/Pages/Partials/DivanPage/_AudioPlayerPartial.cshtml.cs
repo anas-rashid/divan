@@ -15,7 +15,7 @@ namespace DivanRazor.Pages
 
         public string getAudioDesc(PublicRecitationViewModel recitation, bool contributionLink = false)
         {
-            string audiodesc = "به خوانش ";
+            string audiodesc = "قرأت ";
             if (!string.IsNullOrEmpty(recitation.AudioArtistUrl) && recitation.AudioArtistUrl.StartsWith("http"))
             {
                 audiodesc += $"<a href='{recitation.AudioArtistUrl}'>{recitation.AudioArtist}</a>";
@@ -27,12 +27,12 @@ namespace DivanRazor.Pages
 
             if (!string.IsNullOrEmpty(recitation.AudioSrc) && !string.IsNullOrEmpty(recitation.AudioSrcUrl) && recitation.AudioSrcUrl.StartsWith("http"))
             {
-                audiodesc += $" نقل از <a href='{recitation.AudioSrcUrl}'>{recitation.AudioSrc}</a>";
+                audiodesc += $" منقول از <a href='{recitation.AudioSrcUrl}'>{recitation.AudioSrc}</a>";
             }
 
             if (contributionLink)
             {
-                audiodesc += "<br> <small>می‌خواهید شما بخوانید؟ <a href='http://ava.ganjoor.net/about/'>اینجا</a> را ببینید.</small>";
+                audiodesc += "<br> <small>کیا آپ پڑھنا چاہیں گے؟ <a href='http://ava.ganjoor.net/about/'>یہاں</a> دیکھیں.</small>";
             }
 
             return audiodesc;

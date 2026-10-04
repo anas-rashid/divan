@@ -51,7 +51,7 @@ namespace DivanRazor.Pages
             public int RelationId { get; set; }
 
             /// <summary>
-            /// the other person's role relative to the subject (e.g. "فرزند", "پدر/مادر", "نیا")
+            /// the other person's role relative to the subject (e.g. "اولاد", "والد/والدہ", "جدّ")
             /// </summary>
             public string Label { get; set; }
             public int OtherPersonId { get; set; }
@@ -85,14 +85,14 @@ namespace DivanRazor.Pages
             switch (r.RelationType)
             {
                 case PersonRelationType.Parent:
-                    return r.SubjectIsPerson1 ? "فرزند" : "پدر/مادر";
+                    return r.SubjectIsPerson1 ? "اولاد" : "والد/والدہ";
                 case PersonRelationType.Sibling:
-                    return "خواهر/برادر";
+                    return "بہن/بھائی";
                 case PersonRelationType.Spouse:
-                    return "همسر";
+                    return "شریکِ حیات";
                 case PersonRelationType.Ancestor:
-                    var word = r.SubjectIsPerson1 ? "نواده" : "نیا";
-                    return r.DegreeHint != null ? $"{word} (فاصلهٔ {r.DegreeHint} نسل)" : word;
+                    var word = r.SubjectIsPerson1 ? "نسل" : "جدّ";
+                    return r.DegreeHint != null ? $"{word} (فاصلہ {r.DegreeHint} پشت)" : word;
                 default:
                     return r.RelationType.ToString();
             }
@@ -105,21 +105,21 @@ namespace DivanRazor.Pages
             new System.Collections.Generic.Dictionary<PersonAffiliationType, string>()
             {
                 { PersonAffiliationType.Minister, "وزیرِ" },
-                { PersonAffiliationType.Advisor, "مشاورِ" },
+                { PersonAffiliationType.Advisor, "مشیرِ" },
                 { PersonAffiliationType.Courtier, "درباریِ" },
-                { PersonAffiliationType.Patron, "حامیِ" },
-                { PersonAffiliationType.Ally, "متحدِ" },
+                { PersonAffiliationType.Patron, "سرپرستِ" },
+                { PersonAffiliationType.Ally, "حلیفِ" },
                 { PersonAffiliationType.Rival, "رقیبِ" },
-                { PersonAffiliationType.Servant, "خدمتکارِ" },
-                { PersonAffiliationType.Companion, "همراهِ" },
+                { PersonAffiliationType.Servant, "خادمِ" },
+                { PersonAffiliationType.Companion, "رفیقِ" },
                 { PersonAffiliationType.Successor, "جانشینِ" },
-                { PersonAffiliationType.Panegyrized, "مدح‌گویِ" },
-                { PersonAffiliationType.Satirized, "هجوگویِ" },
+                { PersonAffiliationType.Panegyrized, "مداحِ" },
+                { PersonAffiliationType.Satirized, "ہجو گوئے" },
                 { PersonAffiliationType.MilitaryCommander, "سردارِ" },
-                { PersonAffiliationType.Champion, "پهلوانِ" },
-                { PersonAffiliationType.Contemporary, "هم‌عصرِ" },
+                { PersonAffiliationType.Champion, "پہلوانِ" },
+                { PersonAffiliationType.Contemporary, "ہم عصرِ" },
                 { PersonAffiliationType.Killer, "قاتلِ" },
-                { PersonAffiliationType.Other, "دارای نسبتی (به یادداشت نگاه کنید) با" },
+                { PersonAffiliationType.Other, "سے نسبت رکھتا تھا (نوٹ دیکھیں):" },
             };
 
         private static bool IsSymmetricAffiliation(PersonAffiliationType t) =>
@@ -140,7 +140,7 @@ namespace DivanRazor.Pages
             Person = JsonConvert.DeserializeObject<DivanRelatedPerson>(await personResponse.Content.ReadAsStringAsync());
             if (Person == null)
             {
-                LastError = "شخصیتی با این کد پیدا نشد.";
+                LastError = "اس کوڈ کی کوئی شخصیت نہیں ملی.";
                 return Page();
             }
 
@@ -171,8 +171,8 @@ namespace DivanRazor.Pages
                 AffiliationRows.Add(new PersonAffiliationDisplayRow()
                 {
                     AffiliationId = a.Id,
-                    SentenceBeforeOtherName = subjectServes ? $"این شخصیت {roleWord} " : "",
-                    SentenceAfterOtherName = subjectServes ? " بود" : $" {roleWord} این شخصیت بود",
+                    SentenceBeforeOtherName = subjectServes ? $"یہ شخصیت {roleWord} " : "",
+                    SentenceAfterOtherName = subjectServes ? " تھا" : $" {roleWord} یہ شخصیت تھی",
                     OtherPersonId = a.OtherPersonId,
                     OtherPersonName = a.OtherPersonName,
                     Note = a.Note,

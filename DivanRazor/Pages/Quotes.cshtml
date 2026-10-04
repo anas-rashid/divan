@@ -34,13 +34,13 @@ else
 
                     @if (Model.Quotes.Count == 0 && Model.ClaimedQuotes.Count == 0)
                     {
-                        <p>نقل قولی یافت نشد.</p>
+                        <p>کوئی اقتباس نہیں ملا.</p>
                     }
                     else
                     {
                         @if(Model.ClaimedQuotes.Count > 0)
                         {
-                            <div class="century">موارد منتسب به شاعران دیگر</div>
+                            <div class="century">دیگر شعرا سے منسوب</div>
 
                             <ol>
                                 @foreach (var quotedPoem in Model.ClaimedQuotes)
@@ -76,7 +76,7 @@ else
                             </ol>
                             <br class="clear-both" />
                             
-                            <div class="century">نقل قول‌های دیگر</div>
+                            <div class="century">دیگر اقتباسات</div>
                         }
 
                         

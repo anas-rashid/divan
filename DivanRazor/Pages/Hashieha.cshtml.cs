@@ -111,7 +111,7 @@ namespace DivanRazor.Pages
 
             var filterUserId = Request.Query["userid"];
             string url = $"{APIRoot.Url}/api/divan/comments?PageNumber={pageNumber}&PageSize=20";
-            Title = "حاشیه‌ها";
+            Title = "حاشیے";
             HomeLink = "/hashieha";
             if (!string.IsNullOrEmpty(filterUserId))
             {
@@ -135,9 +135,9 @@ namespace DivanRazor.Pages
                 Contributions = JsonConvert.DeserializeObject<UserContributionsViewModel>(await responseContributions.Content.ReadAsStringAsync());
 
 
-                ViewData["Title"] = $"دیوان » حاشیه‌گذاری‌های {Profile.NickName}";
+                ViewData["Title"] = $"دیوان » حاشیے: {Profile.NickName}";
 
-                Title = $"حاشیه‌گذاری‌های {Profile.NickName}";
+                Title = $"حاشیے: {Profile.NickName}";
                 HomeLink = $"/hashieha?userid={filterUserId}";
 
                 if (!string.IsNullOrEmpty(Request.Cookies["Token"]))
@@ -183,7 +183,7 @@ namespace DivanRazor.Pages
             if (paginationMetadata.totalPages > 1)
             {
                 if (pageNumber > 1)
-                    ViewData["Title"] += $" - صفحهٔ {pageNumber.ToPersianNumbers()}";
+                    ViewData["Title"] += $" - صفحہ {pageNumber.ToPersianNumbers()}";
 
 
                 htmlText = $"<div>{Environment.NewLine}";

@@ -34,20 +34,19 @@ namespace DivanRazor.Pages
     public partial class DivanPageModel : LoginPartialEnabledPageModel
     {
         /// <summary>
-        /// Persian stop words excluded from category word-count listings when remStopWords is
-        /// requested.
+        /// Urdu stop words excluded from category word-count listings when remStopWords is
+        /// requested (divan: replaces upstream's Persian list).
         /// </summary>
-        private static readonly HashSet<string> _persianStopWords = new HashSet<string>
+        private static readonly HashSet<string> _urduStopWords = new HashSet<string>
         {
-            "و", "از", "که", "به", "در", "را", "ز", "است", "می", "این", "چون", "بود", "ای", "تا", "چو",
-            "هر", "با", "چه", "شد", "بی", "خود", "گفت", "نیست", "نه", "گر", "کند", "اگر", "کرد", "باشد",
-            "هم", "روی", "شود", "یک", "دو", "وی", "اندر", "پیش", "آمد", "دارد", "کن", "یا", "همی", "آید",
-            "کرده", "نمی", "کز", "هست", "ام", "کی", "بهر", "فی", "چنین", "پای", "ها", "اند", "ی", "گردد",
-            "داد", "چنان", "کنم", "نبود", "گشت", "دیگر", "باید", "دگر", "چند", "همچو", "شده", "بد", "زان",
-            "پی", "مگر", "آنکه", "رفت", "کنی", "برد", "بدان", "ست", "ازین", "دید", "وز", "گوید", "کجا",
-            "دهد", "گه", "درین", "آخر", "دارم", "خواهد", "نیز", "های", "چرا", "راست", "کان", "رو", "نباشد",
-            "بر", "من", "آن", "تو", "او", "ما", "شما", "مرا", "ار", "داری", "بیا", "همه", "گو", "مکن", "زد",
-            "گفتم",
+            "و", "اور", "کا", "کی", "کے", "کو", "نے", "سے", "میں", "پر", "تک", "ہے", "ہیں", "تھا", "تھی",
+            "تھے", "ہو", "ہوا", "ہوئی", "ہوئے", "گا", "گی", "گے", "یہ", "وہ", "اس", "ان", "جو", "جس", "جن",
+            "کہ", "کیا", "کیوں", "کب", "جب", "تب", "اب", "یاں", "واں", "یہاں", "وہاں", "نہ", "نہیں", "مت", "بھی",
+            "ہی", "تو", "اک", "ایک", "کچھ", "سب", "ہر", "کوئی", "کسی", "کر", "کرے", "کرتا", "دیا", "لیا", "رہا",
+            "رہی", "رہے", "مجھ", "مجھے", "ہم", "تم", "تجھ", "تجھے", "آپ", "میرا", "میری", "میرے", "مرا", "مری", "مرے",
+            "تیرا", "تیری", "تیرے", "ترا", "تری", "ترے", "اپنا", "اپنی", "اپنے", "ہمارا", "ہماری", "ہمارے", "تمہارا", "تمہاری", "تمہارے",
+            "پہ", "سا", "سی", "جیسے", "ایسا", "ایسی", "ایسے", "یا", "مگر", "لیکن", "پھر", "اگر", "گر", "جوں", "کہیں",
+            "یوں", "ہائے", "اے",
         };
 
         private readonly PoetCacheService _poetCache;
@@ -447,7 +446,7 @@ namespace DivanRazor.Pages
         /// </summary>
         public string getAudioDesc(PublicRecitationViewModel recitation, bool contributionLink = false)
         {
-            string audiodesc = "به خوانش ";
+            string audiodesc = "قرأت ";
             if (!string.IsNullOrEmpty(recitation.AudioArtistUrl))
             {
                 audiodesc += $"<a href='{recitation.AudioArtistUrl}'>{recitation.AudioArtist}</a>";
@@ -473,7 +472,7 @@ namespace DivanRazor.Pages
 
             if (contributionLink)
             {
-                audiodesc += "<br /> <small>می‌خواهید شما بخوانید؟ <a href='http://ava.ganjoor.net/about/'>اینجا</a> را ببینید.</small>";
+                audiodesc += "<br /> <small>کیا آپ پڑھنا چاہیں گے؟ <a href='http://ava.ganjoor.net/about/'>یہاں</a> دیکھیں.</small>";
             }
 
             return audiodesc;
@@ -1137,7 +1136,7 @@ namespace DivanRazor.Pages
                     };
                     Response.Cookies.Append("KeepHistory", $"{false}", cookieOption);
                 }
-                return new OkObjectResult(res.KeepTrack && res.LastVisit != null ? $"از این صفحه آخرین بار {res.LastVisit.ToFriendlyPersianDateTextify()} و در مجموع {res.TotalVisits.ToPersianNumbers()} بار بازدید کرده‌ام." : "");
+                return new OkObjectResult(res.KeepTrack && res.LastVisit != null ? $"اس صفحے کو آخری بار {res.LastVisit.ToFriendlyPersianDateTextify()} اور مجموعی طور پر {res.TotalVisits.ToPersianNumbers()} بار دیکھا." : "");
             });
         }
 
@@ -1200,7 +1199,7 @@ namespace DivanRazor.Pages
             var quoteds = JArray.Parse(await response.Content.ReadAsStringAsync()).ToObject<List<DivanQuotedPoemViewModel>>();
             if (!quoteds.Any())
             {
-                return BadRequest("مورد دیگری یافت نشد.");
+                return BadRequest("مزید کچھ نہیں ملا.");
             }
 
             if (quoteds.Any(q => q.ChosenForMainList))
@@ -1331,7 +1330,7 @@ namespace DivanRazor.Pages
 
             if (remStopWords)
             {
-                wordCounts = wordCounts.Where(w => !_persianStopWords.Contains(w.Word)).Take(100).ToArray();
+                wordCounts = wordCounts.Where(w => !_urduStopWords.Contains(w.Word)).Take(100).ToArray();
             }
 
             return new _CategoryWordsCountPartialModel()
@@ -1350,7 +1349,7 @@ namespace DivanRazor.Pages
             var res = await _GetCategoryWordCountsAsync(catId, poetId, remStopWords);
             if (res == null)
             {
-                return BadRequest("خطا در دسترسی به شمارش واژگان");
+                return BadRequest("الفاظ کی گنتی تک رسائی میں خرابی");
             }
 
             return Partial("~/Pages/Partials/DivanPage/_CategoryWordsCountPartial.cshtml", res);
@@ -1415,7 +1414,7 @@ namespace DivanRazor.Pages
 
             counts.Insert(0, new CategoryWordCount()
             {
-                Word = "* تعداد کل",
+                Word = "* کل تعداد",
                 Count = counts.Sum(c => c.Count),
                 RowNmbrInCat = 0,
             });

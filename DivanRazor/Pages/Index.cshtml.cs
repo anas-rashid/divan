@@ -93,7 +93,7 @@ namespace DivanRazor.Pages
             }
             catch
             {
-                LastError = "خطا در دسترسی به وب سرویس دیوان";
+                LastError = "دیوان کی ویب سروس تک رسائی میں خرابی";
                 return false;
             }
         }

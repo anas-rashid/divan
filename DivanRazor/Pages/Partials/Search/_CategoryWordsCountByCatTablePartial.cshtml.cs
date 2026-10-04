@@ -15,7 +15,7 @@ namespace DivanRazor.Pages
         {
             get
             {
-                return Whole ? "دیوان" : "این بخش";
+                return Whole ? "دیوان" : "یہ حصہ";
             }
         }
     }

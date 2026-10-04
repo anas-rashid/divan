@@ -107,7 +107,7 @@ namespace DivanRazor.Pages
             AlternativeSearchPhraseDescription = "";
             if (Quoted)
             {
-                AlternativeSearchPhraseDescription = "راضی نشدید؟! ";
+                AlternativeSearchPhraseDescription = "مطمئن نہیں؟! ";
                 bool needsComma = false;
                 var splitteds = Query.Replace("\"", "").Split(' ');
                 for (int sp = 0; sp < splitteds.Length - 1; sp++)
@@ -119,12 +119,12 @@ namespace DivanRazor.Pages
                     needsComma = true;
                 }
                 AlternativeSearchPhraseDescription += $" و «{splitteds[splitteds.Length - 1]}»";
-                AlternativeSearchPhraseDescription += " را بدون لحاظ کردن ترتیب واژگان جستجو کنید.";
+                AlternativeSearchPhraseDescription += " کو الفاظ کی ترتیب کے بغیر تلاش کریں.";
             }
             else
             if (Query.Contains(" "))
             {
-                AlternativeSearchPhraseDescription = $"راضی نشدید؟! عبارت «{Query}» را به طور دقیق جستجو کنید.";
+                AlternativeSearchPhraseDescription = $"مطمئن نہیں؟ عبارت «{Query}» کو بالکل اسی طرح تلاش کریں.";
             }
 
             PoetId = string.IsNullOrEmpty(Request.Query["author"]) ? 0 : int.Parse(Request.Query["author"]);
@@ -175,22 +175,22 @@ namespace DivanRazor.Pages
             {
                 if (CatFullTitle != "")
                 {
-                    ViewData["Title"] = $"دیوان » نتایج جستجو برای {Query} در بخش {CatFullTitle}";
+                    ViewData["Title"] = $"دیوان » تلاش کے نتائج: {Query} حصے میں {CatFullTitle}";
                 }
                 else
                 {
-                    ViewData["Title"] = $"دیوان » نتایج جستجو برای {Query} در آثار {poetName?.Name}";
+                    ViewData["Title"] = $"دیوان » تلاش کے نتائج: {Query} کلام میں: {poetName?.Name}";
                 }
             }
             else
             {
                 if (!string.IsNullOrEmpty(Query))
                 {
-                    ViewData["Title"] = $"دیوان » نتایج جستجو برای {Query}";
+                    ViewData["Title"] = $"دیوان » تلاش کے نتائج: {Query}";
                 }
                 else
                 {
-                    ViewData["Title"] = $"دیوان » جستجو";
+                    ViewData["Title"] = $"دیوان » تلاش";
                 }
             }
 
@@ -215,7 +215,7 @@ namespace DivanRazor.Pages
 
             if (pageNumber > 1)
             {
-                ViewData["Title"] += $" - صفحهٔ {pageNumber.ToPersianNumbers()}";
+                ViewData["Title"] += $" - صفحہ {pageNumber.ToPersianNumbers()}";
             }
 
             HttpResponseMessage searchQueryResponse = null;

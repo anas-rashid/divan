@@ -236,14 +236,14 @@ namespace DivanRazor.Pages
 
             if (!anyParamsGiven)
             {
-                ViewData["Title"] = $"دیوان » شعر‌ها یا ابیات مشابه";
+                ViewData["Title"] = $"دیوان » ملتی جلتی تخلیقات";
                 return Page();
             }
 
 
 
 
-            string title = "شعرها یا ابیات ";
+            string title = "اشعار ";
 
             if (PoetId != 0)
             {
@@ -255,7 +255,7 @@ namespace DivanRazor.Pages
             }
             if (!string.IsNullOrEmpty(Metre))
             {
-                title += $"با وزن «{Metre}»";
+                title += $"بحر: «{Metre}»";
             }
 
             if (!string.IsNullOrEmpty(Rhyme))
@@ -268,7 +268,7 @@ namespace DivanRazor.Pages
                 {
                     title += $"با";
                 }
-                title += $" حروف قافیهٔ «{Rhyme}»";
+                title += $" حروفِ قافیہ: «{Rhyme}»";
             }
 
 
@@ -277,23 +277,23 @@ namespace DivanRazor.Pages
                 var langModel = Languages.Where(l => l.Code == Language).FirstOrDefault();
                 if (langModel != null)
                 {
-                    title += $" با زبان غالب «{langModel.Name}»";
+                    title += $" غالب زبان: «{langModel.Name}»";
                 }
             }
 
             if (Format != DivanPoemFormat.Unknown)
             {
-                title += $" در قالب شعری «{DivanPoemFormatConvertor.GetString(Format)}»";
+                title += $" صنف: «{DivanPoemFormatConvertor.GetString(Format)}»";
             }
 
             if (CoupletCountsFrom != 0)
             {
-                title += $" حداقل تعداد ابیات «{CoupletCountsFrom.ToPersianNumbers()}»";
+                title += $" اشعار کی کم از کم تعداد «{CoupletCountsFrom.ToPersianNumbers()}»";
             }
 
             if (CoupletCountsTo != 0)
             {
-                title += $" حداکثر تعداد ابیات «{CoupletCountsTo.ToPersianNumbers()}»";
+                title += $" اشعار کی زیادہ سے زیادہ تعداد «{CoupletCountsTo.ToPersianNumbers()}»";
             }
 
             if (CatId != 0)
@@ -316,7 +316,7 @@ namespace DivanRazor.Pages
                     }
                     CatFullTitle += " " + cat.Cat.Title;
 
-                    title += $" در بخش {CatFullTitle}";
+                    title += $" حصے میں {CatFullTitle}";
                 }
             }
             else
@@ -327,7 +327,7 @@ namespace DivanRazor.Pages
 
             if (!string.IsNullOrEmpty(Query))
             {
-                title += $" شامل کلیدواژهٔ «{Query}»";
+                title += $" کلیدی لفظ: «{Query}»";
             }
 
             List<int> exceptPoetId = new List<int>();
@@ -377,7 +377,7 @@ namespace DivanRazor.Pages
                 {
                     authorParam += $"&amp;c={CatId}";
                 }
-                title += $" - صفحهٔ {pageNumber.ToPersianNumbers()}";
+                title += $" - صفحہ {pageNumber.ToPersianNumbers()}";
                 if (PaginationMetadata.currentPage > 3)
                 {
                     htmlText += $"<a href=\"/simi/?v={Uri.EscapeDataString(Metre)}&amp;g={Uri.EscapeDataString(Rhyme)}&amp;page=1{authorParam}&amp;l={Language}&amp;f={(int)Format}&amp;c1={CoupletCountsFrom}&amp;c2={CoupletCountsTo}{exceptUrl}\"><div class=\"circled-number\">۱</div></a> …";
@@ -419,7 +419,7 @@ namespace DivanRazor.Pages
 
                 if (string.IsNullOrEmpty(rhythm))
                 {
-                    return new BadRequestObjectResult("وزن انتخاب نشده");
+                    return new BadRequestObjectResult("بحر منتخب نہیں");
                 }
 
                 var sectionResponse = await secureClient.GetAsync($"{APIRoot.Url}/api/divan/sections/{poemId}");
@@ -439,7 +439,7 @@ namespace DivanRazor.Pages
 
                 if (null != JsonConvert.DeserializeObject<DivanPoemSectionCorrectionViewModel>(await correctionResponse.Content.ReadAsStringAsync()))
                 {
-                    return new BadRequestObjectResult("شما پیشتر پیشنهادی تصحیحی برای این قطع ثبت کرده‌اید.");
+                    return new BadRequestObjectResult("آپ اس حصے کے لیے پہلے ہی تصحیح تجویز کر چکے ہیں.");
                 }
 
                 DivanPoemSectionCorrectionViewModel correction = new DivanPoemSectionCorrectionViewModel()

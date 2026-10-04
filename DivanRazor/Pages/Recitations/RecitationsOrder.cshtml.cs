@@ -76,7 +76,7 @@ namespace DivanRazor.Pages
             }
             else
             {
-                LastError = "شعری انتخاب نشده است.";
+                LastError = "کوئی شعر منتخب نہیں.";
             }
 
             return Page();

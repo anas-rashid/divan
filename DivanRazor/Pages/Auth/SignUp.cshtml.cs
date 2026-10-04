@@ -59,16 +59,16 @@ namespace DivanRazor.Pages
             ViewData["TrackingScript"] = Configuration["TrackingScript"] != null && string.IsNullOrEmpty(Request.Cookies["Token"]) ? Configuration["TrackingScript"].Replace("loggedon", "") : Configuration["TrackingScript"];
             if (SignupPhase1)
             {
-                ViewData["Title"] = "دیوان » نام‌نویسی » ورود ایمیل";
+                ViewData["Title"] = "دیوان » رکنیت » ای میل";
             }
             else
             if (SignupVerifyEmailPhase)
             {
-                ViewData["Title"] = "دیوان » نام‌نویسی » ورود رمز دریافتی در ایمیل";
+                ViewData["Title"] = "دیوان » رکنیت » موصولہ کوڈ";
             }
             else
             {
-                ViewData["Title"] = "دیوان » نام‌نویسی » مرحلهٔ نهایی";
+                ViewData["Title"] = "دیوان » رکنیت » آخری مرحلہ";
             }
         }
         public async Task<IActionResult> OnGetAsync()
@@ -87,7 +87,7 @@ namespace DivanRazor.Pages
 
             SignUpViewModel = new UnverifiedSignUpViewModel()
             {
-                ClientAppName = "وبگاه دیوان",
+                ClientAppName = "دیوان ویب سائٹ",
                 Language = "ur-PK",
                 CallbackUrl = $"{Configuration["SiteUrl"]}/signup"
             };
@@ -123,7 +123,7 @@ namespace DivanRazor.Pages
                 LastError = JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync());
                 if(LastError == null)
                 {
-                    LastError = "لطفاً ایمیل خود و عدد تصویر امنیتی را به درستی وارد کنید.";
+                    LastError = "براہِ کرم اپنی ای میل اور حفاظتی تصویر کا عدد درست لکھیں.";
                 }
 
                 response = await _httpClient.GetAsync($"{APIRoot.Url}/api/users/captchaimage");
@@ -202,7 +202,7 @@ namespace DivanRazor.Pages
 
             if (FinalViewModel.Password != FinalViewModel.PasswordConfirmation)
             {
-                LastError = "گذرواژه و تکرار آن یکی نیستند.";
+                LastError = "پاس ورڈ اور اس کی تکرار ایک جیسے نہیں.";
                 _FillViewData();
                 return Page();
             }
@@ -227,7 +227,7 @@ namespace DivanRazor.Pages
 
             LoginViewModel loginViewModel = new LoginViewModel()
             {
-                ClientAppName = "وبگاه دیوان",
+                ClientAppName = "دیوان ویب سائٹ",
                 Language = "ur-PK",
                 Username = postViewModel.Email,
                 Password = postViewModel.Password

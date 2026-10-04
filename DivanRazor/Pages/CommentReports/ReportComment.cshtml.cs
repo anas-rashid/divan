@@ -78,7 +78,7 @@ namespace DivanRazor.Pages
                 }
                 else
                 {
-                    LastError = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
+                    LastError = "براہِ کرم دیوان سے خروج کر کے دوبارہ داخل ہوں.";
                 }
             }
 

@@ -22,7 +22,7 @@ namespace DivanRazor.Pages
         {
             get
             {
-                return InReplyTo == null ? "نوشته" : "پاسخ داده";
+                return InReplyTo == null ? "لکھا" : "جواب دیا";
             }
         }
         public bool Bookmarked { get; set; }

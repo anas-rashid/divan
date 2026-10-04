@@ -15,13 +15,13 @@ else
             @Model.Person.Name
             @if (Model.LoggedIn)
             {
-                <a href="/User/SuggestPersonEdit?id=@Model.Person.Id" class="up-icon-btn" title="پیشنهاد ویرایش این نامبرده" aria-label="پیشنهاد ویرایش این نامبرده">✎</a>
+                <a href="/User/SuggestPersonEdit?id=@Model.Person.Id" class="up-icon-btn" title="اس شخصیت میں ترمیم تجویز کریں" aria-label="اس شخصیت میں ترمیم تجویز کریں">✎</a>
             }
         </h2>
 
         @if (!string.IsNullOrEmpty(Model.Person.FamilyTreeCaption))
         {
-            <p><strong>تبارنامه: @Model.Person.FamilyTreeCaption</strong></p>
+            <p><strong>شجرہ: @Model.Person.FamilyTreeCaption</strong></p>
         }
 
         @if (Model.Person.BirthYearInLHijri != 0 || Model.Person.DeathYearInLHijri != 0)
@@ -29,11 +29,11 @@ else
             <p>
                 @if (Model.Person.BirthYearInLHijri != 0)
                 {
-                    <text>تولد: @Model.Person.BirthYearInLHijri.ToPersianNumbers() (قمری) @(Model.Person.ValidBirthDate ? "" : "- تخمینی")</text>
+                    <text>ولادت: @Model.Person.BirthYearInLHijri.ToPersianNumbers() (ہجری) @(Model.Person.ValidBirthDate ? "" : "- تخمینی")</text>
                 }
                 @if (Model.Person.DeathYearInLHijri != 0)
                 {
-                    <text> — وفات: @Model.Person.DeathYearInLHijri.ToPersianNumbers() (قمری) @(Model.Person.ValidDeathDate ? "" : "- تخمینی")</text>
+                    <text> — وفات: @Model.Person.DeathYearInLHijri.ToPersianNumbers() (ہجری) @(Model.Person.ValidDeathDate ? "" : "- تخمینی")</text>
                 }
             </p>
         }
@@ -45,17 +45,17 @@ else
 
         @if (!string.IsNullOrEmpty(Model.Person.WikiUrl))
         {
-            <p><a href="@Model.Person.WikiUrl" target="_blank" rel="noopener">صفحهٔ ویکی‌پدیا</a></p>
+            <p><a href="@Model.Person.WikiUrl" target="_blank" rel="noopener">ویکیپیڈیا صفحہ</a></p>
         }
 
         @if (Model.RelationRows.Count > 0)
         {
             <h3>
-                خویشاوندان
-                <a href="javascript:void(0)" onclick="FamilyTreeWindow.open(@Model.Person.Id)" class="up-btn up-btn--ghost up-btn--sm">نمایش نمودار تبارنامه</a>
+                رشتہ دار
+                <a href="javascript:void(0)" onclick="FamilyTreeWindow.open(@Model.Person.Id)" class="up-btn up-btn--ghost up-btn--sm">شجرے کا خاکہ دکھائیں</a>
                 @if (Model.LoggedIn)
                 {
-                    <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">افزودن خویشاوند جدید</a>
+                    <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">نیا رشتہ دار شامل کریں</a>
                 }
             </h3>
             <ul>
@@ -69,7 +69,7 @@ else
                         }
                         @if (Model.LoggedIn)
                         {
-                            <a href="/User/SuggestPersonRelationEdit?relationId=@row.RelationId" class="up-icon-btn" title="پیشنهاد ویرایش/حذف این نسبت" aria-label="پیشنهاد ویرایش/حذف این نسبت">✎</a>
+                            <a href="/User/SuggestPersonRelationEdit?relationId=@row.RelationId" class="up-icon-btn" title="ترمیم تجویز کریں/یہ رشتہ ہٹائیں" aria-label="ترمیم تجویز کریں/یہ رشتہ ہٹائیں">✎</a>
                         }
                     </li>
                 }
@@ -78,18 +78,18 @@ else
         else if (Model.LoggedIn)
         {
             <h3>
-                خویشاوندان
-                <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">افزودن خویشاوند جدید</a>
+                رشتہ دار
+                <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">نیا رشتہ دار شامل کریں</a>
             </h3>
         }
 
         @if (Model.AffiliationRows.Count > 0)
         {
             <h3>
-                وابستگی‌های غیرخویشاوندی
+                غیر خاندانی وابستگیاں
                 @if (Model.LoggedIn)
                 {
-                    <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">افزودن وابستگی جدید</a>
+                    <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">نئی وابستگی شامل کریں</a>
                 }
             </h3>
             <ul>
@@ -103,7 +103,7 @@ else
                         }
                         @if (Model.LoggedIn)
                         {
-                            <a href="/User/SuggestPersonRelationEdit?affiliationId=@row.AffiliationId" class="up-icon-btn" title="پیشنهاد ویرایش/حذف این وابستگی" aria-label="پیشنهاد ویرایش/حذف این وابستگی">✎</a>
+                            <a href="/User/SuggestPersonRelationEdit?affiliationId=@row.AffiliationId" class="up-icon-btn" title="ترمیم تجویز کریں/یہ وابستگی ہٹائیں" aria-label="ترمیم تجویز کریں/یہ وابستگی ہٹائیں">✎</a>
                         }
                     </li>
                 }
@@ -112,14 +112,14 @@ else
         else if (Model.LoggedIn)
         {
             <h3>
-                وابستگی‌های غیرخویشاوندی
-                <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">افزودن وابستگی جدید</a>
+                غیر خاندانی وابستگیاں
+                <a href="/User/SuggestNewPersonRelation?personId=@Model.Person.Id" class="up-btn up-btn--ghost up-btn--sm">نئی وابستگی شامل کریں</a>
             </h3>
         }
 
         @if (Model.Poems != null && Model.Poems.Length > 0)
         {
-            <h3>اشعار برچسب‌خورده با این نامبرده</h3>
+            <h3>اس شخصیت سے نشان زدہ اشعار</h3>
             <ul>
                 @foreach (var tag in Model.Poems)
                 {
@@ -133,7 +133,7 @@ else
                             }
                             @if (!string.IsNullOrEmpty(tag.Note))
                             {
-                                <p class="up-hint"><small>یادداشت: @tag.Note</small></p>
+                                <p class="up-hint"><small>نوٹ: @tag.Note</small></p>
                             }
                         </li>
                     }
@@ -142,7 +142,7 @@ else
         }
         else
         {
-            <p><small>هنوز شعری با این نامبرده برچسب‌گذاری نشده است.</small></p>
+            <p><small>ابھی کسی شعر میں اس شخصیت کی نشاندہی نہیں ہوئی.</small></p>
         }
     </div>
 }

@@ -61,16 +61,16 @@ namespace DivanRazor.Pages
             ViewData["TrackingScript"] = Configuration["TrackingScript"] != null && string.IsNullOrEmpty(Request.Cookies["Token"]) ? Configuration["TrackingScript"].Replace("loggedon", "") : Configuration["TrackingScript"];
             if (PhaseSendEmail)
             {
-                ViewData["Title"] = "دیوان » فراموشی گذرواژه » ورود ایمیل";
+                ViewData["Title"] = "دیوان » پاس ورڈ بھول گئے » ای میل";
             }
             else
             if (PhaseSendEmail)
             {
-                ViewData["Title"] = "دیوان » فراموشی گذرواژه » ورود رمز دریافتی در ایمیل";
+                ViewData["Title"] = "دیوان » پاس ورڈ بھول گئے » موصولہ کوڈ";
             }
             else
             {
-                ViewData["Title"] = "دیوان » فراموشی گذرواژه » مرحلهٔ نهایی";
+                ViewData["Title"] = "دیوان » پاس ورڈ بھول گئے » آخری مرحلہ";
             }
         }
 
@@ -90,7 +90,7 @@ namespace DivanRazor.Pages
 
             ForgotPasswordViewModel = new UnverifiedSignUpViewModel()
             {
-                ClientAppName = "وبگاه دیوان",
+                ClientAppName = "دیوان ویب سائٹ",
                 Language = "ur-PK",
                 CallbackUrl = $"{Configuration["SiteUrl"]}/resetpassword"
             };
@@ -192,7 +192,7 @@ namespace DivanRazor.Pages
 
             if (ResetPasswordViewModel.Password != ResetPasswordViewModel.PasswordConfirmation)
             {
-                LastError = "گذرواژه و تکرار آن یکی نیستند.";
+                LastError = "پاس ورڈ اور اس کی تکرار ایک جیسے نہیں.";
                 _FillViewData();
                 return Page();
             }
@@ -215,7 +215,7 @@ namespace DivanRazor.Pages
 
             LoginViewModel loginViewModel = new LoginViewModel()
             {
-                ClientAppName = "وبگاه دیوان",
+                ClientAppName = "دیوان ویب سائٹ",
                 Language = "ur-PK",
                 Username = postViewModel.Email,
                 Password = postViewModel.Password
