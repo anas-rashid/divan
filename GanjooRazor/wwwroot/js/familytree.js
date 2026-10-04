@@ -387,9 +387,9 @@
                 '<h3 style="margin:4px 0 10px 0">' + escapeHtml(personLabel(p)) + '</h3>';
             if (p.birthYearInLHijri || p.deathYearInLHijri) {
                 html += '<p style="margin:4px 0"><small>';
-                if (p.birthYearInLHijri) html += 'زاده ' + p.birthYearInLHijri.toLocaleString('fa-IR') + (p.validBirthDate ? '' : ' (تخمینی)');
+                if (p.birthYearInLHijri) html += 'زاده ' + p.birthYearInLHijri.toLocaleString('ur-PK-u-nu-arabext') + (p.validBirthDate ? '' : ' (تخمینی)');
                 if (p.birthYearInLHijri && p.deathYearInLHijri) html += ' — ';
-                if (p.deathYearInLHijri) html += 'وفات ' + p.deathYearInLHijri.toLocaleString('fa-IR') + (p.validDeathDate ? '' : ' (تخمینی)');
+                if (p.deathYearInLHijri) html += 'وفات ' + p.deathYearInLHijri.toLocaleString('ur-PK-u-nu-arabext') + (p.validDeathDate ? '' : ' (تخمینی)');
                 html += '</small></p>';
             }
             if (p.description) {

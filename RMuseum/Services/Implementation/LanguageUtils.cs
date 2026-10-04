@@ -292,7 +292,7 @@ namespace RMuseum.Services.Implementation
 
         public static string FormatMoney(decimal amount)
         {
-            return amount.ToString("N0", new CultureInfo("fa-IR")).ToPersianNumbers();
+            return amount.ToString("N0", new CultureInfo("ur-PK")).ToPersianNumbers();
         }
 
         /// <summary>

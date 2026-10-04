@@ -165,7 +165,7 @@ namespace GanjooRazor.Pages
             }
 
             LoginViewModel.ClientAppName = "GanjooRazor";
-            LoginViewModel.Language = "fa-IR";
+            LoginViewModel.Language = "ur-PK";
 
             var stringContent = new StringContent(JsonConvert.SerializeObject(LoginViewModel), Encoding.UTF8, "application/json");
             var loginUrl = $"{APIRoot.Url}/api/users/login";

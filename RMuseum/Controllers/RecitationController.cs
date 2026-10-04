@@ -128,7 +128,7 @@ namespace RMuseum.Controllers
                      (
                          loggedOnUserId,
                          sessionId,
-                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                          RMuseumSecurableItem.AudioRecitationEntityShortName,
                          RMuseumSecurableItem.ModerateOperationShortName
                          );
@@ -339,7 +339,7 @@ namespace RMuseum.Controllers
                      (
                          loggedOnUserId,
                          sessionId,
-                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                          RMuseumSecurableItem.AudioRecitationEntityShortName,
                          RMuseumSecurableItem.ModerateOperationShortName
                          );
@@ -406,7 +406,7 @@ namespace RMuseum.Controllers
                      (
                          loggedOnUserId,
                          sessionId,
-                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                          RMuseumSecurableItem.AudioRecitationEntityShortName,
                          RMuseumSecurableItem.ModerateOperationShortName
                          );
@@ -429,7 +429,7 @@ namespace RMuseum.Controllers
                          (
                              loggedOnUserId,
                              sessionId,
-                             User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                             User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                              RMuseumSecurableItem.AudioRecitationEntityShortName,
                              RMuseumSecurableItem.ModerateOperationShortName
                              );
@@ -555,7 +555,7 @@ namespace RMuseum.Controllers
                      (
                          loggedOnUserId,
                          sessionId,
-                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                          RMuseumSecurableItem.AudioRecitationEntityShortName,
                          RMuseumSecurableItem.ModerateOperationShortName
                          );
@@ -778,7 +778,7 @@ namespace RMuseum.Controllers
                      (
                          loggedOnUserId,
                          sessionId,
-                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                          RMuseumSecurableItem.AudioRecitationEntityShortName,
                          RMuseumSecurableItem.ModerateOperationShortName
                          );
@@ -843,7 +843,7 @@ namespace RMuseum.Controllers
                      (
                          loggedOnUserId,
                          sessionId,
-                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                         User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                          RMuseumSecurableItem.AudioRecitationEntityShortName,
                          RMuseumSecurableItem.ModerateOperationShortName
                          );

@@ -290,7 +290,7 @@ namespace RMuseum.Services.Implementation
                                            htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                                            htmlText += $"<td class=\"c2\">{sourcesByType[i].SourceType}</td>{Environment.NewLine}";
                                            htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(sourcesByType[i].CoupletsCount)}</td>{Environment.NewLine}";
-                                           htmlText += $"<td class=\"c4\">{(sourcesByType[i].CoupletsCount * 100.0 / totalCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                           htmlText += $"<td class=\"c4\">{(sourcesByType[i].CoupletsCount * 100.0 / totalCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                            htmlText += $"</tr>{Environment.NewLine}";
                                        }
@@ -315,7 +315,7 @@ namespace RMuseum.Services.Implementation
                                            htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                                            htmlText += $"<td class=\"c2\"><a href=\"/sources/{sources[i].UrlSlug}\">{sources[i].FullName}</a></td>{Environment.NewLine}";
                                            htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(sources[i].CoupletsCount)}</td>{Environment.NewLine}";
-                                           htmlText += $"<td class=\"c4\">{(sources[i].CoupletsCount * 100.0 / totalCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                           htmlText += $"<td class=\"c4\">{(sources[i].CoupletsCount * 100.0 / totalCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                            htmlText += $"</tr>{Environment.NewLine}";
                                        }

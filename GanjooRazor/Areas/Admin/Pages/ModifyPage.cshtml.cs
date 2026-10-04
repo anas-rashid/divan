@@ -447,7 +447,7 @@ namespace GanjooRazor.Areas.Admin.Pages
                         Username = username,
                         Password = password,
                         ClientAppName = "GanjooRazor",
-                        Language = "fa-IR"
+                        Language = "ur-PK"
                     };
                     var stringContent = new StringContent(JsonConvert.SerializeObject(model), Encoding.UTF8, "application/json");
 

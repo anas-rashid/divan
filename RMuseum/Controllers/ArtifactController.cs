@@ -134,7 +134,7 @@ namespace RMuseum.Controllers
                     (
                         loggedOnUserId,
                         sessionId,
-                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                         RMuseumSecurableItem.ArtifactEntityShortName,
                         RMuseumSecurableItem.ViewDraftOperationShortName
                         );
@@ -646,7 +646,7 @@ namespace RMuseum.Controllers
                     (
                         loggedOnUserId,
                         sessionId,
-                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                         RMuseumSecurableItem.ArtifactEntityShortName,
                         RMuseumSecurableItem.ToAwaitingStatusOperationShortName
                         );
@@ -659,7 +659,7 @@ namespace RMuseum.Controllers
                     (
                         loggedOnUserId,
                         sessionId,
-                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                         RMuseumSecurableItem.ArtifactEntityShortName,
                         RMuseumSecurableItem.PublishOperationShortName
                         );
@@ -1593,7 +1593,7 @@ namespace RMuseum.Controllers
                     (
                         loggedOnUserId,
                         new Guid(User.Claims.FirstOrDefault(c => c.Type == "SessionId").Value),
-                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                         RMuseumSecurableItem.NoteEntityShortName,
                         RMuseumSecurableItem.ModerateOperationShortName
                         );
@@ -1631,7 +1631,7 @@ namespace RMuseum.Controllers
                     (
                         loggedOnUserId,
                         new Guid(User.Claims.FirstOrDefault(c => c.Type == "SessionId").Value),
-                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "fa-IR",
+                        User.Claims.Any(c => c.Type == "Language") ? User.Claims.First(c => c.Type == "Language").Value : "ur-PK",
                         RMuseumSecurableItem.NoteEntityShortName,
                         RMuseumSecurableItem.ModerateOperationShortName
                         );

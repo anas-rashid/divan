@@ -74,7 +74,7 @@ var $tooltip = $('<div>').addClass('tooltip').css({
 });
 
 // Append links and close button to tooltip
-$tooltip.append($meaning, $abjad, $quran, $search, $google, $vazn, $close);
+$tooltip.append($meaning, $quran, $search, $google, $vazn, $close); // divan: abjad (ganjoor service) dropped
 
 // Append tooltip to body
 $(document.body).append($tooltip);
@@ -130,13 +130,8 @@ function vaabSelectionChanged() {
 
     // Update tooltip links
     $meaning.attr({
-        href: 'https://www.vajehyab.com/?q=' + encodeURI(text),
-        title: 'جستجو در واژه‌یاب',
-        target: '_blank',
-    });
-    $abjad.attr({
-        href: 'https://abjad.ganjoor.net/?q=' + encodeURI(text) + '&r=' + window.location.href,
-        title: 'محاسبه ابجد معادل عبارت',
+        href: 'https://ur.wiktionary.org/w/index.php?search=' + encodeURI(text),
+        title: 'ویکی لغت میں معنی',
         target: '_blank',
     });
     $search.attr({

@@ -526,7 +526,7 @@ namespace RMuseum.Services
         /// <param name="poetId"></param>
         /// <param name="recitation"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorPoemCompleteViewModel>> Faal(int poetId = 2, bool recitation = true);
+        Task<RServiceResult<GanjoorPoemCompleteViewModel>> Faal(int poetId = 0, bool recitation = true);
 
         /// <summary>
         /// import from sqlite

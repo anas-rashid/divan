@@ -79,7 +79,7 @@ namespace RMuseum.Services.Implementation
                   .AsNoTracking()
                  .ToListAsync();
 
-                StringComparer fa = StringComparer.Create(new CultureInfo("fa-IR"), true);
+                StringComparer fa = StringComparer.Create(new CultureInfo("ur-PK"), true);
                 res.Sort((a, b) => fa.Compare(a.Nickname, b.Nickname));
                 poets = res.ToArray();
                 if (AggressiveCacheEnabled)
@@ -2611,87 +2611,11 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         private int _GetRandomPoemId(int poetId, int loopBreaker = 0)
         {
-            if (loopBreaker > 10)
-                return 0;
-            Random r = new Random(DateTime.Now.Millisecond);
-
-            switch (poetId)
-            {
-                case 2://حافظ
-                    {
-                        //this is magic number based method!
-                        int startPoemId = 2130;
-                        int endPoemId = 2624 + 1; //one is added for مژده ای دل که مسیحا نفسی می‌آید
-                        int poemId = r.Next(startPoemId, endPoemId);
-                        if (poemId == endPoemId)
-                        {
-                            poemId = 33179;//مژده ای دل که مسیحا نفسی می‌آید
-                        }
-                        return poemId;
-                    }
-                case 3://خیام
-                    return r.Next(1119, 1296);
-                case 26://ابوسعید
-                    return r.Next(20509, 21232);
-                case 22://صائب
-                    return r.Next(52198, 59193);
-                case 7://سعدی
-                    return r.Next(9323, 9959);
-                case 28://بابا طاهر
-                    return r.Next(21309, 21674);
-                case 5://مولانا
-                    return r.Next(2625, 5853);
-                case 19://اوحدی
-                    return r.Next(16955, 17839);
-                case 35://شهریار
-                    return r.Next(27065, 27224);
-                case 20://خواجو
-                    return r.Next(18288, 19219);
-                case 32://فروغی
-                    return r.Next(22996, 23511);
-                case 21://عراقی
-                    return r.Next(19222, 19526);
-                case 40://سلمان
-                    return r.Next(38411, 39320);
-                case 29://محتشم
-                    return r.Next(21744, 22338);
-                case 34://امیرخسرو
-                    return r.Next(60582, 62578);
-                case 31://سیف
-                    return r.Next(62837, 63418);
-                case 33://عبید
-                    return r.Next(23551, 23656);
-                case 25://هاتف
-                    return r.Next(20275, 20364);
-                case 41://رهی
-                    return r.Next(39441, 39546);
-            }
-
-            int[] poetIdArray = new int[]
-            {
-                2,
-                3,
-                26,
-                22,
-                7,
-                28,
-                5,
-                19,
-                35,
-                20,
-                23,
-                21,
-                40,
-                29,
-                34,
-                31,
-                33,
-                25,
-                41
-            };
-
-            return _GetRandomPoemId(poetIdArray[r.Next(0, poetIdArray.Length - 1)], loopBreaker++);
-
+            // divan: data-driven (upstream used hard-coded id ranges of Persian poets); 0 = any poet
+            var poems = _context.GanjoorPoems.AsNoTracking().Where(p => p.Published);
+            if (poetId != 0)
+                poems = poems.Where(p => p.Cat.PoetId == poetId);
+            return poems.OrderBy(p => Guid.NewGuid()).Select(p => p.Id).FirstOrDefault();
         }
 
 
@@ -2702,7 +2626,7 @@ namespace RMuseum.Services.Implementation
         /// <param name="poetId"></param>
         /// <param name="recitation"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorPoemCompleteViewModel>> Faal(int poetId = 2, bool recitation = true)
+        public async Task<RServiceResult<GanjoorPoemCompleteViewModel>> Faal(int poetId = 0, bool recitation = true)
         {
             int poemId = _GetRandomPoemId(poetId);
             var poem = await _context.GanjoorPoems.Where(p => p.Id == poemId).AsNoTracking().SingleOrDefaultAsync();
@@ -2778,7 +2702,7 @@ namespace RMuseum.Services.Implementation
                         &&
                         (exceptPoetId.Length == 0 || !exceptPoetId.Contains(s.PoetId ?? 0))
                         &&
-                        ((language == "fa-IR" && string.IsNullOrEmpty(s.Language)) || s.Language == language)
+                        ((language == "ur-PK" && string.IsNullOrEmpty(s.Language)) || s.Language == language)
                         &&
                         (string.IsNullOrEmpty(metre) || (metre == "null" && s.GanjoorMetreId == null) || (!string.IsNullOrEmpty(metre) && s.GanjoorMetre.Rhythm == metre))
                         &&
@@ -2872,14 +2796,14 @@ namespace RMuseum.Services.Implementation
         {
             if (string.IsNullOrEmpty(language))
             {
-                language = "fa-IR";
+                language = "ur-PK";
             }
             var source =
                 _context.GanjoorPoemSections.Include(s => s.Poem).Include(s => s.Poet).Include(s => s.GanjoorMetre)
                 .Where(s =>
                         (poetId == null || s.PoetId == poetId)
                         &&
-                        ((language == "fa-IR" && string.IsNullOrEmpty(s.Language)) || s.Language == language)
+                        ((language == "ur-PK" && string.IsNullOrEmpty(s.Language)) || s.Language == language)
                         &&
                         s.SectionType == PoemSectionType.WholePoem
                         )

@@ -164,7 +164,7 @@ namespace GanjooRazor.Areas.User.Pages
                     }
                     if(string.IsNullOrEmpty(PoemSection.Language))
                     {
-                        PoemSection.Language = "fa-IR";
+                        PoemSection.Language = "ur-PK";
                     }
 
                     int index = Array.IndexOf(PageInformation.Poem.Sections, PoemSection);

@@ -505,7 +505,7 @@ namespace GanjooRazor.Pages
             return new OkObjectResult(poet);
         }
 
-        public string HtmlLanguage { get; set; } = "fa-IR";
+        public string HtmlLanguage { get; set; } = "ur-PK";
 
         private void _prepareNextPre()
         {
@@ -809,7 +809,7 @@ namespace GanjooRazor.Pages
 
             if (IsPoemPage)
             {
-                HtmlLanguage = string.IsNullOrEmpty(GanjoorPage.Poem.Language) ? "fa-IR" : GanjoorPage.Poem.Language;
+                HtmlLanguage = string.IsNullOrEmpty(GanjoorPage.Poem.Language) ? "ur-PK" : GanjoorPage.Poem.Language;
                 if (GetConfigFlag("BannersEnabled"))
                 {
                     var bannerQuery = await _httpClient.GetAsync($"{APIRoot.Url}/api/banners/random");
@@ -1426,48 +1426,6 @@ namespace GanjooRazor.Pages
                 PoetId = -1,
                 TotalWordCount = counts.Where(c => c.RowNmbrInCat > 0).Sum(c => c.Count),
                 WordCounts = counts.ToArray()
-            });
-        }
-
-        public async Task<IActionResult> OnGetTopVisitsAsync(string url)
-        {
-            url = $"https://ganjoor.net/{url}/";
-            var apiUrl = $"https://track.kntr.ir/api/reporting/toppages/1/ganjoor.net?parentUrl={WebUtility.UrlEncode(url)}&count=20";
-            var topVisitsResponse = await _httpClient.GetAsync(apiUrl);
-
-            if (!topVisitsResponse.IsSuccessStatusCode)
-            {
-                return Partial("~/Pages/Partials/GanjoorPage/_TopVisitsPartial.cshtml", new _TopVisitsPartialModel()
-                {
-                    Visits = null
-                });
-            }
-            var topVisits = JsonConvert.DeserializeObject<PageVisitsViewModel[]>(await topVisitsResponse.Content.ReadAsStringAsync());
-
-            return Partial("~/Pages/Partials/GanjoorPage/_TopVisitsPartial.cshtml", new _TopVisitsPartialModel()
-            {
-                Visits = topVisits
-            });
-        }
-
-        public async Task<IActionResult> OnGetSevenDaysVisitsAsync(string url)
-        {
-            url = $"https://ganjoor.net/{url}/";
-            var apiUrl = $"https://track.kntr.ir/api/reporting/dailypagevisits/1/ganjoor.net/for/{WebUtility.UrlEncode(url)}?start={DateTime.Now.Date.AddDays(-6).ToString("yyyy-MM-dd")}";
-            var s7ndaysVisitsResponse = await _httpClient.GetAsync(apiUrl);
-
-            if (!s7ndaysVisitsResponse.IsSuccessStatusCode)
-            {
-                return Partial("~/Pages/Partials/GanjoorPage/_7DaysVisitsPartial.cshtml", new _7DaysVisitsPartialModel()
-                {
-                    SevenDaysVisits = null
-                });
-            }
-            var s7ndaysVisits = JsonConvert.DeserializeObject<DateRangeVisitsViewModel[]>(await s7ndaysVisitsResponse.Content.ReadAsStringAsync());
-
-            return Partial("~/Pages/Partials/GanjoorPage/_7DaysVisitsPartial.cshtml", new _7DaysVisitsPartialModel()
-            {
-                SevenDaysVisits = s7ndaysVisits
             });
         }
 

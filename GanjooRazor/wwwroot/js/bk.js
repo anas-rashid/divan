@@ -2733,61 +2733,6 @@ function loadContributionsUsers(dataType, pageNumber) {
     });
 }
 
-function loadTopVisits(url) {
-    if (document.getElementById("top-visits") != null) {
-        return;
-    }
-    if (document.getElementById("load-topvisits") != null) {
-        document.getElementById("load-topvisits").remove();
-    }
-    var divParent = document.getElementById('topvisits-placeholder');
-    var imgElementId = 'loadingtopvisitsimg';
-    divParent.innerHTML = '<div class="bnumdiv" id="remove-this-topvisits"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
-    $.ajax({
-        type: "GET",
-        url: '?Handler=TopVisits&url=' + url,
-        error: function () {
-            if (document.getElementById("remove-this-topvisits") != null) {
-                document.getElementById("remove-this-topvisits").remove();
-            }
-        },
-        success: function (data) {
-            if (document.getElementById("remove-this-topvisits") != null) {
-                document.getElementById("remove-this-topvisits").remove();
-                $(data).appendTo(divParent);
-                plotChart('top-visits');
-            }
-        },
-    });
-}
-
-function load7DaysVisits(url) {
-    if (document.getElementById("7days-visits") != null) {
-        return;
-    }
-    if (document.getElementById("load-7daysvisits") != null) {
-        document.getElementById("load-7daysvisits").remove();
-    }
-    var divParent = document.getElementById('7daysvisits-placeholder');
-    var imgElementId = 'loading7daysvisitsimg';
-    divParent.innerHTML = '<div class="bnumdiv" id="remove-this-7daysvisits"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
-    $.ajax({
-        type: "GET",
-        url: '?Handler=SevenDaysVisits&url=' + url,
-        error: function () {
-            if (document.getElementById("remove-this-7daysvisits") != null) {
-                document.getElementById("remove-this-7daysvisits").remove();
-            }
-        },
-        success: function (data) {
-            if (document.getElementById("remove-this-7daysvisits") != null) {
-                document.getElementById("remove-this-7daysvisits").remove();
-                $(data).appendTo(divParent);
-                plotChart('7days-visits');
-            }
-        },
-    });
-}
 // Turns a plain text <input> into a "search as you type" picker over a small
 // in-memory location catalog ({id, name, latitude, longitude}[]), instead of a
 // long <select> the user has to scroll/search through by hand. If nothing in

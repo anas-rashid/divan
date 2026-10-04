@@ -603,7 +603,7 @@ namespace RMuseum.Services.Implementation
                             options == GanjoorTOC.AlphabeticWithSecondVerse
                           )
                         {
-                            var fa = new CultureInfo("fa-IR");
+                            var fa = new CultureInfo("ur-PK");
                             if (foundLastChars.Contains("و") && foundLastChars.Contains("ی") && foundLastChars.IndexOf("ه") == (foundLastChars.IndexOf("و") - 1))
                             {
                                 foundLastChars.Sort((a, b) => a == "ه" && b == "و" ? -1 : a == "و" && b == "ه" ? 1 : fa.CompareInfo.Compare(a, b));

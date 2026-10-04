@@ -52,7 +52,7 @@ namespace RMuseum.Services.Implementation
 
             // the fa-IR comparer can't be translated to SQL, so sorting happens here in memory -
             // the same approach GetPoets() above uses, fine for a list this small (< 200 rows)
-            StringComparer fa = StringComparer.Create(new CultureInfo("fa-IR"), true);
+            StringComparer fa = StringComparer.Create(new CultureInfo("ur-PK"), true);
             books.Sort((a, b) => fa.Compare(a.Name, b.Name));
 
             return new RServiceResult<GanjoorBookViewModel[]>(books.ToArray());

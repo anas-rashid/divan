@@ -2,7 +2,7 @@
 @model GanjooRazor.Pages.RandomModel
 @{
     Layout = null;
-    ViewData["Title"] = "بیت تصادفی";
+    ViewData["Title"] = "اتفاقی شعر";
 }
 <!DOCTYPE html>
 <html lang="ur-PK" dir="rtl">
@@ -15,20 +15,28 @@
 </head>
 <body id="tb">
     <div id="content">
-        <div id="ganjoor" />
+        <div id="ganjoor">
+            @if (Model.Poem != null)
+            {
+                @* first couplet (or first two lines) of a random poem *@
+                foreach (var verse in Model.Poem.Verses.Take(2))
+                {
+                    <p>@verse.Text</p>
+                }
+                <p><a href="@Model.Poem.FullUrl" target="_top">@Model.Poem.Category?.Poet?.Nickname</a></p>
+            }
+        </div>
     </div>
     <div id="footer">
         <p>
-            <a class="cursor-pointer" role="button" onclick="window.location.reload()">بیتی دیگر</a>
+            <a class="cursor-pointer" role="button" onclick="window.location.reload()">ایک اور شعر</a>
         </p>
         <p>
             برای مطالعهٔ متن کامل شعر روی نام سخنور بزنید.
         </p>
         <p>
-            به کمک <a href="https://c.ganjoor.net">کدهای دیوان</a>
         </p>
     </div>
-    <script type="text/javascript" src="https://c.ganjoor.net/beyt.php"></script>
 
     @if (ViewData["TrackingScript"] != null && !string.IsNullOrEmpty(ViewData["TrackingScript"].ToString()))
     {

@@ -124,7 +124,7 @@
                     </form>
                     @if (Model.PinterestUrl == "manual")
                     {
-                        <a href="https://blog.ganjoor.net/1399/01/29/pinterest/" target="_blank">پیشنهاد آسان از اینستاگرام و پین‌ترست با افزونهٔ فایرفاکس</a>
+                        <span>پیشنهاد آسان از اینستاگرام و پین‌ترست با افزونهٔ فایرفاکس</span>
                     }
                 </div>
             }
@@ -166,19 +166,7 @@
                         </a>
                     </h2>
 
-                    @if (Model.HtmlLanguage == "azb")
-                    {
-                        <div class="notice">
-                            مجموعه‌ای کامل‌تر و معتبرتر از اشعار ترکی را در وبگاه <a href="https://minsoz.ir">مین سؤز</a> خواهید یافت.
-                        </div>
-                    }
 
-                    @if (Model.HtmlLanguage == "ckb")
-                    {
-                        <div class="notice">
-                            مجموعه‌ای کامل‌تر و معتبرتر از اشعار کردی را در وبگاه <a href="https://books.vejin.net">ڤەژینبوکس</a> خواهید یافت.
-                        </div>
-                    }
                 </div>
             }
         }
@@ -245,7 +233,6 @@
             {
                 <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
             }
-            <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
             <div class="poemtablinks">
                 <a href="#discussions">حاشیه‌ها</a>
             </div>
@@ -490,7 +477,6 @@
                 {
                     <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                 }
-                <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                 <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
             </div>
             <div class="related-images-frame poemtabcontent">
@@ -521,7 +507,6 @@
                 {
                     <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                 }
-                <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                 <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
             </div>
             <div class="related-images-frame poemtabcontent">
@@ -569,7 +554,7 @@
                                 <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">پیشنهاد تصاویر مرتبط از منابع اینترنتی<i class="notranslate info-buttons photo_camera"></i></a>
                             </p>
                             <p>
-                                <a href="https://blog.ganjoor.net/1398/07/12/mganjoor/" class="pagebutton" target="_blank">راهنمای نحوهٔ پیشنهاد تصاویر مرتبط از گنجینهٔ دیوان<i class="notranslate info-buttons help-button"></i></a>
+                                راهنمای نحوهٔ پیشنهاد تصاویر مرتبط از گنجینهٔ دیوان<i class="notranslate info-buttons help-button"></i>
                             </p>
                         </div>
                     </div>
@@ -581,7 +566,7 @@
                             <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">پیشنهاد تصاویر مرتبط از منابع اینترنتی<i class="notranslate info-buttons photo_camera"></i></a>
                         </p>
                         <p>
-                            <a href="https://blog.ganjoor.net/1398/07/12/mganjoor/" class="pagebutton" target="_blank">راهنمای نحوهٔ پیشنهاد تصاویر مرتبط از گنجینهٔ دیوان<i class="notranslate info-buttons help-button"></i></a>
+                            راهنمای نحوهٔ پیشنهاد تصاویر مرتبط از گنجینهٔ دیوان<i class="notranslate info-buttons help-button"></i>
                         </p>
                     </div>
                 }
@@ -605,7 +590,6 @@
                     {
                         <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                     }
-                    <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                     <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
                 </div>
                 <div class="poemtabcontent">
@@ -614,7 +598,7 @@
                         فعال یا غیرفعال‌سازی قفل متن روی خوانش
                         <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0z" fill="none" /><path d="M8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2h-4.66l2 2H18v5.56l2 2V10c0-1.1-.9-2-2-2h-1V6c0-2.76-2.24-5-5-5-2.32 0-4.26 1.59-4.82 3.74L8.9 6.46V6zM4.41 4.81L3 6.22l2.04 2.04C4.42 8.6 4 9.25 4 10v10c0 1.1.9 2 2 2h12.78l1 1 1.41-1.41L4.41 4.81zM6 20V10h.78l10 10H6z" /></svg>
                     </a>
-                    <a href="https://ava.ganjoor.net/about/" class="pagebutton comments-link" target="_blank">من بخوانم</a>
+                    من بخوانم
                 </div>
             }
 
@@ -636,7 +620,6 @@
                     {
                         <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                     }
-                    <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                     <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
                 </div>
                 <div class="poemtabcontent">
@@ -667,7 +650,6 @@
                 {
                     <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                 }
-                <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                 <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
             </div>
             <div class="poemtabcontent">
@@ -692,7 +674,7 @@
                 else
                 {
                     <div>
-                        <a href="https://blog.ganjoor.net/1402/11/06/suggest-quotes/" class="pagebutton comments-link" target="_blank">پیشنهاد مشق شعر</a>
+                        پیشنهاد مشق شعر
                     </div>
                 }
             </div>
@@ -718,7 +700,6 @@
                     {
                         <div class="poemtablinks active"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                     }
-                    <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                     <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
                 </div>
                 <div class="poemtabcontent">
@@ -783,34 +764,6 @@
                 </div>
             }
 
-            @* ============ 7 DAYS VISITS TAB ============ *@
-            <div class="poempretab" id="7daysvisits"></div>
-            <div class="poemtab">
-                <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.GanjoorPage.Id, @Model.GanjoorPage.PoetOrCat.Cat.Id, @Model.GanjoorPage.PoetOrCat.Poet.Id)">واژگان</a></div>
-                <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
-                @if (Model.GanjoorPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.GanjoorAudio.RecitationType.Normal).Any())
-                {
-                    <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
-                }
-                @if (Model.GanjoorPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.GanjoorAudio.RecitationType.Commentary).Any())
-                {
-                    <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
-                }
-                <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
-                @if (Model.SectionsWithRelated.Count > 0)
-                {
-                    <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
-                }
-                <div class="poemtablinks active"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
-                <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
-            </div>
-            <div class="related-images-frame poemtabcontent">
-                <div class="century cursor-pointer" id="load-7daysvisits" onclick="load7DaysVisits('@Model.GanjoorPage.FullUrl')">
-                    بارگذاری روند بازدیدها
-                </div>
-                <div id="7daysvisits-placeholder"></div>
-            </div>
 
             @* ============ DISCUSSIONS TAB ============ *@
             <div class="poempretab" id="discussions"></div>
@@ -831,7 +784,6 @@
                 {
                     <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
                 }
-                <div class="poemtablinks"><a href="#7daysvisits" onclick="javascript:load7DaysVisits('@Model.GanjoorPage.FullUrl')">روند بازدیدها</a></div>
                 <div class="poemtablinks active"><a href="#discussions">حاشیه‌ها</a></div>
             </div>
             <div class="related-images-frame poemtabcontent">

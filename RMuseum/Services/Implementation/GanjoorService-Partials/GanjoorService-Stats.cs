@@ -77,7 +77,7 @@ namespace RMuseum.Services.Implementation
 
 
             var wholePoemSections = await context.GanjoorPoemSections.Include(v => v.Poem).ThenInclude(p => p.Cat).ThenInclude(c => c.Poet).AsNoTracking()
-                                                .Where(s => s.PoetId == poet.Id && (string.IsNullOrEmpty(s.Language) || s.Language == "fa-IR") && s.Poem.Cat.Poet.Published && s.SectionType == PoemSectionType.WholePoem)
+                                                .Where(s => s.PoetId == poet.Id && (string.IsNullOrEmpty(s.Language) || s.Language == "ur-PK") && s.Poem.Cat.Poet.Published && s.SectionType == PoemSectionType.WholePoem)
                                                 .Select(s => new { s.PoemId, s.Index, s.GanjoorMetreId, s.VerseType })
                                                 .ToListAsync();
 
@@ -180,7 +180,7 @@ namespace RMuseum.Services.Implementation
                                 $"<a href=\"/simi/?v={Uri.EscapeDataString(rhythms.Where(r => r.Id == rhythmsCoupletCounts[i].GanjoorMetreId).Single().Rhythm)}&amp;a={poet.Id}\">{rhythms.Where(r => r.Id == rhythmsCoupletCounts[i].GanjoorMetreId).Single().Rhythm}</a>";
                 htmlText += $"<td class=\"c2\">{rhythm}</td>{Environment.NewLine}";
                 htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(rhythmsCoupletCounts[i].Count)}</td>{Environment.NewLine}";
-                htmlText += $"<td class=\"c4\">{(rhythmsCoupletCounts[i].Count * 100.0 / sumRhythmsCouplets).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                htmlText += $"<td class=\"c4\">{(rhythmsCoupletCounts[i].Count * 100.0 / sumRhythmsCouplets).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                 htmlText += $"</tr>{Environment.NewLine}";
             }
@@ -204,15 +204,15 @@ namespace RMuseum.Services.Implementation
                 {
                     new LanguageCoupletCount()
                     {
-                        Language = "fa-IR",
+                        Language = "ur-PK",
                         Count = 0
                     }
                 };
                 foreach (var item in linqResult)
                 {
-                    if (item.Language == "fa-IR" || string.IsNullOrEmpty(item.Language))
+                    if (item.Language == "ur-PK" || string.IsNullOrEmpty(item.Language))
                     {
-                        var fa = languagesCoupletsCountsUnprocessed.Where(l => l.Language == "fa-IR").Single();
+                        var fa = languagesCoupletsCountsUnprocessed.Where(l => l.Language == "ur-PK").Single();
                         fa.Count += item.Count;
                     }
                     else
@@ -249,7 +249,7 @@ namespace RMuseum.Services.Implementation
                         string language = langModel.Name;
                         htmlText += $"<td class=\"c2\"><a href=\"/simi/?l={Uri.EscapeDataString(langModel.Code)}&amp;a={poet.Id}\">{language}</a></td>{Environment.NewLine}";
                         htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(languagesCoupletsCountsUnprocessed[i].Count)}</td>{Environment.NewLine}";
-                        htmlText += $"<td class=\"c4\">{(languagesCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                        htmlText += $"<td class=\"c4\">{(languagesCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                         htmlText += $"</tr>{Environment.NewLine}";
                     }
@@ -318,7 +318,7 @@ namespace RMuseum.Services.Implementation
                 htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                 htmlText += $"<td class=\"c2\"><a href=\"/simi/?f={(int)formatCoupletsCountsUnprocessed[i].Format}&amp;a={poet.Id}\">{GanjoorPoemFormatConvertor.GetString(formatCoupletsCountsUnprocessed[i].Format)}</a></td>{Environment.NewLine}";
                 htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(formatCoupletsCountsUnprocessed[i].Count)}</td>{Environment.NewLine}";
-                htmlText += $"<td class=\"c4\">{(formatCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                htmlText += $"<td class=\"c4\">{(formatCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                 htmlText += $"</tr>{Environment.NewLine}";
             }
@@ -365,7 +365,7 @@ namespace RMuseum.Services.Implementation
                     htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                     htmlText += $"<td class=\"c2\"><a href=\"/simi/?a={poet.Id}&amp;c1={coupletCountsList[i].CoupletCount}&amp;c2={coupletCountsList[i].CoupletCount}\">{coupletCountsList[i].CoupletCount.ToPersianNumbers()}</a></td>{Environment.NewLine}";
                     htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(coupletCountsList[i].Count)}</td>{Environment.NewLine}";
-                    htmlText += $"<td class=\"c4\">{(coupletCountsList[i].Count * 100.0 / cc).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                    htmlText += $"<td class=\"c4\">{(coupletCountsList[i].Count * 100.0 / cc).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                     htmlText += $"</tr>{Environment.NewLine}";
                 }
@@ -405,7 +405,7 @@ namespace RMuseum.Services.Implementation
             int wholeCoupletsCount = catsCoupletCounts[0].Count;
 
             var wholePoemSections = await context.GanjoorPoemSections.Include(v => v.Poem).ThenInclude(p => p.Cat).ThenInclude(c => c.Poet).AsNoTracking()
-                                                .Where(s => catIdList.Contains(s.Poem.CatId) && (string.IsNullOrEmpty(s.Language) || s.Language == "fa-IR") && s.Poem.Cat.Poet.Published && s.SectionType == PoemSectionType.WholePoem)
+                                                .Where(s => catIdList.Contains(s.Poem.CatId) && (string.IsNullOrEmpty(s.Language) || s.Language == "ur-PK") && s.Poem.Cat.Poet.Published && s.SectionType == PoemSectionType.WholePoem)
                                                 .Select(s => new { s.PoemId, s.Index, s.GanjoorMetreId, s.VerseType })
                                                 .ToListAsync();
 
@@ -518,7 +518,7 @@ namespace RMuseum.Services.Implementation
                                 $"<a href=\"/simi/?v={Uri.EscapeDataString(rhythms.Where(r => r.Id == rhythmsCoupletCounts[i].GanjoorMetreId).Single().Rhythm)}&amp;a={poetId}&amp;c={catId}\">{rhythms.Where(r => r.Id == rhythmsCoupletCounts[i].GanjoorMetreId).Single().Rhythm}</a>";
                 htmlText += $"<td class=\"c2\">{rhythm}</td>{Environment.NewLine}";
                 htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(rhythmsCoupletCounts[i].Count)}</td>{Environment.NewLine}";
-                htmlText += $"<td class=\"c4\">{(rhythmsCoupletCounts[i].Count * 100.0 / sumRhythmsCouplets).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                htmlText += $"<td class=\"c4\">{(rhythmsCoupletCounts[i].Count * 100.0 / sumRhythmsCouplets).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                 htmlText += $"</tr>{Environment.NewLine}";
             }
@@ -542,15 +542,15 @@ namespace RMuseum.Services.Implementation
                 {
                     new LanguageCoupletCount()
                     {
-                        Language = "fa-IR",
+                        Language = "ur-PK",
                         Count = 0
                     }
                 };
                 foreach (var item in linqResult)
                 {
-                    if (item.Language == "fa-IR" || string.IsNullOrEmpty(item.Language))
+                    if (item.Language == "ur-PK" || string.IsNullOrEmpty(item.Language))
                     {
-                        var fa = languagesCoupletsCountsUnprocessed.Where(l => l.Language == "fa-IR").Single();
+                        var fa = languagesCoupletsCountsUnprocessed.Where(l => l.Language == "ur-PK").Single();
                         fa.Count += item.Count;
                     }
                     else
@@ -587,7 +587,7 @@ namespace RMuseum.Services.Implementation
                         string language = langModel.Name;
                         htmlText += $"<td class=\"c2\"><a href=\"/simi/?l={Uri.EscapeDataString(langModel.Code)}&amp;a={poetId}&amp;c={catId}\">{language}</a></td>{Environment.NewLine}";
                         htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(languagesCoupletsCountsUnprocessed[i].Count)}</td>{Environment.NewLine}";
-                        htmlText += $"<td class=\"c4\">{(languagesCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                        htmlText += $"<td class=\"c4\">{(languagesCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                         htmlText += $"</tr>{Environment.NewLine}";
                     }
@@ -656,7 +656,7 @@ namespace RMuseum.Services.Implementation
                 htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                 htmlText += $"<td class=\"c2\"><a href=\"/simi/?f={(int)formatCoupletsCountsUnprocessed[i].Format}&amp;a={poetId}&amp;c={catId}\">{GanjoorPoemFormatConvertor.GetString(formatCoupletsCountsUnprocessed[i].Format)}</a></td>{Environment.NewLine}";
                 htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(formatCoupletsCountsUnprocessed[i].Count)}</td>{Environment.NewLine}";
-                htmlText += $"<td class=\"c4\">{(formatCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                htmlText += $"<td class=\"c4\">{(formatCoupletsCountsUnprocessed[i].Count * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                 htmlText += $"</tr>{Environment.NewLine}";
             }
@@ -703,7 +703,7 @@ namespace RMuseum.Services.Implementation
                     htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                     htmlText += $"<td class=\"c2\"><a href=\"/simi/?a={poetId}&amp;c={catId}&amp;c1={coupletCountsList[i].CoupletCount}&amp;c2={coupletCountsList[i].CoupletCount}\">{coupletCountsList[i].CoupletCount.ToPersianNumbers()}</a></td>{Environment.NewLine}";
                     htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(coupletCountsList[i].Count)}</td>{Environment.NewLine}";
-                    htmlText += $"<td class=\"c4\">{(coupletCountsList[i].Count * 100.0 / cc).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                    htmlText += $"<td class=\"c4\">{(coupletCountsList[i].Count * 100.0 / cc).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                     htmlText += $"</tr>{Environment.NewLine}";
                 }
@@ -774,7 +774,7 @@ namespace RMuseum.Services.Implementation
                 }
                 
                 subCatsHtmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(subCatWholeCoupletsCount)}</td>{Environment.NewLine}";
-                subCatsHtmlText += $"<td class=\"c4\">{(subCatWholeCoupletsCount * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                subCatsHtmlText += $"<td class=\"c4\">{(subCatWholeCoupletsCount * 100.0 / wholeCoupletsCount).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                 subCatsHtmlText += $"</tr>{Environment.NewLine}";
                 subCatIndex++;
@@ -862,15 +862,15 @@ namespace RMuseum.Services.Implementation
                                         {
                                             new LanguageCoupletCount()
                                             {
-                                                Language = "fa-IR",
+                                                Language = "ur-PK",
                                                 Count = 0
                                             }
                                         };
                                         foreach (var item in linqResult)
                                         {
-                                            if (item.Language == "fa-IR" || string.IsNullOrEmpty(item.Language))
+                                            if (item.Language == "ur-PK" || string.IsNullOrEmpty(item.Language))
                                             {
-                                                var fa = languagesCoupletsCountsUnprocessed.Where(l => l.Language == "fa-IR").Single();
+                                                var fa = languagesCoupletsCountsUnprocessed.Where(l => l.Language == "ur-PK").Single();
                                                 fa.Count += item.Count;
                                             }
                                             else
@@ -926,7 +926,7 @@ namespace RMuseum.Services.Implementation
                                         await jobProgressServiceEF.UpdateJob(job.Id, 1, "Counting whole sections");
 
                                         var wholePoemSections = await context.GanjoorPoemSections.Include(v => v.Poem).ThenInclude(p => p.Cat).ThenInclude(c => c.Poet).AsNoTracking()
-                                                .Where(s => s.Poem.Cat.Poet.Published && (string.IsNullOrEmpty(s.Language) || s.Language == "fa-IR") && s.SectionType == PoemSectionType.WholePoem)
+                                                .Where(s => s.Poem.Cat.Poet.Published && (string.IsNullOrEmpty(s.Language) || s.Language == "ur-PK") && s.SectionType == PoemSectionType.WholePoem)
                                                 .Select(s => new { s.PoemId, s.Index, s.GanjoorMetreId, Versetype = s.VerseType })
                                                 .ToListAsync();
 
@@ -1023,7 +1023,7 @@ namespace RMuseum.Services.Implementation
                                             htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                                             htmlText += $"<td class=\"c2\"><a href=\"{(await context.GanjoorCategories.Where(c => c.ParentId == null && c.PoetId == poetsCoupletCounts[i].PoetId).SingleAsync()).FullUrl}\">{poets.Where(p => p.Id == poetsCoupletCounts[i].PoetId).Single().Nickname}</a></td>{Environment.NewLine}";
                                             htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(poetsCoupletCounts[i].Count)}</td>{Environment.NewLine}";
-                                            htmlText += $"<td class=\"c4\">{(poetsCoupletCounts[i].Count * 100.0 / sumPoetsCouplets).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                            htmlText += $"<td class=\"c4\">{(poetsCoupletCounts[i].Count * 100.0 / sumPoetsCouplets).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                             htmlText += $"</tr>{Environment.NewLine}";
                                         }
@@ -1064,7 +1064,7 @@ namespace RMuseum.Services.Implementation
                                             string language = langModel.Description;  
                                             htmlText += $"<td class=\"c2\"><a href=\"/simi/?l={Uri.EscapeDataString(langModel.Code)}\">{language}</a></td>{Environment.NewLine}";
                                             htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(languagesCoupletsCountsUnprocessed[i].Count)}</td>{Environment.NewLine}";
-                                            htmlText += $"<td class=\"c4\">{(languagesCoupletsCountsUnprocessed[i].Count * 100.0 / sumPoetsCouplets).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                            htmlText += $"<td class=\"c4\">{(languagesCoupletsCountsUnprocessed[i].Count * 100.0 / sumPoetsCouplets).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                             htmlText += $"</tr>{Environment.NewLine}";
                                         }
@@ -1102,7 +1102,7 @@ namespace RMuseum.Services.Implementation
                                             htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                                             htmlText += $"<td class=\"c2\"><a href=\"/simi/?f={(int)formatCoupletsCountsUnprocessed[i].Format}\">{GanjoorPoemFormatConvertor.GetString(formatCoupletsCountsUnprocessed[i].Format)}</a></td>{Environment.NewLine}";
                                             htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(formatCoupletsCountsUnprocessed[i].Count)}</td>{Environment.NewLine}";
-                                            htmlText += $"<td class=\"c4\">{(formatCoupletsCountsUnprocessed[i].Count * 100.0 / sumPoetsCouplets).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                            htmlText += $"<td class=\"c4\">{(formatCoupletsCountsUnprocessed[i].Count * 100.0 / sumPoetsCouplets).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                             htmlText += $"</tr>{Environment.NewLine}";
                                         }
@@ -1151,7 +1151,7 @@ namespace RMuseum.Services.Implementation
                                             $"<a href=\"/simi/?v={Uri.EscapeDataString(rhythm.Rhythm)}\">{rhythms.Where(r => r.Id == rhythmsCoupletCounts[i].GanjoorMetreId).Single().Rhythm}</a>";
                                             htmlText += $"<td class=\"c2\">{rhythmName}</td>{Environment.NewLine}";
                                             htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(rhythmsCoupletCounts[i].Count)}</td>{Environment.NewLine}";
-                                            htmlText += $"<td class=\"c4\">{(rhythmsCoupletCounts[i].Count * 100.0 / sumRhythmsCouplets).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                            htmlText += $"<td class=\"c4\">{(rhythmsCoupletCounts[i].Count * 100.0 / sumRhythmsCouplets).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                             htmlText += $"</tr>{Environment.NewLine}";
                                         }
@@ -1199,7 +1199,7 @@ namespace RMuseum.Services.Implementation
                                                 htmlText += $"<td class=\"c1\">{(i + 1).ToPersianNumbers()}</td>{Environment.NewLine}";
                                                 htmlText += $"<td class=\"c2\"><a href=\"/simi/?c1={coupletCountsList[i].CoupletCount}&amp;c2={coupletCountsList[i].CoupletCount}\">{coupletCountsList[i].CoupletCount.ToPersianNumbers()}</a></td>{Environment.NewLine}";
                                                 htmlText += $"<td class=\"c3\">{LanguageUtils.FormatMoney(coupletCountsList[i].Count)}</td>{Environment.NewLine}";
-                                                htmlText += $"<td class=\"c4\">{(coupletCountsList[i].Count * 100.0 / cc).ToString("N2", new CultureInfo("fa-IR")).ToPersianNumbers()}</td>{Environment.NewLine}";
+                                                htmlText += $"<td class=\"c4\">{(coupletCountsList[i].Count * 100.0 / cc).ToString("N2", new CultureInfo("ur-PK")).ToPersianNumbers()}</td>{Environment.NewLine}";
 
                                                 htmlText += $"</tr>{Environment.NewLine}";
                                             }

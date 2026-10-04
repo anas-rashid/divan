@@ -76,7 +76,7 @@ namespace RMuseum.Services.Implementation
                         Username = naskbanUserName,
                         Password = naskbanPassword,
                         ClientAppName = "Ganjoor API",
-                        Language = "fa-IR"
+                        Language = "ur-PK"
                     };
                     var loginResponse = await client.PostAsync("https://api.naskban.ir/api/users/login", new StringContent(JsonConvert.SerializeObject(loginViewModel), Encoding.UTF8, "application/json"));
 
@@ -336,7 +336,7 @@ namespace RMuseum.Services.Implementation
                         Username = naskbanUserName,
                         Password = naskbanPassword,
                         ClientAppName = "Ganjoor API",
-                        Language = "fa-IR"
+                        Language = "ur-PK"
                     };
                     var loginResponse = await client.PostAsync("https://api.naskban.ir/api/users/login", new StringContent(JsonConvert.SerializeObject(loginViewModel), Encoding.UTF8, "application/json"));
 
@@ -579,7 +579,7 @@ namespace RMuseum.Services.Implementation
                         Username = naskbanUserName,
                         Password = naskbanPassword,
                         ClientAppName = "Ganjoor API",
-                        Language = "fa-IR"
+                        Language = "ur-PK"
                     };
                     var loginResponse = await client.PostAsync("https://api.naskban.ir/api/users/login", new StringContent(JsonConvert.SerializeObject(loginViewModel), Encoding.UTF8, "application/json"));
 

@@ -122,7 +122,7 @@ namespace GanjooRazor.Pages
 
             anyParamsGiven |= Language != null;
 
-            Language ??= "fa-IR";
+            Language ??= "ur-PK";
 
             string f = Request.Query["f"];
             anyParamsGiven |= f != null;
@@ -272,7 +272,7 @@ namespace GanjooRazor.Pages
             }
 
 
-            if (Language != "fa-IR")
+            if (Language != "ur-PK")
             {
                 var langModel = Languages.Where(l => l.Code == Language).FirstOrDefault();
                 if (langModel != null)

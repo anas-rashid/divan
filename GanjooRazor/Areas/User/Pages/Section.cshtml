@@ -332,7 +332,7 @@ else
             <select id="language">
                 @foreach (var lang in Model.Languages)
                 {
-                    @if (Model.MyLastEdit != null && (Model.MyLastEdit.Language == lang.Code || (string.IsNullOrEmpty(Model.MyLastEdit.Language) && lang.Code == "fa-IR")))
+                    @if (Model.MyLastEdit != null && (Model.MyLastEdit.Language == lang.Code || (string.IsNullOrEmpty(Model.MyLastEdit.Language) && lang.Code == "ur-PK")))
                     {
                         <option value="@lang.Code" selected>@lang.Name</option>
                     }

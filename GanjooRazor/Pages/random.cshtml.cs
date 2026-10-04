@@ -1,27 +1,37 @@
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using RMuseum.Models.Ganjoor.ViewModels;
+using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace GanjooRazor.Pages
 {
+    /// <summary>
+    /// random couplet (divan: rendered from our own API instead of upstream's external c.ganjoor.net widget)
+    /// </summary>
     public class RandomModel : PageModel
     {
-        /// <summary>
-        /// configration file reader (appsettings.json)
-        /// </summary>
         private readonly IConfiguration _configuration;
+        private readonly HttpClient _httpClient;
 
-        /// <summary>
-        /// constructor
-        /// </summary>
-        /// <param name="configuration"></param>
-        public RandomModel(IConfiguration configuration)
+        public RandomModel(IConfiguration configuration, HttpClient httpClient)
         {
             _configuration = configuration;
+            _httpClient = httpClient;
         }
 
-        public void OnGet()
+        /// <summary>
+        /// random poem, null when the API is unreachable or empty
+        /// </summary>
+        public GanjoorPoemCompleteViewModel Poem { get; set; }
+
+        public async Task OnGetAsync()
         {
             ViewData["TrackingScript"] = _configuration["TrackingScript"];
+            var response = await _httpClient.GetAsync($"{APIRoot.Url}/api/ganjoor/poem/random?poetId=0");
+            if (response.IsSuccessStatusCode)
+                Poem = JsonConvert.DeserializeObject<GanjoorPoemCompleteViewModel>(await response.Content.ReadAsStringAsync());
         }
     }
 }

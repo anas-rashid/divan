@@ -148,7 +148,7 @@
 
         var lang = document.getElementById('cat-poem-language').value;
         if(lang == '')
-            lang = 'fa-IR';
+            lang = 'ur-PK';
         var ok = await upConfirm(lang);
         if (ok) {
             var url = '?handler=SetCategoryLanguageTag';
@@ -425,7 +425,7 @@
                 <select id="cat-poem-language">
                     @foreach (var lang in Model.Languages)
                     {
-                        @if(lang.Code == "fa-IR")
+                        @if(lang.Code == "ur-PK")
                         {
                             <option value="">@lang.Name</option>
                         }

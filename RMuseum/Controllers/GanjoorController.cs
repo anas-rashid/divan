@@ -2324,7 +2324,7 @@ namespace RMuseum.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(IEnumerable<GanjoorPoemCompleteViewModel>))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
 
-        public async Task<IActionResult> GetSimilarPoemsAsync([FromQuery] PagingParameterModel paging, string metre, string rhyme, int poetId = 0, int catId = 0, string language = "fa-IR", GanjoorPoemFormat format = GanjoorPoemFormat.Unknown, string term = null, int coupletCountsFrom = 0, int coupletCountsTo = 0, int[] e = null)
+        public async Task<IActionResult> GetSimilarPoemsAsync([FromQuery] PagingParameterModel paging, string metre, string rhyme, int poetId = 0, int catId = 0, string language = "ur-PK", GanjoorPoemFormat format = GanjoorPoemFormat.Unknown, string term = null, int coupletCountsFrom = 0, int coupletCountsTo = 0, int[] e = null)
         {
             var pagedResult = await _ganjoorService.GetSimilarPoemsAsync(paging, metre, rhyme, poetId == 0 ? null : poetId, catId == 0 ? null : catId, language, format, term, coupletCountsFrom, coupletCountsTo, e == null ? [] : e);
             if (!string.IsNullOrEmpty(pagedResult.ExceptionString))

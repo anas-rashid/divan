@@ -88,7 +88,7 @@ namespace GanjooRazor.Pages
             SignUpViewModel = new UnverifiedSignUpViewModel()
             {
                 ClientAppName = "وبگاه دیوان",
-                Language = "fa-IR",
+                Language = "ur-PK",
                 CallbackUrl = $"{Configuration["SiteUrl"]}/signup"
             };
 
@@ -228,7 +228,7 @@ namespace GanjooRazor.Pages
             LoginViewModel loginViewModel = new LoginViewModel()
             {
                 ClientAppName = "وبگاه دیوان",
-                Language = "fa-IR",
+                Language = "ur-PK",
                 Username = postViewModel.Email,
                 Password = postViewModel.Password
             };
