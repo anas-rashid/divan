@@ -49,7 +49,7 @@
         overlay.className = 'up-modal-overlay';
         overlay.innerHTML =
             '<div class="up-modal" id="up-modal">' +
-                '<button type="button" class="up-modal-close" id="up-modal-close" aria-label="بستن">×</button>' +
+                '<button type="button" class="up-modal-close" id="up-modal-close" aria-label="بند کریں">×</button>' +
                 '<div class="up-modal-body" id="up-modal-body"></div>' +
             '</div>';
         document.body.appendChild(overlay);
@@ -71,7 +71,7 @@
     function openModal(large) {
         ensureShell();
         modal.classList.toggle('up-modal--lg', !!large);
-        body.innerHTML = '<div class="up-modal-loading"><img src="/image/loading.gif" alt="بارگذاری" /></div>';
+        body.innerHTML = '<div class="up-modal-loading"><img src="/image/loading.gif" alt="لوڈ کریں" /></div>';
         overlay.classList.add('up-modal-overlay--open');
         document.body.classList.add('up-modal-noscroll');
     }
@@ -87,7 +87,7 @@
             type: 'GET',
             url: url,
             error: function () {
-                if (body) body.innerHTML = '<p>خطا در بارگذاری اطلاعات.</p>';
+                if (body) body.innerHTML = '<p>معلومات لوڈ کرنے میں خرابی.</p>';
             },
             success: function (data) {
                 body.innerHTML = data;

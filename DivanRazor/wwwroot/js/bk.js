@@ -93,7 +93,7 @@ function showSanitizerTextDroppedPopup(message, originalHtml, remainingPlainText
         if (fragment.childNodes.length > 0) {
             var diffTitle = document.createElement('p');
             var strong = document.createElement('strong');
-            strong.textContent = 'بخشی که حذف خواهد شد با رنگ قرمز و خط‌خورده مشخص شده است:';
+            strong.textContent = 'حذف ہونے والا حصہ سرخ اور کٹی ہوئی لکیر سے نشان زد ہے:';
             diffTitle.appendChild(strong);
             box.appendChild(diffTitle);
 
@@ -105,7 +105,7 @@ function showSanitizerTextDroppedPopup(message, originalHtml, remainingPlainText
 
         var closeBtn = document.createElement('button');
         closeBtn.type = 'button';
-        closeBtn.textContent = 'بستن';
+        closeBtn.textContent = 'بند کریں';
         closeBtn.onclick = function () {
             overlay.parentNode.removeChild(overlay);
         };
@@ -218,7 +218,7 @@ function bnumClick(poemId, index) {
     }
     var divParent = msr1s[index].className == "m1" ? msr1s[index].parentElement : msr1s[index];
     var imgElementId = 'loadingimg-' + divId;
-    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="' + divId + '"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="' + divId + '"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=BNumPartial&poemId=' + String(poemId) + '&coupletIndex=' + String(index),
@@ -370,7 +370,7 @@ function switchPlayerScrollLock() {
             lockButton.classList.toggle('recitation-scrollunlock');
             lockButton.classList.toggle('recitation-scrolllock');
         });
-        alert('قفل متن روی خوانش فعال شد.');
+        alert('قرأت پر متن کا قفل فعال ہو گیا.');
     }
     else {
         const lockButtons = document.querySelectorAll('.recitation-scrolllock');
@@ -378,7 +378,7 @@ function switchPlayerScrollLock() {
             lockButtons.classList.toggle('recitation-scrollunlock');
             lockButtons.classList.toggle('recitation-scrolllock');
         });
-        alert('قفل متن روی خوانش غیرفعال شد.');
+        alert('قرأت پر متن کا قفل بند ہو گیا.');
     }
 }
 
@@ -626,7 +626,7 @@ function fillnarrations(coupletIndex) {
 
     var comboId = '#narrators-' + coupletIndex;
     for (var i = 0; i < narrators.length; i++) {
-        $(comboId).append(new Option(narrators[i].replace(/<\/?[^>]+(>|$)/g, "").replace('به خوانش ', '').replace('می‌خواهید شما بخوانید؟ اینجا را ببینید.', '').replace('(دریافت)', ''), i));
+        $(comboId).append(new Option(narrators[i].replace(/<\/?[^>]+(>|$)/g, "").replace('قرأت ', '').replace('کیا آپ پڑھنا چاہیں گے؟ یہاں دیکھیں.', '').replace('(ڈاؤن لوڈ)', ''), i));
     }
 
     // default the combobox to whichever recitation is currently playing at the
@@ -705,10 +705,10 @@ function playCouplet(coupletIndex) {
                         var audioControl = document.getElementById('audio-' + String(recitaionIds[recitationIndex]));
                         audioControl.play();
                         var buttonList = '#listen-' + coupletIndex;
-                        $(buttonList).text('در حال دریافت خوانش ...');
+                        $(buttonList).text('قرأت ڈاؤن لوڈ ہو رہی ہے ...');
                         setTimeout(function () {
                             audioControl.currentTime = verseStart;
-                            $(buttonList).text('در حال خواندن');
+                            $(buttonList).text('پڑھا جا رہا ہے');
                         }, 100);
                         foundCouplet = true;
                         return false;
@@ -716,7 +716,7 @@ function playCouplet(coupletIndex) {
                 });
 
                 if (!foundCouplet) {
-                    alert('در این خوانش این خط خوانده نشده است.');
+                    alert('اس قرأت میں یہ سطر نہیں پڑھی گئی.');
                 }
             }
         });
@@ -741,7 +741,7 @@ function switchBookmark(poemId, coupletIndex, divSuffix) {
                 var bookmark = bookmarks[i];
                 if (bookmark.coupletIndex == coupletIndex) {
                     if (bookmark.privateNote != null && bookmark.privateNote != '') {
-                        if (!confirm('با حذف این نشان یادداشت آن نیز حذف خواهد شد. از این کار اطمینان دارید؟')) {
+                        if (!confirm('نشان ہٹانے سے اس کا نوٹ بھی حذف ہو جائے گا۔ کیا آپ کو یقین ہے؟')) {
                             return;
                         }
                     }
@@ -823,7 +823,7 @@ function sortComments(poemId, sortOrder) {
         type: "GET",
         url: '?handler=CommentsPartial&poemId=' + String(poemId) + '&sortOrder=' + sortOrder,
         error: function (err) {
-            alert('خطا در بارگذاری حاشیه‌ها: ' + err.responseText);
+            alert('حاشیے لوڈ کرنے میں خرابی: ' + err.responseText);
         },
         success: function (html) {
             wrapper.innerHTML = html;
@@ -864,7 +864,7 @@ function paginateComments() {
     button.id = 'comments-show-more';
     button.setAttribute('role', 'button');
     button.className = 'cursor-pointer comments-link';
-    button.innerText = 'نمایش همهٔ حاشیه‌ها (' + toPersianNumber(roots.length - shown) + ' مورد دیگر)';
+    button.innerText = 'تمام حاشیے دکھائیں (' + toPersianNumber(roots.length - shown) + ' مزید)';
     button.onclick = function () {
         for (var i = shown; i < roots.length; i++) {
             roots[i].style.display = '';
@@ -903,7 +903,7 @@ function revealCommentFromUrlHash() {
 
 function rateComment(commentId, value, loggedIn, divSuffix) {
     if (!loggedIn) {
-        alert('برای رأی دادن به حاشیه‌ها لازم است با نام کاربری خود وارد دیوان شوید.');
+        alert('حاشیوں کو ووٹ دینے کے لیے دیوان میں داخل ہوں.');
         return;
     }
 
@@ -923,7 +923,7 @@ function rateComment(commentId, value, loggedIn, divSuffix) {
             value: newValue
         },
         error: function (err) {
-            alert('خطا در ثبت رأی: ' + err.responseText);
+            alert('ووٹ درج کرنے میں خرابی: ' + err.responseText);
         },
         success: function (result) {
             _applyCommentRatingResult(commentId, divSuffix, result);
@@ -1090,7 +1090,7 @@ async function webSharePoem() {
 function copyPoemText() {
     var text = getPoemText();
     navigator.clipboard.writeText(text);
-    alert('متن در حافظه رونوشت شد.');
+    alert('متن نقل ہو گیا.');
 }
 
 function copyPoemLink() {
@@ -1099,7 +1099,7 @@ function copyPoemLink() {
         url = url.substring(0, url.indexOf('#'));
     }
     navigator.clipboard.writeText(url);
-    alert('نشانی در حافظه رونوشت شد.');
+    alert('ربط نقل ہو گیا.');
 }
 
 function copyCoupletUrl(coupletIndex) {
@@ -1109,7 +1109,7 @@ function copyCoupletUrl(coupletIndex) {
     }
     url += ('#bn' + String(coupletIndex + 1));
     navigator.clipboard.writeText(url);
-    alert('نشانی در حافظه رونوشت شد.');
+    alert('ربط نقل ہو گیا.');
 }
 
 function getCoupletText(coupletIndex) {
@@ -1132,7 +1132,7 @@ async function webShareCouplet(coupletIndex) {
     try {
         await navigator.share({ title, text, url });
     } catch (error) {
-        alert('از همرسانی روی مرورگر جاری شما پشتیبانی نمی‌شود.')
+        alert('آپ کا براؤزر شیئر کرنے کی سہولت نہیں رکھتا.')
 
     }
 }
@@ -1140,13 +1140,13 @@ async function webShareCouplet(coupletIndex) {
 function copyCoupletText(coupletIndex) {
     var text = getCoupletText(coupletIndex);
     navigator.clipboard.writeText(text);
-    alert('متن در حافظه رونوشت شد.');
+    alert('متن نقل ہو گیا.');
 }
 
 function copySummeriesText() {
     var text = getSummeriesText();
     navigator.clipboard.writeText(text);
-    alert('متن در حافظه رونوشت شد.');
+    alert('متن نقل ہو گیا.');
 }
 
 
@@ -1163,7 +1163,7 @@ function postComment(coupletIndex, buttonSelector) {
 
         e.preventDefault(); // avoid to execute the actual submit of the form.
 
-        $(buttonSelector).text('در حال درج حاشیه ...');
+        $(buttonSelector).text('حاشیہ درج ہو رہا ہے ...');
         $(buttonSelector).prop("disabled", true);
 
         $('#comment-error').remove();
@@ -1184,7 +1184,7 @@ function postComment(coupletIndex, buttonSelector) {
             url: url,
             data: form.serialize(), // serializes the form's elements.
             error: function () {
-                $(buttonSelector).text('درج حاشیه');
+                $(buttonSelector).text('حاشیہ لکھیں');
                 $(buttonSelector).prop("disabled", false);
             },
             success: function (data) {
@@ -1197,7 +1197,7 @@ function postComment(coupletIndex, buttonSelector) {
                     if (parent2 != null)
                         $rendered.clone(true).appendTo(parent2);
                 }
-                $(buttonSelector).text('درج حاشیه');
+                $(buttonSelector).text('حاشیہ لکھیں');
                 $(buttonSelector).prop("disabled", false);
                 if (!hadAnyError) {
                     form[0].reset();
@@ -1211,7 +1211,7 @@ function postComment(coupletIndex, buttonSelector) {
 
 function replyComment(commentId, loggedIn, divSuffix) {
     if (!loggedIn) {
-        alert('برای پاسخگویی لازم است با نام کاربری خود وارد دیوان شوید.');
+        alert('جواب دینے کے لیے دیوان میں داخل ہوں.');
         return;
     }
     $("#refComment").html($('#comment-text-' + commentId + divSuffix).html());
@@ -1226,7 +1226,7 @@ function postReplyComment() {
 
         e.preventDefault(); // avoid to execute the actual submit of the form.
 
-        $('#replycomment').text('در حال درج پاسخ به حاشیه ...');
+        $('#replycomment').text('جواب درج ہو رہا ہے ...');
         $('#replycomment').prop("disabled", true);
 
         $('#comment-error').remove();
@@ -1240,7 +1240,7 @@ function postReplyComment() {
             url: url,
             data: form.serialize(), // serializes the form's elements.
             error: function () {
-                $('#replycomment').text('درج پاسخ به حاشیه');
+                $('#replycomment').text('حاشیے کا جواب لکھیں');
                 $('#replycomment').prop("disabled", false);
             },
             success: function (data) {
@@ -1263,7 +1263,7 @@ function postReplyComment() {
 }
 
 function deleteMyComment(commentId, coupletIndex) {
-    if (!confirm('آیا از حذف این حاشیه اطمینان دارید؟'))
+    if (!confirm('کیا آپ یہ حاشیہ حذف کرنا چاہتے ہیں؟'))
         return;
 
     var url = '?handler=MyComment';
@@ -1290,7 +1290,7 @@ function deleteMyComment(commentId, coupletIndex) {
 
 }
 function deleteMistake(mistakeId) {
-    if (!confirm('آیا از حذف این اشکال اطمینان دارید؟'))
+    if (!confirm('کیا آپ یہ خامی حذف کرنا چاہتے ہیں؟'))
         return;
 
     var url = '?handler=Mistake';
@@ -1311,7 +1311,7 @@ function deleteMistake(mistakeId) {
 }
 
 function editMistakeReason(mistakeId, reasonText) {
-    var edited = prompt('ویرایش', reasonText);
+    var edited = prompt('ترمیم', reasonText);
 
     if (edited == null) return;
    
@@ -1326,7 +1326,7 @@ function editMistakeReason(mistakeId, reasonText) {
             reasonText: edited,
         },
         success: function () {
-            alert('انجام شد.');
+            alert('ہو گیا.');
         },
     });
 }
@@ -1347,7 +1347,7 @@ function editComment() {
 
         e.preventDefault(); // avoid to execute the actual submit of the form.
 
-        $('#editcomment').text('در حال ویرایش حاشیه ...');
+        $('#editcomment').text('حاشیے میں ترمیم ہو رہی ہے ...');
         $('#editcomment').prop("disabled", true);
 
         var url = '?handler=MyComment';
@@ -1367,7 +1367,7 @@ function editComment() {
             },
             error: function (xhr) {
                 tryShowSanitizerErrorFromXhr(xhr, originalHtml);
-                $('#editcomment').text('ویرایش حاشیه');
+                $('#editcomment').text('حاشیے میں ترمیم');
                 $('#editcomment').prop("disabled", false);
             },
             success: function () {
@@ -1384,7 +1384,7 @@ function editComment() {
                     }
                 }
 
-                $('#editcomment').text('ویرایش حاشیه');
+                $('#editcomment').text('حاشیے میں ترمیم');
                 $('#editcomment').prop("disabled", false);
             },
 
@@ -1399,7 +1399,7 @@ function copyCommentUrl(commentId) {
     }
     url += ('#comment-' + String(commentId));
     navigator.clipboard.writeText(url);
-    alert('نشانی در حافظه رونوشت شد.');
+    alert('ربط نقل ہو گیا.');
 }
 
 function onSelectedPoetChanged() {
@@ -1422,7 +1422,7 @@ function onSelectedPoetChanged() {
                 }
                 option = document.createElement('option');
                 option.setAttribute('value', 0);
-                option.appendChild(document.createTextNode('در همهٔ بخشها'));
+                option.appendChild(document.createTextNode('تمام حصوں میں'));
                 select.appendChild(option);
                 for (var i = 0; i < poet.cat.children.length; i++) {
                     option = document.createElement('option');
@@ -1443,7 +1443,7 @@ function loadMoreRelatedPoems(poemId, skip, rhythm, rhymeLetters, poemFullUrl, s
     }
     var divParent = document.getElementById('load-more-related-' + String(sectionIndex));
     var imgeId = 'load-more-related-loadingimg-' + String(sectionIndex);
-    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="بارگذاری  "/>';
+    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="لوڈ کریں  "/>';
 
     $.ajax({
         type: "GET",
@@ -1467,7 +1467,7 @@ function loadMoreRelatedFromPoet(poetId, rhythm, rhymeLetters, skipPoemFullUrl1,
     var divId = 'more-related-placeholder-' + String(poetId) + '-' + String(sectionIndex);
     var divParent = document.getElementById(divId);
     var imgeId = 'load-more-related-loadingimg-' + String(poetId) + '-' + String(sectionIndex);
-    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="بارگذاری  "/>';
+    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="لوڈ کریں  "/>';
 
     $.ajax({
         type: "GET",
@@ -1555,10 +1555,10 @@ function persianizeNumerals(value) {
 }
 
 // Home page (Index.cshtml) only: the top search box (#s) used to just submit a full poem search
-// (POST-free GET to /search) and the home page separately had its own "جستجوی سخنور" inline box
+// (POST-free GET to /search) and the home page separately had its own "شاعر تلاش کریں" inline box
 // (#findpoet, now removed) that filtered the poet list live as you typed. This merges that second
 // behavior into the top box: typing filters poets live (same underlying match as onInlineSearch,
-// against every ".poet" element's data-value), while submitting the form (Enter / the "بیاب" button)
+// against every ".poet" element's data-value), while submitting the form (Enter / the "تلاش کریں" button)
 // still does the original full poem search unchanged - so nothing about submission itself changes.
 // homeBooksCache is filled once by initHomeBooksShelf() further below - the same catalog backing
 // the "قفسهٔ کتابها" shelf is reused here so a search also matches book names, not just poets.
@@ -1712,7 +1712,7 @@ function buildBookSpine(book) {
     var closeBtn = document.createElement('button');
     closeBtn.type = 'button';
     closeBtn.className = 'spine-cover-close';
-    closeBtn.setAttribute('aria-label', 'بستن');
+    closeBtn.setAttribute('aria-label', 'بند کریں');
     closeBtn.textContent = '×';
     closeBtn.addEventListener('click', function (e) {
         e.stopPropagation();
@@ -1912,7 +1912,7 @@ function loadCatRecitations(catId) {
 
     var divParent = document.getElementById('recitations-section');
     var imgElementId = 'loadingimg';
-    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=CategoryRecitations&catId=' + String(catId),
@@ -1939,7 +1939,7 @@ function loadPersonGraph(catId) {
 
     var divParent = document.getElementById('persongraph-placeholder');
     var imgElementId = 'loadingpersongraphimg';
-    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this-persongraph"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this-persongraph"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=PersonGraph&catId=' + String(catId),
@@ -2264,7 +2264,7 @@ function loadMoreQuotedForRelatedPoem(quoteRecordId, poemId, relatedPoemId, poet
     var divId = 'more-quoted-placeholder-' + quoteRecordId;
     var divParent = document.getElementById(divId);
     var imgeId = 'load-more-quoted-loadingimg-' + quoteRecordId;
-    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="بارگذاری  "/>';
+    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="لوڈ کریں  "/>';
 
     $.ajax({
         type: "GET",
@@ -2294,7 +2294,7 @@ function loadMoreQuotedPoems(poemId, skip, poetImageUrl, poetNickName, canEdit) 
     }
     var divParent = document.getElementById('more-quoted-placeholder');
     var imgeId = 'load-more-quoted-loadingimg';
-    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="بارگذاری  "/>';
+    divParent.innerHTML = divParent.innerHTML + '<img id="' + imgeId + '" src="/image/loading.gif" alt="لوڈ کریں  "/>';
 
     $.ajax({
         type: "GET",
@@ -2317,7 +2317,7 @@ function loadMoreQuotedPoems(poemId, skip, poetImageUrl, poetNickName, canEdit) 
 }
 
 function markAsTextOriginal(bookId, categoryId, bookName, catName) {
-    if (!confirm('آیا ' + bookName + ' منبع کاغذی بخش ' + catName + ' است؟'))
+    if (!confirm('کیا ' + bookName + ' حصے کا مطبوعہ ماخذ ' + catName + ' ہے؟'))
         return;
 
     var url = '?handler=MarkAsTextOriginal';
@@ -2330,17 +2330,17 @@ function markAsTextOriginal(bookId, categoryId, bookName, catName) {
             categoryId: categoryId
         },
         success: function () {
-            alert('فرایند کار شروع شد.');
+            alert('عمل شروع ہو گیا.');
         },
     });
 }
 
 function deleteRelatedImage(relatedImageType, linkId, altText) {
-    if (!confirm('آیا از قطع ارتباط ' + altText + ' با این بخش اطمینان دارید؟'))
+    if (!confirm('کیا آپ ربط ختم کرنا چاہتے ہیں: ' + altText + ' اس حصے سے؟'))
         return;
     var removeItemLink = false;
     if (relatedImageType == 0) {
-        if (!confirm('لینک از طرف گنجینه هم قطع شود؟')) {
+        if (!confirm('عجائب خانے کی طرف سے بھی ربط ختم کیا جائے؟')) {
             removeItemLink = true;
         }
             
@@ -2359,7 +2359,7 @@ function deleteRelatedImage(relatedImageType, linkId, altText) {
             alert('RelatedImageLink: ' + err.toString());
         },
         success: function () {
-            alert('انجام شد.');
+            alert('ہو گیا.');
             location.reload();
         },
     });
@@ -2392,7 +2392,7 @@ function switchTabWords(evt, tabId, catId, poetId) {
 function loadWordCounts(catId, poetId, remStopWords) {
     var divParent = document.getElementById('wordcounts-placeholder');
     var imgElementId = 'loadingwordcountsimg';
-    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=CategoryWordCounts&catId=' + String(catId) + '&poetId=' + String(poetId) + '&remStopWords=' + remStopWords.toString(),
@@ -2425,7 +2425,7 @@ function onSearchWordCounts(catId, poetId, totalWordCount) {
         }
         var divParent = document.getElementById('wordcounts-table');
         var imgElementId = 'loadingwordcountsimg';
-        divParent.innerHTML = '<div class="bnumdiv" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+        divParent.innerHTML = '<div class="bnumdiv" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
         $.ajax({
             type: "GET",
             url: '?Handler=SearchCategoryWordCounts&catId=' + String(catId) + '&poetId=' + String(poetId) + '&totalWordCount=' + String(totalWordCount) + '&term=' + value,
@@ -2449,7 +2449,7 @@ function onSearchWordCounts(catId, poetId, totalWordCount) {
 function loadWordCountsByCat(term, poetId, catId, blur) {
     var divParent = document.getElementById('wordcounts-placeholder');
     var imgElementId = 'loadingwordcountsimg';
-    divParent.innerHTML = divParent.innerHTML + '<div class="loadingcontainer" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = divParent.innerHTML + '<div class="loadingcontainer" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=WordCountsByPoet&term=' + term + '&poetId=' + poetId.toString() + '&catId=' + catId.toString() + '&blur=' + blur.toString(),
@@ -2479,7 +2479,7 @@ function countPoemWords(poemId) {
     }
     var divParent = document.getElementById('wordcounts-placeholder');
     var imgElementId = 'loadingwordcountsimg';
-    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = divParent.innerHTML + '<div class="bnumdiv" id="remove-this-wordcounts"><img id="' + imgElementId + '" src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=PoemWordCounts&poemId=' + String(poemId),
@@ -2641,7 +2641,7 @@ function plotChart(tableId, maxCols = 9) {
 }
 
 function deletePoetFromSearch(poetId, poetName) {
-    if (!confirm('آیا می‌خواهید ' + poetName + ' را از نتایج حذف کنید؟')) return;
+    if (!confirm('کیا آپ چاہتے ہیں ' + poetName + ' کو نتائج سے نکال دیں؟')) return;
     const currentUrl = new URL(window.location.href);
     const params = currentUrl.searchParams;
     params.append('e', poetId.toString());
@@ -2651,7 +2651,7 @@ function deletePoetFromSearch(poetId, poetName) {
 
 function loadContributions(dataType) {
     var divParent = document.getElementById('days-placeholder');
-    divParent.innerHTML = '<div class="bnumdiv" id="remove-days-placeholder"><img src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = '<div class="bnumdiv" id="remove-days-placeholder"><img src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=GroupedByDate&dataType=' + dataType,
@@ -2685,7 +2685,7 @@ function loadContributions(dataType) {
 }
 function loadContributionsDays(dataType, pageNumber) {
     var divParent = document.getElementById('days');
-    divParent.innerHTML = '<div class="bnumdiv" id="remove-days-placeholder"><img src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = '<div class="bnumdiv" id="remove-days-placeholder"><img src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=GroupedByDay&dataType=' + dataType + '&pageNumber=' + pageNumber.toString(),
@@ -2710,7 +2710,7 @@ function loadContributionsDays(dataType, pageNumber) {
 
 function loadContributionsUsers(dataType, pageNumber) {
     var divParent = document.getElementById('usrs');
-    divParent.innerHTML = '<div class="bnumdiv" id="remove-days-placeholder"><img src="/image/loading.gif" alt="بارگذاری"/></div>';
+    divParent.innerHTML = '<div class="bnumdiv" id="remove-days-placeholder"><img src="/image/loading.gif" alt="لوڈ کریں"/></div>';
     $.ajax({
         type: "GET",
         url: '?Handler=GroupedByUsers&dataType=' + dataType + '&pageNumber=' + pageNumber.toString(),
@@ -2778,7 +2778,7 @@ function setupLocationAutocomplete(searchInput, hiddenInput, resultsBox, locatio
         if (matches.length == 0) {
             var emptyRow = document.createElement('div');
             emptyRow.className = 'up-autocomplete-item up-autocomplete-item--empty';
-            emptyRow.textContent = '➕ «' + typedText + '» در فهرست پیدا نشد؛ به‌عنوان مکان جدید تعریف شود';
+            emptyRow.textContent = '➕ «' + typedText + '» فہرست میں نہیں ملا؛ نئے مقام کے طور پر شامل کریں';
             emptyRow.addEventListener('click', function () {
                 hide();
                 if (onNotFound) onNotFound(typedText);
@@ -2803,7 +2803,7 @@ function setupLocationAutocomplete(searchInput, hiddenInput, resultsBox, locatio
         if (matches.length > MAX_RESULTS) {
             var moreRow = document.createElement('div');
             moreRow.className = 'up-autocomplete-item up-autocomplete-item--more';
-            moreRow.textContent = '… و ' + (matches.length - MAX_RESULTS) + ' مورد دیگر (برای محدودکردن نتایج بیشتر تایپ کنید)';
+            moreRow.textContent = '… و ' + (matches.length - MAX_RESULTS) + ' مزید (نتائج محدود کرنے کے لیے مزید لکھیں)';
             resultsBox.appendChild(moreRow);
         }
         resultsBox.style.display = 'block';
@@ -2851,8 +2851,8 @@ function setupPersonAutocomplete(searchInput, hiddenInput, resultsBox, people, o
     var viewLink = document.createElement('a');
     viewLink.href = 'javascript:void(0)';
     viewLink.className = 'up-icon-btn';
-    viewLink.title = 'مشاهدهٔ اطلاعات کامل این شخصیت';
-    viewLink.setAttribute('aria-label', 'مشاهدهٔ اطلاعات کامل این شخصیت');
+    viewLink.title = 'اس شخصیت کی مکمل معلومات دیکھیں';
+    viewLink.setAttribute('aria-label', 'اس شخصیت کی مکمل معلومات دیکھیں');
     viewLink.style.marginRight = '4px';
     viewLink.textContent = '👁';
     viewLink.addEventListener('click', function () {
@@ -2879,7 +2879,7 @@ function setupPersonAutocomplete(searchInput, hiddenInput, resultsBox, people, o
             return p.birthYearInLHijri + ' - ' + p.deathYearInLHijri;
         }
         if (p.birthYearInLHijri) {
-            return 'تولد ' + p.birthYearInLHijri;
+            return 'ولادت ' + p.birthYearInLHijri;
         }
         if (p.deathYearInLHijri) {
             return 'وفات ' + p.deathYearInLHijri;
@@ -2904,7 +2904,7 @@ function setupPersonAutocomplete(searchInput, hiddenInput, resultsBox, people, o
         if (matches.length == 0) {
             var emptyRow = document.createElement('div');
             emptyRow.className = 'up-autocomplete-item up-autocomplete-item--empty';
-            emptyRow.textContent = '➕ «' + typedText + '» در فهرست پیدا نشد؛ به‌عنوان شخصیت جدید تعریف شود';
+            emptyRow.textContent = '➕ «' + typedText + '» فہرست میں نہیں ملا؛ نئی شخصیت کے طور پر شامل کریں';
             emptyRow.addEventListener('click', function () {
                 hide();
                 if (onNotFound) onNotFound(typedText);
@@ -2930,7 +2930,7 @@ function setupPersonAutocomplete(searchInput, hiddenInput, resultsBox, people, o
         if (matches.length > MAX_RESULTS) {
             var moreRow = document.createElement('div');
             moreRow.className = 'up-autocomplete-item up-autocomplete-item--more';
-            moreRow.textContent = '… و ' + (matches.length - MAX_RESULTS) + ' مورد دیگر (برای محدودکردن نتایج بیشتر تایپ کنید)';
+            moreRow.textContent = '… و ' + (matches.length - MAX_RESULTS) + ' مزید (نتائج محدود کرنے کے لیے مزید لکھیں)';
             resultsBox.appendChild(moreRow);
         }
         resultsBox.style.display = 'block';

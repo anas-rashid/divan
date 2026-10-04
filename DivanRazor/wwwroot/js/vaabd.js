@@ -1,5 +1,5 @@
 ﻿// Create tooltip elements
-var $meaning = $('<a>لغتنامه</a>').css({
+var $meaning = $('<a>لغت</a>').css({
     padding: '10px',
     display: 'flex',
     justifyContent: 'center',
@@ -31,7 +31,7 @@ var $quran = $('<a>قرآن</a>').css({
     textAlign: 'center',
 });
 
-var $vazn = $('<a>وزن</a>').css({
+var $vazn = $('<a>بحر</a>').css({
     padding: '10px',
     display: 'flex',
     justifyContent: 'center',
@@ -47,7 +47,7 @@ var $google = $('<a>گوگل</a>').css({
     textAlign: 'center',
 });
 
-var $close = $('<a href="#" id="vaabx">غیرفعال شود</a>').css({
+var $close = $('<a href="#" id="vaabx">غیر فعال ہو</a>').css({
     cursor: "pointer",
     padding: "10px",
     display: 'flex',
@@ -82,7 +82,7 @@ $(document.body).append($tooltip);
 // Attach click event to the close button
 $close.on("click", function (event) {
     event.preventDefault();
-    alert('منو موقتاً غیرفعال شد.\r\nبرای فعالسازی مجدد دوباره صفحه را بارگذاری کنید.');
+    alert('مینو عارضی طور پر بند ہو گیا.\r\nدوبارہ فعال کرنے کے لیے صفحہ دوبارہ لوڈ کریں.');
     $tooltip.css({ transform: 'scale(0)' });
     document.removeEventListener('selectionchange', vaabSelectionChanged);
 });
@@ -136,22 +136,22 @@ function vaabSelectionChanged() {
     });
     $search.attr({
         href: text.indexOf(' ') == -1 ? '/search?s=' + encodeURI(text) : '/search?s="' + encodeURI(text) + '"',
-        title: 'جستجوی عبارت در دیوان',
+        title: 'دیوان میں عبارت تلاش کریں',
         target: '_blank',
     });
     $quran.attr({
         href: 'https://tanzil.ir/#search/quran/' + encodeURI(text),
-        title: 'جستجوی عبارت در قرآن',
+        title: 'قرآن میں عبارت تلاش کریں',
         target: '_blank',
     });
     $vazn.attr({
         href: 'http://sorud.info/?Text=' + encodeURI(text),
-        title: 'تعیین وزن عبارت',
+        title: 'عبارت کی بحر معلوم کریں',
         target: '_blank',
     });
     $google.attr({
         href: 'https://www.google.com/search?q=' + encodeURI(text),
-        title: 'جستجو در گوگل',
+        title: 'گوگل میں تلاش',
         target: '_blank',
     });
 

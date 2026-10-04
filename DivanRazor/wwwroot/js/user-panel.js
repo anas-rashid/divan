@@ -25,8 +25,8 @@ function upConfirm(message, options) {
         }
 
         titleEl.textContent = message;
-        okBtn.textContent = options.okText || 'تأیید';
-        cancelBtn.textContent = options.cancelText || 'انصراف';
+        okBtn.textContent = options.okText || 'تصدیق';
+        cancelBtn.textContent = options.cancelText || 'منسوخ';
         okBtn.className = 'up-btn ' + (options.danger === false ? 'up-btn--success' : 'up-btn--danger');
 
         backdrop.hidden = false;
@@ -129,7 +129,7 @@ function upShowError(message) {
     function onCopy() {
         var restoreText = copyBtn.textContent;
         function showCopied(ok) {
-            copyBtn.textContent = ok ? '✓ کپی شد' : 'کپی ممکن نشد';
+            copyBtn.textContent = ok ? '✓ نقل ہو گیا' : 'نقل نہیں ہو سکا';
             setTimeout(function () { copyBtn.textContent = restoreText; }, 1500);
         }
         if (navigator.clipboard && navigator.clipboard.writeText) {

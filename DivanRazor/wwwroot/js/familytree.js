@@ -383,11 +383,11 @@
 
         function showDetails(p) {
             if (!tooltip) return;
-            var html = '<button type="button" class="ft-tooltip-close" aria-label="بستن">×</button>' +
+            var html = '<button type="button" class="ft-tooltip-close" aria-label="بند کریں">×</button>' +
                 '<h3 style="margin:4px 0 10px 0">' + escapeHtml(personLabel(p)) + '</h3>';
             if (p.birthYearInLHijri || p.deathYearInLHijri) {
                 html += '<p style="margin:4px 0"><small>';
-                if (p.birthYearInLHijri) html += 'زاده ' + p.birthYearInLHijri.toLocaleString('ur-PK-u-nu-arabext') + (p.validBirthDate ? '' : ' (تخمینی)');
+                if (p.birthYearInLHijri) html += 'اولاد ' + p.birthYearInLHijri.toLocaleString('ur-PK-u-nu-arabext') + (p.validBirthDate ? '' : ' (تخمینی)');
                 if (p.birthYearInLHijri && p.deathYearInLHijri) html += ' — ';
                 if (p.deathYearInLHijri) html += 'وفات ' + p.deathYearInLHijri.toLocaleString('ur-PK-u-nu-arabext') + (p.validDeathDate ? '' : ' (تخمینی)');
                 html += '</small></p>';
@@ -395,7 +395,7 @@
             if (p.description) {
                 html += '<p style="margin:4px 0"><small>' + escapeHtml(p.description) + '</small></p>';
             }
-            html += '<p style="margin:8px 0 0 0"><a href="javascript:void(0)" onclick="PersonWindow.open(' + p.id + ')">مشاهدهٔ اطلاعات کامل</a></p>';
+            html += '<p style="margin:8px 0 0 0"><a href="javascript:void(0)" onclick="PersonWindow.open(' + p.id + ')">مکمل معلومات دیکھیں</a></p>';
             tooltip.innerHTML = html;
             tooltip.style.display = 'block';
             tooltip.querySelector('.ft-tooltip-close').addEventListener('click', function () {

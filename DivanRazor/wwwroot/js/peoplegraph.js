@@ -37,26 +37,26 @@
     // for the edge/legend swatch, directional true when Person1 -> Person2 has a specific meaning
     // (drawn with an arrowhead), symmetric ones are drawn as plain lines
     var KIND_META = {
-        'Relation:0': { label: 'پدر/مادر و فرزند', color: '#7a4a2a', directional: true },
-        'Relation:1': { label: 'خواهر/برادر', color: '#4a7a5a', directional: false },
-        'Relation:2': { label: 'همسر', color: '#a0455c', directional: false },
-        'Relation:3': { label: 'نیا و نواده', color: '#8b6b4a', directional: true },
+        'Relation:0': { label: 'والد/والدہ اور اولاد', color: '#7a4a2a', directional: true },
+        'Relation:1': { label: 'بہن/بھائی', color: '#4a7a5a', directional: false },
+        'Relation:2': { label: 'شریکِ حیات', color: '#a0455c', directional: false },
+        'Relation:3': { label: 'جدّ اور نسل', color: '#8b6b4a', directional: true },
         'Affiliation:0': { label: 'وزیر', color: '#3a6ea5', directional: true },
-        'Affiliation:1': { label: 'مشاور', color: '#3a8ea5', directional: true },
+        'Affiliation:1': { label: 'مشیر', color: '#3a8ea5', directional: true },
         'Affiliation:2': { label: 'درباری', color: '#5a7ea5', directional: true },
-        'Affiliation:3': { label: 'حامی', color: '#2a5e8a', directional: true },
-        'Affiliation:4': { label: 'دوست/متحد', color: '#3a9a4a', directional: false },
+        'Affiliation:3': { label: 'سرپرست', color: '#2a5e8a', directional: true },
+        'Affiliation:4': { label: 'دوست/حلیف', color: '#3a9a4a', directional: false },
         'Affiliation:5': { label: 'دشمن/رقیب', color: '#c0392b', directional: false },
-        'Affiliation:6': { label: 'خدمتکار', color: '#c07a2b', directional: true },
-        'Affiliation:7': { label: 'همراه', color: '#5aa08a', directional: false },
+        'Affiliation:6': { label: 'خادم', color: '#c07a2b', directional: true },
+        'Affiliation:7': { label: 'رفیق', color: '#5aa08a', directional: false },
         'Affiliation:8': { label: 'جانشین', color: '#8a4ac0', directional: true },
-        'Affiliation:9': { label: 'مدح‌گو', color: '#b08a2a', directional: true },
-        'Affiliation:10': { label: 'هجوگو', color: '#7a3a9a', directional: true },
+        'Affiliation:9': { label: 'مداح', color: '#b08a2a', directional: true },
+        'Affiliation:10': { label: 'ہجو گو', color: '#7a3a9a', directional: true },
         'Affiliation:11': { label: 'سردار', color: '#4a6ea5', directional: true },
-        'Affiliation:12': { label: 'پهلوان', color: '#a56e3a', directional: true },
-        'Affiliation:13': { label: 'هم‌عصر', color: '#6a8a6a', directional: false },
+        'Affiliation:12': { label: 'پہلوان', color: '#a56e3a', directional: true },
+        'Affiliation:13': { label: 'ہم عصر', color: '#6a8a6a', directional: false },
         'Affiliation:14': { label: 'قاتل', color: '#8a1a1a', directional: true },
-        'Affiliation:99': { label: 'سایر', color: '#888888', directional: false }
+        'Affiliation:99': { label: 'دیگر', color: '#888888', directional: false }
     };
 
     function kindKey(edge) { return edge.category + ':' + edge.typeValue; }
