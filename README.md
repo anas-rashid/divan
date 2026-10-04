@@ -45,6 +45,8 @@ docker compose logs -f api             # wait for "Application started"
 
 SQL Server needs about 2 GB of RAM. Use a plan with at least 4 GB in total.
 
+Security defaults: the API refuses to start outside Development without `JWT_SECRET`; browsers may call the API only from `https://SITE_DOMAIN` (`Cors:AllowedOrigins`); public sign-up is off (`SIGNUP_ENABLED=False`) until SMTP (`SmptConfig__*`) is configured.
+
 ### Load the data
 
 1. Open `https://SITE_DOMAIN/login` and sign in with `ADMIN_EMAIL` and the password **`Test!123`**. The first login creates the admin account with that fixed password (RSecurityBackend's default; upstream's guide is wrong about this). **Change it right away** in the user panel.

@@ -34,6 +34,7 @@ using RSecurityBackend.Services.Implementation;
 using RSecurityBackend.Utilities;
 using Swashbuckle.AspNetCore.Filters;
 using System;
+using System.Linq;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -51,6 +52,10 @@ namespace RMuseum
 
         public IConfiguration Configuration { get; }
 
+        private string[] AllowedOrigins => (Configuration["Cors:AllowedOrigins"] ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(o => o.TrimEnd('/')).ToArray();
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
@@ -58,7 +63,9 @@ namespace RMuseum
             services.AddCors(options =>
             {
                 options.AddPolicy("DivanCorsPolicy",
-                    builder => builder.SetIsOriginAllowed(_ => true)
+                    // divan: Cors:AllowedOrigins (comma separated, e.g. https://divan.example) restricts browsers;
+                    // unset = any origin (local development)
+                    builder => builder.SetIsOriginAllowed(origin => AllowedOrigins.Length == 0 || AllowedOrigins.Contains(origin.TrimEnd('/'), StringComparer.OrdinalIgnoreCase))
                     .AllowAnyMethod()
                     .AllowAnyHeader()
                     .WithExposedHeaders("paging-headers", "audio-upload-enabled", "items-count")
@@ -353,6 +360,9 @@ namespace RMuseum
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            // divan: never run outside Development with a missing JWT signing secret (upstream shipped a public default)
+            if (!env.IsDevelopment() && string.IsNullOrWhiteSpace(Configuration["Security:Secret"]))
+                throw new InvalidOperationException("Security:Secret is not set (env Security__Secret). Refusing to start.");
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

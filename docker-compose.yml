@@ -25,6 +25,7 @@ services:
       RSecurityBackend__ApplicationName: Divan
       RSecurityBackend__FirstUserEmail: ${ADMIN_EMAIL:?set in .env}
       SignUp__Enabled: ${SIGNUP_ENABLED:-False}
+      Cors__AllowedOrigins: https://${SITE_DOMAIN}       # only the site may call the API from browsers
       WebServiceUrl: https://${API_DOMAIN}
       # Linux paths for upstream's Windows defaults
       PictureFileService__StoragePath: /data/museum
