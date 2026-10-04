@@ -253,7 +253,7 @@ namespace RMuseum.Services.Implementation
                 Nickname = poet.Nickname,
                 Description = poet.Description,
                 FullUrl = catPoet.FullUrl,
-                ImageUrl = poet.RImageId == null ? null : $"https://ganjoor.net/api/divan/poet/image{catPoet.FullUrl}.gif",
+                ImageUrl = poet.RImageId == null ? null : $"{WebServiceUrl.Url}/api/divan/poet/image{catPoet.FullUrl}.gif", // divan: own API, not ganjoor.net
                 BirthYearInLHijri = poet.BirthYearInLHijri,
                 ValidBirthDate = poet.ValidBirthDate,
                 DeathYearInLHijri = poet.DeathYearInLHijri,

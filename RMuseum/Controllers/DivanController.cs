@@ -315,6 +315,12 @@ namespace RMuseum.Controllers
             return Ok();
         }
 
+        private const string PoetImagePlaceholderSvg =
+            "<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'>" +
+            "<rect width='200' height='200' fill='#efe7d6'/>" +
+            "<circle cx='100' cy='78' r='34' fill='#c9b896'/>" +
+            "<path d='M40 176c6-38 32-58 60-58s54 20 60 58z' fill='#c9b896'/></svg>";
+
         /// <summary>
         /// get poet image with png ext
         /// </summary>
@@ -355,7 +361,11 @@ namespace RMuseum.Controllers
                     return BadRequest(poet.ExceptionString);
 
                 if (poet.Result == Guid.Empty)
-                    return NotFound();
+                {
+                    // divan: portraits are optional (deferred); serve a neutral placeholder instead of a broken image
+                    Response.Headers.CacheControl = "public,max-age=86400";
+                    return Content(PoetImagePlaceholderSvg, "image/svg+xml");
+                }
 
 
                 RServiceResult<RImage> img =
