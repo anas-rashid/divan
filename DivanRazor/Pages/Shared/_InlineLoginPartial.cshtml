@@ -6,7 +6,7 @@
 
     <div class="clear-both">
         <div class="float-right display-inline-flex width-76px">
-            <a onclick="switchSticky()" role="button" class="cursor-pointer" title="چسبانی">
+            <a onclick="switchSticky()" role="button" class="cursor-pointer" title="چسپاں">
                 <div class="noborder-btn color-white">
                     <svg id="pin_button" class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px"><g><rect fill="none" height="24" width="24" /></g><g><path d="M14,4v5c0,1.12,0.37,2.16,1,3H9c0.65-0.86,1-1.9,1-3V4H14 M17,2H7C6.45,2,6,2.45,6,3c0,0.55,0.45,1,1,1c0,0,0,0,0,0l1,0v5 c0,1.66-1.34,3-3,3v2h5.97v7l1,1l1-1v-7H19v-2c0,0,0,0,0,0c-1.66,0-3-1.34-3-3V4l1,0c0,0,0,0,0,0c0.55,0,1-0.45,1-1 C18,2.45,17.55,2,17,2L17,2z" /></g></svg>
                 </div>
@@ -14,7 +14,7 @@
 
             @if (Model.DivanPage != null && ((Model.DivanPage.PoetOrCat != null && Model.DivanPage.SecondPoet == null) || (Model.DivanPage.Id == DivanPageModel.DivanSlashVaznPageId)))
             {
-                <a href="#pretab" role="button" class="cursor-pointer" title="اطلاعات">
+                <a href="#pretab" role="button" class="cursor-pointer" title="معلومات">
                     <div class="noborder-btn color-white">
                         <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" /></svg>
                     </div>
@@ -22,7 +22,7 @@
             }
             else
             {
-                <a onclick="document.getElementById('navbarhelp').style.display='block'" role="button" class="cursor-pointer" title="راهنما">
+                <a onclick="document.getElementById('navbarhelp').style.display='block'" role="button" class="cursor-pointer" title="رہنمائی">
                     <div class="noborder-btn color-white">
                         <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" /></svg>
                     </div>
@@ -35,22 +35,22 @@
 
         @if (Model.LoggedIn)
         {
-            <a href="/User" role="button" class="cursor-pointer" title="پیشخان کاربر">
+            <a href="/User" role="button" class="cursor-pointer" title="صارف پینل">
                 <div class="circled-number">
                     <svg class="noindent-info-button" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><g><path d="M0,0h24v24H0V0z" fill="none" /></g><g><g><path d="M4,18v-0.65c0-0.34,0.16-0.66,0.41-0.81C6.1,15.53,8.03,15,10,15c0.03,0,0.05,0,0.08,0.01c0.1-0.7,0.3-1.37,0.59-1.98 C10.45,13.01,10.23,13,10,13c-2.42,0-4.68,0.67-6.61,1.82C2.51,15.34,2,16.32,2,17.35V20h9.26c-0.42-0.6-0.75-1.28-0.97-2H4z" /><path d="M10,12c2.21,0,4-1.79,4-4s-1.79-4-4-4C7.79,4,6,5.79,6,8S7.79,12,10,12z M10,6c1.1,0,2,0.9,2,2s-0.9,2-2,2 c-1.1,0-2-0.9-2-2S8.9,6,10,6z" /><path d="M20.75,16c0-0.22-0.03-0.42-0.06-0.63l1.14-1.01l-1-1.73l-1.45,0.49c-0.32-0.27-0.68-0.48-1.08-0.63L18,11h-2l-0.3,1.49 c-0.4,0.15-0.76,0.36-1.08,0.63l-1.45-0.49l-1,1.73l1.14,1.01c-0.03,0.21-0.06,0.41-0.06,0.63s0.03,0.42,0.06,0.63l-1.14,1.01 l1,1.73l1.45-0.49c0.32,0.27,0.68,0.48,1.08,0.63L16,21h2l0.3-1.49c0.4-0.15,0.76-0.36,1.08-0.63l1.45,0.49l1-1.73l-1.14-1.01 C20.72,16.42,20.75,16.22,20.75,16z M17,18c-1.1,0-2-0.9-2-2s0.9-2,2-2s2,0.9,2,2S18.1,18,17,18z" /></g></g></svg>
                 </div>
             </a>
-            <a href="/User/MyBookmarks" role="button" class="cursor-pointer" title="نشان‌شده‌های من">
+            <a href="/User/MyBookmarks" role="button" class="cursor-pointer" title="میرے نشان زدہ">
                 <div class="circled-number">
                     <svg class="noindent-info-button" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><rect fill="none" height="24" width="24" /><path d="m11 8.89.94 3.11h2.82l-2.27 1.62.93 3.01L11 14.79l-2.42 1.84.93-3.01L7.24 12h2.82L11 8.89zM8.58 10H1l6.17 4.41L4.83 22 11 17.31 17.18 22l-2.35-7.59L21 10h-7.58L11 2l-2.42 8zm12.78 12-1.86-6.01L23.68 13h-3.44l-3.08 2.2 1.46 4.72L21.36 22zM17 8l-1.82-6-1.04 3.45.77 2.55H17z" /></svg>
                 </div>
             </a>
-            <a href="/User/Notifications" role="button" class="cursor-pointer" title="اعلان‌های من">
+            <a href="/User/Notifications" role="button" class="cursor-pointer" title="میری اطلاعات">
                 <div class="circled-number">
                     <i class="notranslate noindent-info-button notifications-icon"><span id="notification-badge" class="display-none"></span></i>
                 </div>
             </a>
-            <a href="/User/History" role="button" class="cursor-pointer" title="ادامهٔ مطالعه">
+            <a href="/User/History" role="button" class="cursor-pointer" title="مطالعہ جاری رکھیں">
                 <div class="circled-number">
                     <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8z" /></svg>
                 </div>
@@ -65,20 +65,20 @@
         else
         {
             <a onclick="document.getElementById('id01').style.display='block'" role="button" class="cursor-pointer pagebutton" style="display:inline-table;border: 3px solid black">
-                ورود کاربر / نام‌نویسی
+                داخلہ / رکنیت
                 <svg class="noindent-info-button" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><g><rect fill="none" height="24" width="24" /></g><g><g><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM7.35 18.5C8.66 17.56 10.26 17 12 17s3.34.56 4.65 1.5c-1.31.94-2.91 1.5-4.65 1.5s-3.34-.56-4.65-1.5zm10.79-1.38C16.45 15.8 14.32 15 12 15s-4.45.8-6.14 2.12C4.7 15.73 4 13.95 4 12c0-4.42 3.58-8 8-8s8 3.58 8 8c0 1.95-.7 3.73-1.86 5.12z" /><path d="M12 6c-1.93 0-3.5 1.57-3.5 3.5S10.07 13 12 13s3.5-1.57 3.5-3.5S13.93 6 12 6zm0 5c-.83 0-1.5-.67-1.5-1.5S11.17 8 12 8s1.5.67 1.5 1.5S12.83 11 12 11z" /></g></g></svg>
             </a>
         }
 
         <div class="float-left display-inline-flex width-76px">
 
-            <a href="#footer" role="button" class="cursor-pointer" title="پایین صفحه">
+            <a href="#footer" role="button" class="cursor-pointer" title="صفحے کے نیچے">
                 <div class="noborder-btn">
                     <svg class="noindent-info-button" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><g><rect fill="none" height="24" width="24" /><path d="M12,4c4.41,0,8,3.59,8,8s-3.59,8-8,8s-8-3.59-8-8S7.59,4,12,4 M12,2C6.48,2,2,6.48,2,12c0,5.52,4.48,10,10,10 c5.52,0,10-4.48,10-10C22,6.48,17.52,2,12,2L12,2z M13,12l0-4h-2l0,4H8l4,4l4-4H13z" /></g></svg>
                 </div>
             </a>
 
-            <a href="#" role="button" class="cursor-pointer" title="بالای صفحه">
+            <a href="#" role="button" class="cursor-pointer" title="صفحے کے اوپر">
                 <div class="noborder-btn">
                     <svg class="noindent-info-button" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><g><rect fill="none" height="24" width="24" /><path d="M12,20c-4.41,0-8-3.59-8-8s3.59-8,8-8s8,3.59,8,8S16.41,20,12,20 M12,22c5.52,0,10-4.48,10-10c0-5.52-4.48-10-10-10 C6.48,2,2,6.48,2,12C2,17.52,6.48,22,12,22L12,22z M11,12l0,4h2l0-4h3l-4-4l-4,4H11z" /></g></svg>
                 </div>
@@ -91,7 +91,7 @@
     @if (Model.DivanPage != null && Model.DivanPage.Poem != null)
     {
         <div class="clear-both margin-15px" id="main-inline-div" style="display:none">
-            <input type="search" name="inline-search" id="inline-search" class="text-align-center" placeholder="جستجو در متن" size="20" value="" onkeyup="inlineHighlight()">
+            <input type="search" name="inline-search" id="inline-search" class="text-align-center" placeholder="متن میں تلاش" size="20" value="" onkeyup="inlineHighlight()">
             <a onclick="inlineUnHighlight()" role="button" class="cursor-pointer">
                 <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z" /></svg>
             </a>
@@ -119,7 +119,7 @@ else
     <!-- The Modal -->
     <div id="id01" class="modal">
         <span onclick="document.getElementById('id01').style.display='none'"
-              class="close" title="بستن">&times;</span>
+              class="close" title="بند کریں">&times;</span>
 
         <!-- Modal Content -->
         <form class="modal-content animate" method="post" action="?handler=Login">
@@ -131,29 +131,29 @@ else
                 <tr>
                     <td colspan="2">
                         <h2>
-                            ورود به دیوان
+                            دیوان میں داخلہ
                         </h2>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <span class="inputlabel">پست الکترونیکی: </span>
+                        <span class="inputlabel">ای میل: </span>
                     </td>
                     <td>
-                        <input type="email" style="text-align:left;direction:ltr;width:100%" placeholder="پست الکترونیکی" asp-for="LoginViewModel.Username">
+                        <input type="email" style="text-align:left;direction:ltr;width:100%" placeholder="ای میل" asp-for="LoginViewModel.Username">
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <span class="inputlabel">گذرواژه: </span>
+                        <span class="inputlabel">پاس ورڈ: </span>
                     </td>
                     <td>
-                        <input type="password" id="password" style="text-align:left;direction:ltr;width:100%" placeholder="گذرواژه" asp-for="LoginViewModel.Password">
+                        <input type="password" id="password" style="text-align:left;direction:ltr;width:100%" placeholder="پاس ورڈ" asp-for="LoginViewModel.Password">
                     </td>
                 </tr>
                 <tr>
                     <td></td>
-                    <td><input type="submit" name="submit" style="width:100%;cursor:pointer" id="submit" value="ورود"></td>
+                    <td><input type="submit" name="submit" style="width:100%;cursor:pointer" id="submit" value="داخل ہوں"></td>
                 </tr>
                 <tr>
                     <td></td>
@@ -161,15 +161,15 @@ else
                         <table style="width:100%; margin:0">
                             <tr>
                                 <td>
-                                    <input type="button" onclick="location.href='/signup'" class="cancelbtn" style="width:100%;text-align:center;cursor:pointer" value="نام‌نویسی">
+                                    <input type="button" onclick="location.href='/signup'" class="cancelbtn" style="width:100%;text-align:center;cursor:pointer" value="رکنیت">
                                 </td>
                                 <td>
-                                    <input type="button" onclick="location.href='/resetpassword'" class="cancelbtn" style="width:100%;text-align:center;cursor:pointer" value="فراموشی گذرواژه">
+                                    <input type="button" onclick="location.href='/resetpassword'" class="cancelbtn" style="width:100%;text-align:center;cursor:pointer" value="پاس ورڈ بھول گئے">
                                 </td>
                             </tr>
                             <tr>
                                 <td colspan="2">
-                                    <input type="button" onclick="document.getElementById('id01').style.display='none'" style="width: 100%; text-align: center; cursor: pointer" value="انصراف">
+                                    <input type="button" onclick="document.getElementById('id01').style.display='none'" style="width: 100%; text-align: center; cursor: pointer" value="منسوخ">
                                 </td>
                             </tr>
                         </table>
@@ -178,7 +178,7 @@ else
                 <tr>
                     <td colspan="2">
                         <p>
-                            اگر پیش‌تر در گنجینه یا پیشخان خوانشگران دیوان نام‌نویسی کرده‌اید می‌توانید با همان اطلاعات کاربری به دیوان وارد شوید.
+                            اگر آپ پہلے سے دیوان کے رکن ہیں تو انہی معلومات سے داخل ہو سکتے ہیں.
                         </p>
                     </td>
                 </tr>
@@ -192,7 +192,7 @@ else
 
 <div id="navbarhelp" class="modal">
     <span onclick="document.getElementById('navbarhelp').style.display='none'"
-          class="close red-color" title="بستن">&times;</span>
+          class="close red-color" title="بند کریں">&times;</span>
 
     <!-- Modal Content -->
     <div class="modal-content animate">
@@ -204,7 +204,7 @@ else
                     </div>
                 </td>
                 <td>
-                    غیرفعال و فعال کردن دوبارهٔ حالت چسبانی نوار ابزار به بالای صفحات
+                    ٹول بار کو صفحے کے اوپر چسپاں رکھنا بند یا شروع کریں
                 </td>
             </tr>
             <tr>
@@ -214,7 +214,7 @@ else
                     </div>
                 </td>
                 <td>
-                    راهنمای نوار ابزار
+                    ٹول بار کی رہنمائی
                 </td>
             </tr>
             <tr>
@@ -224,7 +224,7 @@ else
                     </div>
                 </td>
                 <td>
-                    پیشخان کاربر
+                    صارف پینل
                 </td>
             </tr>
             <tr>
@@ -234,7 +234,7 @@ else
                     </div>
                 </td>
                 <td>
-                    اشعار و ابیات نشان‌شدهٔ کاربر
+                    صارف کے نشان زدہ اشعار
                 </td>
             </tr>
             <tr>
@@ -244,7 +244,7 @@ else
                     </div>
                 </td>
                 <td>
-                    اعلان‌های کاربر
+                    صارف کی اطلاعات
                 </td>
             </tr>
             <tr>
@@ -254,7 +254,7 @@ else
                     </div>
                 </td>
                 <td>
-                    ادامهٔ مطالعه (تاریخچه)
+                    مطالعہ جاری رکھیں (تاریخچہ)
                 </td>
             </tr>
             <tr>
@@ -264,7 +264,7 @@ else
                     </div>
                 </td>
                 <td>
-                    خروج از حساب کاربری دیوان
+                    دیوان کے اکاؤنٹ سے خروج
                 </td>
             </tr>
             <tr>
@@ -274,7 +274,7 @@ else
                     </div>
                 </td>
                 <td>
-                    لغزش به پایین صفحه
+                    صفحے کے نیچے جائیں
                 </td>
             </tr>
             <tr>
@@ -284,7 +284,7 @@ else
                     </div>
                 </td>
                 <td>
-                    لغزش به بالای صفحه
+                    صفحے کے اوپر جائیں
                 </td>
             </tr>
             <tr>
@@ -294,7 +294,7 @@ else
                     </div>
                 </td>
                 <td>
-                    لغزش به بخش اطلاعات شعر
+                    شعر کی معلومات پر جائیں
                 </td>
             </tr>
             <tr>
@@ -304,7 +304,7 @@ else
                     </div>
                 </td>
                 <td>
-                    فعال یا غیرفعال کردن لغزش خودکار به خط مرتبط با محل فعلی خوانش
+                    قرأت کے ساتھ متعلقہ سطر تک خودکار منتقلی شروع یا بند کریں
                 </td>
             </tr>
             <tr>
@@ -314,7 +314,7 @@ else
                     </div>
                 </td>
                 <td>
-                    فعال یا غیرفعال کردن شماره‌گذاری خطوط
+                    سطروں کی شمار بندی شروع یا بند کریں
                 </td>
             </tr>
             <tr>
@@ -324,7 +324,7 @@ else
                     </div>
                 </td>
                 <td>
-                    کپی نشانی شعر جاری در دیوان
+                    اس شعر کا ربط نقل کریں
                 </td>
             </tr>
             <tr>
@@ -334,7 +334,7 @@ else
                     </div>
                 </td>
                 <td>
-                    کپی متن شعر جاری در دیوان
+                    اس شعر کا متن نقل کریں
                 </td>
             </tr>
             <tr>
@@ -344,7 +344,7 @@ else
                     </div>
                 </td>
                 <td>
-                    همرسانی متن شعر جاری در دیوان
+                    اس شعر کا متن شیئر کریں
                 </td>
             </tr>
             <tr>
@@ -354,7 +354,7 @@ else
                     </div>
                 </td>
                 <td>
-                    نشان کردن شعر جاری
+                    اس شعر پر نشان لگائیں
                 </td>
             </tr>
             <tr>
@@ -364,7 +364,7 @@ else
                     </div>
                 </td>
                 <td>
-                    ویرایش شعر جاری
+                    اس شعر میں ترمیم کریں
                 </td>
             </tr>
             <tr>
@@ -374,7 +374,7 @@ else
                     </div>
                 </td>
                 <td>
-                    ویرایش خلاصه یا برگردان نثر سادهٔ ابیات شعر جاری
+                    اس شعر کے خلاصے یا آسان نثر میں ترمیم کریں
                 </td>
             </tr>
             <tr>
@@ -384,7 +384,7 @@ else
                     </div>
                 </td>
                 <td>
-                    شعر یا بخش قبلی
+                    پچھلا شعر یا حصہ
                 </td>
             </tr>
             <tr>
@@ -394,7 +394,7 @@ else
                     </div>
                 </td>
                 <td>
-                    شعر یا بخش بعدی
+                    اگلا شعر یا حصہ
                 </td>
             </tr>
         </table>
@@ -407,7 +407,7 @@ else
 {
     <div id="bookmark-note-dialog" class="modal">
         <span onclick="document.getElementById('bookmark-note-dialog').style.display='none'"
-              class="close" title="بستن">&times;</span>
+              class="close" title="بند کریں">&times;</span>
         <form class="modal-content animate" method="post" id="editnoteform">
             <table class="max-width-100per width-100per">
                 <tr>
@@ -418,17 +418,17 @@ else
                 </tr>
                 <tr>
                     <td>
-                        <button name="editnote" id="editnote" class="editor-button background-green margin-top-5px" onclick="return savePrivateNote();">ذخیرهٔ یادداشت برای نشان‌شده</button>
+                        <button name="editnote" id="editnote" class="editor-button background-green margin-top-5px" onclick="return savePrivateNote();">نشان کے لیے نوٹ محفوظ کریں</button>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        <a role="button" class="editor-button background-gray margin-top-5px" onclick="document.getElementById('bookmark-note-dialog').style.display='none'">بدون یادداشت</a>
+                        <a role="button" class="editor-button background-gray margin-top-5px" onclick="document.getElementById('bookmark-note-dialog').style.display='none'">بغیر نوٹ</a>
                     </td>
                 </tr>
                 <tr>
                     <td>
-                        یادداشتهایی که روی نشان‌شده‌ها می‌نویسید خصوصی هستند، در پیشخان کاربر بخش نشان‌شده‌های من قابل مشاهده‌اند و با حذف نشان بدون هیچ اخطاری پاک می‌شوند.
+                        نشان زدہ اشعار پر آپ کے نوٹ نجی ہیں، صارف پینل میں «میرے نشان زدہ» میں نظر آتے ہیں اور نشان ہٹانے پر بغیر انتباہ کے حذف ہو جاتے ہیں.
                     </td>
                 </tr>
             </table>

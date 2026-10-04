@@ -16,7 +16,7 @@ else
     </div>
 
     <a id="expand-toggle-btn" href="javascript:toggleExpandableContent()" class="pagebutton comments-link">
-        نمایش فهرست کامل
+        مکمل فہرست دکھائیں
     </a>
 
     <script>
@@ -33,12 +33,12 @@ else
                 // Collapse
                 expandableDiv.style.height = collapsedHeight + "px";
                 blurOverlay.style.opacity = "1"; // Show blur
-                toggleButton.textContent = "نمایش فهرست کامل";
+                toggleButton.textContent = "مکمل فہرست دکھائیں";
             } else {
                 // Expand to full height
                 expandableDiv.style.height = (expandableDiv.scrollHeight + 170 ) + "px";
                 blurOverlay.style.opacity = "0"; // Remove blur
-                toggleButton.textContent = "جمع کردن فهرست";
+                toggleButton.textContent = "فہرست سمیٹیں";
             }
             isExpanded = !isExpanded;
         }

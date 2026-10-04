@@ -29,16 +29,16 @@
     @* Category Tabs *@
     <div class="poempretab" id="words"></div>
     <div class="poemtab">
-        <div class="poemtablinks"><a href="#pretab">آمار</a></div>
-        <div class="poemtablinks active"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">واژگان</a></div>
-        <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">خوانش‌ها</a></div>
-        <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">نامبردگان</a></div>
+        <div class="poemtablinks"><a href="#pretab">اعداد و شمار</a></div>
+        <div class="poemtablinks active"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
+        <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
+        <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
 
     @* Word Counts Section *@
     <div class="related-images-frame poemtabcontent">
         <div class="century cursor-pointer" id="load-word-counts" onclick="loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">
-            محاسبهٔ بسامد واژگان
+            الفاظ کی تعداد شمار کریں
         </div>
         <div id="wordcounts-placeholder">
             @if (Model.CategoryWordsCounts != null)
@@ -51,36 +51,36 @@
     @* Recitations Section *@
     <div class="poempretab" id="recitations"></div>
     <div class="poemtab">
-        <div class="poemtablinks"><a href="#pretab">آمار</a></div>
-        <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">واژگان</a></div>
-        <div class="poemtablinks active"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">خوانش‌ها</a></div>
-        <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">نامبردگان</a></div>
+        <div class="poemtablinks"><a href="#pretab">اعداد و شمار</a></div>
+        <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
+        <div class="poemtablinks active"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
+        <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
     <div class="related-images-frame poemtabcontent">
         @if (Model.CategoryHasRecitations)
         {
             <div class="century cursor-pointer" id="load-cat-recitations" onclick="loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">
-                برای بارگذاری خوانش‌ها کلیک کنید.
+                قرأتیں لوڈ کرنے کے لیے کلک کریں.
             </div>
             <div id="recitations-section"></div>
         }
         else
         {
-            <p>این بخش هنوز خوانشی ندارد.</p>
+            <p>اس حصے کی ابھی کوئی قرأت نہیں.</p>
         }
     </div>
 
     @* Person Graph ("characters in this work") Section *@
     <div class="poempretab" id="persongraph"></div>
     <div class="poemtab">
-        <div class="poemtablinks"><a href="#pretab">آمار</a></div>
-        <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">واژگان</a></div>
-        <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">خوانش‌ها</a></div>
-        <div class="poemtablinks active"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">نامبردگان</a></div>
+        <div class="poemtablinks"><a href="#pretab">اعداد و شمار</a></div>
+        <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
+        <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
+        <div class="poemtablinks active"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
     <div class="related-images-frame poemtabcontent">
         <div class="century cursor-pointer" id="load-persongraph" onclick="loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">
-            بارگذاری نامبردگانی این بخش
+            اس حصے کی شخصیات لوڈ کریں
         </div>
         <div id="persongraph-placeholder"></div>
     </div>
@@ -126,7 +126,7 @@
     <div class="spacer">&nbsp;</div>
     <div class="related-images-frame">
         <p>
-            <a role="button" href="/Admin/ModifyPage?id=@Model.DivanPage.Id" class="pagebutton">ویرایش مستقیم</a>
+            <a role="button" href="/Admin/ModifyPage?id=@Model.DivanPage.Id" class="pagebutton">براہِ راست ترمیم</a>
         </p>
     </div>
 }
@@ -172,7 +172,7 @@
                 // which marker was actually clicked
                 var poemDesc = markOrder + '<a class="actionlink" onclick="viewLocation(' + marker.poemGeoTag.Location.Latitude + ', ' + marker.poemGeoTag.Location.Longitude + ')">' + marker.poemGeoTag.Location.Name + '</a> <br> <a href="' + marker.poemGeoTag.Poem.FullUrl + '">' + marker.poemGeoTag.Poem.FullTitle + '</a>';
                 if (marker.poemGeoTag.LunarYear != null) {
-                    poemDesc += '<br> سال ' + persianizeNumerals(marker.poemGeoTag.LunarYear.toString()) + ' قمری';
+                    poemDesc += '<br> سال ' + persianizeNumerals(marker.poemGeoTag.LunarYear.toString()) + ' ہجری';
                 }
                 popup.setContent(poemDesc);
                 popup.setLatLng(marker.getLatLng());

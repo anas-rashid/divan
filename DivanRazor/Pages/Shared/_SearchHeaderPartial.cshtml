@@ -3,7 +3,7 @@
     <h1><a href="/" title="دیوان"><img src="/image/gdapk.png" alt="دیوان" /></a></h1>
     <div class="actionbox">
         <form action="/search" method="get" id="searchform">
-            <input type="text" name="s" id="s" class="inputText" value="@Model.SearchQuery" placeholder="جستجو" />
+            <input type="text" name="s" id="s" class="inputText" value="@Model.SearchQuery" placeholder="تلاش" />
             @if (Model.ShowExactSearchHiddenField)
             {
                 <input type="hidden" name="es" id="es" value="1" />
@@ -12,11 +12,11 @@
                 @{
                     if (Model.SelectedPoetId != 0)
                     {
-                        <option value="0">در آثار همهٔ سخنوران</option>
+                        <option value="0">تمام شعرا کے کلام میں</option>
                     }
                     else
                     {
-                        <option value="0" selected>در آثار همهٔ سخنوران</option>
+                        <option value="0" selected>تمام شعرا کے کلام میں</option>
                     }
 
                     if (Model.Poets != null)
@@ -43,11 +43,11 @@
 
                         if (effectiveSelectedCatId == 0)
                         {
-                            <option value="0" selected>در همهٔ بخشها</option>
+                            <option value="0" selected>تمام حصوں میں</option>
                         }
                         else
                         {
-                            <option value="0">در همهٔ بخشها</option>
+                            <option value="0">تمام حصوں میں</option>
                         }
 
                         foreach (var gran in Model.CurrentCategory.Ancestors)
@@ -86,7 +86,7 @@
                 </select>
             }
 
-            <input type="submit" value="بیاب" />
+            <input type="submit" value="تلاش کریں" />
         </form>
     </div><!-- .actionbox -->
 </div><!-- #hdr2 -->

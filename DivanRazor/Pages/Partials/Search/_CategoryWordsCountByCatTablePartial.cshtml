@@ -3,7 +3,7 @@
 @using DNTPersianUtils.Core
 
 <p>
-    «@Model.Term» در مجموع @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.TotalCount) بار در @Model.SectionName ظاهر شده است.
+    «@Model.Term» مجموعی طور پر @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.TotalCount) بار @Model.SectionName آیا ہے.
 </p>
 
 
@@ -12,10 +12,10 @@
     <table class="stats" id="words-stats">
         <thead>
             <tr class="h">
-                <td class="c1">ردیف</td>
-                <td class="c2">بخش</td>
-                <td class="c3">شمار</td>
-                <td class="c4">درصد از کل واژگان بخش</td>
+                <td class="c1">نمبر</td>
+                <td class="c2">حصہ</td>
+                <td class="c3">تعداد</td>
+                <td class="c4">فیصد حصے کے کل الفاظ میں سے</td>
             </tr>
         </thead>
         <tbody>
@@ -58,7 +58,7 @@
         </tbody>
     </table>
     <p>
-        <small><strong>نکته:</strong> ستون چهارم درصد شمار این واژه به نسبت کل واژگان خود آن بخش را نشان می‌دهد و نه کل فهرست و از این جهت جمع این ستون عددی بی‌معنی است.</small>
+        <small><strong>نکتہ:</strong> چوتھا کالم اس لفظ کا فیصد اسی حصے کے کل الفاظ کے لحاظ سے دکھاتا ہے، پوری فہرست کے نہیں؛ اس لیے اس کالم کا مجموعہ بے معنی ہے.</small>
     </p>
 }
 

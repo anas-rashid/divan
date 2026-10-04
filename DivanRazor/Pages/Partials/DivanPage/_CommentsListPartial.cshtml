@@ -8,17 +8,17 @@
 {
     case 0:
         <p>
-            تا به حال حاشیه‌ای برای این شعر نوشته نشده است. <a href="#commentform" class="comments-link" title="من حاشیه بگذارم ...">💬 من حاشیه بگذارم ...</a>
+            اس شعر پر ابھی کوئی حاشیہ نہیں لکھا گیا. <a href="#commentform" class="comments-link" title="میں حاشیہ لکھوں ...">💬 میں حاشیہ لکھوں ...</a>
         </p>
         break;
     case 1:
         <p>
-            تا به حال یک حاشیه برای این شعر نوشته شده است. <a href="#commentform" class="comments-link" title="من حاشیه بگذارم ...">💬 من حاشیه بگذارم ...</a>
+            اس شعر پر اب تک ایک حاشیہ لکھا گیا ہے. <a href="#commentform" class="comments-link" title="میں حاشیہ لکھوں ...">💬 میں حاشیہ لکھوں ...</a>
         </p>
         break;
     default:
         <p>
-            تا به حال @Html.Raw(Model.Comments.Length.ToPersianNumbers()) حاشیه برای این شعر نوشته شده است. <a href="#commentform" class="comments-link" title="من حاشیه بگذارم ...">💬 من حاشیه بگذارم ...</a>
+            اب تک @Html.Raw(Model.Comments.Length.ToPersianNumbers()) حاشیے اس شعر پر لکھے گئے ہیں. <a href="#commentform" class="comments-link" title="میں حاشیہ لکھوں ...">💬 میں حاشیہ لکھوں ...</a>
         </p>
         break;
 }

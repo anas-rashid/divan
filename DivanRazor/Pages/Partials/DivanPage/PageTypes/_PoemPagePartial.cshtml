@@ -75,9 +75,9 @@
 <div id="sticky-audio-player" class="up-sticky-player" style="display:none;">
     <span id="sticky-audio-narrator" class="up-sticky-player__narrator"></span>
     <div id="sticky-audio-slot" class="up-sticky-player__audio-slot"></div>
-    <a role="button" id="sticky-scroll-lock" class="cursor-pointer up-sticky-player__lock" onclick="switchPlayerScrollLock()" title="قفل خودکار پیمایش به بیت جاری"><i id="sticky-scroll-lock-icon" class="notranslate material-icons">lock_open</i></a>
-    <a role="button" class="cursor-pointer up-sticky-player__jump" onclick="scrollToCurrentVerse()" title="رفتن به بیت جاری"><i class="notranslate material-icons">my_location</i></a>
-    <a role="button" class="cursor-pointer up-sticky-player__close" onclick="closeStickyPlayer()" title="بستن"><i class="notranslate material-icons">close</i></a>
+    <a role="button" id="sticky-scroll-lock" class="cursor-pointer up-sticky-player__lock" onclick="switchPlayerScrollLock()" title="موجودہ شعر پر خودکار قفل"><i id="sticky-scroll-lock-icon" class="notranslate material-icons">lock_open</i></a>
+    <a role="button" class="cursor-pointer up-sticky-player__jump" onclick="scrollToCurrentVerse()" title="موجودہ شعر پر جائیں"><i class="notranslate material-icons">my_location</i></a>
+    <a role="button" class="cursor-pointer up-sticky-player__close" onclick="closeStickyPlayer()" title="بند کریں"><i class="notranslate material-icons">close</i></a>
 </div>
 }
 
@@ -92,7 +92,7 @@
 <div class="@Model.PoemBlockClass" id="post-@Html.Raw(Model.DivanPage.Id.ToString())">
     @if (Model.DivanPage.Poem != null && Model.DivanPage.Poem.ClaimedByMultiplePoets)
     {
-        <div class="ribbon"><a href="#qpoems">منتسب به چند شاعر</a></div>
+        <div class="ribbon"><a href="#qpoems">کئی شعرا سے منسوب</a></div>
     }
 
     @{
@@ -103,10 +103,10 @@
                 <div class="width-100per">
                     <div class="width-100per text-align-center">
                         <p class="alert-text">
-                            برای پیشنهاد تصاویر مرتبط با اشعار لازم است ابتدا با نام کاربری خود وارد دیوان شوید.
+                            اشعار سے متعلق تصاویر تجویز کرنے کے لیے پہلے دیوان میں داخل ہوں.
                         </p>
                         <p class="text-align-center">
-                            <a href="/login">ورود به دیوان</a>
+                            <a href="/login">دیوان میں داخلہ</a>
                         </p>
                     </div>
                 </div>
@@ -120,11 +120,11 @@
                         <input type="hidden" id="RelatedImageSuggestionModel_DivanUrl" name="RelatedImageSuggestionModel.DivanUrl" value="@Model.DivanPage.FullUrl">
                         <input type="hidden" id="RelatedImageSuggestionModel_DivanTitle" name="RelatedImageSuggestionModel.DivanTitle" value="@Model.DivanPage.FullTitle">
                         <input type="hidden" id="RelatedImageSuggestionModel_PinterestUrl" name="RelatedImageSuggestionModel.PinterestUrl" value="@Model.PinterestUrl">
-                        <input type="submit" name="pinterest_suggest" value="انتخاب شعر" class="pinterest_suggest">
+                        <input type="submit" name="pinterest_suggest" value="شعر منتخب کریں" class="pinterest_suggest">
                     </form>
                     @if (Model.PinterestUrl == "manual")
                     {
-                        <span>پیشنهاد آسان از اینستاگرام و پین‌ترست با افزونهٔ فایرفاکس</span>
+                        <span>فائرفاکس ایکسٹینشن سے انسٹاگرام اور پنٹرسٹ سے آسان تجویز</span>
                     }
                 </div>
             }
@@ -217,24 +217,24 @@
     <div id="comments">
         <div class="poempretab" id="pretab"></div>
         <div class="poemtab" id="tab-items">
-            <div class="poemtablinks active"><a href="#pretab">اطّلاعات</a></div>
-            <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+            <div class="poemtablinks active"><a href="#pretab">معلومات</a></div>
+            <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
             <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
             @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
             {
-                <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
             }
             @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
             {
-                <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
             }
-            <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+            <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
             @if (Model.SectionsWithRelated.Count > 0)
             {
-                <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
             }
             <div class="poemtablinks">
-                <a href="#discussions">حاشیه‌ها</a>
+                <a href="#discussions">حاشیے</a>
             </div>
         </div>
 
@@ -242,7 +242,7 @@
             @* ============ INFORMATION TAB ============ *@
             <div class="related-images-frame poemtabcontent">
                 <p>
-                    <small><i class="notranslate pageicons mouse-icon"></i> با انتخاب متن و لمس متن انتخابی می‌توانید آن را در لغتنامهٔ دهخدا جستجو کنید.</small>
+                    <small><i class="notranslate pageicons mouse-icon"></i> متن منتخب کر کے اسے چھونے سے آپ اسے اردو لغت میں تلاش کر سکتے ہیں.</small>
                 </p>
                 @if (Model.DivanPage.Poem.Sections.Where(s => s.SectionType == RMuseum.Models.Divan.PoemSectionType.WholePoem).Any() || !string.IsNullOrEmpty(Model.DivanPage.Poem.OldTag) || !string.IsNullOrEmpty(Model.DivanPage.Poem.SourceName))
                 {
@@ -253,18 +253,18 @@
                             @if (s.DivanMetre != null)
                             {
                                 <tr>
-                                    <td>وزن:</td>
+                                    <td>بحر:</td>
                                     <td>
                                         <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}&amp;a={Model.DivanPage.PoetOrCat.Poet.Id}")">@s.DivanMetre.Rhythm</a>
                                         @if (!string.IsNullOrEmpty(s.RhymeLetters))
                                         {
-                                            <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(s.RhymeLetters)}")" role="button" class="cursor-pointer" title="مشابه‌یابی بر اساس وزن و قافیه">
+                                            <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(s.RhymeLetters)}")" role="button" class="cursor-pointer" title="بحر اور قافیے کے لحاظ سے ملتی جلتی تخلیقات">
                                                 <i class="notranslate noindent-info-button rhyming-poems"></i>
                                             </a>
                                         }
                                         @if (Model.LoggedIn)
                                         {
-                                            <a href="/User/Section?poemId=@Model.DivanPage.Id&index=@s.Index#metre" role="button" class="cursor-pointer" title="ویرایش وزن">
+                                            <a href="/User/Section?poemId=@Model.DivanPage.Id&index=@s.Index#metre" role="button" class="cursor-pointer" title="بحر میں ترمیم">
                                                 <i class="notranslate noindent-info-button edit-poem-button"></i>
                                             </a>
                                         }
@@ -274,7 +274,7 @@
                             @if (s.PoemFormat != null && s.PoemFormat != RMuseum.Models.Divan.DivanPoemFormat.Unknown)
                             {
                                 <tr>
-                                    <td>قالب شعری:</td>
+                                    <td>صنف:</td>
                                     <td>
                                         <a href="/simi/?a=@Model.DivanPage.PoetOrCat.Poet.Id&amp;f=@((int)s.PoemFormat)">
                                             @RMuseum.Services.Implementation.DivanPoemFormatConvertor.GetString((RMuseum.Models.Divan.DivanPoemFormat)s.PoemFormat)
@@ -286,7 +286,7 @@
                         @if (!string.IsNullOrEmpty(Model.DivanPage.Poem.OldTag))
                         {
                             <tr>
-                                <td>دسته:</td>
+                                <td>زمرہ:</td>
                                 <td>
                                     <a href="@Html.Raw($"{Model.DivanPage.Poem.OldTagPageUrl}/")">@Model.DivanPage.Poem.OldTag</a>
                                 </td>
@@ -295,14 +295,14 @@
                         @if (!string.IsNullOrEmpty(Model.DivanPage.Poem.SourceName))
                         {
                             <tr>
-                                <td>منبع اولیه:</td>
+                                <td>اصل ماخذ:</td>
                                 <td>
                                     <a href="@Html.Raw($"/sources/{Model.DivanPage.Poem.SourceUrlSlug}/")">@Model.DivanPage.Poem.SourceName</a>
                                 </td>
                             </tr>
                         }
                         <tr>
-                            <td>تعداد ابیات:</td>
+                            <td>اشعار کی تعداد:</td>
                             <td>
                                 @Model.DivanPage.Poem.Sections.Where(s => s.SectionType == RMuseum.Models.Divan.PoemSectionType.WholePoem).Sum(s => s.CoupletsCount).ToPersianNumbers()
                             </td>
@@ -315,18 +315,18 @@
                     <p id="track-record"></p>
                 }
 
-                <a onclick="copyPoemText()" role="button" class="pagebutton comments-link" title="رونوشت متن">
-                    رونوشت متن
+                <a onclick="copyPoemText()" role="button" class="pagebutton comments-link" title="متن نقل کریں">
+                    متن نقل کریں
                     <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" /></svg>
                 </a>
 
-                <a onclick="copyPoemLink()" role="button" class="pagebutton comments-link" title="رونوشت نشانی">
-                    رونوشت نشانی
+                <a onclick="copyPoemLink()" role="button" class="pagebutton comments-link" title="ربط نقل کریں">
+                    ربط نقل کریں
                     <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M17 7h-4v2h4c1.65 0 3 1.35 3 3s-1.35 3-3 3h-4v2h4c2.76 0 5-2.24 5-5s-2.24-5-5-5zm-6 8H7c-1.65 0-3-1.35-3-3s1.35-3 3-3h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-2zm-3-4h8v2H8z" /></svg>
                 </a>
 
                 <a href="/t6e?p=@Model.DivanPage.Id" role="button" class="pagebutton comments-link" target="_blank">
-                    نمای مشابه کتابهای چاپی (فقط رایانه)
+                    مطبوعہ کتاب جیسا انداز (صرف کمپیوٹر)
                     <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 12v2H8v-4h8v2zm2-2v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z" /><circle cx="18" cy="11.5" r="1" /></svg>
                 </a>
 
@@ -342,7 +342,7 @@
                 @if (poemTaggedPersons.Count > 0)
                 {
                     <div class="notice" id="poem-persons" data-nosnippet>
-                        <div class="century">نامبردگان</div>
+                        <div class="century">شخصیات</div>
                         <p>
                             @foreach (var taggedPerson in poemTaggedPersons)
                             {
@@ -355,11 +355,11 @@
                 @if (!string.IsNullOrEmpty(Model.DivanPage.Poem.PoemSummary))
                 {
                     <div class="notice" id="summary" data-nosnippet>
-                        <div class="century">خلاصه</div>
+                        <div class="century">خلاصہ</div>
                         <p>@Html.Raw(Model.DivanPage.Poem.PoemSummary.Replace("\n", "<br />"))</p>
                         @if (Model.LoggedIn)
                         {
-                            <a href="/User/Editor?id=@Model.DivanPage.Id#summaries" role="button" class="cursor-pointer" title="ویرایش">
+                            <a href="/User/Editor?id=@Model.DivanPage.Id#summaries" role="button" class="cursor-pointer" title="ترمیم">
                                 <div class="circled-number">
                                     <i class="notranslate noindent-info-button edit-poem-button"></i>
                                 </div>
@@ -367,7 +367,7 @@
                         }
                         else
                         {
-                            <a href="/login" role="button" class="cursor-pointer" title="ویرایش">
+                            <a href="/login" role="button" class="cursor-pointer" title="ترمیم">
                                 <div class="circled-number-diff">
                                     <i class="notranslate noindent-info-button edit-poem-button"></i>
                                 </div>
@@ -376,7 +376,7 @@
                         @if (Model.DivanPage.Poem.PoemSummary != null && Model.DivanPage.Poem.PoemSummary.Contains("هوش مصنوعی:"))
                         {
                             <small>
-                                <strong>اخطار:</strong> خلاصه‌های تولید شده توسط هوش مصنوعی در بسیاری از موارد نادرستند. اگر این متن به نظرتان نادرست است می‌توانید آن را <a href="/User/Editor?id=@Model.DivanPage.Id#summaries">ویرایش</a> کنید.
+                                <strong>انتباہ:</strong> مصنوعی ذہانت کے بنائے خلاصے اکثر غلط ہوتے ہیں۔ اگر یہ متن غلط لگے تو آپ اسے <a href="/User/Editor?id=@Model.DivanPage.Id#summaries">ترمیم</a> کریں.
                             </small>
                         }
                     </div>
@@ -386,8 +386,8 @@
                 {
                     <div id="summaries" data-nosnippet>
                         <div class="century">
-                            برگردان به زبان ساده
-                            <a onclick="copySummeriesText()" role="button" class="cursor-pointer" title="رونوشت متن">
+                            آسان زبان میں
+                            <a onclick="copySummeriesText()" role="button" class="cursor-pointer" title="متن نقل کریں">
                                 <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z" /></svg>
                             </a>
                         </div>
@@ -425,7 +425,7 @@
                                         <p>@Model.DivanPage.Poem.Verses[verseIndex].CoupletSummary</p>
                                         @if (Model.LoggedIn)
                                         {
-                                            <a href="@($"/User/Editor?id={Model.DivanPage.Id}#summary-{Model.DivanPage.Poem.Verses[verseIndex].VOrder}")" role="button" class="cursor-pointer" title="ویرایش">
+                                            <a href="@($"/User/Editor?id={Model.DivanPage.Id}#summary-{Model.DivanPage.Poem.Verses[verseIndex].VOrder}")" role="button" class="cursor-pointer" title="ترمیم">
                                                 <div class="circled-number">
                                                     <i class="notranslate noindent-info-button edit-poem-button"></i>
                                                 </div>
@@ -433,7 +433,7 @@
                                         }
                                         else
                                         {
-                                            <a href="/login" role="button" class="cursor-pointer" title="ویرایش">
+                                            <a href="/login" role="button" class="cursor-pointer" title="ترمیم">
                                                 <div class="circled-number-diff">
                                                     <i class="notranslate noindent-info-button edit-poem-button"></i>
                                                 </div>
@@ -442,7 +442,7 @@
                                         @if(Model.DivanPage.Poem.Verses[verseIndex].CoupletSummary != null && Model.DivanPage.Poem.Verses[verseIndex].CoupletSummary.Contains("هوش مصنوعی:"))
                                         {
                                             <small>
-                                                <strong>اخطار:</strong> برگردان‌های تولید شده توسط هوش مصنوعی در بسیاری از موارد نادرستند. اگر این متن به نظرتان نادرست است می‌توانید آن را <a href="@($"/User/Editor?id={Model.DivanPage.Id}#summary-{Model.DivanPage.Poem.Verses[verseIndex].VOrder}")">ویرایش</a> کنید.
+                                                <strong>انتباہ:</strong> مصنوعی ذہانت کے بنائے آسان متن اکثر غلط ہوتے ہیں۔ اگر یہ متن غلط لگے تو آپ اسے <a href="@($"/User/Editor?id={Model.DivanPage.Id}#summary-{Model.DivanPage.Poem.Verses[verseIndex].VOrder}")">ترمیم</a> کریں.
                                             </small>
                                         }
                                     </div>
@@ -461,28 +461,28 @@
             @* ============ WORD COUNTS TAB ============ *@
             <div class="poempretab" id="words"></div>
             <div class="poemtab">
-                <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                <div class="poemtablinks active"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                <div class="poemtablinks active"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                 <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
-                    <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                    <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
                 }
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                 {
-                    <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                    <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
                 }
-                <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+                <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
                 @if (Model.SectionsWithRelated.Count > 0)
                 {
-                    <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                    <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
                 }
-                <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
+                <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
             </div>
             <div class="related-images-frame poemtabcontent">
                 <div id="wordcounts-placeholder">
                     <a href="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)" id="load-word-counts" class="pagebutton comments-link">
-                        محاسبهٔ بسامد واژگان
+                        الفاظ کی تعداد شمار کریں
                         <svg class="noindent-info-button" enable-background="new 0 0 24 24" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><g><rect fill="none" height="24" width="24" /></g><g><g><g><path d="M7.5,4C5.57,4,4,5.57,4,7.5S5.57,11,7.5,11S11,9.43,11,7.5S9.43,4,7.5,4z M7.5,9C6.67,9,6,8.33,6,7.5S6.67,6,7.5,6 S9,6.67,9,7.5S8.33,9,7.5,9z M16.5,13c-1.93,0-3.5,1.57-3.5,3.5s1.57,3.5,3.5,3.5s3.5-1.57,3.5-3.5S18.43,13,16.5,13z M16.5,18 c-0.83,0-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5s1.5,0.67,1.5,1.5S17.33,18,16.5,18z M5.41,20L4,18.59L18.59,4L20,5.41L5.41,20z" /></g></g></g></svg>
                     </a>
                 </div>
@@ -491,23 +491,23 @@
             @* ============ MANUSCRIPTS TAB ============ *@
             <div class="poempretab" id="manuscripts"></div>
             <div class="poemtab">
-                <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                 <div class="poemtablinks active"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
-                    <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                    <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
                 }
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                 {
-                    <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                    <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
                 }
-                <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+                <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
                 @if (Model.SectionsWithRelated.Count > 0)
                 {
-                    <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                    <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
                 }
-                <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
+                <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
             </div>
             <div class="related-images-frame poemtabcontent">
                 @if (Model.DivanPage.Poem.Images.Length > 0)
@@ -520,7 +520,7 @@
                                     <div class="related-image-container-main">
                                         <a target="_blank" href="@Html.Raw(image.TargetPageUrl)">
                                             <div class="main-image-container">
-                                                <div class="main-image-ribbon">منبع کاغذی دیوان</div>
+                                                <div class="main-image-ribbon">دیوان کا مطبوعہ ماخذ</div>
                                                 <img src="@Html.Raw(image.ThumbnailImageUrl)" alt="@image.AltText" loading="lazy" class="main-image-source">
                                                 <div class="related-image-is-text-source">
                                                     <div class="width-100per">@image.AltText.ToPersianNumbers()</div>
@@ -529,7 +529,7 @@
                                         </a>
                                         @if (Model.CanEdit)
                                         {
-                                            <a onclick="deleteRelatedImage(@((int)image.PoemRelatedImageType), '@image.Id', '@image.AltText')" class="pagebutton comments-link">حذف این ارتباط<i class="notranslate info-buttons delete-icon"></i></a>
+                                            <a onclick="deleteRelatedImage(@((int)image.PoemRelatedImageType), '@image.Id', '@image.AltText')" class="pagebutton comments-link">یہ ربط ہٹائیں<i class="notranslate info-buttons delete-icon"></i></a>
                                         }
                                     </div>
                                 </div>
@@ -544,17 +544,17 @@
                                     <div class="related-image-is-text-source"><a target="_blank" href="@Html.Raw(image.TargetPageUrl)">@image.AltText.ToPersianNumbers()</a></div>
                                     @if (Model.CanEdit)
                                     {
-                                        <a onclick="deleteRelatedImage(@((int)image.PoemRelatedImageType), '@image.Id', '@image.AltText')" class="pagebutton comments-link">حذف این ارتباط<i class="notranslate info-buttons delete-icon"></i></a>
+                                        <a onclick="deleteRelatedImage(@((int)image.PoemRelatedImageType), '@image.Id', '@image.AltText')" class="pagebutton comments-link">یہ ربط ہٹائیں<i class="notranslate info-buttons delete-icon"></i></a>
                                     }
                                 </div>
                             }
                         </div>
                         <div id="suggest-images">
                             <p>
-                                <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">پیشنهاد تصاویر مرتبط از منابع اینترنتی<i class="notranslate info-buttons photo_camera"></i></a>
+                                <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">انٹرنیٹ سے متعلقہ تصاویر تجویز کریں<i class="notranslate info-buttons photo_camera"></i></a>
                             </p>
                             <p>
-                                راهنمای نحوهٔ پیشنهاد تصاویر مرتبط از گنجینهٔ دیوان<i class="notranslate info-buttons help-button"></i>
+                                متعلقہ تصاویر تجویز کرنے کی رہنمائی<i class="notranslate info-buttons help-button"></i>
                             </p>
                         </div>
                     </div>
@@ -563,10 +563,10 @@
                 {
                     <div id="suggest-images">
                         <p>
-                            <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">پیشنهاد تصاویر مرتبط از منابع اینترنتی<i class="notranslate info-buttons photo_camera"></i></a>
+                            <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">انٹرنیٹ سے متعلقہ تصاویر تجویز کریں<i class="notranslate info-buttons photo_camera"></i></a>
                         </p>
                         <p>
-                            راهنمای نحوهٔ پیشنهاد تصاویر مرتبط از گنجینهٔ دیوان<i class="notranslate info-buttons help-button"></i>
+                            متعلقہ تصاویر تجویز کرنے کی رہنمائی<i class="notranslate info-buttons help-button"></i>
                         </p>
                     </div>
                 }
@@ -577,28 +577,28 @@
             {
                 <div class="poempretab" id="recitations"></div>
                 <div class="poemtab">
-                    <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                    <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                    <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                    <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                     <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
-                    <div class="poemtablinks active"><a href="#recitations">خوانش‌ها</a></div>
+                    <div class="poemtablinks active"><a href="#recitations">قرأتیں</a></div>
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                     {
-                        <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                        <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
                     }
-                    <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+                    <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
                     @if (Model.SectionsWithRelated.Count > 0)
                     {
-                        <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                        <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
                     }
-                    <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
+                    <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
                 </div>
                 <div class="poemtabcontent">
                     <partial name="~/Pages/Partials/DivanPage/_AudioPlayerPartial.cshtml" model=@Model.GetRecitationsModel(Model.DivanPage.Poem.Recitations, false, RMuseum.Models.DivanAudio.RecitationType.Normal, Model.CanEdit) />
                     <a onclick="switchPlayerScrollLock()" role="button" class="pagebutton comments-link">
-                        فعال یا غیرفعال‌سازی قفل متن روی خوانش
+                        قرأت پر متن کا قفل شروع یا بند کریں
                         <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0z" fill="none" /><path d="M8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2h-4.66l2 2H18v5.56l2 2V10c0-1.1-.9-2-2-2h-1V6c0-2.76-2.24-5-5-5-2.32 0-4.26 1.59-4.82 3.74L8.9 6.46V6zM4.41 4.81L3 6.22l2.04 2.04C4.42 8.6 4 9.25 4 10v10c0 1.1.9 2 2 2h12.78l1 1 1.41-1.41L4.41 4.81zM6 20V10h.78l10 10H6z" /></svg>
                     </a>
-                    من بخوانم
+                    میں پڑھوں
                 </div>
             }
 
@@ -607,25 +607,25 @@
             {
                 <div class="poempretab" id="commentaries"></div>
                 <div class="poemtab">
-                    <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                    <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                    <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                    <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                     <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                     {
-                        <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                        <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
                     }
-                    <div class="poemtablinks active"><a href="#commentaries">شرح‌های صوتی</a></div>
-                    <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+                    <div class="poemtablinks active"><a href="#commentaries">صوتی شرحیں</a></div>
+                    <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
                     @if (Model.SectionsWithRelated.Count > 0)
                     {
-                        <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                        <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
                     }
-                    <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
+                    <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
                 </div>
                 <div class="poemtabcontent">
                     <partial name="~/Pages/Partials/DivanPage/_AudioPlayerPartial.cshtml" model=@Model.GetRecitationsModel(Model.DivanPage.Poem.Recitations, false, RMuseum.Models.DivanAudio.RecitationType.Commentary, Model.CanEdit) />
                     <a onclick="switchPlayerScrollLock()" role="button" class="pagebutton comments-link">
-                        فعال یا غیرفعال‌سازی قفل متن روی خوانش
+                        قرأت پر متن کا قفل شروع یا بند کریں
                         <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0zm0 0h24v24H0V0z" fill="none" /><path d="M8.9 6c0-1.71 1.39-3.1 3.1-3.1s3.1 1.39 3.1 3.1v2h-4.66l2 2H18v5.56l2 2V10c0-1.1-.9-2-2-2h-1V6c0-2.76-2.24-5-5-5-2.32 0-4.26 1.59-4.82 3.74L8.9 6.46V6zM4.41 4.81L3 6.22l2.04 2.04C4.42 8.6 4 9.25 4 10v10c0 1.1.9 2 2 2h12.78l1 1 1.41-1.41L4.41 4.81zM6 20V10h.78l10 10H6z" /></svg>
                     </a>
                 </div>
@@ -634,23 +634,23 @@
             @* ============ QUOTED POEMS TAB ============ *@
             <div class="poempretab" id="qpoems"></div>
             <div class="poemtab">
-                <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                 <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
-                    <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                    <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
                 }
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                 {
-                    <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                    <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
                 }
-                <div class="poemtablinks active"><a href="#qpoems">مشق شعر</a></div>
+                <div class="poemtablinks active"><a href="#qpoems">مشقِ سخن</a></div>
                 @if (Model.SectionsWithRelated.Count > 0)
                 {
-                    <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                    <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
                 }
-                <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
+                <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
             </div>
             <div class="poemtabcontent">
                 @for (int i = 0; i < Math.Min(5, Model.DivanPage.Poem.Top6QuotedPoems.Length); i++)
@@ -662,19 +662,19 @@
                 {
                     <div id="more-quoted-placeholder"></div>
                     <div id="load-more-quoted">
-                        <a role="button" class="pagebutton" id="load-more-quoted" onclick="loadMoreQuotedPoems(@Model.DivanPage.Poem.Id, 5, '@Model.DivanPage.PoetOrCat.Poet.ImageUrl', '@Model.DivanPage.PoetOrCat.Poet.Nickname', @Model.CanEdit.ToString().ToLower())">بیشتر<i class="notranslate info-buttons autorenew"></i></a>
+                        <a role="button" class="pagebutton" id="load-more-quoted" onclick="loadMoreQuotedPoems(@Model.DivanPage.Poem.Id, 5, '@Model.DivanPage.PoetOrCat.Poet.ImageUrl', '@Model.DivanPage.PoetOrCat.Poet.Nickname', @Model.CanEdit.ToString().ToLower())">مزید<i class="notranslate info-buttons autorenew"></i></a>
                     </div>
                 }
                 @if (Model.LoggedIn)
                 {
                     <div>
-                        <a href="/User/SuggestQuoted/?p=@Model.DivanPage.Id" class="pagebutton comments-link" target="_blank">پیشنهاد مشق شعر</a>
+                        <a href="/User/SuggestQuoted/?p=@Model.DivanPage.Id" class="pagebutton comments-link" target="_blank">مشقِ سخن تجویز کریں</a>
                     </div>
                 }
                 else
                 {
                     <div>
-                        پیشنهاد مشق شعر
+                        مشقِ سخن تجویز کریں
                     </div>
                 }
             </div>
@@ -684,23 +684,23 @@
             {
                 <div class="poempretab" id="rpoems"></div>
                 <div class="poemtab">
-                    <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                    <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                    <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                    <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                     <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                     {
-                        <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                        <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
                     }
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                     {
-                        <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                        <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
                     }
-                    <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+                    <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
                     @if (Model.SectionsWithRelated.Count > 0)
                     {
-                        <div class="poemtablinks active"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                        <div class="poemtablinks active"><a href="#rpoems">ہم آہنگ</a></div>
                     }
-                    <div class="poemtablinks"><a href="#discussions">حاشیه‌ها</a></div>
+                    <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
                 </div>
                 <div class="poemtabcontent">
                     @foreach (var s in Model.SectionsWithRelated)
@@ -722,11 +722,11 @@
                                 {
                                     @if (s.Top6RelatedSections[i].PoetMorePoemsLikeThisCount > 20)
                                     {
-                                        <a role="button" class="pagebutton" id="@($"load-more-button-{s.Top6RelatedSections[i].PoetId}-{s.Index}")" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(s.RhymeLetters)}&amp;a={s.Top6RelatedSections[i].PoetId}")" target="_blank">مشاهدهٔ بیش از @s.Top6RelatedSections[i].PoetMorePoemsLikeThisCount.ToPersianNumbers() مورد هم آهنگ دیگر از @s.Top6RelatedSections[i].PoetName<i class="notranslate info-buttons autorenew"></i></a>
+                                        <a role="button" class="pagebutton" id="@($"load-more-button-{s.Top6RelatedSections[i].PoetId}-{s.Index}")" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(s.RhymeLetters)}&amp;a={s.Top6RelatedSections[i].PoetId}")" target="_blank">مزید دیکھیں: @s.Top6RelatedSections[i].PoetMorePoemsLikeThisCount.ToPersianNumbers() دیگر ہم آہنگ تخلیقات از @s.Top6RelatedSections[i].PoetName<i class="notranslate info-buttons autorenew"></i></a>
                                     }
                                     else
                                     {
-                                        <a role="button" class="pagebutton" id="@($"load-more-button-{s.Top6RelatedSections[i].PoetId}-{s.Index}")" onclick="loadMoreRelatedFromPoet(@s.Top6RelatedSections[i].PoetId, '@s.DivanMetre.Rhythm', '@s.RhymeLetters', '@Model.DivanPage.Poem.FullUrl', '@s.Top6RelatedSections[i].FullUrl', @s.Index)">مشاهدهٔ @s.Top6RelatedSections[i].PoetMorePoemsLikeThisCount.ToPersianNumbers() مورد هم آهنگ دیگر از @s.Top6RelatedSections[i].PoetName<i class="notranslate info-buttons autorenew"></i></a>
+                                        <a role="button" class="pagebutton" id="@($"load-more-button-{s.Top6RelatedSections[i].PoetId}-{s.Index}")" onclick="loadMoreRelatedFromPoet(@s.Top6RelatedSections[i].PoetId, '@s.DivanMetre.Rhythm', '@s.RhymeLetters', '@Model.DivanPage.Poem.FullUrl', '@s.Top6RelatedSections[i].FullUrl', @s.Index)">دیکھیں @s.Top6RelatedSections[i].PoetMorePoemsLikeThisCount.ToPersianNumbers() دیگر ہم آہنگ تخلیقات از @s.Top6RelatedSections[i].PoetName<i class="notranslate info-buttons autorenew"></i></a>
                                     }
                                 }
                             </div>
@@ -741,7 +741,7 @@
                         {
                             <div id="more-related-placeholder-@s.Index"></div>
                             <div id="load-more-related-@s.Index">
-                                <a role="button" class="pagebutton" id="load-more-button-@s.Index" onclick="loadMoreRelatedPoems(@Model.DivanPage.Poem.Id, 5, '@s.DivanMetre.Rhythm', '@s.RhymeLetters', '@Model.DivanPage.Poem.FullUrl', @s.Index)">بیشتر<i class="notranslate info-buttons autorenew"></i></a>
+                                <a role="button" class="pagebutton" id="load-more-button-@s.Index" onclick="loadMoreRelatedPoems(@Model.DivanPage.Poem.Id, 5, '@s.DivanMetre.Rhythm', '@s.RhymeLetters', '@Model.DivanPage.Poem.FullUrl', @s.Index)">مزید<i class="notranslate info-buttons autorenew"></i></a>
                             </div>
                         }
                     }
@@ -749,14 +749,14 @@
                     @if (Model.SectionsWithMetreAndRhymes.Any())
                     {
                         <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().RhymeLetters)}")" class="pagebutton comments-link">
-                            مشابه‌یابی بر اساس وزن و قافیه
+                            بحر اور قافیے کے لحاظ سے ملتی جلتی تخلیقات
                             <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></svg>
                         </a>
 
                         @for (int nSectionIndex = 1; nSectionIndex < Model.SectionsWithMetreAndRhymes.Count; nSectionIndex++)
                         {
                             <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].RhymeLetters)}")" class="pagebutton comments-link">
-                                مشابه‌یابی بر اساس وزن و قافیه (وزن @((nSectionIndex + 1).ToPersianNumbers()))
+                                بحر اور قافیے کے لحاظ سے ملتی جلتی تخلیقات (بحر @((nSectionIndex + 1).ToPersianNumbers()))
                                 <svg class="noindent-info-button" height="24px" viewBox="0 0 24 24" width="24px" fill="#5f6368"><path d="M0 0h24v24H0V0z" fill="none" /><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></svg>
                             </a>
                         }
@@ -768,33 +768,33 @@
             @* ============ DISCUSSIONS TAB ============ *@
             <div class="poempretab" id="discussions"></div>
             <div class="poemtab">
-                <div class="poemtablinks"><a href="#pretab">اطّلاعات</a></div>
-                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">واژگان</a></div>
+                <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
+                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
                 <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
-                    <div class="poemtablinks"><a href="#recitations">خوانش‌ها</a></div>
+                    <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
                 }
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                 {
-                    <div class="poemtablinks"><a href="#commentaries">شرح‌های صوتی</a></div>
+                    <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
                 }
-                <div class="poemtablinks"><a href="#qpoems">مشق شعر</a></div>
+                <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
                 @if (Model.SectionsWithRelated.Count > 0)
                 {
-                    <div class="poemtablinks"><a href="#rpoems">هم‌آهنگ‌ها</a></div>
+                    <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
                 }
-                <div class="poemtablinks active"><a href="#discussions">حاشیه‌ها</a></div>
+                <div class="poemtablinks active"><a href="#discussions">حاشیے</a></div>
             </div>
             <div class="related-images-frame poemtabcontent">
                 <div id="comments-section">
                     @if (Model.DivanPage.Poem.Comments.Length > 1)
                     {
                         <p class="comments-sort-toggle">
-                            مرتب‌سازی حاشیه‌ها:
-                            <a role="button" class="cursor-pointer" onclick="sortComments(@Model.DivanPage.Id, 'TopRated')">محبوب‌ترین</a> |
-                            <a role="button" class="cursor-pointer" onclick="sortComments(@Model.DivanPage.Id, 'Newest')">جدیدترین</a> |
-                            <a role="button" class="cursor-pointer" onclick="sortComments(@Model.DivanPage.Id, 'Oldest')">قدیمی‌ترین</a>
+                            حاشیوں کی ترتیب:
+                            <a role="button" class="cursor-pointer" onclick="sortComments(@Model.DivanPage.Id, 'TopRated')">مقبول ترین</a> |
+                            <a role="button" class="cursor-pointer" onclick="sortComments(@Model.DivanPage.Id, 'Newest')">تازہ ترین</a> |
+                            <a role="button" class="cursor-pointer" onclick="sortComments(@Model.DivanPage.Id, 'Oldest')">قدیم ترین</a>
                         </p>
                     }
                     <div id="comments-list-wrapper">
@@ -805,7 +805,7 @@
                     {
                         <form method="post" id="commentform" action="?handler=Comment">
                             <fieldset>
-                                <legend>💬 من حاشیه بگذارم ...</legend>
+                                <legend>💬 میں حاشیہ لکھوں ...</legend>
                                 <table class="comment-table">
                                     <tr>
                                         <td>
@@ -818,36 +818,36 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <button name="postcomment" id="postcomment" class="submitCommentButton width-100per" onclick="return postComment('', '#postcomment');">درج حاشیه</button>
+                                            <button name="postcomment" id="postcomment" class="submitCommentButton width-100per" onclick="return postComment('', '#postcomment');">حاشیہ لکھیں</button>
                                         </td>
                                     </tr>
                                 </table>
 
                                 <div class="notice">
                                     <p>
-                                        لطفاً توجه داشته باشید که حاشیه‌ها برای ثبت نظرات شما راجع به <strong>همین شعر</strong> در نظر گرفته شده‌اند. در صورتی که در متن ثبت شدهٔ شعر در دیوان تفاوتهایی غیر از موارد قابل ویرایش یافتید، در مورد این شعر نظر یا احساس خاصی دارید یا مطلب خاصی در مورد آن می‌دانید یا دوست دارید دربارهٔ آن از دیگران چیزی بپرسید یک حاشیه برای آن بنویسید. <span class="red-color">لطفاً از درج مطالب غیرمرتبط با متن این شعر خاص خودداری فرمایید</span> و حتی‌الامکان سعی کنید متن حاشیهٔ خود را با حروف فارسی درج کنید (حاشیه‌ها بازبینی خواهند شد و موارد غیرمرتبط و ناقض این نکات حذف می‌شوند).
+                                        براہِ کرم دھیان رکھیں کہ حاشیے آپ کی رائے کے لیے ہیں: <strong>اسی تخلیق</strong> کے بارے میں۔ اگر متن میں قابلِ ترمیم امور کے علاوہ کوئی فرق ملے، اس تخلیق پر آپ کی کوئی رائے یا معلومات ہو، یا دوسروں سے کچھ پوچھنا ہو تو حاشیہ لکھیں. <span class="red-color">براہِ کرم اس تخلیق سے غیر متعلق باتیں نہ لکھیں</span> اور حتی الامکان اپنا حاشیہ اردو حروف میں لکھیں (حاشیوں کا جائزہ لیا جائے گا اور غیر متعلق یا ان ہدایات کے خلاف حاشیے حذف کر دیے جائیں گے).
                                     </p>
                                     <p>
-                                        <span class="red-color">بحثهای مذهبی و اعتقادی و ارجاع توهین‌آمیز نسبت به بزرگان ادیان و همینطور بحثهای قومیتی و توهین به فرهنگها و قومیتها و زبانها و بحثهای مرتبط با سیاست روز از مصادیق حاشیه‌های نامناسب محسوب می‌شوند.</span> لطفاً از هیچ قوم و مذهبی با صفات زننده صحبت نکنید و به خاطر داشته باشید که همهٔ اقوام (حتی اقوام ایرانی) در مقاطعی از تاریخ خود نسبت به اقوام دیگر بدوی محسوب می‌شده‌اند یا با تعدی به خاک همسایگان خود نسبت به آنها ستم روا داشته‌اند.
+                                        <span class="red-color">مذہبی و اعتقادی مباحث، مذہبی بزرگوں کی توہین، نسلی مباحث، ثقافتوں، قوموں اور زبانوں کی توہین اور روزمرہ سیاست سے متعلق باتیں نامناسب حاشیے شمار ہوتی ہیں.</span> براہِ کرم کسی قوم یا مذہب کے بارے میں ناشائستہ الفاظ استعمال نہ کریں.
                                     </p>
                                     <p>
-                                        در خطاب قرار دادن کاربران دیگر -چه به شکل خاص و چه به شکل عمومی- فارغ از این که در حاشیه‌هایشان نظرات معقولی را عنوان کرده‌اند یا خیر، رعایت احترام را بفرمایید. بی‌احترامی به دیگر کاربران (و البته شخصیتهای دیگر از جمله هنرمندان و ...) از مصادیق حاشیه‌های نامناسب محسوب می‌شود و فارغ از ارزش محتوایی، حاشیهٔ فرد خاطی به محض دریافت گزارش تخلف حذف خواهد شد.
+                                        دوسرے صارفین سے مخاطب ہوتے ہوئے احترام ملحوظ رکھیں۔ دوسرے صارفین یا شخصیات کی بے ادبی نامناسب حاشیہ شمار ہوتی ہے اور اطلاع ملتے ہی ایسا حاشیہ حذف کر دیا جائے گا.
                                     </p>
                                     <p>
-                                        <span class="red-color">تذکر مهم: </span>از آنجا که دیوان فاقد نیروی انسانی کافی برای رسیدگی به حجم بالایی از تخلف در حاشیه‌ها می‌باشد در صورت تکرار موارد عنوان شده توسط یک کاربر در حاشیه‌های متعدد، حساب کاربر متخلف بدون اخطار قبلی حذف خواهد شد. <span class="red-color">ضمناً</span> فحاشی یا هر اقدامی که نشان دهد کاربر تلاش داشته با انجام آن عامدانه خرابکاری کند یا مشکلی برای سایت ایجاد کند حتی اگر فقط یک بار اتفاق بیفتد منجر به حذف حساب کاربر متخلف بدون اخطار قبلی خواهد شد.
+                                        <span class="red-color">اہم تنبیہ: </span>چونکہ دیوان کے پاس بڑی تعداد میں خلاف ورزیوں سے نمٹنے کے وسائل نہیں، اس لیے بار بار خلاف ورزی کرنے والے صارف کا اکاؤنٹ بغیر پیشگی انتباہ کے حذف کر دیا جائے گا. <span class="red-color">نیز</span> گالی گلوچ یا جان بوجھ کر تخریب کی کوئی بھی کوشش، خواہ ایک ہی بار ہو، اکاؤنٹ کے بغیر انتباہ حذف ہونے کا سبب بنے گی.
                                     </p>
                                     <p>
-                                        <span class="green-color">لطفاً در صورتی که تفاوتها را با استناد به نسخه‌های چاپی یا خطی گزارش می‌کنید این مسئله را با ذکر منبع مطرح نمایید. اشتباهات تایپی و غلطهای املایی را <a href="/User/Editor?id=@Model.DivanPage.Id">ویرایش</a> و تصحیح کنید.</span>
+                                        <span class="green-color">اگر آپ مطبوعہ یا قلمی نسخوں کی بنیاد پر فرق بتا رہے ہیں تو ماخذ کا حوالہ دیں۔ ٹائپ اور املا کی غلطیوں کو <a href="/User/Editor?id=@Model.DivanPage.Id">ترمیم</a> اور درست کریں.</span>
                                     </p>
                                     <p>
-                                        <span class="red-color">لطفاً از درج اطلاعات خصوصی مانند تلفن همراه و مانند آن در حاشیه‌ خودداری کنید. </span> انتشار چنین اطلاعاتی به صورت عمومی ممکن است باعث سوء استفادهٔ کلاهبرداران شود.
+                                        <span class="red-color">براہِ کرم حاشیے میں موبائل نمبر جیسی نجی معلومات درج نہ کریں. </span> ایسی معلومات کی عام اشاعت دھوکے بازوں کے غلط استعمال کا سبب بن سکتی ہے.
                                     </p>
                                 </div>
                             </fieldset>
                         </form>
 
                         <div id="id02" class="modal">
-                            <span onclick="document.getElementById('id02').style.display='none'" class="close" title="بستن">&times;</span>
+                            <span onclick="document.getElementById('id02').style.display='none'" class="close" title="بند کریں">&times;</span>
                             <form class="modal-content animate" method="post" id="editcommentform" action="?handler=EditComment">
                                 <table class="comment-table">
                                     <tr>
@@ -859,7 +859,7 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <button name="editcomment" id="editcomment" class="submitCommentButton width-100per" onclick="return editComment();">ویرایش حاشیه</button>
+                                            <button name="editcomment" id="editcomment" class="submitCommentButton width-100per" onclick="return editComment();">حاشیے میں ترمیم</button>
                                         </td>
                                     </tr>
                                 </table>
@@ -867,7 +867,7 @@
                         </div>
 
                         <div id="id03" class="modal">
-                            <span onclick="document.getElementById('id03').style.display='none'" class="close" title="بستن">&times;</span>
+                            <span onclick="document.getElementById('id03').style.display='none'" class="close" title="بند کریں">&times;</span>
                             <form class="modal-content animate" method="post" id="replycommentform" action="?handler=Reply">
                                 <table class="comment-table">
                                     <tr>
@@ -880,12 +880,12 @@
                                     </tr>
                                     <tr>
                                         <td>
-                                            <button name="replycomment" id="replycomment" class="submitCommentButton width-100per" onclick="return postReplyComment();">درج پاسخ به حاشیه</button>
+                                            <button name="replycomment" id="replycomment" class="submitCommentButton width-100per" onclick="return postReplyComment();">حاشیے کا جواب لکھیں</button>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>
-                                            <p>در پاسخ به:</p>
+                                            <p>جواب میں::</p>
                                             <div id="refComment"></div>
                                         </td>
                                     </tr>
@@ -897,7 +897,7 @@
                     {
                         <div class="notice" id="commentform">
                             <p>
-                                برای حاشیه‌گذاری باید در دیوان <a href="/signup" target="_blank">نام‌نویسی</a> کنید و با نام کاربری خود از طریق آیکون 👤 گوشهٔ پایین سمت چپ صفحات به آن وارد شوید.
+                                حاشیہ لکھنے کے لیے دیوان میں <a href="/signup" target="_blank">رکنیت</a> کریں اور اپنے صارف نام سے آئیکن 👤 (صفحے کے نیچے بائیں کونے میں) کے ذریعے داخل ہوں.
                             </p>
                         </div>
                     }
@@ -938,7 +938,7 @@
             oms.addListener('click', function (marker) {
                 var poemDesc = '<a class="actionlink" onclick="viewLocation(marker.poemGeoTag.Location.Latitude, marker.poemGeoTag.Location.Longitude)">' + marker.poemGeoTag.Location.Name + '</a>';
                 if (marker.poemGeoTag.LunarYear != null) {
-                    poemDesc += '<br> سال ' + persianizeNumerals(marker.poemGeoTag.LunarYear.toString()) + ' قمری';
+                    poemDesc += '<br> سال ' + persianizeNumerals(marker.poemGeoTag.LunarYear.toString()) + ' ہجری';
                 }
                 popup.setContent(poemDesc);
                 popup.setLatLng(marker.getLatLng());

@@ -6,22 +6,22 @@
 @if (Model.WordCounts.Length > 0)
 {
     <h2>
-        بسامد واژگان
+        الفاظ کی تعداد
     </h2>
     <div id="wordcounts-section">
         <p>
-            در متن @Model.ThisPart @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.TotalWordCount) واژه را شمرده‌ایم (در تعریفمان از <i>واژه</i> ایرادات جدی وجود دارد، اینجا را ببینید). شمار واژگان یاد شده به شکل غیرتکراری برابر با @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.UniqueWordCount) واژه است.
+            متن میں @Model.ThisPart @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.TotalWordCount) الفاظ شمار کیے ہیں (ہماری تعریفِ <i>لفظ</i> میں سنجیدہ خامیاں ہیں، یہاں دیکھیں)۔ غیر مکرر الفاظ کی تعداد @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.UniqueWordCount) الفاظ ہے.
         </p>
         @if (Model.RemStopWords)
         {
-            <p id="remStopWords">جهت مشاهدهٔ آمار با حروف ربط و دیگر واژگان کم‌تأثیر پربسامد <a href="javascript:reloadWordCounts(@Model.CatId, @Model.PoetId, false)">اینجا</a> کلیک کنید.</p>
+            <p id="remStopWords">حروفِ ربط اور دیگر عام الفاظ سمیت اعداد دیکھنے کے لیے <a href="javascript:reloadWordCounts(@Model.CatId, @Model.PoetId, false)">یہاں</a> کلک کریں.</p>
         }
         else
         {
-            <p id="remStopWords">جهت مشاهدهٔ آمار بدون حروف ربط و دیگر واژگان کم‌تأثیر پربسامد <a href="javascript:reloadWordCounts(@Model.CatId, @Model.PoetId, true)">اینجا</a> کلیک کنید.</p>
+            <p id="remStopWords">حروفِ ربط اور دیگر عام الفاظ کے بغیر اعداد دیکھنے کے لیے <a href="javascript:reloadWordCounts(@Model.CatId, @Model.PoetId, true)">یہاں</a> کلک کریں.</p>
         }
         <div class="clear-both">
-            <input type="text" id="wordcountterm" placeholder="جستجوی واژه" value="" onkeyup="onSearchWordCounts(@Model.CatId, @Model.PoetId, @Model.TotalWordCount)">
+            <input type="text" id="wordcountterm" placeholder="لفظ تلاش کریں" value="" onkeyup="onSearchWordCounts(@Model.CatId, @Model.PoetId, @Model.TotalWordCount)">
         </div>
         <div id="wordcounts-table">
             <partial name="_CategoryWordsCountTablePartial.cshtml" model="Model.TableModel" />

@@ -53,21 +53,21 @@ else
                 @if (Model.Poems == null)
                 {
                     <div class="poem">
-                        <h2>شعری با مشخصات مورد نظر شما پیدا نشد.</h2>
+                        <h2>مطلوبہ شعر نہیں ملا.</h2>
                         <p>
-                            <strong>توصیه‌هایی برای دستیابی به نتیجهٔ مطلوبتر در جستجو:</strong>
+                            <strong>بہتر نتائج کے لیے تجاویز:</strong>
                         </p>
                         <p>
-                            الف) <strong>به جای جستجوی متن کامل یک بیت بهتر است حروف کلیدی آن را وارد کنید.</strong> از آنجا که اشعار به صورتهای مختلف در نسخه‌های متفاوت نقل شده‌اند ممکن است چیزی که شما در ذهن دارید با چیزی که در پایگاه ما ثبت شده متفاوت باشد. به عنوان نمونه مصرع «کشتی شکستگانیم ای باد شرطه برخیز» از حافظ در بعضی از نسخه‌ها به صورت «کشتی نشستگانیم ای باد شرطه برخیز» ضبط شده و شما با تایپ صورت صورت دوم آن را در دیوان نخواهید یافت. بهتر است برای یافتن این شعر کلماتی مانند کشتی و شرطه را جستجو کنیم.
+                            الف) <strong>پورا شعر لکھنے کے بجائے اس کے کلیدی الفاظ تلاش کریں.</strong> اشعار مختلف نسخوں میں مختلف صورتوں میں نقل ہوئے ہیں، اس لیے آپ کے ذہن میں موجود صورت ہمارے متن سے مختلف ہو سکتی ہے۔ مثلاً غالب کا مصرع «ہزاروں خواہشیں ایسی کہ ہر خواہش پہ دم نکلے» تلاش کرنے کے لیے «خواہشیں» اور «دم» جیسے الفاظ تلاش کرنا بہتر ہے.
                         </p>
                         <p>
-                            ب) کلماتی را که ممکن است به صورت جدا یا سر هم نوشته شوند در گام اول به صورت جدا امتحان کنید (<strong>می شود</strong> و نه <del>میشود</del> یا <del>می‌شود</del>).
+                            ب) جو الفاظ الگ یا ملا کر لکھے جا سکتے ہیں، انہیں پہلے الگ الگ آزمائیں (<strong>جا سکتا</strong> نہ کہ <del>جاسکتا</del> یا <del>جا سکتا</del>).
                         </p>
                         <p>
-                            ج) در صورتی که نام سخنور را می‌دانید بهتر است از طریق لیست بازشوی جلوی جعبهٔ جستجو نام او را انتخاب کنید. این توصیه برای زمانی مناسب است که جستجوی عبارت مورد نظر شما باعث می‌شود آثار سخنورانی که مورد نظر شما نیستند در صدر نتایج قرار گیرد و به این وسیله شما می‌خواهید به فهرست محدودتری از نتایج دست پیدا کنید.
+                            ج) اگر آپ شاعر کا نام جانتے ہیں تو تلاش کے خانے کے ساتھ والی فہرست سے اسے منتخب کریں؛ اس طرح دوسرے شعرا کے نتائج کم ہو جائیں گے.
                         </p>
                         <p>
-                            د) در صورتی که با فنون اولیهٔ جستجو آشنا نیستید یا <strong>معمولاً جستجوهایتان به نتیجهٔ مطلوب نمی‌رسد</strong> بد نیست نگاهی به <a href="http://hrmoh.ir/1385/04/18/howto-search-better/" title="توصیه هایی برای جستجوی بهتر در اینترنت">این نوشته</a> بیندازید.
+                            د) اگر آپ تلاش کی بنیادی تکنیکوں سے واقف نہیں یا <strong>عموماً مطلوبہ نتائج نہیں ملتے</strong> تو <a href="http://hrmoh.ir/1385/04/18/howto-search-better/" title="انٹرنیٹ پر بہتر تلاش کی تجاویز">یہ تحریر</a> دیکھ لیں.
                         </p>
                     </div>
                 }
@@ -83,7 +83,7 @@ else
                                browser HTML-decodes the attribute before handing it to the JS engine.
                                Passing it through a data-* attribute keeps it as inert text. *@
                             <a href="javascript:void(0)" data-search-query="@Model.Query" data-poet-id="@Model.PoetId" data-cat-id="@Model.CatId" onclick="loadWordCountsByCat(this.dataset.searchQuery, this.dataset.poetId, this.dataset.catId, false); return false;" id="load-word-counts" class="pagebutton comments-link">
-                                مشاهدهٔ بسامد واژگان «@Model.QueryDin» به تفکیک بخش
+                                الفاظ کی تعداد دیکھیں «@Model.QueryDin» حصوں کے لحاظ سے
                             </a>
 
                             <div id="wordcounts-placeholder">
@@ -113,7 +113,7 @@ else
 
                             <div class="poet">
                                 <img src="@($"{DivanRazor.APIRoot.InternetUrl}{poem.Category.Poet.ImageUrl}")" alt="@($"{poem.Category.Poet.Nickname}")" />
-                                <a role="button" onclick="deletePoetFromSearch(@poem.Category.Poet.Id, '@(poem.Category.Poet.Nickname)')" class="actionlink" title="حذف @($"{poem.Category.Poet.Nickname}") از نتایج"><i class="notranslate noindent-info-button close-button"></i></a>
+                                <a role="button" onclick="deletePoetFromSearch(@poem.Category.Poet.Id, '@(poem.Category.Poet.Nickname)')" class="actionlink" title="ہٹائیں @($"{poem.Category.Poet.Nickname}") نتائج سے"><i class="notranslate noindent-info-button close-button"></i></a>
                             </div>
 
 
@@ -130,9 +130,9 @@ else
                     @Html.Raw(Model.PagingToolsHtml)
                     <div class="spacer">&nbsp;</div>
                     <div>
-                        تعداد کل نتایج: @Model.PaginationMetadata.totalCount.ToPersianNumbers() قطعه
+                        کل نتائج: @Model.PaginationMetadata.totalCount.ToPersianNumbers() تخلیق
                         <div>
-                            <small>در هر قطعه ممکن است عبارت چند بار تکرار شده باشد. برای دستیابی به آمار با احتساب تکرارها بسامد واژگان را ببینید.</small>
+                            <small>ایک تخلیق میں عبارت کئی بار آ سکتی ہے؛ تکرار سمیت شمار کے لیے الفاظ کی تعداد دیکھیں.</small>
                         </div>
                     </div>
                 }
@@ -142,7 +142,7 @@ else
                     <div class="sitem">
                         @* See the matching comment above for why this is a data-* attribute, not a javascript: href. *@
                         <a href="javascript:void(0)" data-search-query="@Model.Query" data-poet-id="@Model.PoetId" data-cat-id="@Model.CatId" onclick="loadWordCountsByCat(this.dataset.searchQuery, this.dataset.poetId, this.dataset.catId, false); return false;" id="load-word-counts" class="pagebutton comments-link">
-                            مشاهدهٔ بسامد واژگان «@Model.QueryDin» به تفکیک بخش
+                            الفاظ کی تعداد دیکھیں «@Model.QueryDin» حصوں کے لحاظ سے
                         </a>
 
                         <div id="wordcounts-placeholder">

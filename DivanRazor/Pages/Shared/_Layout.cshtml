@@ -58,7 +58,11 @@
 
     <script src="/js/vaabd.js?version=10"></script>
 
-    <partial name="_SemanticSearchWidgetPartial" />
+    @* divan: semantic search is an optional external service; hide the widget unless configured *@
+    @if (!string.IsNullOrEmpty(DivanRazor.APIRoot.SemanticSearchUrl))
+    {
+        <partial name="_SemanticSearchWidgetPartial" />
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

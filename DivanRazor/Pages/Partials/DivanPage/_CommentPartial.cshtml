@@ -7,7 +7,7 @@
 @if (Model.Comment == null)
 {
     <div class="item" id="comment-error" data-sanitizer-remaining-text="@Model.SanitizerRemainingText">
-        <p style="color:red">خطا</p>
+        <p style="color:red">غلطی</p>
         @Model.Error
     </div>
 }
@@ -21,16 +21,16 @@ else
 
         @if (Model.Comment.UserId != null)
         {
-            <div class="comment-author"><a href="/hashieha/?userid=@Model.Comment.UserId">@(string.IsNullOrEmpty(Model.Comment.AuthorName) ? "#" : Model.Comment.AuthorName)</a> <small>در @Html.Raw($"{Model.Comment.CommentDate.ToFriendlyPersianDateTextify()}")</small> @Model.Wrote:</div>
+            <div class="comment-author"><a href="/hashieha/?userid=@Model.Comment.UserId">@(string.IsNullOrEmpty(Model.Comment.AuthorName) ? "#" : Model.Comment.AuthorName)</a> <small>میں @Html.Raw($"{Model.Comment.CommentDate.ToFriendlyPersianDateTextify()}")</small> @Model.Wrote:</div>
         }
         else
         {
-            <div class="comment-author">@(string.IsNullOrEmpty(Model.Comment.AuthorName) ? "ناشناس" : Model.Comment.AuthorName) <small>در @Html.Raw($"{Model.Comment.CommentDate.ToFriendlyPersianDateTextify()}")</small> @Model.Wrote:</div>
+            <div class="comment-author">@(string.IsNullOrEmpty(Model.Comment.AuthorName) ? "نامعلوم" : Model.Comment.AuthorName) <small>میں @Html.Raw($"{Model.Comment.CommentDate.ToFriendlyPersianDateTextify()}")</small> @Model.Wrote:</div>
         }
 
         @if (Model.Comment.CoupletIndex != -1)
         {
-            <div class="commentquote">دربارهٔ <a href="@($"#bn{Model.Comment.CoupletIndex + 1}")">@Model.Comment.CoupletSummary</a></div>
+            <div class="commentquote">بارے میں <a href="@($"#bn{Model.Comment.CoupletIndex + 1}")">@Model.Comment.CoupletSummary</a></div>
         }
 
         <blockquote id="comment-text-@Model.Comment.Id@Model.DivSuffix" class="comment-body">
@@ -39,22 +39,22 @@ else
         <p class="comment-actions">
             @if (Model.Comment.MyComment)
             {
-                <a role="button" title="حذف حاشیه" onclick="deleteMyComment(@Model.Comment.Id, '@Model.Comment.CoupletIndex')"><i class="notranslate pageicons">delete</i></a>
-                <a role="button" title="ویرایش حاشیه" onclick="editMyComment(@Model.Comment.Id, '@Model.Comment.CoupletIndex')"><i class="notranslate pageicons">edit</i></a>
+                <a role="button" title="حاشیہ حذف کریں" onclick="deleteMyComment(@Model.Comment.Id, '@Model.Comment.CoupletIndex')"><i class="notranslate pageicons">delete</i></a>
+                <a role="button" title="حاشیے میں ترمیم" onclick="editMyComment(@Model.Comment.Id, '@Model.Comment.CoupletIndex')"><i class="notranslate pageicons">edit</i></a>
             }
 
-            <a role="button" title="پاسخگویی به این حاشیه" onclick="replyComment(@Model.Comment.Id, @(Model.LoggedIn ? "true" : "false"), '@Model.DivSuffix')"><i class="notranslate pageicons">reply</i></a>
+            <a role="button" title="اس حاشیے کا جواب دیں" onclick="replyComment(@Model.Comment.Id, @(Model.LoggedIn ? "true" : "false"), '@Model.DivSuffix')"><i class="notranslate pageicons">reply</i></a>
             @if (!Model.Comment.MyComment)
             {
-                <a role="button" title="پسندیدن" id="like-btn-@Model.Comment.Id@Model.DivSuffix" class="cursor-pointer@(Model.Comment.CurrentUserRatingValue == 1 ? " green-color" : "")" onclick="rateComment(@Model.Comment.Id, 1, @(Model.LoggedIn ? "true" : "false"), '@Model.DivSuffix')"><i class="notranslate pageicons">thumb_up</i></a>
+                <a role="button" title="پسند" id="like-btn-@Model.Comment.Id@Model.DivSuffix" class="cursor-pointer@(Model.Comment.CurrentUserRatingValue == 1 ? " green-color" : "")" onclick="rateComment(@Model.Comment.Id, 1, @(Model.LoggedIn ? "true" : "false"), '@Model.DivSuffix')"><i class="notranslate pageicons">thumb_up</i></a>
             }
             <small id="like-count-@Model.Comment.Id@Model.DivSuffix">@Model.Comment.LikeCount.ToPersianNumbers()</small>
             @if (!Model.Comment.MyComment)
             {
-                <a role="button" title="نپسندیدن" id="dislike-btn-@Model.Comment.Id@Model.DivSuffix" class="cursor-pointer@(Model.Comment.CurrentUserRatingValue == -1 ? " red-color" : "")" onclick="rateComment(@Model.Comment.Id, -1, @(Model.LoggedIn ? "true" : "false"), '@Model.DivSuffix')"><i class="notranslate pageicons">thumb_down</i></a>
+                <a role="button" title="ناپسند" id="dislike-btn-@Model.Comment.Id@Model.DivSuffix" class="cursor-pointer@(Model.Comment.CurrentUserRatingValue == -1 ? " red-color" : "")" onclick="rateComment(@Model.Comment.Id, -1, @(Model.LoggedIn ? "true" : "false"), '@Model.DivSuffix')"><i class="notranslate pageicons">thumb_down</i></a>
             }
             <small id="dislike-count-@Model.Comment.Id@Model.DivSuffix">@Model.Comment.DislikeCount.ToPersianNumbers()</small>
-            <a href="/ReportComment/?CommentId=@Model.Comment.Id" title="گزارش حاشیهٔ نامناسب" onclick="wpopen(this.href); return false"><i class="notranslate pageicons">flag</i></a>
+            <a href="/ReportComment/?CommentId=@Model.Comment.Id" title="نامناسب حاشیے کی اطلاع دیں" onclick="wpopen(this.href); return false"><i class="notranslate pageicons">flag</i></a>
             <a role="button" onclick="copyCommentUrl(@Model.Comment.Id)"><i class="notranslate pageicons">link</i></a>
             @if (Model.LoggedIn)
             {

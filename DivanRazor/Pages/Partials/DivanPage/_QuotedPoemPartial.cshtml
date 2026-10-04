@@ -7,7 +7,7 @@
 <div class="@Model.BlockClass">
     @if(Model.DivanQuotedPoemViewModel.ClaimedByBothPoets)
     {
-        <div class="ribbon">منتسب به هر دو سخنور</div>
+        <div class="ribbon">دونوں شعرا سے منسوب</div>
     }
     
     @if (Model.DivanQuotedPoemViewModel.IsPriorToRelated)
@@ -19,7 +19,7 @@
             <p>
                 <a href="#bn@(Model.DivanQuotedPoemViewModel.CoupletIndex + 1)">
                     <strong>
-                        همین شعر » بیت @((Model.DivanQuotedPoemViewModel.CoupletIndex + 1).ToPersianNumbers())
+                        یہی تخلیق » شعر @((Model.DivanQuotedPoemViewModel.CoupletIndex + 1).ToPersianNumbers())
                     </strong>
                 </a>
             </p>
@@ -70,7 +70,7 @@
             else if (Model.DivanQuotedPoemViewModel.RelatedCoupletIndex != null)
             {
                 <a href="@Html.Raw(Model.DivanQuotedPoemViewModel.CachedRelatedPoemFullUrl)#bn@(Model.DivanQuotedPoemViewModel.RelatedCoupletIndex + 1)">
-                    @(Model.DivanQuotedPoemViewModel.CachedRelatedPoemFullTitle + " » بیت " + ((Model.DivanQuotedPoemViewModel.RelatedCoupletIndex + 1).ToPersianNumbers()))
+                    @(Model.DivanQuotedPoemViewModel.CachedRelatedPoemFullTitle + " » شعر " + ((Model.DivanQuotedPoemViewModel.RelatedCoupletIndex + 1).ToPersianNumbers()))
                 </a>
             }
             else
@@ -127,7 +127,7 @@
             else if (Model.DivanQuotedPoemViewModel.RelatedCoupletIndex != null)
             {
                 <a href="@Html.Raw(Model.DivanQuotedPoemViewModel.CachedRelatedPoemFullUrl)#bn@(Model.DivanQuotedPoemViewModel.RelatedCoupletIndex + 1)">
-                    @(Model.DivanQuotedPoemViewModel.CachedRelatedPoemFullTitle + " » بیت " + ((Model.DivanQuotedPoemViewModel.RelatedCoupletIndex + 1).ToPersianNumbers()))
+                    @(Model.DivanQuotedPoemViewModel.CachedRelatedPoemFullTitle + " » شعر " + ((Model.DivanQuotedPoemViewModel.RelatedCoupletIndex + 1).ToPersianNumbers()))
                 </a>
             }
             else
@@ -169,7 +169,7 @@
             <p>
                 <a href="#bn@(Model.DivanQuotedPoemViewModel.CoupletIndex + 1)">
                     <strong>
-                        همین شعر » بیت @((Model.DivanQuotedPoemViewModel.CoupletIndex + 1).ToPersianNumbers())
+                        یہی تخلیق » شعر @((Model.DivanQuotedPoemViewModel.CoupletIndex + 1).ToPersianNumbers())
                     </strong>
                 </a>
             </p>
@@ -204,13 +204,13 @@
 
     @if (Model.DivanQuotedPoemViewModel.ChosenForMainList && Model.DivanQuotedPoemViewModel.SamePoemsQuotedCount > 1)
     {
-        <a role="button" class="pagebutton" id="@($"load-more-quoted-button-{Model.DivanQuotedPoemViewModel.Id}")" onclick="loadMoreQuotedForRelatedPoem('@Model.DivanQuotedPoemViewModel.Id', @Model.DivanQuotedPoemViewModel.PoemId, @Model.DivanQuotedPoemViewModel.RelatedPoemId, '@Model.PoetImageUrl', '@Model.PoetNickName', @Model.CanEdit.ToString().ToLower())">مشاهدهٔ @((Model.DivanQuotedPoemViewModel.SamePoemsQuotedCount - 1).ToPersianNumbers()) نقل قول دیگر در همین شعر<i class="notranslate info-buttons autorenew"></i></a>
+        <a role="button" class="pagebutton" id="@($"load-more-quoted-button-{Model.DivanQuotedPoemViewModel.Id}")" onclick="loadMoreQuotedForRelatedPoem('@Model.DivanQuotedPoemViewModel.Id', @Model.DivanQuotedPoemViewModel.PoemId, @Model.DivanQuotedPoemViewModel.RelatedPoemId, '@Model.PoetImageUrl', '@Model.PoetNickName', @Model.CanEdit.ToString().ToLower())">دیکھیں @((Model.DivanQuotedPoemViewModel.SamePoemsQuotedCount - 1).ToPersianNumbers()) اسی تخلیق میں دیگر اقتباس<i class="notranslate info-buttons autorenew"></i></a>
     }
 
     @if (Model.DivanQuotedPoemViewModel.ClaimedByBothPoets)
     {
         <div class="century-alt">
-            <a href="/faq?id=7">چطور یک شعر می‌تواند به چند شاعر منتسب باشد؟</a>
+            <a href="/faq?id=7">ایک شعر کئی شعرا سے کیسے منسوب ہو سکتا ہے؟</a>
         </div>
     }
     
@@ -226,7 +226,7 @@
 
     @if (Model.CanEdit)
     {
-        <a href="/Admin/EditQuoted/?p=@Model.DivanQuotedPoemViewModel.PoemId&id=@Model.DivanQuotedPoemViewModel.Id" class="pagebutton comments-link">ویرایش</a>
+        <a href="/Admin/EditQuoted/?p=@Model.DivanQuotedPoemViewModel.PoemId&id=@Model.DivanQuotedPoemViewModel.Id" class="pagebutton comments-link">ترمیم</a>
     }
 
 </div>

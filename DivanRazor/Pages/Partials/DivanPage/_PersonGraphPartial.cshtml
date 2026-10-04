@@ -2,24 +2,24 @@
 
 @if (Model.Graph == null || Model.Graph.Nodes == null || Model.Graph.Nodes.Count == 0)
 {
-    <p>برای این بخش هنوز نامبرده‌ای برچسب‌گذاری نشده است.</p>
+    <p>اس حصے میں ابھی کسی شخصیت کی نشاندہی نہیں ہوئی.</p>
 }
 else
 {
     <div id="pg-cat-section">
         <p class="up-hint"><small>
-            روی هر گره کلیک کنید تا فقط ارتباط‌های همان شخص برجسته شود (کلیک دوباره برای بازگشت)؛ برای جابه‌جایی یک گره آن را بکشید (برای رها کردنش دوبار کلیک کنید).
-            برای پیمایش نمودار آن را با ماوس بکشید و با غلتک ماوس بزرگ/کوچک کنید.
+            کسی گرہ پر کلک کریں تاکہ صرف اسی شخص کے روابط نمایاں ہوں (واپسی کے لیے دوبارہ کلک کریں)؛ گرہ کو کھینچ کر منتقل کریں (چھوڑنے کے لیے دو بار کلک کریں)۔
+            خاکے کو ماؤس سے کھینچیں اور ماؤس کے پہیے سے بڑا/چھوٹا کریں.
             @if (Model.HasSecondaryNodes)
             {
-                <text> گره‌های نقطه‌چین/کم‌رنگ، خویشاوندان یا وابستگانی هستند که در متن این بخش نامشان نیامده، اما برای آشنایی بیشتر با داستان نشان داده شده‌اند.</text>
+                <text> نقطہ دار گرہیں/ہلکی، وہ رشتہ دار یا متعلقین ہیں جن کا نام اس حصے کے متن میں نہیں آیا لیکن پس منظر کے لیے دکھائے گئے ہیں.</text>
             }
         </small></p>
 
         <div style="margin-bottom:10px;">
-            <input type="text" id="pg-cat-search" placeholder="جستجوی نام نامبرده..." style="width:240px;" />
-            <a role="button" id="pg-cat-reset" class="up-btn up-btn--ghost up-btn--sm">نمایش همه</a>
-            <a role="button" href="javascript:void(0)" onclick="PeopleExplorer.open()" class="up-btn up-btn--ghost up-btn--sm">نمایش شبکهٔ کامل نامبردگان</a>
+            <input type="text" id="pg-cat-search" placeholder="شخصیت کا نام تلاش کریں..." style="width:240px;" />
+            <a role="button" id="pg-cat-reset" class="up-btn up-btn--ghost up-btn--sm">سب دکھائیں</a>
+            <a role="button" href="javascript:void(0)" onclick="PeopleExplorer.open()" class="up-btn up-btn--ghost up-btn--sm">تمام شخصیات کا مکمل جال دکھائیں</a>
         </div>
 
         <div id="pg-cat-legend" class="pg-legend"></div>
@@ -34,10 +34,10 @@ else
             <table class="up-table">
                 <thead>
                     <tr>
-                        <th>شخص اول</th>
-                        <th>نوع ارتباط</th>
-                        <th>شخص دوم</th>
-                        <th>یادداشت</th>
+                        <th>پہلا شخص</th>
+                        <th>رشتے کی نوعیت</th>
+                        <th>دوسرا شخص</th>
+                        <th>نوٹ</th>
                     </tr>
                 </thead>
                 <tbody id="pg-cat-table-body"></tbody>

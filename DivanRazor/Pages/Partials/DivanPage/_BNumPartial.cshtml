@@ -6,7 +6,7 @@
 
 <table class="bnum-partial-table">
     <tr>
-        <td>شماره:</td>
+        <td>نمبر:</td>
         <td>
             @((Model.CoupletIndex + 1).ToPersianNumbers())
         </td>
@@ -14,7 +14,7 @@
     @foreach (var number in Model.Numbers)
     {
         <tr>
-            <td>شماره در @number.NumberingName:</td>
+            <td>نمبر در @number.NumberingName:</td>
             <td>@number.Number.ToPersianNumbers() از @number.TotalLines.ToPersianNumbers()</td>
         </tr>
         @if (number.SameTypeNumber != number.Number)
@@ -22,13 +22,13 @@
             @if (number.IsPoemVerse)
             {
                 <tr>
-                    <td colspan="2">بیت @number.SameTypeNumber.ToPersianNumbers() از @number.TotalCouplets.ToPersianNumbers()</td>
+                    <td colspan="2">شعر @number.SameTypeNumber.ToPersianNumbers() از @number.TotalCouplets.ToPersianNumbers()</td>
                 </tr>
             }
             else
             {
                 <tr>
-                    <td colspan="2">پاراگراف @number.SameTypeNumber.ToPersianNumbers() از @number.TotalParagraphs.ToPersianNumbers()</td>
+                    <td colspan="2">پیراگراف @number.SameTypeNumber.ToPersianNumbers() از @number.TotalParagraphs.ToPersianNumbers()</td>
                 </tr>
             }
         }
@@ -38,27 +38,27 @@
 <div class="bnum-partial-action-box">
     @if (Model.LoggedIn)
     {
-        <a role="button" id="editcouplet-@Model.CoupletIndex" class="cursor-pointer" onclick="editCouplet(@Model.PoemId, @Model.CoupletIndex, 'tr')" title="ویرایش از اینجا"><i class="notranslate material-icons color-white">edit</i></a>
-        <a role="button" id="editcoupletsummary-@Model.CoupletIndex" class="cursor-pointer" onclick="editCouplet(@Model.PoemId, @Model.CoupletIndex, 'summary')" title="نوشتن معنی به زبان ساده"><i class="notranslate material-icons color-white">edit_note</i></a>
+        <a role="button" id="editcouplet-@Model.CoupletIndex" class="cursor-pointer" onclick="editCouplet(@Model.PoemId, @Model.CoupletIndex, 'tr')" title="یہاں سے ترمیم"><i class="notranslate material-icons color-white">edit</i></a>
+        <a role="button" id="editcoupletsummary-@Model.CoupletIndex" class="cursor-pointer" onclick="editCouplet(@Model.PoemId, @Model.CoupletIndex, 'summary')" title="آسان زبان میں مطلب لکھیں"><i class="notranslate material-icons color-white">edit_note</i></a>
 
         <a role="button" id="bookmark-@Model.CoupletIndex" class="cursor-pointer" onclick="switchBookmark(@Model.PoemId, @Model.CoupletIndex, '-@Model.CoupletIndex')" title="@Model.BookmarkingText"><i class="notranslate material-icons color-white" id="bookmark-icon-@Model.CoupletIndex">@Model.BookmarkingIcon</i></a>
     }
     @if (Model.SectionsWithMetreAndRhymes.Any())
     {
         <text>
-            <a role="button" title="موارد هم آهنگ" class="cursor-pointer" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().RhymeLetters)}")"><i class="notranslate material-icons color-white">search</i></a>
+            <a role="button" title="ہم آہنگ تخلیقات" class="cursor-pointer" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().RhymeLetters)}")"><i class="notranslate material-icons color-white">search</i></a>
         </text>
 
         @for (int nSectionIndex = 1; nSectionIndex < Model.SectionsWithMetreAndRhymes.Count; nSectionIndex++)
         {
             <text>
-                <a role="button" title="موارد هم آهنگ (وزن یا قافیهٔ @((nSectionIndex + 1).ToPersianNumbers()))" class="cursor-pointer" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].RhymeLetters)}")"><i class="notranslate material-icons color-white">search</i></a>
+                <a role="button" title="ہم آہنگ تخلیقات (وزن یا قافیہ @((nSectionIndex + 1).ToPersianNumbers()))" class="cursor-pointer" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].RhymeLetters)}")"><i class="notranslate material-icons color-white">search</i></a>
             </text>
         }
     }
-    <a role="button" id="share-@Model.CoupletIndex" class="cursor-pointer" onclick="webShareCouplet(@Model.CoupletIndex)" title="همرسانی"><i class="notranslate material-icons color-white">share</i></a>
-    <a role="button" title="رونوشت نشانی" class="cursor-pointer" id="copylink-@Model.CoupletIndex" onclick="copyCoupletUrl(@Model.CoupletIndex)"><i class="notranslate material-icons color-white">link</i></a>
-    <a role="button" title="رونوشت متن" class="cursor-pointer" id="copytext-@Model.CoupletIndex" onclick="copyCoupletText(@Model.CoupletIndex)"><i class="notranslate material-icons color-white">content_copy</i></a>
+    <a role="button" id="share-@Model.CoupletIndex" class="cursor-pointer" onclick="webShareCouplet(@Model.CoupletIndex)" title="شیئر"><i class="notranslate material-icons color-white">share</i></a>
+    <a role="button" title="ربط نقل کریں" class="cursor-pointer" id="copylink-@Model.CoupletIndex" onclick="copyCoupletUrl(@Model.CoupletIndex)"><i class="notranslate material-icons color-white">link</i></a>
+    <a role="button" title="متن نقل کریں" class="cursor-pointer" id="copytext-@Model.CoupletIndex" onclick="copyCoupletText(@Model.CoupletIndex)"><i class="notranslate material-icons color-white">content_copy</i></a>
 </div>
 
 @foreach (var verse in Model.Verses.Where(v => !string.IsNullOrEmpty(v.CoupletSummary)).ToList())
@@ -68,7 +68,7 @@
             <p>@verse.CoupletSummary</p>
             @if (Model.LoggedIn)
             {
-                <a href="@($"/User/Editor?id={Model.PoemId}#summary-{verse.VOrder}")" role="button" class="cursor-pointer" title="ویرایش">
+                <a href="@($"/User/Editor?id={Model.PoemId}#summary-{verse.VOrder}")" role="button" class="cursor-pointer" title="ترمیم">
                     <div class="circled-number">
                         <i class="notranslate material-icons color-white">edit_note</i>
                     </div>
@@ -80,7 +80,7 @@
 
 <div id="play-block-@Model.CoupletIndex" class="width-100per">
     <select id="narrators-@Model.CoupletIndex" class="bnum-partial-narrators"></select>
-    <a role="button" id="listen-@Model.CoupletIndex" class="bnum-partial-narrate-btn" onclick="playCouplet(@Model.CoupletIndex)">از اینجا بخواند</a>
+    <a role="button" id="listen-@Model.CoupletIndex" class="bnum-partial-narrate-btn" onclick="playCouplet(@Model.CoupletIndex)">یہاں سے پڑھیں</a>
 </div>
 <script>
     fillnarrations('@Model.CoupletIndex');
@@ -96,13 +96,13 @@
                 {
                     <tr>
                         <td>
-                            وزن:
+                            بحر:
                         </td>
                         <td>
                             <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}")">@s.DivanMetre.Rhythm</a>
                             @if (Model.LoggedIn)
                             {
-                                <a href="/User/Section?poemId=@Model.PoemId&index=@s.Index#metre" role="button" class="cursor-pointer" title="ویرایش وزن">
+                                <a href="/User/Section?poemId=@Model.PoemId&index=@s.Index#metre" role="button" class="cursor-pointer" title="بحر میں ترمیم">
                                     <i class="notranslate noindent-info-button edit-poem-button"></i>
                                 </a>
                             }
@@ -124,7 +124,7 @@
         var verseSameSound = RMuseum.Services.Implementation.LanguageUtils.SameSoundLetters(verseTextSearchable);
 
         <div class="century">
-            شمار نویسه‌های همصدای مصرع @((v + 1).ToPersianNumbers()) (از @verseSameSound.Replace(" ", "").Length.ToPersianNumbers() نویسه)
+            مصرعے کے ہم آواز حروف کی تعداد @((v + 1).ToPersianNumbers()) (از @verseSameSound.Replace(" ", "").Length.ToPersianNumbers() حرف)
         </div>
         <div id="letters-stat-sourceStringContainer-samev-@verse.Id" class="notice">@verseSameSound</div>
         <div id="letters-stat-resultTableContainer-samev-@verse.Id" class="charContainer"></div>
@@ -154,7 +154,7 @@
 
         function createInformationNotification() {
             tinymce.activeEditor.notificationManager.open({
-                text: 'تمنا می‌کنیم که به جای گوشزد کردن خطاهای املایی و تایپی در حاشیه‌ها از دکمهٔ «ویرایش» استفاده کنید و خطا را تصحیح کنید.',
+                text: 'گزارش ہے کہ املا یا ٹائپ کی غلطیاں حاشیوں میں بتانے کے بجائے «ترمیم» کا بٹن استعمال کر کے خود درست کریں.',
                 type: 'info'
             });
         }
@@ -192,7 +192,7 @@
     </script>
     <form method="post" id="commentform-@Model.CoupletIndex" action="?handler=Comment">
         <fieldset>
-            <legend>💬 دربارهٔ این خط حاشیه بگذارید ...</legend>
+            <legend>💬 اس سطر پر حاشیہ لکھیں ...</legend>
             <table style="max-width:100%; width:100%; margin:0">
                 <tr>
                     <td>
@@ -205,7 +205,7 @@
                 </tr>
                 <tr>
                     <td>
-                        <button name="postcomment-@Model.CoupletIndex" id="postcomment-@Model.CoupletIndex" class="submitCommentButton" onclick="return postComment('@Model.CoupletIndex', '#postcomment-@Model.CoupletIndex');" style="width:100%">درج حاشیه</button>
+                        <button name="postcomment-@Model.CoupletIndex" id="postcomment-@Model.CoupletIndex" class="submitCommentButton" onclick="return postComment('@Model.CoupletIndex', '#postcomment-@Model.CoupletIndex');" style="width:100%">حاشیہ لکھیں</button>
                     </td>
                 </tr>
             </table>
@@ -216,7 +216,7 @@
 else
 {
     <p>
-        در صورت نام‌نویسی و ورود به دیوان می‌توانید برای این بیت/مصرع/پاراگراف حاشیه بنویسید.
+        دیوان میں رکنیت اور داخلے کے بعد آپ اس شعر/مصرع/پیراگراف پر حاشیہ لکھ سکتے ہیں.
     </p>
 }
 
