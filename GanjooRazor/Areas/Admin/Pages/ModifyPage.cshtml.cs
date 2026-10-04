@@ -303,23 +303,6 @@ namespace GanjooRazor.Areas.Admin.Pages
             return new OkObjectResult(false);
         }
 
-        public async Task<IActionResult> OnPostRebuildTajikSitemapAsync()
-        {
-            using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
-            {
-                if (await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                {
-                    HttpResponseMessage response = await secureClient.PostAsync($"{APIRoot.Url}/api/ganjoor/sitemap/tajik", null);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));
-                    }
-                    return new OkObjectResult(true);
-                }
-            }
-            return new OkObjectResult(false);
-        }
-
 
         public async Task<IActionResult> OnPostRebuildStatsAsync()
         {
@@ -350,27 +333,6 @@ namespace GanjooRazor.Areas.Admin.Pages
                 if (await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
                 {
                     HttpResponseMessage response = await secureClient.PostAsync($"{APIRoot.Url}/api/ganjoor/publicdata/batchexport", null);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));
-                    }
-                    return new OkObjectResult(true);
-                }
-            }
-            return new OkObjectResult(false);
-        }
-
-        /// <summary>
-        /// (re)generate the separate Tajik (Cyrillic) public data export — same background-job
-        /// pattern as the main one, different repo
-        /// </summary>
-        public async Task<IActionResult> OnPostRegenerateTajikPublicDataAsync()
-        {
-            using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
-            {
-                if (await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                {
-                    HttpResponseMessage response = await secureClient.PostAsync($"{APIRoot.Url}/api/ganjoor/tajik/publicdata/batchexport", null);
                     if (!response.IsSuccessStatusCode)
                     {
                         return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));
@@ -426,23 +388,6 @@ namespace GanjooRazor.Areas.Admin.Pages
                 if (await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
                 {
                     HttpResponseMessage response = await secureClient.PostAsync($"{APIRoot.Url}/api/ganjoor/source/stats/rebuild", null);
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));
-                    }
-                    return new OkObjectResult(true);
-                }
-            }
-            return new OkObjectResult(false);
-        }
-
-        public async Task<IActionResult> OnPostTransilerateAsync()
-        {
-            using (HttpClient secureClient = new HttpClient(new GanjoorReloginHandler(Request, Response)))
-            {
-                if (await GanjoorSessionChecker.PrepareClient(secureClient, Request, Response))
-                {
-                    HttpResponseMessage response = await secureClient.PutAsync($"{APIRoot.Url}/api/ganjoor/transilerate", null);
                     if (!response.IsSuccessStatusCode)
                     {
                         return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));

@@ -651,13 +651,6 @@ namespace RMuseum.Services
         RServiceResult<bool> StartBatchExportPublicGitData();
 
         /// <summary>
-        /// start exporting the Tajik (Cyrillic) overlay data to its own separate git-tracked JSON
-        /// data set — only entities that actually have a Tajik translation are included
-        /// </summary>
-        /// <returns></returns>
-        RServiceResult<bool> StartBatchExportTajikPublicGitData();
-
-        /// <summary>
         /// (re)build local Ganjoor content (poets/categories/poems/verses/sections + their pages)
         /// from a public data export tree, read locally or over HTTP. Safe to re-run — existing
         /// entities (by id) are left untouched, only missing ones are added.
@@ -862,12 +855,6 @@ namespace RMuseum.Services
         /// </summary>
         /// <returns></returns>
         RServiceResult<bool> StartBuildingSitemap();
-
-        /// <summary>
-        /// build tj.ganjoor.net site map
-        /// </summary>
-        /// <returns></returns>
-        RServiceResult<bool> StartBuildingTajikSitemap();
 
         /// <summary>
         /// start updating stats page
@@ -1584,55 +1571,6 @@ namespace RMuseum.Services
         /// <returns></returns>
         Task<RServiceResult<CategoryWordCount>> GetCategoryWordCountByTermAsync(string term, int? catId, int? poetId);
 
-        /// <summary>
-        /// tajik import from sqlite
-        /// </summary>
-        /// <param name="poetId"></param>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
-        RServiceResult<bool> TajikImportFromSqlite(int poetId, string filePath);
-
-        /// <summary>
-        /// tajik poets
-        /// </summary>
-        /// <returns></returns>
-        Task<RServiceResult<GanjoorTajikPoet[]>> GetTajikPoetsAsync();
-
-        /// <summary>
-        /// tajik page by url
-        /// </summary>
-        /// <param name="url"></param>
-        /// <param name="catPoems"></param>
-        /// <returns></returns>
-        Task<RServiceResult<GanjoorPageCompleteViewModel>> GetTajikPageByUrlAsync(string url, bool catPoems = false);
-
-
-        /// <summary>
-        /// search tajik poems
-        /// </summary>
-        /// <param name="paging"></param>
-        /// <param name="term"></param>
-        /// <param name="poetId"></param>
-        /// <param name="catId"></param>
-        /// <returns></returns>
-        Task<RServiceResult<(PaginationMetadata PagingMeta, GanjoorPoemCompleteViewModel[] Items)>> SearchTajikAsync(PagingParameterModel paging, string term, int? poetId, int? catId);
-
-        /// <summary>
-        /// re-runs the Tajik poet/category HTML generators for every already-imported poet and
-        /// category page, overwriting their stored TajikHtmlText - needed one-time after changing
-        /// either generator function, since the normal SQLite import skips pages that already exist.
-        /// Runs as a background job; returns immediately once the job is queued.
-        /// </summary>
-        /// <returns></returns>
-        RServiceResult<bool> RegenerateTajikCatAndPoetHtmlTextAsync();
-
-        /// <summary>
-        /// recovery job: regenerates TajikHtmlText for Tajik poems whose stored HTML currently
-        /// contains a link (the signature left by the CatPage id corruption bug - correct poem
-        /// HTML never contains one), overwriting just those with correct verse markup.
-        /// </summary>
-        /// <returns></returns>
-        RServiceResult<bool> RestoreTajikPoemHtmlTextAsync();
 
 
 

@@ -60,8 +60,7 @@
         public string CoupletSummary { get; set; }
 
         /// <summary>
-        /// original (Persian) text - only populated for Tajik responses that need to show
-        /// the Persian original alongside the Tajik transliteration. This is a pure view
+        /// original text (e.g. before a correction). This is a pure view
         /// model (not an EF entity), so no [NotMapped] or migration concerns here.
         /// </summary>
         public string OriginalText { get; set; }

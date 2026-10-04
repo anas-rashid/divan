@@ -1,0 +1,38 @@
+> Upstream GanjoorService README, kept for reference. Divan's own docs are in the root [README](../README.md).
+
+# GanjoorService
+Ganjoor museum and ganjoor.net own backend (ASP.NET Core Web API) and frontend (Razor Pages) code
+
+این کد وب سرویس [گنجینهٔ گنجور](https://museum.ganjoor.net) و [گنجور](https://ganjoor.net) و همچنین کد سایت گنجور است.
+
+[فهرست توابع در دسترس](https://api.ganjoor.net)
+
+![https://api.ganjoor.net](https://user-images.githubusercontent.com/582212/91652208-14a63c00-eaaa-11ea-89c2-5acabdfda7de.png)
+
+## Running it locally
+
+New to this codebase and want to run your own copy? See **[RUNNING_LOCALLY.md](RUNNING_LOCALLY.md)**
+for a full step-by-step guide — cloning, database setup, and Visual Studio configuration.
+
+The one thing that guide covers in more depth but is worth knowing up front: **the production
+database is never published**, since it contains private/user-linked data. What *is* published is
+a git repository of the poetry content itself (poets, categories, poems — allowlisted, no user
+data): **[github.com/ganjoor/ganjoor-data](https://github.com/ganjoor/ganjoor-data)**. A fresh
+local install can pull real content from there via **Admin → مالی و سایت → درون‌ریزی دادهٔ عمومی**
+(also reachable automatically the first time you run the site against an empty database) instead
+of starting from nothing.
+
+## Semantic search
+
+The "find a poem about..." feature has its own setup guide, separate from the main one above —
+it needs a downloaded ONNX model and published embeddings data on top of the usual database setup:
+**[SEMANTIC_SEARCH_SETUP.md](SEMANTIC_SEARCH_SETUP.md)**. Also has a real troubleshooting section
+covering the actual problems hit building this feature, not a generic checklist — worth reading
+before assuming something new is broken.
+
+## Changelog
+
+The user-facing changelog shown in the site's footer ("تازه‌های نرم‌افزار") is generated and
+maintained from git history. See **[docs/CHANGELOG_PROCESS.md](docs/CHANGELOG_PROCESS.md)** for
+the JSON format and the process for adding new entries.
+

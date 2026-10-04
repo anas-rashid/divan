@@ -158,25 +158,6 @@
             });
         }
 
-        async function rebuildTajikSitemap() {
-            var ok = await upConfirm('آیا از بازسازی نقشهٔ سایت تاجیکی اطمینان دارید؟');
-            if (!ok) return;
-
-            var url = '?handler=RebuildTajikSitemap';
-
-            $.ajax({
-                type: "POST",
-                url: url,
-                error: function () {
-                    upToast('خطا رخ داد.', 'error');
-                },
-                success: function () {
-                    upToast('فرایند بازسازی نقشهٔ سایت تاجیکی شروع شد.', 'success');
-                },
-
-            });
-        }
-
 
 
         async function rebuildStats() {
@@ -212,25 +193,6 @@
                 },
                 success: function () {
                     upToast('فرایند بازسازی دادهٔ عمومی در پس‌زمینه شروع شد.', 'success');
-                },
-
-            });
-        }
-
-        async function regenerateTajikPublicData() {
-            var ok = await upConfirm('آیا از بازسازی و ارسال دادهٔ عمومی تاجیکی (مخزن گیت جداگانه) اطمینان دارید؟');
-            if (!ok) return;
-
-            var url = '?handler=RegenerateTajikPublicData';
-
-            $.ajax({
-                type: "POST",
-                url: url,
-                error: function () {
-                    upToast('خطا رخ داد.', 'error');
-                },
-                success: function () {
-                    upToast('فرایند بازسازی دادهٔ عمومی تاجیکی در پس‌زمینه شروع شد.', 'success');
                 },
 
             });
@@ -296,25 +258,6 @@
         }
 
         
-
-        async function transilerate() {
-            var ok = await upConfirm('آیا از شروع برگردان تاجیکی اطمینان دارید؟');
-            if (!ok) return;
-
-            var url = '?handler=Transilerate';
-
-            $.ajax({
-                type: "POST",
-                url: url,
-                error: function () {
-                    upToast('خطا رخ داد.', 'error');
-                },
-                success: function () {
-                    upToast('فرایند شروع شد.', 'success');
-                },
-
-            });
-        }
 
         async function rebuildRebuildWordCounts(poetId) {
             var onlyCurrentPoet = await upConfirm('فقط شاعر جاری؟', { danger: false });
