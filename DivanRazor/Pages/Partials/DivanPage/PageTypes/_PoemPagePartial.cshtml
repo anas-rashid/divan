@@ -95,41 +95,7 @@
         <div class="ribbon"><a href="#qpoems">کئی شعرا سے منسوب</a></div>
     }
 
-    @{
-        if (!string.IsNullOrEmpty(Model.PinterestUrl))
-        {
-            if (!Model.LoggedIn)
-            {
-                <div class="width-100per">
-                    <div class="width-100per text-align-center">
-                        <p class="alert-text">
-                            اشعار سے متعلق تصاویر تجویز کرنے کے لیے پہلے دیوان میں داخل ہوں.
-                        </p>
-                        <p class="text-align-center">
-                            <a href="/login">دیوان میں داخلہ</a>
-                        </p>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="width-100per display-block">
-                    <form method="post" action="/pin">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" id="RelatedImageSuggestionModel_PoemId" name="RelatedImageSuggestionModel.PoemId" value="@Model.DivanPage.Id">
-                        <input type="hidden" id="RelatedImageSuggestionModel_DivanUrl" name="RelatedImageSuggestionModel.DivanUrl" value="@Model.DivanPage.FullUrl">
-                        <input type="hidden" id="RelatedImageSuggestionModel_DivanTitle" name="RelatedImageSuggestionModel.DivanTitle" value="@Model.DivanPage.FullTitle">
-                        <input type="hidden" id="RelatedImageSuggestionModel_PinterestUrl" name="RelatedImageSuggestionModel.PinterestUrl" value="@Model.PinterestUrl">
-                        <input type="submit" name="pinterest_suggest" value="شعر منتخب کریں" class="pinterest_suggest">
-                    </form>
-                    @if (Model.PinterestUrl == "manual")
-                    {
-                        <span>فائرفاکس ایکسٹینشن سے انسٹاگرام اور پنٹرسٹ سے آسان تجویز</span>
-                    }
-                </div>
-            }
-        }
-    }
+    @* divan: museum/Pinterest image suggestions removed *@
 
     <article id="garticle">
         @if (Model.DivanPage.PoetOrCat != null)
@@ -219,7 +185,6 @@
         <div class="poemtab" id="tab-items">
             <div class="poemtablinks active"><a href="#pretab">معلومات</a></div>
             <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-            <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
             @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
             {
                 <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
@@ -463,7 +428,6 @@
             <div class="poemtab">
                 <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
                 <div class="poemtablinks active"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
                     <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
@@ -488,90 +452,6 @@
                 </div>
             </div>
 
-            @* ============ MANUSCRIPTS TAB ============ *@
-            <div class="poempretab" id="manuscripts"></div>
-            <div class="poemtab">
-                <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
-                <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                <div class="poemtablinks active"><a href="#manuscripts">تصاویر</a></div>
-                @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
-                {
-                    <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
-                }
-                @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
-                {
-                    <div class="poemtablinks"><a href="#commentaries">صوتی شرحیں</a></div>
-                }
-                <div class="poemtablinks"><a href="#qpoems">مشقِ سخن</a></div>
-                @if (Model.SectionsWithRelated.Count > 0)
-                {
-                    <div class="poemtablinks"><a href="#rpoems">ہم آہنگ</a></div>
-                }
-                <div class="poemtablinks"><a href="#discussions">حاشیے</a></div>
-            </div>
-            <div class="related-images-frame poemtabcontent">
-                @if (Model.DivanPage.Poem.Images.Length > 0)
-                {
-                    <div id="images-section">
-                        <div class="related-images">
-                            @foreach (var image in Model.DivanPage.Poem.Images.Where(image => image.IsTextOriginalSource))
-                            {
-                                <div class="width-100per">
-                                    <div class="related-image-container-main">
-                                        <a target="_blank" href="@Html.Raw(image.TargetPageUrl)">
-                                            <div class="main-image-container">
-                                                <div class="main-image-ribbon">دیوان کا مطبوعہ ماخذ</div>
-                                                <img src="@Html.Raw(image.ThumbnailImageUrl)" alt="@image.AltText" loading="lazy" class="main-image-source">
-                                                <div class="related-image-is-text-source">
-                                                    <div class="width-100per">@image.AltText.ToPersianNumbers()</div>
-                                                </div>
-                                            </div>
-                                        </a>
-                                        @if (Model.CanEdit)
-                                        {
-                                            <a onclick="deleteRelatedImage(@((int)image.PoemRelatedImageType), '@image.Id', '@image.AltText')" class="pagebutton comments-link">یہ ربط ہٹائیں<i class="notranslate info-buttons delete-icon"></i></a>
-                                        }
-                                    </div>
-                                </div>
-                            }
-
-                            @foreach (var image in Model.DivanPage.Poem.Images.Where(image => image.IsTextOriginalSource == false))
-                            {
-                                <div class="related-image-container">
-                                    <a target="_blank" href="@Html.Raw(image.TargetPageUrl)">
-                                        <img src="@Html.Raw(image.ThumbnailImageUrl)" alt="@image.AltText" loading="lazy" class="related-image">
-                                    </a>
-                                    <div class="related-image-is-text-source"><a target="_blank" href="@Html.Raw(image.TargetPageUrl)">@image.AltText.ToPersianNumbers()</a></div>
-                                    @if (Model.CanEdit)
-                                    {
-                                        <a onclick="deleteRelatedImage(@((int)image.PoemRelatedImageType), '@image.Id', '@image.AltText')" class="pagebutton comments-link">یہ ربط ہٹائیں<i class="notranslate info-buttons delete-icon"></i></a>
-                                    }
-                                </div>
-                            }
-                        </div>
-                        <div id="suggest-images">
-                            <p>
-                                <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">انٹرنیٹ سے متعلقہ تصاویر تجویز کریں<i class="notranslate info-buttons photo_camera"></i></a>
-                            </p>
-                            <p>
-                                متعلقہ تصاویر تجویز کرنے کی رہنمائی<i class="notranslate info-buttons help-button"></i>
-                            </p>
-                        </div>
-                    </div>
-                }
-                else
-                {
-                    <div id="suggest-images">
-                        <p>
-                            <a onclick="wpopen('?pinterest_url=manual'); return false" class="pagebutton comments-link">انٹرنیٹ سے متعلقہ تصاویر تجویز کریں<i class="notranslate info-buttons photo_camera"></i></a>
-                        </p>
-                        <p>
-                            متعلقہ تصاویر تجویز کرنے کی رہنمائی<i class="notranslate info-buttons help-button"></i>
-                        </p>
-                    </div>
-                }
-            </div>
-
             @* ============ RECITATIONS TAB ============ *@
             @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
             {
@@ -579,7 +459,6 @@
                 <div class="poemtab">
                     <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
                     <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                    <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                     <div class="poemtablinks active"><a href="#recitations">قرأتیں</a></div>
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Commentary).Any())
                     {
@@ -609,7 +488,6 @@
                 <div class="poemtab">
                     <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
                     <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                    <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                     {
                         <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
@@ -636,7 +514,6 @@
             <div class="poemtab">
                 <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
                 <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
                     <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
@@ -686,7 +563,6 @@
                 <div class="poemtab">
                     <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
                     <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                    <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                     @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                     {
                         <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>
@@ -770,7 +646,6 @@
             <div class="poemtab">
                 <div class="poemtablinks"><a href="#pretab">معلومات</a></div>
                 <div class="poemtablinks"><a href="#words" onclick="javascript:countPoemWords(@Model.DivanPage.Id, @Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id)">الفاظ</a></div>
-                <div class="poemtablinks"><a href="#manuscripts">تصاویر</a></div>
                 @if (Model.DivanPage.Poem.Recitations.Where(a => a.RecitationType == RMuseum.Models.DivanAudio.RecitationType.Normal).Any())
                 {
                     <div class="poemtablinks"><a href="#recitations">قرأتیں</a></div>

@@ -85,7 +85,6 @@ namespace DivanRazor
                 options.Conventions.AddPageRoute("/Auth/ResetPassword", "/ResetPassword");
 
 
-                options.Conventions.AddPageRoute("/ImageRecommendation/Pin", "/Pin");
 
                 options.Conventions.AddPageRoute("/Recitations/AudioClip", "/AudioClip");
                 options.Conventions.AddPageRoute("/Recitations/RecitationsOrder", "/RecitationsOrder");
