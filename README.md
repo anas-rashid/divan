@@ -61,6 +61,16 @@ Re-running the import adds new poems and leaves existing ones untouched, so it c
 git pull && docker compose up -d --build
 ```
 
+## Run locally (macOS/Linux)
+
+```sh
+./run-local.sh import   # SQL Server container + API + site, then imports divan-data (~1 h, background)
+./run-local.sh          # later runs: rebuild + start
+./run-local.sh stop
+```
+
+Site: http://localhost:5200 · API: http://localhost:5100/swagger · admin `admin@divan.local` / `Test!123`. On Apple Silicon, start Docker via `colima start --vm-type vz --vz-rosetta --memory 6` first (SQL Server is x86-64 only).
+
 ## Build locally (macOS/Linux)
 
 ```sh
