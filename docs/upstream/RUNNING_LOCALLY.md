@@ -1,4 +1,4 @@
-> Upstream GanjoorService doc, kept for reference; Divan's own setup is in the root [README](../README.md).
+> Upstream GanjoorService doc, kept for reference; Divan's own setup is in the root [README](../../README.md).
 
 # Running GanjoorService Locally — A Beginner's Guide
 

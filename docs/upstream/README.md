@@ -1,4 +1,4 @@
-> Upstream GanjoorService README, kept for reference. Divan's own docs are in the root [README](../README.md).
+> Upstream GanjoorService README, kept for reference. Divan's own docs are in the root [README](../../README.md).
 
 # GanjoorService
 Ganjoor museum and ganjoor.net own backend (ASP.NET Core Web API) and frontend (Razor Pages) code
