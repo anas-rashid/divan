@@ -61,8 +61,29 @@ Re-running the import adds new poems and leaves existing ones untouched, so it c
 ### Update
 
 ```sh
+deploy/backup.sh                        # always back up first
 git pull && docker compose up -d --build
 ```
+
+Database migrations run automatically when the API starts.
+
+### Backups
+
+```sh
+deploy/backup.sh                        # -> backups/divan-<UTC stamp>.bak (copy it off the server)
+TARGET_DB=divan_restoretest deploy/restore.sh backups/divan-<stamp>.bak   # test a backup side by side
+```
+
+Schedule `deploy/backup.sh` with cron (e.g. daily) and copy `backups/` off the server. A backup counts only once a test restore succeeds.
+
+### Rollback
+
+1. `docker compose stop api site`
+2. `git checkout <previous commit or tag>`
+3. If the failed version applied database migrations: `deploy/restore.sh backups/<backup taken before the update>.bak`
+4. `docker compose up -d --build`
+
+Restoring replaces the `divan` database, so anything written after that backup (comments, edits) is lost.
 
 ## Run locally (macOS/Linux)
 
