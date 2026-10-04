@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RMuseum.DbContext;
-using RMuseum.Models.Ganjoor;
+using RMuseum.Models.Divan;
 using RSecurityBackend.Models.Generic;
 using System;
 using System.Linq;
@@ -20,31 +20,31 @@ namespace RMuseum.Services.Implementation
         /// <param name="latitude"></param>
         /// <param name="longitude"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorGeoLocation>> AddLocationAsync(string name, double latitude, double longitude)
+        public async Task<RServiceResult<DivanGeoLocation>> AddLocationAsync(string name, double latitude, double longitude)
         {
             try
             {
                 name = name == null ? "" : name.Trim();
                 if (string.IsNullOrEmpty(name))
-                    return new RServiceResult<GanjoorGeoLocation>(null, "نام اجباری است.");
-                if (null != await _context.GanjoorGeoLocations.Where(l => l.Name == name).FirstOrDefaultAsync())
-                    return new RServiceResult<GanjoorGeoLocation>(null, "نام  تکراری است.");
-                if (null != await _context.GanjoorGeoLocations.Where(l => l.Latitude == latitude && l.Longitude == longitude).FirstOrDefaultAsync())
-                    return new RServiceResult<GanjoorGeoLocation>(null, "مختصات  تکراری است.");
+                    return new RServiceResult<DivanGeoLocation>(null, "نام اجباری است.");
+                if (null != await _context.DivanGeoLocations.Where(l => l.Name == name).FirstOrDefaultAsync())
+                    return new RServiceResult<DivanGeoLocation>(null, "نام  تکراری است.");
+                if (null != await _context.DivanGeoLocations.Where(l => l.Latitude == latitude && l.Longitude == longitude).FirstOrDefaultAsync())
+                    return new RServiceResult<DivanGeoLocation>(null, "مختصات  تکراری است.");
 
-                GanjoorGeoLocation location = new GanjoorGeoLocation()
+                DivanGeoLocation location = new DivanGeoLocation()
                 {
                     Name = name,
                     Latitude = latitude,
                     Longitude = longitude
                 };
-                _context.GanjoorGeoLocations.Add(location);
+                _context.DivanGeoLocations.Add(location);
                 await _context.SaveChangesAsync();
-                return new RServiceResult<GanjoorGeoLocation>(location);                   
+                return new RServiceResult<DivanGeoLocation>(location);                   
             }
             catch (Exception exp)
             {
-                return new RServiceResult<GanjoorGeoLocation>(null, exp.ToString());
+                return new RServiceResult<DivanGeoLocation>(null, exp.ToString());
             }
         }
 
@@ -53,19 +53,19 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="updated"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<bool>> UpdateLocationAsync(GanjoorGeoLocation updated)
+        public async Task<RServiceResult<bool>> UpdateLocationAsync(DivanGeoLocation updated)
         {
             try
             {
-                var location = await _context.GanjoorGeoLocations.Where(l => l.Id == updated.Id).SingleOrDefaultAsync();
+                var location = await _context.DivanGeoLocations.Where(l => l.Id == updated.Id).SingleOrDefaultAsync();
                 if (location == null)
                     return new RServiceResult<bool>(false, "اطلاعات مکان یافت نشد.");
                 updated.Name = updated.Name.Trim();
                 if (string.IsNullOrEmpty(updated.Name))
                     return new RServiceResult<bool>(false, "نام اجباری است.");
-                if (null != await _context.GanjoorGeoLocations.Where(l => l.Name == updated.Name && l.Id != updated.Id).FirstOrDefaultAsync())
+                if (null != await _context.DivanGeoLocations.Where(l => l.Name == updated.Name && l.Id != updated.Id).FirstOrDefaultAsync())
                     return new RServiceResult<bool>(false, "نام  تکراری است.");
-                if (null != await _context.GanjoorGeoLocations.Where(l => l.Latitude == updated.Latitude && l.Longitude == updated.Longitude && l.Id != updated.Id).FirstOrDefaultAsync())
+                if (null != await _context.DivanGeoLocations.Where(l => l.Latitude == updated.Latitude && l.Longitude == updated.Longitude && l.Id != updated.Id).FirstOrDefaultAsync())
                     return new RServiceResult<bool>(false, "مختصات  تکراری است.");
 
                 location.Name = updated.Name;
@@ -91,7 +91,7 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                var location = await _context.GanjoorGeoLocations.Where(l => l.Id == id).SingleOrDefaultAsync();
+                var location = await _context.DivanGeoLocations.Where(l => l.Id == id).SingleOrDefaultAsync();
                 if (location == null)
                     return new RServiceResult<bool>(false, "اطلاعات طرح مکان یافت نشد.");
 
@@ -111,20 +111,20 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorGeoLocation>> GetLocationAsync(int id)
+        public async Task<RServiceResult<DivanGeoLocation>> GetLocationAsync(int id)
         {
             try
             {
-                return new RServiceResult<GanjoorGeoLocation>
+                return new RServiceResult<DivanGeoLocation>
                     (
-                    await _context.GanjoorGeoLocations
+                    await _context.DivanGeoLocations
                     .Where(l => l.Id == id)
                     .SingleOrDefaultAsync()
                     );
             }
             catch (Exception exp)
             {
-                return new RServiceResult<GanjoorGeoLocation>(null, exp.ToString());
+                return new RServiceResult<DivanGeoLocation>(null, exp.ToString());
             }
         }
 
@@ -132,19 +132,19 @@ namespace RMuseum.Services.Implementation
         /// get all locations
         /// </summary>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorGeoLocation[]>> GetLocationsAsync()
+        public async Task<RServiceResult<DivanGeoLocation[]>> GetLocationsAsync()
         {
             try
             {
-                return new RServiceResult<GanjoorGeoLocation[]>
+                return new RServiceResult<DivanGeoLocation[]>
                     (
-                    await _context.GanjoorGeoLocations
+                    await _context.DivanGeoLocations
                     .OrderBy(l => l.Name).ToArrayAsync()
                     );
             }
             catch (Exception exp)
             {
-                return new RServiceResult<GanjoorGeoLocation[]>(null, exp.ToString());
+                return new RServiceResult<DivanGeoLocation[]>(null, exp.ToString());
             }
         }
 

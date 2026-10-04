@@ -8,43 +8,43 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorCategories_ParentId",
-                table: "GanjoorCategories");
+                name: "IX_DivanCategories_ParentId",
+                table: "DivanCategories");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Recitations_GanjoorAudioId",
+                name: "IX_Recitations_DivanAudioId",
                 table: "Recitations",
-                column: "GanjoorAudioId");
+                column: "DivanAudioId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Recitations_ReviewStatus_GanjoorPostId",
+                name: "IX_Recitations_ReviewStatus_DivanPostId",
                 table: "Recitations",
-                columns: new[] { "ReviewStatus", "GanjoorPostId" });
+                columns: new[] { "ReviewStatus", "DivanPostId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoets_Published_Id",
-                table: "GanjoorPoets",
+                name: "IX_DivanPoets_Published_Id",
+                table: "DivanPoets",
                 columns: new[] { "Published", "Id" })
                 .Annotation("SqlServer:Include", new[] { "Name", "Nickname", "RImageId" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoems_Id",
-                table: "GanjoorPoems",
+                name: "IX_DivanPoems_Id",
+                table: "DivanPoems",
                 column: "Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemMusicTracks_Approved_Rejected",
-                table: "GanjoorPoemMusicTracks",
+                name: "IX_DivanPoemMusicTracks_Approved_Rejected",
+                table: "DivanPoemMusicTracks",
                 columns: new[] { "Approved", "Rejected" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorComments_Status",
-                table: "GanjoorComments",
+                name: "IX_DivanComments_Status",
+                table: "DivanComments",
                 column: "Status");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCategories_ParentId_PoetId",
-                table: "GanjoorCategories",
+                name: "IX_DivanCategories_ParentId_PoetId",
+                table: "DivanCategories",
                 columns: new[] { "ParentId", "PoetId" })
                 .Annotation("SqlServer:Include", new[] { "Id" });
 
@@ -53,52 +53,52 @@ namespace RMuseum.Migrations
                 table: "Artifacts",
                 column: "LastModified");
 
-            migrationBuilder.Sql("CREATE STATISTICS [_ST_Recitations_GanjoorPostIdReviewStatus] ON [dbo].[Recitations]([GanjoorPostId], [ReviewStatus])");
-            migrationBuilder.Sql("CREATE STATISTICS [_ST_GanjoorCategories_PoetIdParentId] ON [dbo].[GanjoorCategories]([PoetId], [ParentId])");
+            migrationBuilder.Sql("CREATE STATISTICS [_ST_Recitations_DivanPostIdReviewStatus] ON [dbo].[Recitations]([DivanPostId], [ReviewStatus])");
+            migrationBuilder.Sql("CREATE STATISTICS [_ST_DivanCategories_PoetIdParentId] ON [dbo].[DivanCategories]([PoetId], [ParentId])");
             migrationBuilder.Sql("CREATE STATISTICS [_ST_Artifacts_CoverItemIndexStatus] ON [dbo].[Artifacts]([CoverItemIndex], [Status])");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
-                name: "IX_Recitations_GanjoorAudioId",
+                name: "IX_Recitations_DivanAudioId",
                 table: "Recitations");
 
             migrationBuilder.DropIndex(
-                name: "IX_Recitations_ReviewStatus_GanjoorPostId",
+                name: "IX_Recitations_ReviewStatus_DivanPostId",
                 table: "Recitations");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorPoets_Published_Id",
-                table: "GanjoorPoets");
+                name: "IX_DivanPoets_Published_Id",
+                table: "DivanPoets");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorPoems_Id",
-                table: "GanjoorPoems");
+                name: "IX_DivanPoems_Id",
+                table: "DivanPoems");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorPoemMusicTracks_Approved_Rejected",
-                table: "GanjoorPoemMusicTracks");
+                name: "IX_DivanPoemMusicTracks_Approved_Rejected",
+                table: "DivanPoemMusicTracks");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorComments_Status",
-                table: "GanjoorComments");
+                name: "IX_DivanComments_Status",
+                table: "DivanComments");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorCategories_ParentId_PoetId",
-                table: "GanjoorCategories");
+                name: "IX_DivanCategories_ParentId_PoetId",
+                table: "DivanCategories");
 
             migrationBuilder.DropIndex(
                 name: "IX_Artifacts_LastModified",
                 table: "Artifacts");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCategories_ParentId",
-                table: "GanjoorCategories",
+                name: "IX_DivanCategories_ParentId",
+                table: "DivanCategories",
                 column: "ParentId");
 
-            migrationBuilder.Sql("DROP STATISTICS Recitations._ST_Recitations_GanjoorPostIdReviewStatus");
-            migrationBuilder.Sql("DROP STATISTICS GanjoorCategories._ST_GanjoorCategories_PoetIdParentId");
+            migrationBuilder.Sql("DROP STATISTICS Recitations._ST_Recitations_DivanPostIdReviewStatus");
+            migrationBuilder.Sql("DROP STATISTICS DivanCategories._ST_DivanCategories_PoetIdParentId");
             migrationBuilder.Sql("DROP STATISTICS Artifacts._ST_Artifacts_CoverItemIndexStatus");
         }
     }

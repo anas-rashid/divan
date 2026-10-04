@@ -9,8 +9,8 @@ using RMuseum.Models.Artifact.ViewModels;
 using RMuseum.Models.Auth.Memory;
 using RMuseum.Models.Bookmark;
 using RMuseum.Models.Bookmark.ViewModels;
-using RMuseum.Models.GanjoorIntegration;
-using RMuseum.Models.GanjoorIntegration.ViewModels;
+using RMuseum.Models.DivanIntegration;
+using RMuseum.Models.DivanIntegration.ViewModels;
 using RMuseum.Models.ImportJob;
 using RMuseum.Models.Note;
 using RMuseum.Models.Note.ViewModels;
@@ -1914,38 +1914,38 @@ namespace RMuseum.Controllers
 
 
         /// <summary>
-        /// suggest ganjoor link
+        /// suggest divan link
         /// </summary>
         /// <param name="link"></param>
         /// <returns></returns>
         [HttpPost]
-        [Route("ganjoor")]
+        [Route("divan")]
         [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorLinkViewModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanLinkViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> SuggestGanjoorLink([FromBody] LinkSuggestion link)
+        public async Task<IActionResult> SuggestDivanLink([FromBody] LinkSuggestion link)
         {
             Guid loggedOnUserId = new Guid(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
-            RServiceResult<GanjoorLinkViewModel> suggestion = await _artifactService.SuggestGanjoorLink(loggedOnUserId, link);
+            RServiceResult<DivanLinkViewModel> suggestion = await _artifactService.SuggestDivanLink(loggedOnUserId, link);
             if (!string.IsNullOrEmpty(suggestion.ExceptionString))
                 return BadRequest(suggestion.ExceptionString);
             return Ok(suggestion.Result);
         }
 
         /// <summary>
-        /// get suggested ganjoor links
+        /// get suggested divan links
         /// </summary>
         /// <param name="status"></param>
         /// <param name="notSynced"></param>
         /// <returns></returns>
         [HttpGet]
-        [Route("ganjoor")]
+        [Route("divan")]
         [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorLinkViewModel[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanLinkViewModel[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetSuggestedLinks(ReviewResult status, bool notSynced)
         {
-            RServiceResult<GanjoorLinkViewModel[]> res = await _artifactService.GetSuggestedLinks(status, notSynced);
+            RServiceResult<DivanLinkViewModel[]> res = await _artifactService.GetSuggestedLinks(status, notSynced);
             if (!string.IsNullOrEmpty(res.ExceptionString))
                 return BadRequest(res.ExceptionString);
             return Ok(res.Result);
@@ -1959,13 +1959,13 @@ namespace RMuseum.Controllers
         /// <param name="skip"></param>
         /// <returns> return value might be null or an array with length  1 or 2</returns>
         [HttpGet]
-        [Route("ganjoor/nextunsychedimage")]
+        [Route("divan/nextunsychedimage")]
         [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorLinkViewModel[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanLinkViewModel[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(int skip)
         {
-            RServiceResult<GanjoorLinkViewModel[]> res = await _artifactService.GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(skip);
+            RServiceResult<DivanLinkViewModel[]> res = await _artifactService.GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(skip);
             if (!string.IsNullOrEmpty(res.ExceptionString))
                 return BadRequest(res.ExceptionString);
             var resCount = await _artifactService.GetUnsynchronizedSuggestedLinksCount();
@@ -1989,17 +1989,17 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// review suggested ganjoor link
+        /// review suggested divan link
         /// </summary>
         /// <param name="linkId"></param>
         /// <param name="result"></param>
         /// <returns></returns>
         [HttpPut]
-        [Route("ganjoor/review/{linkId}/{result}")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Route("divan/review/{linkId}/{result}")]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> ReviewGanjoorLink(Guid linkId, ReviewResult result)
+        public async Task<IActionResult> ReviewDivanLink(Guid linkId, ReviewResult result)
         {
             Guid loggedOnUserId = new Guid(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
             RServiceResult<bool> suggestion = await _artifactService.ReviewSuggestedLink(linkId, loggedOnUserId, result);
@@ -2009,17 +2009,17 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// mark suggested ganjoor link as synchronized
+        /// mark suggested divan link as synchronized
         /// </summary>
         /// <param name="linkId"></param>
         /// <param name="displayOnPage">display ogn page</param>
         /// <returns></returns>
         [HttpPut]
-        [Route("ganjoor/sync/{linkId}/{displayOnPage}")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Route("divan/sync/{linkId}/{displayOnPage}")]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> SynchronizeGanjoorLink(Guid linkId, bool displayOnPage)
+        public async Task<IActionResult> SynchronizeDivanLink(Guid linkId, bool displayOnPage)
         {
             RServiceResult<bool> suggestion = await _artifactService.SynchronizeSuggestedLink(linkId, displayOnPage);
             if (!string.IsNullOrEmpty(suggestion.ExceptionString))
@@ -2028,19 +2028,19 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// remove ganjoor link
+        /// remove divan link
         /// </summary>
         /// <param name="linkId"></param>
         /// <param name="removeItemLink"></param>
         /// <returns></returns>
         [HttpDelete]
-        [Route("ganjoor")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Route("divan")]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
-        public async Task<IActionResult> RemoveGanjoorLinkAsync(Guid linkId, bool removeItemLink)
+        public async Task<IActionResult> RemoveDivanLinkAsync(Guid linkId, bool removeItemLink)
         {
-            RServiceResult<bool> suggestion = await _artifactService.RemoveGanjoorLinkAsync(linkId, removeItemLink);
+            RServiceResult<bool> suggestion = await _artifactService.RemoveDivanLinkAsync(linkId, removeItemLink);
             if (!string.IsNullOrEmpty(suggestion.ExceptionString))
                 return BadRequest(suggestion.ExceptionString);
             return Ok();
@@ -2051,8 +2051,8 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPut]
-        [Route("ganjoor/toc")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Route("divan/toc")]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> AddTOCForSuggestedLinks()
@@ -2083,7 +2083,7 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// suggest pinterest link for ganjoor
+        /// suggest pinterest link for divan
         /// </summary>
         /// <param name="suggestion"></param>
         /// <returns></returns>
@@ -2103,7 +2103,7 @@ namespace RMuseum.Controllers
             return Ok(res.Result);
         }
         /// <summary>
-        /// review suggested ganjoor pinterest link
+        /// review suggested divan pinterest link
         /// </summary>
         /// <param name="linkId"></param>
         /// <param name="altText"></param>
@@ -2113,7 +2113,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpPut]
         [Route("pinterest/review/{linkId}/{result}")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> ReviewSuggestedPinterestLink(Guid linkId, string altText, ReviewResult result, string reviewDesc, string imageUrl)
@@ -2126,13 +2126,13 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// mark suggested pinterest ganjoor link as synchronized
+        /// mark suggested pinterest divan link as synchronized
         /// </summary>
         /// <param name="linkId"></param>
         /// <returns></returns>
         [HttpPut]
         [Route("pinterest/sync/{linkId}")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> SynchronizeSuggestedPinterestLink(Guid linkId)
@@ -2150,7 +2150,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpDelete]
         [Route("pinterest")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> RemovePinterestLinkAsync(Guid linkId)
@@ -2162,19 +2162,19 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// start filling GanjoorLink table OriginalSource values
+        /// start filling DivanLink table OriginalSource values
         /// </summary>
         /// <returns></returns>
-        [HttpPut("ganjoorlink/fillsource")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [HttpPut("divanlink/fillsource")]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult StartFillingGanjoorLinkOriginalSources()
+        public IActionResult StartFillingDivanLinkOriginalSources()
         {
             try
             {
-                var res = _artifactService.StartFillingGanjoorLinkOriginalSources();
+                var res = _artifactService.StartFillingDivanLinkOriginalSources();
                 if (!string.IsNullOrEmpty(res.ExceptionString))
                     return BadRequest(res.ExceptionString);
                 return Ok();
@@ -2261,20 +2261,20 @@ namespace RMuseum.Controllers
         /// <summary>
         /// start setting an artifact items as a category poems text original source
         /// </summary>
-        /// <param name="ganjoorCatId"></param>
+        /// <param name="divanCatId"></param>
         /// <param name="artifactId"></param>
         /// <returns></returns>
 
-        [HttpPut("ganjoorlink/settextorigin/{ganjoorCatId}/{artifactId}")]
-        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName)]
+        [HttpPut("divanlink/settextorigin/{divanCatId}/{artifactId}")]
+        [Authorize(Policy = RMuseumSecurableItem.ArtifactEntityShortName + ":" + RMuseumSecurableItem.ReviewDivanLinksOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public IActionResult StartSettingArtifactAsTextOriginalSource(int ganjoorCatId, Guid artifactId)
+        public IActionResult StartSettingArtifactAsTextOriginalSource(int divanCatId, Guid artifactId)
         {
             try
             {
-                var res = _artifactService.StartSettingArtifactAsTextOriginalSource(ganjoorCatId, artifactId);
+                var res = _artifactService.StartSettingArtifactAsTextOriginalSource(divanCatId, artifactId);
                 if (!string.IsNullOrEmpty(res.ExceptionString))
                     return BadRequest(res.ExceptionString);
                 return Ok();
@@ -2313,7 +2313,7 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// create images for ganjoor
+        /// create images for divan
         /// </summary>
         /// <param name="startPoetId"></param>
         /// <returns></returns>
@@ -2337,7 +2337,7 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// create images for ganjoor - offline
+        /// create images for divan - offline
         /// </summary>
         /// <returns></returns>
         [HttpPut("ai/create/images/offline")]

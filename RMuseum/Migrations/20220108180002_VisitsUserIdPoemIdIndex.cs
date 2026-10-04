@@ -9,16 +9,16 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorUserPoemVisits_UserId_PoemId",
-                table: "GanjoorUserPoemVisits",
+                name: "IX_DivanUserPoemVisits_UserId_PoemId",
+                table: "DivanUserPoemVisits",
                 columns: new[] { "UserId", "PoemId" });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorUserPoemVisits_UserId_PoemId",
-                table: "GanjoorUserPoemVisits");
+                name: "IX_DivanUserPoemVisits_UserId_PoemId",
+                table: "DivanUserPoemVisits");
         }
     }
 }

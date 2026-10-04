@@ -1,4 +1,4 @@
-﻿using RMuseum.Models.Ganjoor;
+﻿using RMuseum.Models.Divan;
 
 namespace RMuseum.Services.Implementation
 {

@@ -1,0 +1,27 @@
+﻿namespace RMuseum.Models.DivanAudio.ViewModels
+{
+    /// <summary>
+    /// approved mistake view model
+    /// </summary>
+    public class RecitationMistakeViewModel
+    {
+        /// <summary>
+        /// id
+        /// </summary>
+        public int Id { get; set; }
+        /// <summary>
+        /// mistake
+        /// </summary>
+        public string Mistake { get; set; }
+
+        /// <summary>
+        /// number of verses affected
+        /// </summary>
+        public int NumberOfLinesAffected { get; set; }
+
+        /// <summary>
+        /// couplet index
+        /// </summary>
+        public int CoupletIndex { get; set; }
+    }
+}

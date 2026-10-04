@@ -26,14 +26,14 @@ namespace RMuseum.Migrations
                 {
                     table.PrimaryKey("PK_PoemGeoDateTags", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PoemGeoDateTags_GanjoorGeoLocations_LocationId",
+                        name: "FK_PoemGeoDateTags_DivanGeoLocations_LocationId",
                         column: x => x.LocationId,
-                        principalTable: "GanjoorGeoLocations",
+                        principalTable: "DivanGeoLocations",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_PoemGeoDateTags_GanjoorPoems_PoemId",
+                        name: "FK_PoemGeoDateTags_DivanPoems_PoemId",
                         column: x => x.PoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });

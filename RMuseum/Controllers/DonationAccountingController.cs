@@ -21,7 +21,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorDonationViewModel[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanDonationViewModel[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetDonations()
         {
@@ -46,7 +46,7 @@ namespace RMuseum.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorDonationViewModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanDonationViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetDonation(int id)
         {
@@ -69,11 +69,11 @@ namespace RMuseum.Controllers
         /// <param name="donation"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorDonationViewModel))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanDonationViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> AddDonation([FromBody] GanjoorDonationViewModel donation)
+        public async Task<IActionResult> AddDonation([FromBody] DivanDonationViewModel donation)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace RMuseum.Controllers
         /// <param name="donation"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -124,7 +124,7 @@ namespace RMuseum.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -151,7 +151,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet("expense")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorExpense[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanExpense[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetExpenses()
         {
@@ -175,7 +175,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet("expense/{id}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorExpense))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanExpense))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetExpense(int id)
         {
@@ -199,11 +199,11 @@ namespace RMuseum.Controllers
         /// <returns></returns>
 
         [HttpPost("expense")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorDonationViewModel))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanDonationViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> AddExpense([FromBody] GanjoorExpense expense)
+        public async Task<IActionResult> AddExpense([FromBody] DivanExpense expense)
         {
             try
             {
@@ -227,7 +227,7 @@ namespace RMuseum.Controllers
         /// <param name="expense"></param>
         /// <returns></returns>
         [HttpPut("expense/{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -254,7 +254,7 @@ namespace RMuseum.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("expense/{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -280,7 +280,7 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("onetimeimport")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -304,7 +304,7 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPut("page")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -330,7 +330,7 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("accountinfo/visible")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Donations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Donations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]

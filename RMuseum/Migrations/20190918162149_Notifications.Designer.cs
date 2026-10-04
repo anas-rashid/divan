@@ -271,18 +271,18 @@ namespace RMuseum.Migrations
                     b.ToTable("UserBookmarks");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorIntegration.GanjoorLink", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanIntegration.DivanLink", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd();
 
                     b.Property<Guid>("ArtifactId");
 
-                    b.Property<int>("GanjoorPostId");
+                    b.Property<int>("DivanPostId");
 
-                    b.Property<string>("GanjoorTitle");
+                    b.Property<string>("DivanTitle");
 
-                    b.Property<string>("GanjoorUrl");
+                    b.Property<string>("DivanUrl");
 
                     b.Property<Guid?>("ItemId");
 
@@ -308,7 +308,7 @@ namespace RMuseum.Migrations
 
                     b.HasIndex("SuggestedById");
 
-                    b.ToTable("GanjoorLinks");
+                    b.ToTable("DivanLinks");
                 });
 
             modelBuilder.Entity("RMuseum.Models.ImportJob.ImportJob", b =>
@@ -755,7 +755,7 @@ namespace RMuseum.Migrations
                         .HasForeignKey("RArtifactMasterRecordId");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorIntegration.GanjoorLink", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanIntegration.DivanLink", b =>
                 {
                     b.HasOne("RMuseum.Models.Artifact.RArtifactMasterRecord", "Artifact")
                         .WithMany()

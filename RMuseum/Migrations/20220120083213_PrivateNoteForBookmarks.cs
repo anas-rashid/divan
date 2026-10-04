@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "PrivateNote",
-                table: "GanjoorUserBookmarks",
+                table: "DivanUserBookmarks",
                 type: "nvarchar(max)",
                 nullable: true);
         }
@@ -19,7 +19,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "PrivateNote",
-                table: "GanjoorUserBookmarks");
+                table: "DivanUserBookmarks");
         }
     }
 }

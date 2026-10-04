@@ -8,7 +8,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoemCorrections",
+                name: "DivanPoemCorrections",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -29,29 +29,29 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoemCorrections", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoemCorrections", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemCorrections_AspNetUsers_ReviewerUserId",
+                        name: "FK_DivanPoemCorrections_AspNetUsers_ReviewerUserId",
                         column: x => x.ReviewerUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemCorrections_AspNetUsers_UserId",
+                        name: "FK_DivanPoemCorrections_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemCorrections_GanjoorPoems_PoemId",
+                        name: "FK_DivanPoemCorrections_DivanPoems_PoemId",
                         column: x => x.PoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GanjoorVerseVOrderText",
+                name: "DivanVerseVOrderText",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -61,47 +61,47 @@ namespace RMuseum.Migrations
                     OriginalText = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Result = table.Column<int>(type: "int", nullable: false),
                     ReviewNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    GanjoorPoemCorrectionId = table.Column<int>(type: "int", nullable: true)
+                    DivanPoemCorrectionId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorVerseVOrderText", x => x.Id);
+                    table.PrimaryKey("PK_DivanVerseVOrderText", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorVerseVOrderText_GanjoorPoemCorrections_GanjoorPoemCorrectionId",
-                        column: x => x.GanjoorPoemCorrectionId,
-                        principalTable: "GanjoorPoemCorrections",
+                        name: "FK_DivanVerseVOrderText_DivanPoemCorrections_DivanPoemCorrectionId",
+                        column: x => x.DivanPoemCorrectionId,
+                        principalTable: "DivanPoemCorrections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemCorrections_PoemId",
-                table: "GanjoorPoemCorrections",
+                name: "IX_DivanPoemCorrections_PoemId",
+                table: "DivanPoemCorrections",
                 column: "PoemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemCorrections_ReviewerUserId",
-                table: "GanjoorPoemCorrections",
+                name: "IX_DivanPoemCorrections_ReviewerUserId",
+                table: "DivanPoemCorrections",
                 column: "ReviewerUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemCorrections_UserId",
-                table: "GanjoorPoemCorrections",
+                name: "IX_DivanPoemCorrections_UserId",
+                table: "DivanPoemCorrections",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorVerseVOrderText_GanjoorPoemCorrectionId",
-                table: "GanjoorVerseVOrderText",
-                column: "GanjoorPoemCorrectionId");
+                name: "IX_DivanVerseVOrderText_DivanPoemCorrectionId",
+                table: "DivanVerseVOrderText",
+                column: "DivanPoemCorrectionId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorVerseVOrderText");
+                name: "DivanVerseVOrderText");
 
             migrationBuilder.DropTable(
-                name: "GanjoorPoemCorrections");
+                name: "DivanPoemCorrections");
         }
     }
 }

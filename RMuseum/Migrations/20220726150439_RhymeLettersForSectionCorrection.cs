@@ -10,38 +10,38 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "OriginalRhymeLetters",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "RhymeLetters",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "RhymeLettersReviewResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "OriginalRhymeLetters",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "RhymeLetters",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "RhymeLettersReviewResult",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -51,27 +51,27 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "OriginalRhymeLetters",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "RhymeLetters",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "RhymeLettersReviewResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "OriginalRhymeLetters",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "RhymeLetters",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "RhymeLettersReviewResult",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
         }
     }
 }

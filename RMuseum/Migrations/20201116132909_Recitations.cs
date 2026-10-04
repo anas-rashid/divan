@@ -8,7 +8,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoets",
+                name: "DivanPoets",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false),
@@ -17,7 +17,7 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoets", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoets", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -27,8 +27,8 @@ namespace RMuseum.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     OwnerId = table.Column<Guid>(nullable: false),
-                    GanjoorAudioId = table.Column<int>(nullable: false),
-                    GanjoorPostId = table.Column<int>(nullable: false),
+                    DivanAudioId = table.Column<int>(nullable: false),
+                    DivanPostId = table.Column<int>(nullable: false),
                     AudioOrder = table.Column<int>(nullable: false),
                     FileNameWithoutExtension = table.Column<string>(nullable: true),
                     SoundFilesFolder = table.Column<string>(nullable: true),
@@ -120,7 +120,7 @@ namespace RMuseum.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GanjoorCategories",
+                name: "DivanCategories",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false),
@@ -132,17 +132,17 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorCategories", x => x.Id);
+                    table.PrimaryKey("PK_DivanCategories", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorCategories_GanjoorCategories_ParentId",
+                        name: "FK_DivanCategories_DivanCategories_ParentId",
                         column: x => x.ParentId,
-                        principalTable: "GanjoorCategories",
+                        principalTable: "DivanCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_GanjoorCategories_GanjoorPoets_PoetId",
+                        name: "FK_DivanCategories_DivanPoets_PoetId",
                         column: x => x.PoetId,
-                        principalTable: "GanjoorPoets",
+                        principalTable: "DivanPoets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -201,7 +201,7 @@ namespace RMuseum.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "GanjoorPoems",
+                name: "DivanPoems",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false),
@@ -213,17 +213,17 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoems", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoems", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoems_GanjoorCategories_CatId",
+                        name: "FK_DivanPoems_DivanCategories_CatId",
                         column: x => x.CatId,
-                        principalTable: "GanjoorCategories",
+                        principalTable: "DivanCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GanjoorVerses",
+                name: "DivanVerses",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -235,43 +235,43 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorVerses", x => x.Id);
+                    table.PrimaryKey("PK_DivanVerses", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorVerses_GanjoorPoems_PoemId",
+                        name: "FK_DivanVerses_DivanPoems_PoemId",
                         column: x => x.PoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCategories_FullUrl",
-                table: "GanjoorCategories",
+                name: "IX_DivanCategories_FullUrl",
+                table: "DivanCategories",
                 column: "FullUrl");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCategories_ParentId",
-                table: "GanjoorCategories",
+                name: "IX_DivanCategories_ParentId",
+                table: "DivanCategories",
                 column: "ParentId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCategories_PoetId",
-                table: "GanjoorCategories",
+                name: "IX_DivanCategories_PoetId",
+                table: "DivanCategories",
                 column: "PoetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoems_CatId",
-                table: "GanjoorPoems",
+                name: "IX_DivanPoems_CatId",
+                table: "DivanPoems",
                 column: "CatId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoems_FullUrl",
-                table: "GanjoorPoems",
+                name: "IX_DivanPoems_FullUrl",
+                table: "DivanPoems",
                 column: "FullUrl");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorVerses_PoemId",
-                table: "GanjoorVerses",
+                name: "IX_DivanVerses_PoemId",
+                table: "DivanVerses",
                 column: "PoemId");
 
             migrationBuilder.CreateIndex(
@@ -280,9 +280,9 @@ namespace RMuseum.Migrations
                 column: "PoemNarrationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Recitations_GanjoorPostId",
+                name: "IX_Recitations_DivanPostId",
                 table: "Recitations",
-                column: "GanjoorPostId");
+                column: "DivanPostId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Recitations_OwnerId",
@@ -313,7 +313,7 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorVerses");
+                name: "DivanVerses");
 
             migrationBuilder.DropTable(
                 name: "RecitationPublishingTrackers");
@@ -325,7 +325,7 @@ namespace RMuseum.Migrations
                 name: "UserRecitationProfiles");
 
             migrationBuilder.DropTable(
-                name: "GanjoorPoems");
+                name: "DivanPoems");
 
             migrationBuilder.DropTable(
                 name: "Recitations");
@@ -334,10 +334,10 @@ namespace RMuseum.Migrations
                 name: "UploadSessions");
 
             migrationBuilder.DropTable(
-                name: "GanjoorCategories");
+                name: "DivanCategories");
 
             migrationBuilder.DropTable(
-                name: "GanjoorPoets");
+                name: "DivanPoets");
         }
     }
 }

@@ -12,19 +12,19 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "OriginalPoemFormat",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "PoemFormat",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "PoemFormatReviewResult",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -35,15 +35,15 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "OriginalPoemFormat",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "PoemFormat",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "PoemFormatReviewResult",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
         }
     }
 }

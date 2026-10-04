@@ -1,4 +1,4 @@
-﻿using RMuseum.Models.Ganjoor.ViewModels;
+﻿using RMuseum.Models.Divan.ViewModels;
 using RSecurityBackend.Models.Generic;
 using System.IO;
 using System.Threading.Tasks;
@@ -16,7 +16,7 @@ namespace RMuseum.Services
         /// <param name="targetUrl"></param>
         /// <param name="active"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorSiteBannerViewModel>> AddSiteBanner(Stream imageStream, string fileName, string alternateText, string targetUrl, bool active);
+        Task<RServiceResult<DivanSiteBannerViewModel>> AddSiteBanner(Stream imageStream, string fileName, string alternateText, string targetUrl, bool active);
 
         /// <summary>
         /// modify site banner
@@ -39,12 +39,12 @@ namespace RMuseum.Services
         /// get site banners
         /// </summary>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorSiteBannerViewModel[]>> GetSiteBanners();
+        Task<RServiceResult<DivanSiteBannerViewModel[]>> GetSiteBanners();
 
         /// <summary>
         /// get a random site banner
         /// </summary>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorSiteBannerViewModel>> GetARandomActiveSiteBanner();
+        Task<RServiceResult<DivanSiteBannerViewModel>> GetARandomActiveSiteBanner();
     }
 }

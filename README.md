@@ -4,15 +4,16 @@ Divan is a standalone project built on a fork of [GanjoorService](https://github
 
 ## Changes from upstream
 
+- **Renamed Ganjoor → Divan throughout:** projects (`DivanRazor`, `DivanService.sln`), files, folders, classes, settings (`Divan:` section), API routes (`/api/divan/...`) and database tables (`Divan*`). Real external addresses (ganjoor.net, github.com/ganjoor) are unchanged. Because table names changed, Divan needs a fresh database; it can't reuse a Ganjoor one.
+- **Removed Ganjoor/Persian-specific features:** music (Spotify, Golha, Beeptunes, music index, song suggestions; DB models kept for a future Urdu version), Ganjoor's visit analytics, Turkish/Kurdish page options, abjad, Persian dictionary links. Random verse now picks from Divan's own data.
 - **Tajik removed:** the TajikGanjoor site, Tajik API endpoints, services, export and transliteration are gone. Migration `DivanRemoveTajik` drops their tables.
-
 - **Branding:** "گنجور" becomes "دیوان" throughout the site. Upstream is credited in the footer.
-- **Urdu basics:** pages are `lang="ur"`. The home page, footer and century groups (Hijri centuries, e.g. "تیرہویں صدی ہجری") are in Urdu. Deeper pages, such as admin and account pages, are still Persian.
+- **Urdu basics:** pages are `lang="ur-PK"`. The home page, footer and century groups (Hijri centuries, e.g. "تیرہویں صدی ہجری") are in Urdu. Deeper pages, such as admin and account pages, are still Persian.
 - **Fonts:** Noto Nastaliq Urdu by default, with a **نستعلیق / نسخ** switch (Noto Naskh Arabic) at the bottom left. The choice is remembered per browser.
-- **Footer:** links to Ganjoor-only services (Hafez divination, music index, etc.) are removed. Links to the Wikisource source, the data and the code are added.
+- **Footer:** links to Divan-only services (Hafez divination, music index, etc.) are removed. Links to the Wikisource source, the data and the code are added.
 - **Linux/Docker:** `Dockerfile` + `docker-compose.yml` (SQL Server 2022, API, site, Caddy for HTTPS).
-- **Config fixes so env vars work:** the four places that read `appsettings.json` directly now also read environment variables. The JWT issuer follows `RSecurityBackend:ApplicationName` instead of the hard-coded "Ganjoor". `deploy/entrypoint.sh` copies the settings that RSecurityBackend reads only from `appsettings.json` (connection string, secret, app name, admin email) into the file at container start.
-- **Links:** `ganjoor.net` links to the site's own pages are now relative. Links to Ganjoor's other services (blog, audio, etc.) are left as they are.
+- **Config fixes so env vars work:** the four places that read `appsettings.json` directly now also read environment variables. The JWT issuer follows `RSecurityBackend:ApplicationName` instead of the hard-coded "Divan". `deploy/entrypoint.sh` copies the settings that RSecurityBackend reads only from `appsettings.json` (connection string, secret, app name, admin email) into the file at container start.
+- **Links:** `ganjoor.net` links to the site's own pages are now relative. Links to Divan's other services (blog, audio, etc.) are left as they are.
 - **Locale:** `ur-PK`.
 
 ## Deploy (Ubuntu/Debian x86-64, e.g. Vultr)
@@ -54,7 +55,7 @@ git pull && docker compose up -d --build
 ```sh
 cd RMuseum   # its global.json pins SDK 10.0.302; newer SDKs fail on some upstream Razor views
 dotnet build RMuseum.csproj -p:EnableWindowsTargeting=true
-dotnet build ../GanjooRazor/GanjooRazor.csproj -p:EnableWindowsTargeting=true
+dotnet build ../DivanRazor/DivanRazor.csproj -p:EnableWindowsTargeting=true
 ```
 
 Running it needs SQL Server, so use the Docker setup above. SQL Server's image is x86-64 only.

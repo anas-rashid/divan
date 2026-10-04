@@ -1,0 +1,148 @@
+﻿using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using DivanRazor.Utils;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
+using Newtonsoft.Json;
+using RMuseum.Models.Accounting;
+
+namespace DivanRazor.Areas.Admin.Pages
+{
+    public class ExpensesModel : PageModel
+    {
+        /// <summary>
+        /// HttpClient instance
+        /// </summary>
+        private readonly HttpClient _httpClient;
+
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="httpClient"></param>
+        public ExpensesModel(HttpClient httpClient)
+        {
+            _httpClient = httpClient;
+        }
+        /// <summary>
+        /// last message
+        /// </summary>
+        public string LastMessage { get; set; }
+        [BindProperty]
+        public DivanExpense Expense { get; set; }
+
+        /// <summary>
+        /// donations
+        /// </summary>
+        public DivanExpense[] Expenses { get; set; }
+
+        /// <summary>
+        /// show account info
+        /// </summary>
+        public string ShowAccountInfo { get; set; }
+
+        private async Task ReadExpenses()
+        {
+            var response = await _httpClient.GetAsync($"{APIRoot.Url}/api/donations/expense");
+            if (!response.IsSuccessStatusCode)
+            {
+                LastMessage = JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync());
+                return;
+            }
+
+            Expenses = JsonConvert.DeserializeObject<DivanExpense[]>(await response.Content.ReadAsStringAsync());
+
+            using (HttpClient secureClient = new HttpClient(new DivanReloginHandler(Request, Response)))
+            {
+                if (await DivanSessionChecker.PrepareClient(secureClient, Request, Response))
+                {
+                    HttpResponseMessage resAccountInfo = await secureClient.GetAsync($"{APIRoot.Url}/api/donations/accountinfo/visible");
+                    if (!resAccountInfo.IsSuccessStatusCode)
+                    {
+                        LastMessage = await resAccountInfo.Content.ReadAsStringAsync();
+                        return;
+                    }
+
+                    ShowAccountInfo = JsonConvert.DeserializeObject<bool>(await resAccountInfo.Content.ReadAsStringAsync()) ? "نمایش حساب فعال است." : "نمایش حساب غیرفعال است.";
+                }
+            }
+        }
+
+        public async Task<IActionResult> OnGetAsync()
+        {
+            if (string.IsNullOrEmpty(Request.Cookies["Token"]))
+                return Redirect("/");
+
+            LastMessage = "";
+
+            Expense = new DivanExpense()
+            {
+                ExpenseDate = DateTime.Now.Date,
+                Unit = "تومان",
+            };
+            await ReadExpenses();
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostAsync(DivanExpense Expense)
+        {
+            LastMessage = "";
+            using (HttpClient secureClient = new HttpClient(new DivanReloginHandler(Request, Response)))
+            {
+                if (await DivanSessionChecker.PrepareClient(secureClient, Request, Response))
+                {
+
+                    HttpResponseMessage response = await secureClient.PostAsync($"{APIRoot.Url}/api/donations/expense", new StringContent(JsonConvert.SerializeObject(Expense), Encoding.UTF8, "application/json"));
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        LastMessage = JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync());
+                    }
+                    else
+                    {
+                        await ReadExpenses();
+                    }
+                }
+                else
+                {
+                    LastMessage = "لطفاً از دیوان خارج و مجددا به آن وارد شوید.";
+                }
+            }
+            return Page();
+        }
+
+        public async Task<IActionResult> OnPostRebuildPageAsync()
+        {
+            using (HttpClient secureClient = new HttpClient(new DivanReloginHandler(Request, Response)))
+            {
+                if (await DivanSessionChecker.PrepareClient(secureClient, Request, Response))
+                {
+                    HttpResponseMessage response = await secureClient.PutAsync($"{APIRoot.Url}/api/donations/page", null);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));
+                    }
+                    return new OkObjectResult(true);
+                }
+            }
+            return new OkObjectResult(false);
+        }
+
+        public async Task<IActionResult> OnDeleteAsync(int id)
+        {
+            using (HttpClient secureClient = new HttpClient(new DivanReloginHandler(Request, Response)))
+            {
+                if (await DivanSessionChecker.PrepareClient(secureClient, Request, Response))
+                {
+                    var response = await secureClient.DeleteAsync($"{APIRoot.Url}/api/donations/expense/{id}");
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        return BadRequest(JsonConvert.DeserializeObject<string>(await response.Content.ReadAsStringAsync()));
+                    }
+                    return new OkObjectResult(true);
+                }
+            }
+            return new OkObjectResult(false);
+        }
+    }
+}

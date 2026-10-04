@@ -1,6 +1,6 @@
 # فرایند نگهداری فهرست تغییرات (Changelog)
 
-فایل `GanjooRazor/wwwroot/json/changelog.json` فهرست تغییرات کاربرپسند این
+فایل `DivanRazor/wwwroot/json/changelog.json` فهرست تغییرات کاربرپسند این
 پروژه را به زبان فارسی نگه می‌دارد و در پاورقی سایت («تازه‌های نرم‌افزار»)
 نمایش داده می‌شود.
 
@@ -50,13 +50,13 @@
    - موارد جدید را در انتهای آرایهٔ موجود در `changelog.json` اضافه کند (نه
      جایگزینی کل فایل)، با حفظ ترتیب صعودی تاریخ.
 
-3. فایل به‌روزشده را جایگزین `GanjooRazor/wwwroot/json/changelog.json` کنید و
+3. فایل به‌روزشده را جایگزین `DivanRazor/wwwroot/json/changelog.json` کنید و
    کامیت نمایید.
 
 ## نمایش در سایت
 
-پاورقی سایت (`GanjooRazor/Pages/Shared/_FooterPartial.cshtml`) یک لینک با
+پاورقی سایت (`DivanRazor/Pages/Shared/_FooterPartial.cshtml`) یک لینک با
 عنوان «تازه‌های نرم‌افزار» دارد که با کلیک، پنجرهٔ Modal مربوطه را باز کرده و
 فایل `changelog.json` را با `fetch` بارگذاری می‌کند. لیست به‌صورت معکوس
 (جدیدترین مورد در بالا) نمایش داده می‌شود. سبک‌های مربوط به این بخش در
-`GanjooRazor/wwwroot/css/p8.css` (کلاس‌های `.changelog-*`) تعریف شده‌اند.
+`DivanRazor/wwwroot/css/p8.css` (کلاس‌های `.changelog-*`) تعریف شده‌اند.

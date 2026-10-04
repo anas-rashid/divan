@@ -1,16 +1,16 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RMuseum.Models.Artifact;
 using RMuseum.Models.Bookmark;
-using RMuseum.Models.GanjoorAudio;
+using RMuseum.Models.DivanAudio;
 using RMuseum.Models.UploadSession;
-using RMuseum.Models.GanjoorIntegration;
+using RMuseum.Models.DivanIntegration;
 using RMuseum.Models.ImportJob;
 using RMuseum.Models.Note;
 using RSecurityBackend.DbContext;
 using RSecurityBackend.Models.Auth.Db;
 using System;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.SemanticSearch;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.SemanticSearch;
 using RMuseum.Models.MusicCatalogue;
 using RMuseum.Models.Accounting;
 using Microsoft.Extensions.Configuration;
@@ -65,50 +65,50 @@ namespace RMuseum.DbContext
                 .HasIndex(t => t.FriendlyUrl);
 
             builder.Entity<Recitation>()
-                .HasIndex(p => p.GanjoorPostId);
+                .HasIndex(p => p.DivanPostId);
 
-            builder.Entity<GanjoorCat>()
+            builder.Entity<DivanCat>()
                 .HasIndex(c => c.FullUrl);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
                 .HasIndex(c => c.FullUrl);
 
-            builder.Entity<GanjoorPage>()
+            builder.Entity<DivanPage>()
                  .HasIndex(c => c.FullUrl);
 
-            builder.Entity<GanjoorSinger>()
+            builder.Entity<DivanSinger>()
                 .HasIndex(c => c.Name);
 
-            builder.Entity<GanjoorTrack>()
+            builder.Entity<DivanTrack>()
                 .HasIndex(c => c.Name);
 
-            builder.Entity<GanjoorComment>()
+            builder.Entity<DivanComment>()
                 .HasIndex(c => c.CommentDate);
 
             builder.Entity<ImportJob>()
                .Property(c => c.ProgressPercent)
                .HasColumnType("decimal(18,2)");
 
-            builder.Entity<GanjoorComment>()
+            builder.Entity<DivanComment>()
                 .HasIndex(c => c.Status);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
                 .HasIndex(c => c.Id);
 
             builder.Entity<Recitation>()
-                .HasIndex(c => c.GanjoorAudioId);
+                .HasIndex(c => c.DivanAudioId);
 
             builder.Entity<Recitation>()
-                .HasIndex(c => new { c.ReviewStatus, c.GanjoorPostId });
+                .HasIndex(c => new { c.ReviewStatus, c.DivanPostId });
 
             builder.Entity<RArtifactMasterRecord>()
                 .HasIndex(c => c.LastModified);
 
-            builder.Entity<GanjoorPoet>()
+            builder.Entity<DivanPoet>()
                .HasIndex(c => new { c.Published, c.Id })
                .IncludeProperties(c => new { c.Name, c.Nickname, c.RImageId });
 
-            builder.Entity<GanjoorCat>()
+            builder.Entity<DivanCat>()
                 .HasIndex(c => new { c.ParentId, c.PoetId })
                 .IncludeProperties(c => c.Id);
 
@@ -119,103 +119,103 @@ namespace RMuseum.DbContext
                 .HasIndex(c => new { c.CoverItemIndex, c.Status });
 
 
-            builder.Entity<GanjoorLanguage>()
+            builder.Entity<DivanLanguage>()
                 .HasIndex(m => m.Name)
                 .IsUnique();
 
-            // GanjoorPersonRelation has two required FKs to the same table (GanjoorRelatedPerson) -
+            // DivanPersonRelation has two required FKs to the same table (DivanRelatedPerson) -
             // left at their EF Core default (Cascade, since both are required/non-nullable), SQL
             // Server refuses to create the second FK with "may cause cycles or multiple cascade
             // paths". Restricting one side (Person2) is enough to break the ambiguity; deleting a
             // person that's still referenced by a relation should be prevented at the application
             // level anyway (via a "still has family tree entries" check), not silently cascaded.
-            builder.Entity<GanjoorPersonRelation>()
+            builder.Entity<DivanPersonRelation>()
                 .HasOne(r => r.Person1)
                 .WithMany()
                 .HasForeignKey(r => r.Person1Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<GanjoorPersonRelation>()
+            builder.Entity<DivanPersonRelation>()
                 .HasOne(r => r.Person2)
                 .WithMany()
                 .HasForeignKey(r => r.Person2Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // same two-required-FKs-to-the-same-table situation as GanjoorPersonRelation above
-            builder.Entity<GanjoorPersonAffiliation>()
+            // same two-required-FKs-to-the-same-table situation as DivanPersonRelation above
+            builder.Entity<DivanPersonAffiliation>()
                 .HasOne(a => a.Person1)
                 .WithMany()
                 .HasForeignKey(a => a.Person1Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<GanjoorPersonAffiliation>()
+            builder.Entity<DivanPersonAffiliation>()
                 .HasOne(a => a.Person2)
                 .WithMany()
                 .HasForeignKey(a => a.Person2Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // same two-required-FKs-to-the-same-table situation as GanjoorPersonRelation above, plus
-            // a third optional FK to GanjoorPersonRelations itself (ExistingRelationId) - also
+            // same two-required-FKs-to-the-same-table situation as DivanPersonRelation above, plus
+            // a third optional FK to DivanPersonRelations itself (ExistingRelationId) - also
             // restricted, since a relation that still has a pending suggestion against it should be
             // resolved (or the suggestion rejected) before it can be deleted directly, not silently
             // orphan the suggestion
-            builder.Entity<GanjoorPersonRelationEditSuggestion>()
+            builder.Entity<DivanPersonRelationEditSuggestion>()
                 .HasOne(s => s.Person1)
                 .WithMany()
                 .HasForeignKey(s => s.Person1Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<GanjoorPersonRelationEditSuggestion>()
+            builder.Entity<DivanPersonRelationEditSuggestion>()
                 .HasOne(s => s.Person2)
                 .WithMany()
                 .HasForeignKey(s => s.Person2Id)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<GanjoorPersonRelationEditSuggestion>()
+            builder.Entity<DivanPersonRelationEditSuggestion>()
                 .HasOne(s => s.ExistingRelation)
                 .WithMany()
                 .HasForeignKey(s => s.ExistingRelationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // same Restrict treatment as ExistingRelationId above, but for Kind == Affiliation
-            // suggestions targeting a GanjoorPersonAffiliation instead
-            builder.Entity<GanjoorPersonRelationEditSuggestion>()
+            // suggestions targeting a DivanPersonAffiliation instead
+            builder.Entity<DivanPersonRelationEditSuggestion>()
                 .HasOne(s => s.ExistingAffiliation)
                 .WithMany()
                 .HasForeignKey(s => s.ExistingAffiliationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Entity<GanjoorUserBookmark>()
+            builder.Entity<DivanUserBookmark>()
                 .HasIndex(b => new { b.UserId, b.PoemId, b.CoupletIndex });
 
-            builder.Entity<GanjoorVerseNumber>()
+            builder.Entity<DivanVerseNumber>()
                 .HasIndex(n => new { n.NumberingId, n.PoemId, n.CoupletIndex })
                 .IsUnique();
 
-            builder.Entity<GanjoorVerseNumber>()
+            builder.Entity<DivanVerseNumber>()
                 .HasIndex(n => new { n.PoemId, n.CoupletIndex });
 
-            builder.Entity<GanjoorVerse>()
+            builder.Entity<DivanVerse>()
                 .HasIndex(v => v.PoemId);//the next statement causes a drop index in the migration which this line prevents it
 
-            builder.Entity<GanjoorVerse>()
+            builder.Entity<DivanVerse>()
                 .HasIndex(v => new { v.PoemId, v.CoupletIndex });
 
-            builder.Entity<GanjoorCachedRelatedPoem>()
+            builder.Entity<DivanCachedRelatedPoem>()
                 .HasIndex(c => new { c.PoemId });
 
-            builder.Entity<GanjoorCachedRelatedPoem>()
+            builder.Entity<DivanCachedRelatedPoem>()
                 .HasIndex(c => new { c.FullUrl });
 
-            builder.Entity<GanjoorDonation>()
+            builder.Entity<DivanDonation>()
               .Property(c => c.Amount)
               .HasColumnType("decimal(18,2)");
 
-            builder.Entity<GanjoorDonation>()
+            builder.Entity<DivanDonation>()
              .Property(c => c.Remaining)
              .HasColumnType("decimal(18,2)");
 
-            builder.Entity<GanjoorExpense>()
+            builder.Entity<DivanExpense>()
              .Property(c => c.Amount)
              .HasColumnType("decimal(18,2)");
 
@@ -223,11 +223,11 @@ namespace RMuseum.DbContext
             .Property(c => c.Amount)
             .HasColumnType("decimal(18,2)");
 
-            builder.Entity<GanjoorGeoLocation>()
+            builder.Entity<DivanGeoLocation>()
               .Property(c => c.Latitude)
               .HasColumnType("decimal(12,9)");
 
-            builder.Entity<GanjoorGeoLocation>()
+            builder.Entity<DivanGeoLocation>()
               .Property(c => c.Longitude)
               .HasColumnType("decimal(12,9)");
 
@@ -235,28 +235,28 @@ namespace RMuseum.DbContext
                .HasIndex(v => new { v.RecitationId, v.UserId })
                .IsUnique();
 
-            builder.Entity<GanjoorUserPoemVisit>()
+            builder.Entity<DivanUserPoemVisit>()
                 .HasIndex(v => v.UserId);
 
-            builder.Entity<GanjoorUserPoemVisit>()
+            builder.Entity<DivanUserPoemVisit>()
                 .HasIndex(v => new { v.UserId, v.PoemId });
 
-            builder.Entity<GanjoorPoemSection>()
+            builder.Entity<DivanPoemSection>()
                 .HasIndex(v => new { v.PoemId, v.Index });
 
-            builder.Entity<GanjoorPoemSection>()
+            builder.Entity<DivanPoemSection>()
                 .HasIndex(v => new { v.RhymeLetters });
 
-            builder.Entity<GanjoorPoemSection>()
-                .HasIndex(v => new { v.GanjoorMetreId, v.RhymeLetters });
+            builder.Entity<DivanPoemSection>()
+                .HasIndex(v => new { v.DivanMetreId, v.RhymeLetters });
 
-            builder.Entity<GanjoorPoemSection>()
-                .HasIndex(v => new { v.GanjoorMetreId, v.RhymeLetters, v.Id});
+            builder.Entity<DivanPoemSection>()
+                .HasIndex(v => new { v.DivanMetreId, v.RhymeLetters, v.Id});
 
-            builder.Entity<GanjoorPoemSection>()
-                .HasIndex(v => new { v.GanjoorMetreId, v.RhymeLetters, v.SectionType });
+            builder.Entity<DivanPoemSection>()
+                .HasIndex(v => new { v.DivanMetreId, v.RhymeLetters, v.SectionType });
 
-            builder.Entity<GanjoorCachedRelatedSection>()
+            builder.Entity<DivanCachedRelatedSection>()
                 .HasIndex(v => new { v.PoemId, v.SectionIndex });
 
             builder.Entity<CategoryWordCount>()
@@ -268,62 +268,62 @@ namespace RMuseum.DbContext
             .IsUnique();
 
 
-            builder.Entity<GanjoorVerse>()
+            builder.Entity<DivanVerse>()
               .Property(e => e.CoupletSummary)
               .HasMaxLength(4000);
 
-           builder.Entity<GanjoorPoem>()
+           builder.Entity<DivanPoem>()
             .Property(e => e.Title)
             .HasMaxLength(1500);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
             .Property(e => e.FullTitle)
             .HasMaxLength(1500);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
             .Property(e => e.UrlSlug)
             .HasMaxLength(32);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
            .Property(e => e.RhymeLetters)
            .HasMaxLength(64);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
               .Property(e => e.SourceName)
               .HasMaxLength(64);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
 
              .Property(e => e.SourceUrlSlug)
              .HasMaxLength(16);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
               .Property(e => e.OldTag)
               .HasMaxLength(16);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
              .Property(e => e.OldTagPageUrl)
              .HasMaxLength(32);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
             .Property(e => e.Language)
             .HasMaxLength(8);
 
-            builder.Entity<GanjoorPoem>()
+            builder.Entity<DivanPoem>()
             .Property(e => e.PoemSummary)
             .HasMaxLength(3000);
 
-            builder.Entity<GanjoorCommentReaction>()
-               .HasIndex(i => new { i.GanjoorCommentId, i.UserId })
+            builder.Entity<DivanCommentReaction>()
+               .HasIndex(i => new { i.DivanCommentId, i.UserId })
                .IsUnique();
 
-            builder.Entity<GanjoorCommentReaction>()
+            builder.Entity<DivanCommentReaction>()
                .HasIndex(i => new { i.PoemId, i.UserId });
 
-            builder.Entity<GanjoorComment>()
+            builder.Entity<DivanComment>()
                .HasIndex(i => new { i.PoemId, i.SortKey });
 
-            builder.Entity<GanjoorComment>()
+            builder.Entity<DivanComment>()
                .HasIndex(i => new { i.PoemId, i.CommentDate });
 
         }
@@ -371,9 +371,9 @@ namespace RMuseum.DbContext
         public DbSet<RUserNote> UserNotes { get; set; }
 
         /// <summary>
-        /// Ganjoor Links
+        /// Divan Links
         /// </summary>
-        public DbSet<GanjoorLink> GanjoorLinks { get; set; }
+        public DbSet<DivanLink> DivanLinks { get; set; }
 
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace RMuseum.DbContext
         public DbSet<PinterestLink> PinterestLinks { get; set; }
 
         /// <summary>
-        /// Ganjoor Audio Files
+        /// Divan Audio Files
         /// </summary>
         public DbSet<Recitation> Recitations { get; set; }
 
@@ -402,19 +402,19 @@ namespace RMuseum.DbContext
         public DbSet<UserRecitationProfile> UserRecitationProfiles { get; set; }
 
         /// <summary>
-        /// Ganjoor Poets
+        /// Divan Poets
         /// </summary>
-        public DbSet<GanjoorPoet> GanjoorPoets { get; set; }
+        public DbSet<DivanPoet> DivanPoets { get; set; }
 
         /// <summary>
-        /// Ganjoor Categories
+        /// Divan Categories
         /// </summary>
-        public DbSet<GanjoorCat> GanjoorCategories { get; set; }
+        public DbSet<DivanCat> DivanCategories { get; set; }
 
         /// <summary>
-        /// Ganjoor Poems
+        /// Divan Poems
         /// </summary>
-        public DbSet<GanjoorPoem> GanjoorPoems { get; set; }
+        public DbSet<DivanPoem> DivanPoems { get; set; }
 
         /// <summary>
         /// Semantic search query log — see SemanticSearchQueryLog for what is (and deliberately
@@ -423,9 +423,9 @@ namespace RMuseum.DbContext
         public DbSet<SemanticSearchQueryLog> SemanticSearchQueryLogs { get; set; }
 
         /// <summary>
-        /// Ganjoor Verses
+        /// Divan Verses
         /// </summary>
-        public DbSet<GanjoorVerse> GanjoorVerses { get; set; }
+        public DbSet<DivanVerse> DivanVerses { get; set; }
 
         /// <summary>
         /// Narration Publishing Tracker
@@ -433,25 +433,25 @@ namespace RMuseum.DbContext
         public DbSet<RecitationPublishingTracker> RecitationPublishingTrackers { get; set; }
 
         /// <summary>
-        /// Ganjoor Pages
+        /// Divan Pages
         /// </summary>
-        public DbSet<GanjoorPage> GanjoorPages { get; set; }
+        public DbSet<DivanPage> DivanPages { get; set; }
 
         /// <summary>
-        /// Ganjoor Metres
+        /// Divan Metres
         /// </summary>
-        public DbSet<GanjoorMetre> GanjoorMetres { get; set; }
+        public DbSet<DivanMetre> DivanMetres { get; set; }
 
 
         /// <summary>
         /// singers
         /// </summary>
-        public DbSet<GanjoorSinger> GanjoorSingers { get; set; }
+        public DbSet<DivanSinger> DivanSingers { get; set; }
 
         /// <summary>
         /// music tracks
         /// </summary>
-        public DbSet<GanjoorTrack> GanjoorMusicCatalogueTracks { get; set; }
+        public DbSet<DivanTrack> DivanMusicCatalogueTracks { get; set; }
 
         /// <summary>
         /// golha tracks
@@ -471,43 +471,43 @@ namespace RMuseum.DbContext
         /// <summary>
         /// PoemMusicTracks
         /// </summary>
-        public DbSet<PoemMusicTrack> GanjoorPoemMusicTracks { get; set; }
+        public DbSet<PoemMusicTrack> DivanPoemMusicTracks { get; set; }
 
         /// <summary>
-        /// Ganjoor Comments
+        /// Divan Comments
         /// </summary>
-        public DbSet<GanjoorComment> GanjoorComments { get; set; }
+        public DbSet<DivanComment> DivanComments { get; set; }
 
         /// <summary>
-        /// Ganjoor Reported Comments
+        /// Divan Reported Comments
         /// </summary>
-        public DbSet<GanjoorCommentAbuseReport> GanjoorReportedComments { get; set; }
+        public DbSet<DivanCommentAbuseReport> DivanReportedComments { get; set; }
 
         /// <summary>
-        /// Ganjoor Page Snapshots
+        /// Divan Page Snapshots
         /// </summary>
-        public DbSet<GanjoorPageSnapshot> GanjoorPageSnapshots { get; set; }
+        public DbSet<DivanPageSnapshot> DivanPageSnapshots { get; set; }
 
 
         /// <summary>
-        /// Ganjoor Site Bannaers
+        /// Divan Site Bannaers
         /// </summary>
-        public DbSet<GanjoorSiteBanner> GanjoorSiteBanners { get; set; }
+        public DbSet<DivanSiteBanner> DivanSiteBanners { get; set; }
 
         /// <summary>
-        /// Ganjoor Health Check Errors
+        /// Divan Health Check Errors
         /// </summary>
-        public DbSet<GanjoorHealthCheckError> GanjoorHealthCheckErrors { get; set; }
+        public DbSet<DivanHealthCheckError> DivanHealthCheckErrors { get; set; }
 
         /// <summary>
         /// donations
         /// </summary>
-        public DbSet<GanjoorDonation> GanjoorDonations { get; set; }
+        public DbSet<DivanDonation> DivanDonations { get; set; }
 
         /// <summary>
         /// expenses
         /// </summary>
-        public DbSet<GanjoorExpense> GanjoorExpenses { get; set; }
+        public DbSet<DivanExpense> DivanExpenses { get; set; }
 
         /// <summary>
         /// donation expenditures
@@ -517,42 +517,42 @@ namespace RMuseum.DbContext
         /// <summary>
         /// poem corrections
         /// </summary>
-        public DbSet<GanjoorPoemCorrection> GanjoorPoemCorrections { get; set; }
+        public DbSet<DivanPoemCorrection> DivanPoemCorrections { get; set; }
 
         /// <summary>
         /// languages for translation
         /// </summary>
-        public DbSet<GanjoorLanguage> GanjoorLanguages { get; set; }
+        public DbSet<DivanLanguage> DivanLanguages { get; set; }
 
         /// <summary>
-        /// ganjoor bookmarks
+        /// divan bookmarks
         /// </summary>
-        public DbSet<GanjoorUserBookmark> GanjoorUserBookmarks { get; set; }
+        public DbSet<DivanUserBookmark> DivanUserBookmarks { get; set; }
 
         /// <summary>
-        /// ganjoor numbering schemas
+        /// divan numbering schemas
         /// </summary>
-        public DbSet<GanjoorNumbering> GanjoorNumberings { get; set; }
+        public DbSet<DivanNumbering> DivanNumberings { get; set; }
 
         /// <summary>
-        /// ganjoor verse numbers
+        /// divan verse numbers
         /// </summary>
-        public DbSet<GanjoorVerseNumber> GanjoorVerseNumbers { get; set; }
+        public DbSet<DivanVerseNumber> DivanVerseNumbers { get; set; }
 
         /// <summary>
-        /// ganjoor half centuries
+        /// divan half centuries
         /// </summary>
-        public DbSet<GanjoorCentury> GanjoorCenturies { get; set; }
+        public DbSet<DivanCentury> DivanCenturies { get; set; }
 
         /// <summary>
-        /// ganjoor cities
+        /// divan cities
         /// </summary>
-        public DbSet<GanjoorGeoLocation> GanjoorGeoLocations { get; set; }
+        public DbSet<DivanGeoLocation> DivanGeoLocations { get; set; }
 
         /// <summary>
         /// related poems to each poem (having same rhyme letters and prosody metre)
         /// </summary>
-        public DbSet<GanjoorCachedRelatedPoem> GanjoorCachedRelatedPoems { get; set; }
+        public DbSet<DivanCachedRelatedPoem> DivanCachedRelatedPoems { get; set; }
 
         /// <summary>
         /// Reported User Notes
@@ -577,22 +577,22 @@ namespace RMuseum.DbContext
         /// <summary>
         /// probable metres
         /// </summary>
-        public DbSet<GanjoorPoemProbableMetre> GanjoorPoemProbableMetres { get; set; }
+        public DbSet<DivanPoemProbableMetre> DivanPoemProbableMetres { get; set; }
 
         /// <summary>
-        /// ganjoor user history track items (stored by his or her choice)
+        /// divan user history track items (stored by his or her choice)
         /// </summary>
-        public DbSet<GanjoorUserPoemVisit> GanjoorUserPoemVisits { get; set; }
+        public DbSet<DivanUserPoemVisit> DivanUserPoemVisits { get; set; }
 
         /// <summary>
         /// suggested spec line for poets
         /// </summary>
-        public DbSet<GanjoorPoetSuggestedSpecLine> GanjoorPoetSuggestedSpecLines { get; set; }
+        public DbSet<DivanPoetSuggestedSpecLine> DivanPoetSuggestedSpecLines { get; set; }
 
         /// <summary>
         /// suggested pictures for poets
         /// </summary>
-        public DbSet<GanjoorPoetSuggestedPicture> GanjoorPoetSuggestedPictures { get; set; }
+        public DbSet<DivanPoetSuggestedPicture> DivanPoetSuggestedPictures { get; set; }
 
         /// <summary>
         /// faq categories
@@ -607,22 +607,22 @@ namespace RMuseum.DbContext
         /// <summary>
         /// Temporary Model contianing duplicated poems information
         /// </summary>
-        public DbSet<GanjoorDuplicate> GanjoorDuplicates { get; set; }
+        public DbSet<DivanDuplicate> DivanDuplicates { get; set; }
 
         /// <summary>
         /// poem sections
         /// </summary>
-        public DbSet<GanjoorPoemSection> GanjoorPoemSections { get; set; }
+        public DbSet<DivanPoemSection> DivanPoemSections { get; set; }
 
         /// <summary>
         /// related sections to each section (having same rhyme letters and prosody metre)
         /// </summary>
-        public DbSet<GanjoorCachedRelatedSection> GanjoorCachedRelatedSections { get; set; }
+        public DbSet<DivanCachedRelatedSection> DivanCachedRelatedSections { get; set; }
 
         /// <summary>
         /// section correctons
         /// </summary>
-        public DbSet<GanjoorPoemSectionCorrection> GanjoorPoemSectionCorrections { get; set; }
+        public DbSet<DivanPoemSectionCorrection> DivanPoemSectionCorrections { get; set; }
 
 
         /// <summary>
@@ -638,29 +638,29 @@ namespace RMuseum.DbContext
         /// <summary>
         /// People tags
         /// </summary>
-        public DbSet<GanjoorRelatedPerson> GanjoorRelatedPersons { get; set; }
+        public DbSet<DivanRelatedPerson> DivanRelatedPersons { get; set; }
 
         /// <summary>
-        /// approved kinship edges between people (family tree) - see GanjoorPersonRelation
+        /// approved kinship edges between people (family tree) - see DivanPersonRelation
         /// </summary>
-        public DbSet<GanjoorPersonRelation> GanjoorPersonRelations { get; set; }
+        public DbSet<DivanPersonRelation> DivanPersonRelations { get; set; }
 
         /// <summary>
-        /// approved non-family ties between people (e.g. minister-to-king) - see GanjoorPersonAffiliation
+        /// approved non-family ties between people (e.g. minister-to-king) - see DivanPersonAffiliation
         /// </summary>
-        public DbSet<GanjoorPersonAffiliation> GanjoorPersonAffiliations { get; set; }
+        public DbSet<DivanPersonAffiliation> DivanPersonAffiliations { get; set; }
 
         /// <summary>
-        /// pending/reviewed suggested edits to an already-approved GanjoorRelatedPerson's own fields -
-        /// see GanjoorPersonEditSuggestion
+        /// pending/reviewed suggested edits to an already-approved DivanRelatedPerson's own fields -
+        /// see DivanPersonEditSuggestion
         /// </summary>
-        public DbSet<GanjoorPersonEditSuggestion> GanjoorPersonEditSuggestions { get; set; }
+        public DbSet<DivanPersonEditSuggestion> DivanPersonEditSuggestions { get; set; }
 
         /// <summary>
         /// pending/reviewed suggested additions, changes or removals of a kinship edge between two
-        /// already-approved people - see GanjoorPersonRelationEditSuggestion
+        /// already-approved people - see DivanPersonRelationEditSuggestion
         /// </summary>
-        public DbSet<GanjoorPersonRelationEditSuggestion> GanjoorPersonRelationEditSuggestions { get; set; }
+        public DbSet<DivanPersonRelationEditSuggestion> DivanPersonRelationEditSuggestions { get; set; }
 
         /// <summary>
         /// Books (PDF Library)
@@ -698,9 +698,9 @@ namespace RMuseum.DbContext
         public DbSet<QueuedFTPUpload> QueuedFTPUploads { get; set; }
 
         /// <summary>
-        /// PDF Ganjoor Links
+        /// PDF Divan Links
         /// </summary>
-        public DbSet<PDFGanjoorLink> PDFGanjoorLinks { get; set; }
+        public DbSet<PDFDivanLink> PDFDivanLinks { get; set; }
 
         /// <summary>
         /// OCR Queue Items
@@ -715,7 +715,7 @@ namespace RMuseum.DbContext
         /// <summary>
         /// Related Poems
         /// </summary>
-        public DbSet<GanjoorQuotedPoem> GanjoorQuotedPoems { get; set; }
+        public DbSet<DivanQuotedPoem> DivanQuotedPoems { get; set; }
 
 
         /// <summary>
@@ -726,7 +726,7 @@ namespace RMuseum.DbContext
         /// <summary>
         /// paper sources
         /// </summary>
-        public DbSet<GanjoorPaperSource> GanjoorPaperSources { get; set; }
+        public DbSet<DivanPaperSource> DivanPaperSources { get; set; }
 
         /// <summary>
         /// digital sources
@@ -744,14 +744,14 @@ namespace RMuseum.DbContext
         public DbSet<CategoryWordCountSummary> CategoryWordCountSummaries { get; set; }
 
         /// <summary>
-        /// ganjoor cat corrections
+        /// divan cat corrections
         /// </summary>
-        public DbSet<GanjoorCatCorrection> GanjoorCatCorrections { get; set; }
+        public DbSet<DivanCatCorrection> DivanCatCorrections { get; set; }
 
         /// <summary>
         /// comment reactions
         /// </summary>
-        public DbSet<GanjoorCommentReaction> GanjoorCommentReactions { get; set; }
+        public DbSet<DivanCommentReaction> DivanCommentReactions { get; set; }
 
     }
 }

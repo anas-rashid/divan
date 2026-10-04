@@ -338,7 +338,7 @@ namespace RMuseum.Migrations
                     b.ToTable("UserBookmarks");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorCat", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanCat", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -366,10 +366,10 @@ namespace RMuseum.Migrations
 
                     b.HasIndex("PoetId");
 
-                    b.ToTable("GanjoorCategories");
+                    b.ToTable("DivanCategories");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorPoem", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanPoem", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -395,10 +395,10 @@ namespace RMuseum.Migrations
 
                     b.HasIndex("FullUrl");
 
-                    b.ToTable("GanjoorPoems");
+                    b.ToTable("DivanPoems");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorPoet", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanPoet", b =>
                 {
                     b.Property<int>("Id")
                         .HasColumnType("int");
@@ -411,10 +411,10 @@ namespace RMuseum.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("GanjoorPoets");
+                    b.ToTable("DivanPoets");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorVerse", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanVerse", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -437,10 +437,10 @@ namespace RMuseum.Migrations
 
                     b.HasIndex("PoemId");
 
-                    b.ToTable("GanjoorVerses");
+                    b.ToTable("DivanVerses");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorAudio.Recitation", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanAudio.Recitation", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -474,10 +474,10 @@ namespace RMuseum.Migrations
                     b.Property<string>("FileNameWithoutExtension")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GanjoorAudioId")
+                    b.Property<int>("DivanAudioId")
                         .HasColumnType("int");
 
-                    b.Property<int>("GanjoorPostId")
+                    b.Property<int>("DivanPostId")
                         .HasColumnType("int");
 
                     b.Property<Guid>("LegacyAudioGuid")
@@ -521,7 +521,7 @@ namespace RMuseum.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("GanjoorPostId");
+                    b.HasIndex("DivanPostId");
 
                     b.HasIndex("OwnerId");
 
@@ -530,7 +530,7 @@ namespace RMuseum.Migrations
                     b.ToTable("Recitations");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorAudio.RecitationPublishingTracker", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanAudio.RecitationPublishingTracker", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -570,7 +570,7 @@ namespace RMuseum.Migrations
                     b.ToTable("RecitationPublishingTrackers");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorAudio.UserRecitationProfile", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanAudio.UserRecitationProfile", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -607,7 +607,7 @@ namespace RMuseum.Migrations
                     b.ToTable("UserRecitationProfiles");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorIntegration.GanjoorLink", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanIntegration.DivanLink", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -616,13 +616,13 @@ namespace RMuseum.Migrations
                     b.Property<Guid>("ArtifactId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("GanjoorPostId")
+                    b.Property<int>("DivanPostId")
                         .HasColumnType("int");
 
-                    b.Property<string>("GanjoorTitle")
+                    b.Property<string>("DivanTitle")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("GanjoorUrl")
+                    b.Property<string>("DivanUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ItemId")
@@ -656,10 +656,10 @@ namespace RMuseum.Migrations
 
                     b.HasIndex("SuggestedById");
 
-                    b.ToTable("GanjoorLinks");
+                    b.ToTable("DivanLinks");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorIntegration.PinterestLink", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanIntegration.PinterestLink", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -671,13 +671,13 @@ namespace RMuseum.Migrations
                     b.Property<Guid?>("ArtifactId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("GanjoorPostId")
+                    b.Property<int>("DivanPostId")
                         .HasColumnType("int");
 
-                    b.Property<string>("GanjoorTitle")
+                    b.Property<string>("DivanTitle")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("GanjoorUrl")
+                    b.Property<string>("DivanUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<Guid?>("ItemId")
@@ -1408,38 +1408,38 @@ namespace RMuseum.Migrations
                         .HasForeignKey("RArtifactMasterRecordId");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorCat", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanCat", b =>
                 {
-                    b.HasOne("RMuseum.Models.Ganjoor.GanjoorCat", "Parent")
+                    b.HasOne("RMuseum.Models.Divan.DivanCat", "Parent")
                         .WithMany()
                         .HasForeignKey("ParentId");
 
-                    b.HasOne("RMuseum.Models.Ganjoor.GanjoorPoet", "Poet")
+                    b.HasOne("RMuseum.Models.Divan.DivanPoet", "Poet")
                         .WithMany()
                         .HasForeignKey("PoetId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorPoem", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanPoem", b =>
                 {
-                    b.HasOne("RMuseum.Models.Ganjoor.GanjoorCat", "Cat")
+                    b.HasOne("RMuseum.Models.Divan.DivanCat", "Cat")
                         .WithMany()
                         .HasForeignKey("CatId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RMuseum.Models.Ganjoor.GanjoorVerse", b =>
+            modelBuilder.Entity("RMuseum.Models.Divan.DivanVerse", b =>
                 {
-                    b.HasOne("RMuseum.Models.Ganjoor.GanjoorPoem", "Poem")
+                    b.HasOne("RMuseum.Models.Divan.DivanPoem", "Poem")
                         .WithMany()
                         .HasForeignKey("PoemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorAudio.Recitation", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanAudio.Recitation", b =>
                 {
                     b.HasOne("RSecurityBackend.Models.Auth.Db.RAppUser", "Owner")
                         .WithMany()
@@ -1452,16 +1452,16 @@ namespace RMuseum.Migrations
                         .HasForeignKey("ReviewerId");
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorAudio.RecitationPublishingTracker", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanAudio.RecitationPublishingTracker", b =>
                 {
-                    b.HasOne("RMuseum.Models.GanjoorAudio.Recitation", "PoemNarration")
+                    b.HasOne("RMuseum.Models.DivanAudio.Recitation", "PoemNarration")
                         .WithMany()
                         .HasForeignKey("PoemNarrationId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorAudio.UserRecitationProfile", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanAudio.UserRecitationProfile", b =>
                 {
                     b.HasOne("RSecurityBackend.Models.Auth.Db.RAppUser", "User")
                         .WithMany()
@@ -1470,7 +1470,7 @@ namespace RMuseum.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorIntegration.GanjoorLink", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanIntegration.DivanLink", b =>
                 {
                     b.HasOne("RMuseum.Models.Artifact.RArtifactMasterRecord", "Artifact")
                         .WithMany()
@@ -1493,7 +1493,7 @@ namespace RMuseum.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("RMuseum.Models.GanjoorIntegration.PinterestLink", b =>
+            modelBuilder.Entity("RMuseum.Models.DivanIntegration.PinterestLink", b =>
                 {
                     b.HasOne("RMuseum.Models.Artifact.RArtifactMasterRecord", "Artifact")
                         .WithMany()

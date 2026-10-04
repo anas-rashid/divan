@@ -12,27 +12,27 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Tajik",
-                table: "GanjoorVerses");
+                table: "DivanVerses");
 
             migrationBuilder.DropColumn(
                 name: "TajikDescription",
-                table: "GanjoorPoets");
+                table: "DivanPoets");
 
             migrationBuilder.DropColumn(
                 name: "TajikNickName",
-                table: "GanjoorPoets");
+                table: "DivanPoets");
 
             migrationBuilder.DropColumn(
                 name: "TajikTitle",
-                table: "GanjoorPoems");
+                table: "DivanPoems");
 
             migrationBuilder.DropColumn(
                 name: "TajikDescription",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "TajikTitle",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
         }
 
         /// <inheritdoc />
@@ -40,37 +40,37 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "Tajik",
-                table: "GanjoorVerses",
+                table: "DivanVerses",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "TajikDescription",
-                table: "GanjoorPoets",
+                table: "DivanPoets",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "TajikNickName",
-                table: "GanjoorPoets",
+                table: "DivanPoets",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "TajikTitle",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "TajikDescription",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "TajikTitle",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "nvarchar(max)",
                 nullable: true);
         }

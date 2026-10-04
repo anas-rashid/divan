@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "SamePoemsQuotedCount",
-                table: "GanjoorQuotedPoems",
+                table: "DivanQuotedPoems",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -23,7 +23,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "SamePoemsQuotedCount",
-                table: "GanjoorQuotedPoems");
+                table: "DivanQuotedPoems");
         }
     }
 }

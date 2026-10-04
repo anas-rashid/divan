@@ -12,122 +12,122 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "CoupletSummary",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "LanguageId",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "LanguageReviewResult",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "OriginalCoupletSummary",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "OriginalLanguageId",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "SummaryReviewResult",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "CoupletSummary",
-                table: "GanjoorVerses",
+                table: "DivanVerses",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "LanguageId",
-                table: "GanjoorVerses",
+                table: "DivanVerses",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "HideMyName",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<int>(
                 name: "OriginalPoemFormat",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "PoemFormat",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "PoemFormatReviewResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "PoemSummary",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "HideMyName",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<string>(
                 name: "OriginalPoemSummary",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "PoemSummary",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "SummaryReviewResult",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorVerses_LanguageId",
-                table: "GanjoorVerses",
+                name: "IX_DivanVerses_LanguageId",
+                table: "DivanVerses",
                 column: "LanguageId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_GanjoorVerses_GanjoorLanguages_LanguageId",
-                table: "GanjoorVerses",
+                name: "FK_DivanVerses_DivanLanguages_LanguageId",
+                table: "DivanVerses",
                 column: "LanguageId",
-                principalTable: "GanjoorLanguages",
+                principalTable: "DivanLanguages",
                 principalColumn: "Id");
         }
 
@@ -135,80 +135,80 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_GanjoorVerses_GanjoorLanguages_LanguageId",
-                table: "GanjoorVerses");
+                name: "FK_DivanVerses_DivanLanguages_LanguageId",
+                table: "DivanVerses");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorVerses_LanguageId",
-                table: "GanjoorVerses");
+                name: "IX_DivanVerses_LanguageId",
+                table: "DivanVerses");
 
             migrationBuilder.DropColumn(
                 name: "CoupletSummary",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "LanguageId",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "LanguageReviewResult",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "OriginalCoupletSummary",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "OriginalLanguageId",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "SummaryReviewResult",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "CoupletSummary",
-                table: "GanjoorVerses");
+                table: "DivanVerses");
 
             migrationBuilder.DropColumn(
                 name: "LanguageId",
-                table: "GanjoorVerses");
+                table: "DivanVerses");
 
             migrationBuilder.DropColumn(
                 name: "HideMyName",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "OriginalPoemFormat",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "PoemFormat",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "PoemFormatReviewResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "PoemSummary",
-                table: "GanjoorPoems");
+                table: "DivanPoems");
 
             migrationBuilder.DropColumn(
                 name: "HideMyName",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "OriginalPoemSummary",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "PoemSummary",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "SummaryReviewResult",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
         }
     }
 }

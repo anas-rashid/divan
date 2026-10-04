@@ -8,7 +8,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorSiteBanners",
+                name: "DivanSiteBanners",
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
@@ -20,9 +20,9 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorSiteBanners", x => x.Id);
+                    table.PrimaryKey("PK_DivanSiteBanners", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorSiteBanners_GeneralImages_RImageId",
+                        name: "FK_DivanSiteBanners_GeneralImages_RImageId",
                         column: x => x.RImageId,
                         principalTable: "GeneralImages",
                         principalColumn: "Id",
@@ -30,15 +30,15 @@ namespace RMuseum.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorSiteBanners_RImageId",
-                table: "GanjoorSiteBanners",
+                name: "IX_DivanSiteBanners_RImageId",
+                table: "DivanSiteBanners",
                 column: "RImageId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorSiteBanners");
+                name: "DivanSiteBanners");
         }
     }
 }

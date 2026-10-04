@@ -8,7 +8,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "SongOrder",
-                table: "GanjoorPoemMusicTracks",
+                table: "DivanPoemMusicTracks",
                 nullable: false,
                 defaultValue: 0);
         }
@@ -17,7 +17,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "SongOrder",
-                table: "GanjoorPoemMusicTracks");
+                table: "DivanPoemMusicTracks");
         }
     }
 }

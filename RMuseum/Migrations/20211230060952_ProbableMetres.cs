@@ -9,7 +9,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoemProbableMetres",
+                name: "DivanPoemProbableMetres",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -19,25 +19,25 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoemProbableMetres", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoemProbableMetres", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemProbableMetres_GanjoorPoems_PoemId",
+                        name: "FK_DivanPoemProbableMetres_DivanPoems_PoemId",
                         column: x => x.PoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemProbableMetres_PoemId",
-                table: "GanjoorPoemProbableMetres",
+                name: "IX_DivanPoemProbableMetres_PoemId",
+                table: "DivanPoemProbableMetres",
                 column: "PoemId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorPoemProbableMetres");
+                name: "DivanPoemProbableMetres");
         }
     }
 }

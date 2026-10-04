@@ -1,0 +1,95 @@
+﻿@page
+@model DivanRazor.Pages.LoginModel
+@{
+    Layout = null;
+    ViewData["Title"] = "ورود کاربر";
+}
+
+<!DOCTYPE html>
+<html lang="ur-PK" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="shortcut icon" href="/favicon.ico?version=1" type="image/x-icon" />
+    <link href="~/css/p8.css" asp-append-version="true" rel="stylesheet" type="text/css" />
+    <partial name="_DivanHead" />
+</head>
+<body class="bk-background">
+    <div id="hdr">
+        <h1><a href="/" title="دیوان"><img src="/image/gdap.png" alt="دیوان" style="width:auto;margin:auto;" /></a></h1>
+    </div>
+    <div id="login">
+        <div id="login-container">
+            @if (Model.LoggedIn)
+            {
+                <form method="post" action="?handler=Logout">
+                    @Html.AntiForgeryToken()
+                    <table>
+                        <tr>
+                            <td>
+                                @Model.UserFriendlyName
+                            </td>
+                        </tr>
+                        <tr>
+                            <td><input type="submit" name="submit" id="submit" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="خروج از حساب کاربری" /></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <a role="button" class="pagebutton" href="/">برگشت به دیوان</a>
+                            </td>
+                        </tr>
+                    </table>
+                    <div>@Model.LastError</div>
+                </form>
+            }
+            else
+            {
+                <form method="post" action="@("?handler=Login&redirect=" + Model.RedirectUrlEncoded)">
+                    @Html.AntiForgeryToken()
+                    <table>
+                        <tr>
+                            <td>
+                                <span class="inputlabel">پست الکترونیکی: </span>
+                            </td>
+                            <td>
+                                <input type="email" asp-for="LoginViewModel.Username" placeholder="پست الکترونیکی" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <span class="inputlabel">گذرواژه: </span>
+                            </td>
+                            <td>
+                                <input type="password" asp-for="LoginViewModel.Password" id="password" placeholder="گذرواژه" />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2"><input type="submit" name="submit" id="submit" style="direction:rtl;text-align:center" class="pagebutton font-size-2em background-green width-100per padding-bottom-50px" value="ورود" /></td>
+                        </tr>
+                        <tr>
+                            <td><a role="button" class="pagebutton" href="/signup">نام‌نویسی</a></td>
+                            <td><a role="button" class="pagebutton" href="/resetpassword">فراموشی گذرواژه</a></td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <a role="button" class="pagebutton" href="/">برگشت به دیوان</a>
+                            </td>
+                        </tr>
+
+                    </table>
+                    <div>@Model.LastError</div>
+                </form>
+
+            }
+
+        </div>
+    </div>
+</body>
+</html>
+
+
+
+
+

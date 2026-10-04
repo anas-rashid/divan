@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "Counter",
-                table: "GanjoorUserPoemVisits",
+                table: "DivanUserPoemVisits",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -23,7 +23,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Counter",
-                table: "GanjoorUserPoemVisits");
+                table: "DivanUserPoemVisits");
         }
     }
 }

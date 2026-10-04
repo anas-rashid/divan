@@ -19,14 +19,14 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AddColumn<bool>(
                 name: "MachineGenerated",
-                table: "GanjoorRelatedPersons",
+                table: "DivanRelatedPersons",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
                 name: "MachineGenerated",
-                table: "GanjoorGeoLocations",
+                table: "DivanGeoLocations",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -41,11 +41,11 @@ namespace RMuseum.Migrations
 
             migrationBuilder.DropColumn(
                 name: "MachineGenerated",
-                table: "GanjoorRelatedPersons");
+                table: "DivanRelatedPersons");
 
             migrationBuilder.DropColumn(
                 name: "MachineGenerated",
-                table: "GanjoorGeoLocations");
+                table: "DivanGeoLocations");
         }
     }
 }

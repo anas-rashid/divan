@@ -4,8 +4,8 @@ using Microsoft.Extensions.Configuration;
 using RMuseum.DbContext;
 using RMuseum.Models.Artifact;
 using RMuseum.Models.Auth.Memory;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
 using RSecurityBackend.Models.Generic;
 using RSecurityBackend.Models.Notification;
 using RSecurityBackend.Services;
@@ -26,11 +26,11 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="poetId"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel[]>> GetPoetSuggestedPhotosAsync(int poetId)
+        public async Task<RServiceResult<DivanPoetSuggestedPictureViewModel[]>> GetPoetSuggestedPhotosAsync(int poetId)
         {
-            return new RServiceResult<GanjoorPoetSuggestedPictureViewModel[]>
+            return new RServiceResult<DivanPoetSuggestedPictureViewModel[]>
                 (
-                  await _context.GanjoorPoetSuggestedPictures.AsNoTracking().Include(r => r.Picture)
+                  await _context.DivanPoetSuggestedPictures.AsNoTracking().Include(r => r.Picture)
                           .Where
                           (
                           r => r.Published == true && r.PoetId == poetId
@@ -38,7 +38,7 @@ namespace RMuseum.Services.Implementation
                           .OrderBy(r => r.PicOrder)
                           .Select
                           (
-                      r => new GanjoorPoetSuggestedPictureViewModel()
+                      r => new DivanPoetSuggestedPictureViewModel()
                       {
                           Id = r.Id,
                           PoetId = r.PoetId,
@@ -61,18 +61,18 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel>> GetPoetSuggestedPhotoByIdAsync(int id)
+        public async Task<RServiceResult<DivanPoetSuggestedPictureViewModel>> GetPoetSuggestedPhotoByIdAsync(int id)
         {
-            return new RServiceResult<GanjoorPoetSuggestedPictureViewModel>
+            return new RServiceResult<DivanPoetSuggestedPictureViewModel>
                 (
-                  await _context.GanjoorPoetSuggestedPictures.AsNoTracking().Include(r => r.Picture)
+                  await _context.DivanPoetSuggestedPictures.AsNoTracking().Include(r => r.Picture)
                           .Where
                           (
                           r => r.Id == id
                           )
                           .Select
                           (
-                      r => new GanjoorPoetSuggestedPictureViewModel()
+                      r => new DivanPoetSuggestedPictureViewModel()
                       {
                           Id = r.Id,
                           PoetId = r.PoetId,
@@ -102,21 +102,21 @@ namespace RMuseum.Services.Implementation
         /// <param name="description"></param>
         /// <param name="srcUrl"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel>> SuggestPhotoForPoet(int poetId, Guid userId, Stream imageStream, string fileName, string title, string description, string srcUrl)
+        public async Task<RServiceResult<DivanPoetSuggestedPictureViewModel>> SuggestPhotoForPoet(int poetId, Guid userId, Stream imageStream, string fileName, string title, string description, string srcUrl)
         {
             RServiceResult<RPictureFile> imageRes = await _pictureFileService.Add(title, description, 0, null, srcUrl, imageStream, fileName, "PoetsPhotoSuggestions");
 
             if (!string.IsNullOrEmpty(imageRes.ExceptionString))
             {
-                return new RServiceResult<GanjoorPoetSuggestedPictureViewModel>(null, imageRes.ExceptionString);
+                return new RServiceResult<DivanPoetSuggestedPictureViewModel>(null, imageRes.ExceptionString);
             }
             try
             {
                 var image = imageRes.Result;
 
-                int picOrder = 1 + (await _context.GanjoorPoetSuggestedPictures.Where(p => p.PoetId == poetId).CountAsync());
+                int picOrder = 1 + (await _context.DivanPoetSuggestedPictures.Where(p => p.PoetId == poetId).CountAsync());
 
-                GanjoorPoetSuggestedPicture picture = new GanjoorPoetSuggestedPicture()
+                DivanPoetSuggestedPicture picture = new DivanPoetSuggestedPicture()
                 {
                     PoetId = poetId,
                     PicOrder = picOrder,
@@ -126,13 +126,13 @@ namespace RMuseum.Services.Implementation
                     ChosenOne = false
                 };
 
-                _context.GanjoorPoetSuggestedPictures.Add(picture);
+                _context.DivanPoetSuggestedPictures.Add(picture);
                 await _context.SaveChangesAsync();
 
-                var moderators = await _appUserService.GetUsersHavingPermission(RMuseumSecurableItem.GanjoorEntityShortName, RMuseumSecurableItem.ModeratePoetPhotos);
+                var moderators = await _appUserService.GetUsersHavingPermission(RMuseumSecurableItem.DivanEntityShortName, RMuseumSecurableItem.ModeratePoetPhotos);
                 if (string.IsNullOrEmpty(moderators.ExceptionString)) //if not, do nothing!
                 {
-                    var poet = await _context.GanjoorPoets.AsNoTracking().Where(p => p.Id == poetId).SingleAsync();
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == poetId).SingleAsync();
                     foreach (var moderator in moderators.Result)
                     {
                         await _notificationService.PushNotification
@@ -147,9 +147,9 @@ namespace RMuseum.Services.Implementation
                 }
 
 
-                return new RServiceResult<GanjoorPoetSuggestedPictureViewModel>
+                return new RServiceResult<DivanPoetSuggestedPictureViewModel>
                     (
-                    new GanjoorPoetSuggestedPictureViewModel()
+                    new DivanPoetSuggestedPictureViewModel()
                     {
                         Id = picture.Id,
                         PoetId = poetId,
@@ -166,7 +166,7 @@ namespace RMuseum.Services.Implementation
             }
             catch (Exception exp)
             {
-                return new RServiceResult<GanjoorPoetSuggestedPictureViewModel>(null, exp.ToString());
+                return new RServiceResult<DivanPoetSuggestedPictureViewModel>(null, exp.ToString());
             }
         }
 
@@ -175,13 +175,13 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="skip"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel>> GetNextUnmoderatedPoetSuggestedPhotoAsync(int skip)
+        public async Task<RServiceResult<DivanPoetSuggestedPictureViewModel>> GetNextUnmoderatedPoetSuggestedPhotoAsync(int skip)
         {
             try
             {
-                return new RServiceResult<GanjoorPoetSuggestedPictureViewModel>
+                return new RServiceResult<DivanPoetSuggestedPictureViewModel>
                  (
-                  await _context.GanjoorPoetSuggestedPictures.AsNoTracking().Include(r => r.Picture)
+                  await _context.DivanPoetSuggestedPictures.AsNoTracking().Include(r => r.Picture)
                           .Where
                           (
                           r => r.Published == false
@@ -189,7 +189,7 @@ namespace RMuseum.Services.Implementation
                           .Skip(skip)
                           .Select
                           (
-                      r => new GanjoorPoetSuggestedPictureViewModel()
+                      r => new DivanPoetSuggestedPictureViewModel()
                       {
                           Id = r.Id,
                           PoetId = r.PoetId,
@@ -207,7 +207,7 @@ namespace RMuseum.Services.Implementation
             }
             catch (Exception exp)
             {
-                return new RServiceResult<GanjoorPoetSuggestedPictureViewModel>(null, exp.ToString());
+                return new RServiceResult<DivanPoetSuggestedPictureViewModel>(null, exp.ToString());
             }
         }
 
@@ -221,7 +221,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<int>
                  (
-                  await _context.GanjoorPoetSuggestedPictures
+                  await _context.DivanPoetSuggestedPictures
                           .Where
                           (
                           r => r.Published == false
@@ -240,11 +240,11 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<bool>> ModifyPoetSuggestedPhotoAsync(GanjoorPoetSuggestedPictureViewModel model)
+        public async Task<RServiceResult<bool>> ModifyPoetSuggestedPhotoAsync(DivanPoetSuggestedPictureViewModel model)
         {
             try
             {
-                var dbModel = await _context.GanjoorPoetSuggestedPictures.Include(p => p.Picture).Where(s => s.Id == model.Id).SingleAsync();
+                var dbModel = await _context.DivanPoetSuggestedPictures.Include(p => p.Picture).Where(s => s.Id == model.Id).SingleAsync();
                 if (model.Published && bool.Parse(Configuration.GetSection("ExternalFTPServer")["UploadEnabled"]))
                 {
                     var ftpClient = new AsyncFtpClient
@@ -311,7 +311,7 @@ namespace RMuseum.Services.Implementation
 
                 if (newlyChosenOne)
                 {
-                    var oldChosenOnes = await _context.GanjoorPoetSuggestedPictures.Where(p => p.Id != model.Id && p.PoetId == model.PoetId && p.ChosenOne == true).ToListAsync();
+                    var oldChosenOnes = await _context.DivanPoetSuggestedPictures.Where(p => p.Id != model.Id && p.PoetId == model.PoetId && p.ChosenOne == true).ToListAsync();
                     foreach (var photo in oldChosenOnes)
                     {
                         photo.ChosenOne = false;
@@ -323,7 +323,7 @@ namespace RMuseum.Services.Implementation
 
                 if (newlyChosenOne)
                 {
-                    var others = await _context.GanjoorPoetSuggestedPictures.Where(p => p.Id != model.Id && p.PoetId == model.PoetId).ToListAsync();
+                    var others = await _context.DivanPoetSuggestedPictures.Where(p => p.Id != model.Id && p.PoetId == model.PoetId).ToListAsync();
                     foreach (var photo in others)
                     {
                         photo.PicOrder = photo.PicOrder + 1;
@@ -340,7 +340,7 @@ namespace RMuseum.Services.Implementation
                 if (publishIsChanged && model.Published && dbModel.SuggestedById != null)
                 {
                     var userRes = await _appUserService.GetUserInformation((Guid)dbModel.SuggestedById);
-                    var poet = await _context.GanjoorPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
                     await _notificationService.PushNotification((Guid)dbModel.SuggestedById,
                                       $"انتشار تصویر پیشنهادی شما برای {poet.Nickname}",
                                       $"با سپاس! پیشنهاد شما برای تصویر {poet.Nickname} در فهرست تصاویر قابل انتخاب برای سخنور قابل مشاهده است."
@@ -350,7 +350,7 @@ namespace RMuseum.Services.Implementation
                 if (newlyChosenOne && dbModel.SuggestedById != null)
                 {
                     var userRes = await _appUserService.GetUserInformation((Guid)dbModel.SuggestedById);
-                    var poet = await _context.GanjoorPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
                     await _notificationService.PushNotification((Guid)dbModel.SuggestedById,
                                       $"انتخاب تصویر پیشنهادی شما برای {poet.Nickname} به عنوان تصویر اصلی در گنجور",
                                       $"با سپاس! پیشنهاد شما برای تصویر {poet.Nickname} هم‌اکنون تصویر اصلی او در گنجور است."
@@ -381,13 +381,13 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                var dbModel = await _context.GanjoorPoetSuggestedPictures.Where(s => s.Id == id).SingleAsync();
+                var dbModel = await _context.DivanPoetSuggestedPictures.Where(s => s.Id == id).SingleAsync();
 
 
                 if (!dbModel.Published && dbModel.SuggestedById != null)
                 {
                     var userRes = await _appUserService.GetUserInformation((Guid)dbModel.SuggestedById);
-                    var poet = await _context.GanjoorPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
                     string causePhrase = string.IsNullOrEmpty(rejectionCause) ? "" : $" به دلیل {rejectionCause} ";
                     await _notificationService.PushNotification((Guid)dbModel.SuggestedById,
                                       $"عدم پذیرش تصویر ارسالی شما برای {poet.Nickname}",
@@ -416,7 +416,7 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                var dbModel = await _context.GanjoorPoetSuggestedPictures.Where(s => s.Id == id).SingleAsync();
+                var dbModel = await _context.DivanPoetSuggestedPictures.Where(s => s.Id == id).SingleAsync();
                 if(!dbModel.Published)
                 {
                     return new RServiceResult<bool>(false, "برای رد تصاویر تأیید نشده از تابع reject استفاده کنید.");

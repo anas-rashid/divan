@@ -2,7 +2,7 @@
 using RSecurityBackend.Models.Generic;
 using System.Threading.Tasks;
 using System;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan.ViewModels;
 
 namespace RMuseum.Services
 {

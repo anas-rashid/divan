@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<bool>(
                 name: "IsTextOriginalSource",
-                table: "GanjoorLinks",
+                table: "DivanLinks",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -20,7 +20,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "IsTextOriginalSource",
-                table: "GanjoorLinks");
+                table: "DivanLinks");
         }
     }
 }

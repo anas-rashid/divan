@@ -1,0 +1,30 @@
+﻿@model DivanRazor.Pages._CategoryWordsCountPartialModel
+@using DNTPersianUtils.Core
+@{
+}
+
+@if (Model.WordCounts.Length > 0)
+{
+    <h2>
+        بسامد واژگان
+    </h2>
+    <div id="wordcounts-section">
+        <p>
+            در متن @Model.ThisPart @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.TotalWordCount) واژه را شمرده‌ایم (در تعریفمان از <i>واژه</i> ایرادات جدی وجود دارد، اینجا را ببینید). شمار واژگان یاد شده به شکل غیرتکراری برابر با @RMuseum.Services.Implementation.LanguageUtils.FormatMoney(Model.UniqueWordCount) واژه است.
+        </p>
+        @if (Model.RemStopWords)
+        {
+            <p id="remStopWords">جهت مشاهدهٔ آمار با حروف ربط و دیگر واژگان کم‌تأثیر پربسامد <a href="javascript:reloadWordCounts(@Model.CatId, @Model.PoetId, false)">اینجا</a> کلیک کنید.</p>
+        }
+        else
+        {
+            <p id="remStopWords">جهت مشاهدهٔ آمار بدون حروف ربط و دیگر واژگان کم‌تأثیر پربسامد <a href="javascript:reloadWordCounts(@Model.CatId, @Model.PoetId, true)">اینجا</a> کلیک کنید.</p>
+        }
+        <div class="clear-both">
+            <input type="text" id="wordcountterm" placeholder="جستجوی واژه" value="" onkeyup="onSearchWordCounts(@Model.CatId, @Model.PoetId, @Model.TotalWordCount)">
+        </div>
+        <div id="wordcounts-table">
+            <partial name="_CategoryWordsCountTablePartial.cshtml" model="Model.TableModel" />
+        </div>
+    </div>
+}

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RMuseum.Models.Auth.Memory;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Services;
 using RSecurityBackend.Models.Generic;
 using System;
@@ -20,8 +20,8 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Banners)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorSiteBannerViewModel))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Banners)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanSiteBannerViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public async Task<IActionResult> AddSiteBanner()
@@ -41,7 +41,7 @@ namespace RMuseum.Controllers
                     return BadRequest("a single image is not provided");
                 }
                 using Stream stream = Request.Form.Files[0].OpenReadStream();
-                RServiceResult<GanjoorSiteBannerViewModel> res = await _bannersService.AddSiteBanner(stream, Request.Form.Files[0].FileName, alt.ToString(), url.ToString(), false);
+                RServiceResult<DivanSiteBannerViewModel> res = await _bannersService.AddSiteBanner(stream, Request.Form.Files[0].FileName, alt.ToString(), url.ToString(), false);
                 if (!string.IsNullOrEmpty(res.ExceptionString))
                 {
                     return BadRequest(res.ExceptionString);
@@ -61,12 +61,12 @@ namespace RMuseum.Controllers
         /// <param name="model"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Banners)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Banners)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
-        public async Task<IActionResult> ModifySiteBanner(int id, [FromBody] GanjoorSiteBannerModifyViewModel model)
+        public async Task<IActionResult> ModifySiteBanner(int id, [FromBody] DivanSiteBannerModifyViewModel model)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace RMuseum.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Banners)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Banners)]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -133,15 +133,15 @@ namespace RMuseum.Controllers
         /// <returns></returns>
 
         [HttpGet]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Banners)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorSiteBannerViewModel[]))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Banners)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanSiteBannerViewModel[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public async Task<IActionResult> GetSiteBanners()
         {
             try
             {
-                RServiceResult<GanjoorSiteBannerViewModel[]> res = await _bannersService.GetSiteBanners();
+                RServiceResult<DivanSiteBannerViewModel[]> res = await _bannersService.GetSiteBanners();
 
                 if (!string.IsNullOrEmpty(res.ExceptionString))
                 {
@@ -162,7 +162,7 @@ namespace RMuseum.Controllers
         [HttpGet]
         [Route("random")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorSiteBannerViewModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanSiteBannerViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
@@ -170,7 +170,7 @@ namespace RMuseum.Controllers
         {
             try
             {
-                RServiceResult<GanjoorSiteBannerViewModel> res = await _bannersService.GetARandomActiveSiteBanner();
+                RServiceResult<DivanSiteBannerViewModel> res = await _bannersService.GetARandomActiveSiteBanner();
 
                 if (!string.IsNullOrEmpty(res.ExceptionString))
                 {
@@ -186,7 +186,7 @@ namespace RMuseum.Controllers
         }
 
         /// <summary>
-        /// Ganjoor Service
+        /// Divan Service
         /// </summary>
 
         protected readonly ISiteBannersService _bannersService;

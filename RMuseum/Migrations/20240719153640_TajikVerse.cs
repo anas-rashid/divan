@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "Tajik",
-                table: "GanjoorVerses",
+                table: "DivanVerses",
                 type: "nvarchar(max)",
                 nullable: true);
         }
@@ -22,7 +22,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Tajik",
-                table: "GanjoorVerses");
+                table: "DivanVerses");
         }
     }
 }

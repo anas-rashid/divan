@@ -7,7 +7,7 @@ namespace RMuseum.Utils.PublicDataExport
 {
     /// <summary>
     /// A bare numeric id (poem id, category id, ...) is meaningless to a static file tree unless
-    /// something maps it to a path. Writing one giant id-&gt;path file doesn't scale to Ganjoor's
+    /// something maps it to a path. Writing one giant id-&gt;path file doesn't scale to Divan's
     /// poem count, so ids are bucketed by <c>id / shardSize</c> into small shard files a client can
     /// compute the name of directly — no lookup-before-the-lookup needed.
     /// </summary>

@@ -1,0 +1,51 @@
+/* Divan overrides on top of Divan's p8.css: Urdu fonts (Nastaliq default, Naskh option) + wordmark. */
+:root {
+    --divan-font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
+    --divan-line-height: 2.6;
+}
+
+html.font-naskh {
+    --divan-font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif;
+    --divan-line-height: 2;
+}
+
+/* poem lines, prose paragraphs, titles */
+.m1 p, .m2 p, .b2 p, .n p, .l p,
+h1, h2, h3, .century, .caption a {
+    font-family: var(--divan-font) !important;
+    line-height: var(--divan-line-height);
+}
+
+.divan-wordmark {
+    font-family: 'Noto Nastaliq Urdu', serif;
+    font-size: 3.5rem;
+    line-height: 2;
+    color: inherit;
+    text-decoration: none;
+}
+
+#font-toggle {
+    position: fixed;
+    bottom: 20px;
+    left: 74px; /* beside #theme-toggle */
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 22px;
+    background: var(--card-inner);
+    border: 1.5px solid var(--border-gold);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-family: var(--divan-font);
+    color: inherit;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+#font-toggle:hover {
+    background: var(--card-nested);
+    transform: translateY(-2px);
+}

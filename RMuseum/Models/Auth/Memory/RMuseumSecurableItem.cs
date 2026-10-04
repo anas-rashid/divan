@@ -54,9 +54,9 @@ namespace RMuseum.Models.Auth.Memory
         public const string ModerateOperationShortName = "moderate";
 
         ///<summary>
-        /// review suggested ganjoor links
+        /// review suggested divan links
         /// </summary>
-        public const string ReviewGanjoorLinksOperationShortName = "ganjoor";
+        public const string ReviewDivanLinksOperationShortName = "divan";
 
         /// <summary>
         /// audio narrations
@@ -64,9 +64,9 @@ namespace RMuseum.Models.Auth.Memory
         public const string AudioRecitationEntityShortName = "recitation";
 
         /// <summary>
-        /// ganjoor contents
+        /// divan contents
         /// </summary>
-        public const string GanjoorEntityShortName = "ganjoor";
+        public const string DivanEntityShortName = "divan";
 
         /// <summary>
         /// FAQ contents
@@ -143,7 +143,7 @@ namespace RMuseum.Models.Auth.Memory
                             new SecurableItemOperation(EditTagValueOperationShortName, "اصلاح مقدار ویژگی", false),
                             new SecurableItemOperation(ToAwaitingStatusOperationShortName, "درخواست بازبینی", false),
                             new SecurableItemOperation(PublishOperationShortName, "انتشار", false),
-                            new SecurableItemOperation(ReviewGanjoorLinksOperationShortName, "بررسی شعرهای پیشنهادی گنجور", false),
+                            new SecurableItemOperation(ReviewDivanLinksOperationShortName, "بررسی شعرهای پیشنهادی گنجور", false),
                         }
                     },
                     new SecurableItem()
@@ -180,7 +180,7 @@ namespace RMuseum.Models.Auth.Memory
                     },
                     new SecurableItem()
                     {
-                        ShortName = GanjoorEntityShortName,
+                        ShortName = DivanEntityShortName,
                         Description = "محتوای گنجور",
                         Operations = new SecurableItemOperation[]
                         {
@@ -218,7 +218,7 @@ namespace RMuseum.Models.Auth.Memory
                             new SecurableItemOperation(EditTagValueOperationShortName, "اصلاح مقدار ویژگی", false),
                             new SecurableItemOperation(ToAwaitingStatusOperationShortName, "درخواست بازبینی", false),
                             new SecurableItemOperation(PublishOperationShortName, "انتشار", false),
-                            new SecurableItemOperation(ReviewGanjoorLinksOperationShortName, "بررسی شعرهای پیشنهادی گنجور", false),
+                            new SecurableItemOperation(ReviewDivanLinksOperationShortName, "بررسی شعرهای پیشنهادی گنجور", false),
                         }
                     },
                     new SecurableItem()

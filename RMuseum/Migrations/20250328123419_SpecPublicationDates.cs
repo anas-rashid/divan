@@ -13,14 +13,14 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<DateTime>(
                 name: "PublicationDate",
-                table: "GanjoorPoetSuggestedSpecLines",
+                table: "DivanPoetSuggestedSpecLines",
                 type: "datetime2",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
 
             migrationBuilder.AddColumn<DateTime>(
                 name: "PublicationDate",
-                table: "GanjoorPoetSuggestedPictures",
+                table: "DivanPoetSuggestedPictures",
                 type: "datetime2",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
@@ -31,11 +31,11 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "PublicationDate",
-                table: "GanjoorPoetSuggestedSpecLines");
+                table: "DivanPoetSuggestedSpecLines");
 
             migrationBuilder.DropColumn(
                 name: "PublicationDate",
-                table: "GanjoorPoetSuggestedPictures");
+                table: "DivanPoetSuggestedPictures");
         }
     }
 }

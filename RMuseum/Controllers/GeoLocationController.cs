@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using RMuseum.Models.Auth.Memory;
-using RMuseum.Models.Ganjoor;
+using RMuseum.Models.Divan;
 using RMuseum.Services;
 using RSecurityBackend.Models.Auth.Memory;
 using System.Net;
@@ -20,7 +20,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorGeoLocation[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanGeoLocation[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetLocationsAsync()
         {
@@ -38,7 +38,7 @@ namespace RMuseum.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorGeoLocation))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanGeoLocation))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetLocationAsync(int id)
         {
@@ -55,11 +55,11 @@ namespace RMuseum.Controllers
         /// <param name="location"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorGeoLocation))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanGeoLocation))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> AddLocationAsync([FromBody] GanjoorGeoLocation location)
+        public async Task<IActionResult> AddLocationAsync([FromBody] DivanGeoLocation location)
         {
             if (ReadOnlyMode)
                 return BadRequest("سایت به دلایل فنی مثل انتقال سرور موقتاً در حالت فقط خواندنی قرار دارد. لطفاً ساعاتی دیگر مجدداً تلاش کنید.");
@@ -75,11 +75,11 @@ namespace RMuseum.Controllers
         /// <param name="location"></param>
         /// <returns></returns>
         [HttpPut]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> UpdateLocationAsync([FromBody] GanjoorGeoLocation location)
+        public async Task<IActionResult> UpdateLocationAsync([FromBody] DivanGeoLocation location)
         {
             if (ReadOnlyMode)
                 return BadRequest("سایت به دلایل فنی مثل انتقال سرور موقتاً در حالت فقط خواندنی قرار دارد. لطفاً ساعاتی دیگر مجدداً تلاش کنید.");
@@ -90,7 +90,7 @@ namespace RMuseum.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]

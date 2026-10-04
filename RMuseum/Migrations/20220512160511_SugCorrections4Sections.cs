@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoemSectionCorrections",
+                name: "DivanPoemSectionCorrections",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -42,46 +42,46 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoemSectionCorrections", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoemSectionCorrections", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemSectionCorrections_AspNetUsers_ReviewerUserId",
+                        name: "FK_DivanPoemSectionCorrections_AspNetUsers_ReviewerUserId",
                         column: x => x.ReviewerUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemSectionCorrections_AspNetUsers_UserId",
+                        name: "FK_DivanPoemSectionCorrections_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemSectionCorrections_GanjoorPoemSections_SectionId",
+                        name: "FK_DivanPoemSectionCorrections_DivanPoemSections_SectionId",
                         column: x => x.SectionId,
-                        principalTable: "GanjoorPoemSections",
+                        principalTable: "DivanPoemSections",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemSectionCorrections_ReviewerUserId",
-                table: "GanjoorPoemSectionCorrections",
+                name: "IX_DivanPoemSectionCorrections_ReviewerUserId",
+                table: "DivanPoemSectionCorrections",
                 column: "ReviewerUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemSectionCorrections_SectionId",
-                table: "GanjoorPoemSectionCorrections",
+                name: "IX_DivanPoemSectionCorrections_SectionId",
+                table: "DivanPoemSectionCorrections",
                 column: "SectionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemSectionCorrections_UserId",
-                table: "GanjoorPoemSectionCorrections",
+                name: "IX_DivanPoemSectionCorrections_UserId",
+                table: "DivanPoemSectionCorrections",
                 column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorPoemSectionCorrections");
+                name: "DivanPoemSectionCorrections");
         }
     }
 }

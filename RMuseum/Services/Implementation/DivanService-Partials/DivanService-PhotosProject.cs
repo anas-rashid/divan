@@ -1,0 +1,325 @@
+﻿using Microsoft.EntityFrameworkCore;
+using RMuseum.Models.Auth.Memory;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
+using RSecurityBackend.Models.Auth.Memory;
+using RSecurityBackend.Models.Generic;
+using RSecurityBackend.Models.Image;
+using RSecurityBackend.Models.Notification;
+using System;
+using System.Data;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace RMuseum.Services.Implementation
+{
+    /// <summary>
+    /// IDivanService implementation
+    /// </summary>
+    public partial class DivanService : IDivanService
+    {
+        /// <summary>
+        /// return list of suggested spec lines
+        /// </summary>
+        /// <param name="poetId"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPoetSuggestedSpecLineViewModel[]>> GetPoetSuggestedSpecLinesAsync(int poetId)
+        {
+            return new RServiceResult<DivanPoetSuggestedSpecLineViewModel[]>
+                (
+                 await _context.DivanPoetSuggestedSpecLines.AsNoTracking()
+                         .Where
+                         (
+                         r => r.PoetId == poetId
+                         &&
+                         r.Published == true
+                         )
+                         .OrderBy(r => r.LineOrder)
+                         .Select
+                         (
+                     r => new DivanPoetSuggestedSpecLineViewModel()
+                     {
+                         Id = r.Id,
+                         PoetId = r.PoetId,
+                         LineOrder = r.LineOrder,
+                         Contents = r.Contents,
+                         Published = r.Published,
+                         SuggestedById = r.SuggestedById
+                     }
+                     )
+                         .ToArrayAsync()
+                );
+        }
+
+        /// <summary>
+        /// returns specific suggested line for poets
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPoetSuggestedSpecLineViewModel>> GetPoetSuggestedSpecLineAsync(int id)
+        {
+            try
+            {
+
+                return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>
+                 (
+                  await _context.DivanPoetSuggestedSpecLines.AsNoTracking()
+                          .Where
+                          (
+                          r => r.Id == id
+                          )
+                          .Select
+                          (
+                      r => new DivanPoetSuggestedSpecLineViewModel()
+                      {
+                          Id = r.Id,
+                          PoetId = r.PoetId,
+                          LineOrder = r.LineOrder,
+                          Contents = r.Contents,
+                          Published = r.Published,
+                          SuggestedById = r.SuggestedById
+                      }
+                      ).SingleAsync()
+                 );
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// next unpublished suggested line for poets
+        /// </summary>
+        /// <param name="skip"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPoetSuggestedSpecLineViewModel>> GetNextUnmoderatedPoetSuggestedSpecLineAsync(int skip)
+        {
+            try
+            {
+                return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>
+                 (
+                  await _context.DivanPoetSuggestedSpecLines.AsNoTracking()
+                          .Where
+                          (
+                          r => r.Published == false
+                          )
+                          .Skip(skip)
+                          .Select
+                          (
+                      r => new DivanPoetSuggestedSpecLineViewModel()
+                      {
+                          Id = r.Id,
+                          PoetId = r.PoetId,
+                          LineOrder = r.LineOrder,
+                          Contents = r.Contents,
+                          Published = r.Published,
+                          SuggestedById = r.SuggestedById
+                      }
+                      ).FirstOrDefaultAsync()
+                 );
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// upublished suggested lines count for poets
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RServiceResult<int>> GetNextUnmoderatedPoetSuggestedSpecLinesCountAsync()
+        {
+            try
+            {
+                return new RServiceResult<int>
+                 (
+                  await _context.DivanPoetSuggestedSpecLines
+                          .Where
+                          (
+                          r => r.Published == false
+                          )
+                          .CountAsync()
+                 );
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<int>(0, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// add a suggestion for poets spec lines
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+
+        public async Task<RServiceResult<DivanPoetSuggestedSpecLineViewModel>> AddPoetSuggestedSpecLinesAsync(DivanPoetSuggestedSpecLineViewModel model)
+        {
+            try
+            {
+                // this is typed in the same TinyMCE editor used for comments, and once
+                // published it is shown to anonymous visitors on the poet's page, so it needs
+                // the same sanitizing (and the same guard against silently keeping a half-baked
+                // suggestion when sanitizing had to drop real text because of invalid markup)
+                var processedContents = await _ProcessCommentHtml(model.Contents, _context);
+                if (processedContents.TextWasDropped)
+                {
+                    return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>(null, _BuildSanitizerDroppedTextError(processedContents.RemainingPlainText));
+                }
+                model.Contents = processedContents.Html;
+
+                var dbModel = new DivanPoetSuggestedSpecLine()
+                {
+                    PoetId = model.PoetId,
+                    Contents = model.Contents,
+                    Published = false,
+                    SuggestedById = model.SuggestedById,
+                };
+                dbModel.LineOrder = await _context.DivanPoetSuggestedSpecLines.Where(s => s.PoetId == model.PoetId).CountAsync() + 1;
+                _context.Add(dbModel);
+                await _context.SaveChangesAsync();
+                model.Published = false;
+                model.Id = dbModel.Id;
+                var moderators = await _appUserService.GetUsersHavingPermission(RMuseumSecurableItem.DivanEntityShortName, RMuseumSecurableItem.ModeratePoetPhotos);
+                if (string.IsNullOrEmpty(moderators.ExceptionString)) //if not, do nothing!
+                {
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == model.PoetId).SingleAsync();
+                    foreach (var moderator in moderators.Result)
+                    {
+                        await _notificationService.PushNotification
+                                        (
+                                            (Guid)moderator.Id,
+                                            "ثبت مشخصات جدید برای سخنور",
+                                            $"درخواستی برای ثبت مشخصات جدید برای «{poet.Nickname}» ثبت شده است. در صورت تمایل به بررسی، بخش مربوط به سخنور را <a href=\"https://ganjoor.net/User/SuggestedPoetSpecLines\">اینجا</a> ببینید.{ Environment.NewLine}" +
+                                            $"توجه فرمایید که اگر کاربر دیگری که دارای مجوز بررسی مشخصات است پیش از شما به آن رسیدگی کرده باشد آن را در صف نخواهید دید.",
+                                            NotificationType.ActionRequired
+                                        );
+                    }
+                }
+
+                return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>(model);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPoetSuggestedSpecLineViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// modify a suggestion for poets spec lines
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<bool>> ModifyPoetSuggestedSpecLinesAsync(DivanPoetSuggestedSpecLineViewModel model)
+        {
+            try
+            {
+
+                var dbModel = await _context.DivanPoetSuggestedSpecLines.Where(s => s.Id == model.Id).SingleAsync();
+
+                var processedContents = await _ProcessCommentHtml(model.Contents, _context);
+                if (processedContents.TextWasDropped)
+                {
+                    return new RServiceResult<bool>(false, _BuildSanitizerDroppedTextError(processedContents.RemainingPlainText));
+                }
+                model.Contents = processedContents.Html;
+
+                bool publishIsChanged = model.Published != dbModel.Published;
+                if (publishIsChanged)
+                {
+                    dbModel.PublicationDate = DateTime.Now;
+                }
+                dbModel.LineOrder = model.LineOrder;
+                dbModel.Contents = model.Contents;
+                dbModel.Published = model.Published;
+                _context.Update(dbModel);
+                await _context.SaveChangesAsync();
+
+                if (publishIsChanged && model.Published && dbModel.SuggestedById != null)
+                {
+                    var userRes = await _appUserService.GetUserInformation((Guid)dbModel.SuggestedById);
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
+                    await _notificationService.PushNotification((Guid)dbModel.SuggestedById,
+                                      $"پذیرش مشارکت شما در مشخصات {poet.Nickname}",
+                                      $"با سپاس! پیشنهاد شما برای مشخصات {poet.Nickname} مورد پذیرش قرار گرفت. پیشنها شما: {Environment.NewLine}" +
+                                      $"{model.Contents}"
+                                      );
+                }
+
+                return new RServiceResult<bool>(true);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<bool>(false, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// delete  a suggestion for poets spec lines
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="deleteUserId"></param>
+        /// <param name="rejectionCause"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<bool>> RejectPoetSuggestedSpecLinesAsync(int id, Guid deleteUserId, string rejectionCause)
+        {
+            try
+            {
+                var dbModel = await _context.DivanPoetSuggestedSpecLines.Where(s => s.Id == id).SingleAsync();
+
+
+                if (!dbModel.Published && dbModel.SuggestedById != null)
+                {
+                    var userRes = await _appUserService.GetUserInformation((Guid)dbModel.SuggestedById);
+                    var poet = await _context.DivanPoets.AsNoTracking().Where(p => p.Id == dbModel.PoetId).SingleAsync();
+                    string causePhrase = string.IsNullOrEmpty(rejectionCause) ? "" : $" به دلیل {rejectionCause} ";
+                    await _notificationService.PushNotification((Guid)dbModel.SuggestedById,
+                                      $"عدم پذیرش مشارکت شما در مشخصات {poet.Nickname}",
+                                      $"متأسفانه پیشنهاد شما برای مشخصات {poet.Nickname}{causePhrase} مورد پذیرش قرار نگرفت. پیشنها شما: {Environment.NewLine}" +
+                                      $"{dbModel.Contents}",
+                                      NotificationType.Warning
+                                      );
+                }
+
+                _context.Remove(dbModel);
+                await _context.SaveChangesAsync();
+
+                return new RServiceResult<bool>(true);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<bool>(false, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// delete published suggested spec line
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<bool>> DeletePoetSuggestedSpecLinesAsync(int id)
+        {
+            try
+            {
+                var dbModel = await _context.DivanPoetSuggestedSpecLines.Where(s => s.Id == id).SingleAsync();
+                if (!dbModel.Published)
+                {
+                    return new RServiceResult<bool>(false, "برای رد مشخصات تأیید نشده از تابع reject استفاده کنید.");
+                }
+                _context.Remove(dbModel);
+                await _context.SaveChangesAsync();
+                return new RServiceResult<bool>(true);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<bool>(false, exp.ToString());
+            }
+        }
+
+
+
+    }
+}

@@ -10,9 +10,9 @@ namespace RMuseum.Utils.SemanticSearch
     ///
     /// The original design registered EmbeddingIndex/QueryEmbedder as singletons whose DI
     /// factories called EmbeddingIndex.Load(...)/`new QueryEmbedder(...)` directly — both of
-    /// which throw on failure. Because GanjoorController's constructor (indirectly, through
+    /// which throw on failure. Because DivanController's constructor (indirectly, through
     /// ISemanticSearchService) depended on them, a load failure meant the controller itself
-    /// couldn't be constructed — taking down EVERY endpoint under /api/ganjoor, not just semantic
+    /// couldn't be constructed — taking down EVERY endpoint under /api/divan, not just semantic
     /// search, with a 503. That's exactly what happened in production. This class exists so that
     /// can't happen again: the actual load is deferred to first real use (not app/controller
     /// construction), attempted at most once, and a failure is caught, logged, and remembered —
@@ -50,7 +50,7 @@ namespace RMuseum.Utils.SemanticSearch
 
         /// <summary>
         /// A gentle re-ranking multiplier applied to results whose PoemSummary is still
-        /// AI-generated and un-reviewed (detected by the "هوش مصنوعی:" prefix ganjoor-data's own
+        /// AI-generated and un-reviewed (detected by the "هوش مصنوعی:" prefix divan-data's own
         /// editing workflow requires removing once a human has reviewed/edited a summary — see
         /// SemanticSearchService for how this is actually applied). A soft nudge, not a filter:
         /// ~95% of summaries currently carry this prefix, so excluding them outright would gut

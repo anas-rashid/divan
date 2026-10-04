@@ -1,0 +1,1489 @@
+using Microsoft.EntityFrameworkCore;
+using RMuseum.DbContext;
+using RMuseum.Models.Auth.Memory;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
+using RSecurityBackend.Models.Auth.Memory;
+using RSecurityBackend.Models.Generic;
+using RSecurityBackend.Models.Notification;
+using RSecurityBackend.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace RMuseum.Services.Implementation
+{
+    /// <summary>
+    /// related people service implementation
+    /// </summary>
+    public class DivanRelatedPersonService : IDivanRelatedPersonService
+    {
+        /// <summary>
+        /// get all people
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanRelatedPerson[]>> GetPeopleAsync()
+        {
+            try
+            {
+                return new RServiceResult<DivanRelatedPerson[]>
+                    (
+                    await _context.DivanRelatedPersons
+                    .OrderBy(p => p.Name).ToArrayAsync()
+                    );
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanRelatedPerson[]>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get person by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanRelatedPerson>> GetPersonAsync(int id)
+        {
+            try
+            {
+                return new RServiceResult<DivanRelatedPerson>
+                    (
+                    await _context.DivanRelatedPersons
+                    .Where(p => p.Id == id)
+                    .SingleOrDefaultAsync()
+                    );
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanRelatedPerson>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get people who caption a family tree
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanRelatedPerson[]>> GetFamilyTreeRootsAsync()
+        {
+            try
+            {
+                return new RServiceResult<DivanRelatedPerson[]>
+                    (
+                    await _context.DivanRelatedPersons
+                    .Where(p => !string.IsNullOrEmpty(p.FamilyTreeCaption))
+                    .OrderBy(p => p.FamilyTreeCaption)
+                    .ToArrayAsync()
+                    );
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanRelatedPerson[]>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get a person along with all their kinship/affiliation edges
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonRelationsViewModel>> GetPersonRelationsAsync(int id)
+        {
+            try
+            {
+                var person = await _context.DivanRelatedPersons.Where(p => p.Id == id).SingleOrDefaultAsync();
+                if (person == null)
+                {
+                    return new RServiceResult<DivanPersonRelationsViewModel>(null, "شخصیت پیدا نشد.");
+                }
+
+                var relationRows = await _context.DivanPersonRelations
+                    .Include(r => r.Person1)
+                    .Include(r => r.Person2)
+                    .Where(r => r.Person1Id == id || r.Person2Id == id)
+                    .ToListAsync();
+
+                var relations = relationRows.Select(r => new DivanPersonRelationInfo()
+                {
+                    Id = r.Id,
+                    OtherPersonId = r.Person1Id == id ? r.Person2Id : r.Person1Id,
+                    OtherPersonName = r.Person1Id == id ? r.Person2.Name : r.Person1.Name,
+                    RelationType = r.RelationType,
+                    DegreeHint = r.DegreeHint,
+                    Note = r.Note,
+                    SubjectIsPerson1 = r.Person1Id == id,
+                }).ToList();
+
+                var affiliationRows = await _context.DivanPersonAffiliations
+                    .Include(a => a.Person1)
+                    .Include(a => a.Person2)
+                    .Where(a => a.Person1Id == id || a.Person2Id == id)
+                    .ToListAsync();
+
+                var affiliations = affiliationRows.Select(a => new DivanPersonAffiliationInfo()
+                {
+                    Id = a.Id,
+                    OtherPersonId = a.Person1Id == id ? a.Person2Id : a.Person1Id,
+                    OtherPersonName = a.Person1Id == id ? a.Person2.Name : a.Person1.Name,
+                    AffiliationType = a.AffiliationType,
+                    Note = a.Note,
+                    SubjectIsPerson1 = a.Person1Id == id,
+                }).ToList();
+
+                return new RServiceResult<DivanPersonRelationsViewModel>(new DivanPersonRelationsViewModel()
+                {
+                    Person = person,
+                    Relations = relations,
+                    Affiliations = affiliations,
+                });
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonRelationsViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get the (approved, materialized) poem geo/date tags that name this person
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<PoemGeoDateTag[]>> GetPoemsByPersonAsync(int id)
+        {
+            try
+            {
+                var tags = await _context.PoemGeoDateTags
+                    .Include(t => t.Poem)
+                    .Where(t => t.PersonId == id && t.MachineGenerated == false)
+                    .OrderBy(t => t.Id)
+                    .ToArrayAsync();
+
+                // Poem is included only to get to FullUrl/FullTitle for a link - strip the heavy
+                // text fields before this goes over the wire, same as GetCatPoemGeoDateTagsAsync does
+                foreach (var tag in tags)
+                {
+                    if (tag.Poem != null)
+                    {
+                        tag.Poem.HtmlText = null;
+                        tag.Poem.PlainText = null;
+                    }
+
+                    // fill in the tagged couplet's own text (CoupletIndex 0 means "whole poem" - no
+                    // single couplet to show), so the person page can show the actual verse instead
+                    // of just a link to the poem it came from
+                    if (tag.CoupletIndex > 0)
+                    {
+                        var coupletVerses = await _context.DivanVerses.AsNoTracking()
+                            .Where(v => v.PoemId == tag.PoemId && v.CoupletIndex == tag.CoupletIndex)
+                            .OrderBy(v => v.VOrder)
+                            .ToListAsync();
+                        if (coupletVerses.Count > 0)
+                        {
+                            tag.CoupletText = string.Join(" ", coupletVerses.Select(v => v.Text)).Trim();
+                        }
+                    }
+                }
+
+                return new RServiceResult<PoemGeoDateTag[]>(tags);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<PoemGeoDateTag[]>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get the whole connected kinship component reachable from this person
+        /// </summary>
+        /// <param name="rootId"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanFamilyTreeViewModel>> GetFamilyTreeAsync(int rootId)
+        {
+            try
+            {
+                var rootExists = await _context.DivanRelatedPersons.Where(p => p.Id == rootId).AnyAsync();
+                if (!rootExists)
+                {
+                    return new RServiceResult<DivanFamilyTreeViewModel>(null, "شخصیت پیدا نشد.");
+                }
+
+                // kinship graph tends to be small (a few hundred rows at most for this kind of data),
+                // so it's simplest/cheapest to load the whole table and walk it in memory rather than
+                // issuing a recursive query
+                var allRelations = await _context.DivanPersonRelations.ToListAsync();
+
+                var edgesByPersonId = new Dictionary<int, List<DivanPersonRelation>>();
+                void IndexEdge(int personId, DivanPersonRelation edge)
+                {
+                    if (!edgesByPersonId.TryGetValue(personId, out var list))
+                    {
+                        list = new List<DivanPersonRelation>();
+                        edgesByPersonId[personId] = list;
+                    }
+                    list.Add(edge);
+                }
+                foreach (var edge in allRelations)
+                {
+                    IndexEdge(edge.Person1Id, edge);
+                    IndexEdge(edge.Person2Id, edge);
+                }
+
+                var visitedPersonIds = new HashSet<int>() { rootId };
+                var visitedRelationIds = new HashSet<int>();
+                var queue = new Queue<int>();
+                queue.Enqueue(rootId);
+
+                while (queue.Count > 0)
+                {
+                    var personId = queue.Dequeue();
+                    if (!edgesByPersonId.TryGetValue(personId, out var touchingEdges))
+                        continue;
+
+                    foreach (var edge in touchingEdges)
+                    {
+                        visitedRelationIds.Add(edge.Id);
+                        var otherPersonId = edge.Person1Id == personId ? edge.Person2Id : edge.Person1Id;
+                        if (visitedPersonIds.Add(otherPersonId))
+                        {
+                            queue.Enqueue(otherPersonId);
+                        }
+                    }
+                }
+
+                var persons = await _context.DivanRelatedPersons
+                    .Where(p => visitedPersonIds.Contains(p.Id))
+                    .OrderBy(p => p.Id)
+                    .ToListAsync();
+
+                var relations = allRelations
+                    .Where(r => visitedRelationIds.Contains(r.Id))
+                    .Select(r => new DivanFamilyTreeEdge()
+                    {
+                        Person1Id = r.Person1Id,
+                        Person2Id = r.Person2Id,
+                        RelationType = r.RelationType,
+                        DegreeHint = r.DegreeHint,
+                    })
+                    .ToList();
+
+                return new RServiceResult<DivanFamilyTreeViewModel>(new DivanFamilyTreeViewModel()
+                {
+                    RootId = rootId,
+                    Persons = persons,
+                    Relations = relations,
+                });
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanFamilyTreeViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// finds another person already carrying a non-null FamilyTreeCaption within the same
+        /// connected kinship component as personId (if any). Captions are resolved per requested
+        /// person, not stored on the tree itself, so nothing stops two different people in one
+        /// connected component from each getting their own caption - which would silently produce
+        /// two separate "family tree" list entries (GetFamilyTreeRootsAsync) that both open to the
+        /// exact same graph. This is used to catch that at approval time rather than let it happen
+        /// silently; it only ever flags an OTHER person, so re-saving/editing the caption a person
+        /// already uniquely holds in their own tree is never blocked by it.
+        /// </summary>
+        private async Task<DivanRelatedPerson> _FindOtherFamilyTreeCaptionHolderInComponentAsync(int personId)
+        {
+            var allRelations = await _context.DivanPersonRelations.ToListAsync();
+            var edgesByPersonId = new Dictionary<int, List<DivanPersonRelation>>();
+            void IndexEdge(int pid, DivanPersonRelation edge)
+            {
+                if (!edgesByPersonId.TryGetValue(pid, out var list))
+                {
+                    list = new List<DivanPersonRelation>();
+                    edgesByPersonId[pid] = list;
+                }
+                list.Add(edge);
+            }
+            foreach (var edge in allRelations)
+            {
+                IndexEdge(edge.Person1Id, edge);
+                IndexEdge(edge.Person2Id, edge);
+            }
+
+            var visited = new HashSet<int>() { personId };
+            var queue = new Queue<int>();
+            queue.Enqueue(personId);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (!edgesByPersonId.TryGetValue(current, out var touchingEdges))
+                    continue;
+                foreach (var edge in touchingEdges)
+                {
+                    var otherPersonId = edge.Person1Id == current ? edge.Person2Id : edge.Person1Id;
+                    if (visited.Add(otherPersonId))
+                    {
+                        queue.Enqueue(otherPersonId);
+                    }
+                }
+            }
+            visited.Remove(personId);
+
+            if (visited.Count == 0)
+                return null;
+
+            return await _context.DivanRelatedPersons
+                .Where(p => visited.Contains(p.Id) && !string.IsNullOrEmpty(p.FamilyTreeCaption))
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// loads every directed ancestor-type kinship edge (RelationType Parent or Ancestor,
+        /// Person1 = ancestor, Person2 = descendant) currently in the live graph, optionally
+        /// excluding one relation row by id (used so a Modify suggestion can be checked against
+        /// every OTHER edge without tripping on the very row it's about to replace)
+        /// </summary>
+        private async Task<List<DivanPersonRelation>> _GetAncestorEdgesAsync(int? excludeRelationId)
+        {
+            var query = _context.DivanPersonRelations
+                .Where(r => r.RelationType == PersonRelationType.Parent || r.RelationType == PersonRelationType.Ancestor);
+            if (excludeRelationId != null)
+            {
+                query = query.Where(r => r.Id != excludeRelationId.Value);
+            }
+            return await query.ToListAsync();
+        }
+
+        /// <summary>
+        /// true if adding a directed ancestor-type edge ancestorId -&gt; descendantId (ancestorId
+        /// becomes a parent/ancestor of descendantId) would create a cycle in the kinship graph -
+        /// i.e. descendantId is already (directly or transitively) an ancestor of ancestorId, or
+        /// they're literally the same person. Without this, nothing stops e.g. approving "A is
+        /// parent of B" and later "B is parent of A", which familytree.js's unguarded recursive
+        /// layout() would then infinite-loop on when rendering that tree.
+        /// </summary>
+        private async Task<bool> _WouldCreateAncestryCycleAsync(int ancestorId, int descendantId, int? excludeRelationId)
+        {
+            if (ancestorId == descendantId)
+                return true;
+
+            var edges = await _GetAncestorEdgesAsync(excludeRelationId);
+            var childrenOf = new Dictionary<int, List<int>>();
+            foreach (var edge in edges)
+            {
+                if (!childrenOf.TryGetValue(edge.Person1Id, out var list))
+                {
+                    list = new List<int>();
+                    childrenOf[edge.Person1Id] = list;
+                }
+                list.Add(edge.Person2Id);
+            }
+
+            // walk forward from descendantId: if it can already reach ancestorId through existing
+            // edges, descendantId is already an ancestor of ancestorId, so the new edge would close a loop
+            var visited = new HashSet<int>() { descendantId };
+            var queue = new Queue<int>();
+            queue.Enqueue(descendantId);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                if (current == ancestorId)
+                    return true;
+                if (!childrenOf.TryGetValue(current, out var children))
+                    continue;
+                foreach (var child in children)
+                {
+                    if (visited.Add(child))
+                    {
+                        queue.Enqueue(child);
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// counts this child's distinct existing Parent-type edges (biological parents), optionally
+        /// excluding one relation row by id - used to cap a person at two recorded parents, since
+        /// familytree.js's buildLayout only ever attaches the first two it sorts to the front and
+        /// silently drops any further ones with no error
+        /// </summary>
+        private async Task<int> _CountParentsAsync(int childId, int? excludeRelationId)
+        {
+            var query = _context.DivanPersonRelations
+                .Where(r => r.RelationType == PersonRelationType.Parent && r.Person2Id == childId);
+            if (excludeRelationId != null)
+            {
+                query = query.Where(r => r.Id != excludeRelationId.Value);
+            }
+            return await query.Select(r => r.Person1Id).Distinct().CountAsync();
+        }
+
+        /// <summary>
+        /// returns an existing kinship edge between this unordered pair (if any), other than
+        /// excludeRelationId, whose RelationType differs from proposedType - used to stop a pair
+        /// from simultaneously carrying two contradictory family relations (e.g. Parent AND Spouse,
+        /// or Parent AND Sibling, between the very same two people)
+        /// </summary>
+        private async Task<DivanPersonRelation> _GetConflictingRelationAsync(int person1Id, int person2Id, PersonRelationType proposedType, int? excludeRelationId)
+        {
+            var query = _context.DivanPersonRelations
+                .Include(r => r.Person1)
+                .Include(r => r.Person2)
+                .Where(r =>
+                    ((r.Person1Id == person1Id && r.Person2Id == person2Id) || (r.Person1Id == person2Id && r.Person2Id == person1Id))
+                    && r.RelationType != proposedType);
+            if (excludeRelationId != null)
+            {
+                query = query.Where(r => r.Id != excludeRelationId.Value);
+            }
+            return await query.FirstOrDefaultAsync();
+        }
+
+        /// <summary>
+        /// runs every family-relation data-integrity check (self-reference is checked separately by
+        /// the caller for Add) that applies to adding/changing a kinship edge of relationType between
+        /// person1Id and person2Id: ancestry cycles, the two-parents cap, and contradictory relation
+        /// types already existing between the same pair. Returns a Persian error message, or null if
+        /// the edge is fine to create/apply. Shared by SuggestPersonRelationEditAsync (so a
+        /// contradictory suggestion is rejected up front) and ModeratePersonRelationEditSuggestionAsync
+        /// (so it's still caught even if another suggestion was approved in the meantime, or the
+        /// submission-time check is ever bypassed).
+        /// </summary>
+        private async Task<string> _ValidateFamilyRelationAsync(int person1Id, int person2Id, PersonRelationType relationType, int? excludeRelationId)
+        {
+            if (relationType == PersonRelationType.Parent || relationType == PersonRelationType.Ancestor)
+            {
+                if (await _WouldCreateAncestryCycleAsync(person1Id, person2Id, excludeRelationId))
+                {
+                    return "این نسبت باعث ایجاد حلقهٔ تناقض‌آمیز در شجره‌نامه می‌شود (مثلاً فردی نیای خود شناخته می‌شود). لطفاً نسبت‌های موجود بین این دو نفر و نیاکان/نوادگان آن‌ها را بررسی کنید.";
+                }
+            }
+
+            if (relationType == PersonRelationType.Parent)
+            {
+                var existingParentsCount = await _CountParentsAsync(person2Id, excludeRelationId);
+                if (existingParentsCount >= 2)
+                {
+                    return "این نامبرده هم‌اکنون دو پدر/مادر ثبت‌شده دارد. برای افزودن سومی، نخست یکی از نسبت‌های پدر/مادری موجود را ویرایش یا حذف کنید.";
+                }
+            }
+
+            var conflictingRelation = await _GetConflictingRelationAsync(person1Id, person2Id, relationType, excludeRelationId);
+            if (conflictingRelation != null)
+            {
+                return $"هم‌اکنون نسبت خویشاوندی دیگری بین «{conflictingRelation.Person1?.Name}» و «{conflictingRelation.Person2?.Name}» ثبت شده که با نوع جدید پیشنهادی در تناقض است. لطفاً نخست آن را ویرایش یا حذف کنید.";
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// affiliation types whose two sides are interchangeable (Person1/Person2 order carries no
+        /// meaning) - mirrors the convention already baked into SuggestNewPersonRelation.cshtml's
+        /// dropdown, where these are the only affiliation options with no "_Other"/"_Subject" pair
+        /// </summary>
+        private static readonly HashSet<PersonAffiliationType> _symmetricAffiliationTypes = new HashSet<PersonAffiliationType>()
+        {
+            PersonAffiliationType.Ally,
+            PersonAffiliationType.Rival,
+            PersonAffiliationType.Companion,
+            PersonAffiliationType.Contemporary,
+        };
+
+        /// <summary>
+        /// true if modifying an affiliation edge from oldType to newType would cross the symmetric/
+        /// directional boundary - PersonAffiliationType.Other is excluded on either side, since its
+        /// direction (if any) is whatever the free-text Note says rather than something the type
+        /// itself implies, so moving into/out of Other is never treated as crossing the boundary
+        /// </summary>
+        private static bool _CrossesSymmetricDirectionalBoundary(PersonAffiliationType oldType, PersonAffiliationType newType)
+        {
+            if (oldType == PersonAffiliationType.Other || newType == PersonAffiliationType.Other)
+                return false;
+            return _symmetricAffiliationTypes.Contains(oldType) != _symmetricAffiliationTypes.Contains(newType);
+        }
+
+        /// <summary>
+        /// submit a suggested edit to an already-approved person's own fields
+        /// </summary>
+        /// <param name="suggestion"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonEditSuggestion>> SuggestPersonEditAsync(DivanPersonEditSuggestion suggestion)
+        {
+            try
+            {
+                if (suggestion == null || (!suggestion.SuggestedForDeletion && string.IsNullOrWhiteSpace(suggestion.SuggestedName)))
+                {
+                    return new RServiceResult<DivanPersonEditSuggestion>(null, "نام شخصیت نمی‌تواند خالی باشد.");
+                }
+
+                var person = await _context.DivanRelatedPersons.Where(p => p.Id == suggestion.PersonId).SingleOrDefaultAsync();
+                if (person == null)
+                {
+                    return new RServiceResult<DivanPersonEditSuggestion>(null, "شخصیت پیدا نشد.");
+                }
+
+                suggestion.Id = 0;
+                suggestion.Date = DateTime.Now;
+                suggestion.SuggestedName = suggestion.SuggestedName?.Trim();
+                suggestion.SuggestedDescription = string.IsNullOrWhiteSpace(suggestion.SuggestedDescription) ? null : suggestion.SuggestedDescription.Trim();
+                suggestion.SuggestedWikiUrl = string.IsNullOrWhiteSpace(suggestion.SuggestedWikiUrl) ? null : suggestion.SuggestedWikiUrl.Trim();
+                suggestion.SuggestedFamilyTreeCaption = string.IsNullOrWhiteSpace(suggestion.SuggestedFamilyTreeCaption) ? null : suggestion.SuggestedFamilyTreeCaption.Trim();
+                suggestion.Reviewed = false;
+                suggestion.Result = CorrectionReviewResult.NotReviewed;
+                suggestion.ReviewNote = null;
+                suggestion.ReviewerUserId = null;
+
+                _context.DivanPersonEditSuggestions.Add(suggestion);
+                await _context.SaveChangesAsync();
+
+                await NotifyModeratorsOfPendingSuggestionAsync(
+                    suggestion.SuggestedForDeletion ? "پیشنهاد حذف شخصیت" : "پیشنهاد ویرایش شخصیت",
+                    (suggestion.SuggestedForDeletion
+                        ? $"کاربری پیشنهاد حذف شخصیت «{person.Name}» را داده است."
+                        : $"کاربری ویرایش جدیدی برای شخصیت «{person.Name}» پیشنهاد داده است.") +
+                    $" لطفاً بخش <a href=\"https://ganjoor.net/Admin/ReviewPersonEdits\">ویرایش‌های پیشنهادی شخصیت‌ها</a> را بررسی فرمایید."
+                );
+
+                return new RServiceResult<DivanPersonEditSuggestion>(suggestion);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonEditSuggestion>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get the next unreviewed person-edit suggestion for the moderator queue
+        /// </summary>
+        /// <param name="skip"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonEditSuggestion>> GetNextUnreviewedPersonEditSuggestionAsync(int skip)
+        {
+            try
+            {
+                var suggestion = await _context.DivanPersonEditSuggestions
+                    .Include(s => s.Person)
+                    .Include(s => s.User)
+                    .Include(s => s.SuggestedBirthLocation)
+                    .Include(s => s.SuggestedDeathLocation)
+                    .Where(s => s.Reviewed == false)
+                    .OrderBy(s => s.Id)
+                    .Skip(skip)
+                    .FirstOrDefaultAsync();
+
+                return new RServiceResult<DivanPersonEditSuggestion>(suggestion);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonEditSuggestion>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// unreviewed person-edit suggestion count
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RServiceResult<int>> GetUnreviewedPersonEditSuggestionCountAsync()
+        {
+            try
+            {
+                return new RServiceResult<int>(await _context.DivanPersonEditSuggestions.Where(s => s.Reviewed == false).CountAsync());
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<int>(0, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// apply a moderator's decision to a pending person-edit suggestion
+        /// </summary>
+        /// <param name="moderatorUserId"></param>
+        /// <param name="suggestionId"></param>
+        /// <param name="result"></param>
+        /// <param name="reviewNote"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonEditSuggestion>> ModeratePersonEditSuggestionAsync(Guid moderatorUserId, int suggestionId, CorrectionReviewResult result, string reviewNote)
+        {
+            try
+            {
+                var suggestion = await _context.DivanPersonEditSuggestions.Where(s => s.Id == suggestionId).SingleOrDefaultAsync();
+                if (suggestion == null)
+                {
+                    return new RServiceResult<DivanPersonEditSuggestion>(null, "پیشنهاد ویرایش پیدا نشد.");
+                }
+
+                if (suggestion.Reviewed)
+                {
+                    return new RServiceResult<DivanPersonEditSuggestion>(null, "این پیشنهاد پیش‌تر بررسی شده است.");
+                }
+
+                var person = await _context.DivanRelatedPersons.Where(p => p.Id == suggestion.PersonId).SingleOrDefaultAsync();
+                if (person == null)
+                {
+                    return new RServiceResult<DivanPersonEditSuggestion>(null, "شخصیت مقصد این پیشنهاد پیدا نشد.");
+                }
+                var personName = person.Name; // snapshot before a possible deletion below, for the notification text
+
+                if (result == CorrectionReviewResult.Approved)
+                {
+                    if (suggestion.SuggestedForDeletion)
+                    {
+                        await DeletePersonAndReferencesAsync(person);
+                    }
+                    else
+                    {
+                        if (!string.IsNullOrWhiteSpace(suggestion.SuggestedFamilyTreeCaption))
+                        {
+                            var otherCaptionHolder = await _FindOtherFamilyTreeCaptionHolderInComponentAsync(person.Id);
+                            if (otherCaptionHolder != null)
+                            {
+                                return new RServiceResult<DivanPersonEditSuggestion>(null,
+                                    $"شخصیت «{otherCaptionHolder.Name}» هم‌اکنون در همین خوشهٔ خویشاوندی (همان شجره‌نامه) عنوان تبارنامهٔ «{otherCaptionHolder.FamilyTreeCaption}» را دارد. تأیید این پیشنهاد باعث می‌شود یک شجره‌نامهٔ واحد دو عنوان/مدخل جداگانه در فهرست شجره‌نامه‌ها پیدا کند. نخست عنوان «{otherCaptionHolder.Name}» را حذف یا ویرایش کنید، یا این پیشنهاد را رد کنید.");
+                            }
+                        }
+
+                        person.Name = suggestion.SuggestedName;
+                        person.Description = suggestion.SuggestedDescription;
+                        person.WikiUrl = suggestion.SuggestedWikiUrl;
+                        person.BirthYearInLHijri = suggestion.SuggestedBirthYearInLHijri;
+                        person.DeathYearInLHijri = suggestion.SuggestedDeathYearInLHijri;
+                        person.ValidBirthDate = suggestion.SuggestedValidBirthDate;
+                        person.ValidDeathDate = suggestion.SuggestedValidDeathDate;
+                        person.BirthLocationId = suggestion.SuggestedBirthLocationId;
+                        person.DeathLocationId = suggestion.SuggestedDeathLocationId;
+                        person.FamilyTreeCaption = suggestion.SuggestedFamilyTreeCaption;
+                        person.Importance = suggestion.SuggestedImportance;
+                        person.Gender = suggestion.SuggestedGender;
+                        // Id and MachineGenerated on the person are intentionally left untouched
+                    }
+                }
+
+                suggestion.Reviewed = true;
+                suggestion.Result = result;
+                suggestion.ReviewNote = reviewNote;
+                suggestion.ReviewDate = DateTime.Now;
+                suggestion.ReviewerUserId = moderatorUserId;
+
+                await _context.SaveChangesAsync();
+
+                if (result == CorrectionReviewResult.Approved)
+                {
+                    await _notificationService.PushNotification(
+                        suggestion.UserId,
+                        suggestion.SuggestedForDeletion ? "تأیید حذف شخصیت پیشنهادی" : "تأیید ویرایش پیشنهادی شخصیت",
+                        suggestion.SuggestedForDeletion
+                            ? $"پیشنهاد شما برای حذف شخصیت «{personName}» تأیید و اعمال شد. از این که به تکمیل اطلاعات گنجور کمک کردید سپاسگزاریم."
+                            : $"ویرایش پیشنهادی شما برای شخصیت «{personName}» تأیید و اعمال شد. از این که به تکمیل اطلاعات گنجور کمک کردید سپاسگزاریم."
+                    );
+                }
+                else
+                {
+                    await _notificationService.PushNotification(
+                        suggestion.UserId,
+                        suggestion.SuggestedForDeletion ? "رد پیشنهاد حذف شخصیت" : "رد ویرایش پیشنهادی شخصیت",
+                        (suggestion.SuggestedForDeletion
+                            ? $"پیشنهاد شما برای حذف شخصیت «{personName}» تأیید نشد."
+                            : $"ویرایش پیشنهادی شما برای شخصیت «{personName}» تأیید نشد.") +
+                        (string.IsNullOrWhiteSpace(reviewNote) ? "" : $"{Environment.NewLine}یادداشت بازبین: «{reviewNote}»"),
+                        NotificationType.Warning
+                    );
+                }
+
+                return new RServiceResult<DivanPersonEditSuggestion>(suggestion);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonEditSuggestion>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// removes a person and every row that would otherwise block that deletion at the database
+        /// level (kinship edges, affiliations, and other pending relation-edit suggestions touching
+        /// them - all Restrict-on-delete FKs, see RMuseumDbContext.OnModelCreating), plus detaches
+        /// (but does not delete) any approved poem geo/date tag that named them, since the tag
+        /// itself may still carry a real location/date worth keeping.
+        /// </summary>
+        private async Task DeletePersonAndReferencesAsync(DivanRelatedPerson person)
+        {
+            var relations = await _context.DivanPersonRelations
+                .Where(r => r.Person1Id == person.Id || r.Person2Id == person.Id)
+                .ToListAsync();
+            var relationIds = relations.Select(r => r.Id).ToList();
+
+            var affiliations = await _context.DivanPersonAffiliations
+                .Where(a => a.Person1Id == person.Id || a.Person2Id == person.Id)
+                .ToListAsync();
+            var affiliationIds = affiliations.Select(a => a.Id).ToList();
+
+            // any other still-pending relation-edit suggestion that touches this person directly, or
+            // targets one of the relations/affiliations we're about to remove, would otherwise dangle
+            // or violate the Restrict FKs above - auto-reject those with an explanatory note rather
+            // than letting the delete fail or silently drop them
+            var conflictingRelationSuggestions = await _context.DivanPersonRelationEditSuggestions
+                .Where(s => !s.Reviewed && (
+                    s.Person1Id == person.Id ||
+                    s.Person2Id == person.Id ||
+                    (s.ExistingRelationId != null && relationIds.Contains(s.ExistingRelationId.Value)) ||
+                    (s.ExistingAffiliationId != null && affiliationIds.Contains(s.ExistingAffiliationId.Value))
+                ))
+                .ToListAsync();
+            foreach (var conflicting in conflictingRelationSuggestions)
+            {
+                conflicting.Reviewed = true;
+                conflicting.Result = CorrectionReviewResult.RejectedBecauseUnnecessaryChange;
+                conflicting.ReviewNote = "شخصیت یا نسبت مرتبط با این پیشنهاد حذف شد.";
+                conflicting.ReviewDate = DateTime.Now;
+            }
+
+            var geoDateTags = await _context.PoemGeoDateTags.Where(t => t.PersonId == person.Id).ToListAsync();
+            foreach (var tag in geoDateTags)
+            {
+                tag.PersonId = null;
+            }
+
+            // any other still-pending edit suggestion FOR this same person (not the one being
+            // approved right now, which the caller updates separately) is moot once the person is
+            // gone - same auto-reject treatment
+            var conflictingEditSuggestions = await _context.DivanPersonEditSuggestions
+                .Where(s => !s.Reviewed && s.PersonId == person.Id)
+                .ToListAsync();
+            foreach (var conflicting in conflictingEditSuggestions)
+            {
+                conflicting.Reviewed = true;
+                conflicting.Result = CorrectionReviewResult.RejectedBecauseUnnecessaryChange;
+                conflicting.ReviewNote = "این شخصیت حذف شد.";
+                conflicting.ReviewDate = DateTime.Now;
+            }
+
+            _context.DivanPersonRelations.RemoveRange(relations);
+            _context.DivanPersonAffiliations.RemoveRange(affiliations);
+            _context.DivanRelatedPersons.Remove(person);
+        }
+
+        /// <summary>
+        /// get a single kinship edge by its own id, with both sides' names resolved
+        /// </summary>
+        /// <param name="relationId"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonRelation>> GetRelationByIdAsync(int relationId)
+        {
+            try
+            {
+                var relation = await _context.DivanPersonRelations
+                    .Include(r => r.Person1)
+                    .Include(r => r.Person2)
+                    .Where(r => r.Id == relationId)
+                    .SingleOrDefaultAsync();
+
+                if (relation == null)
+                {
+                    return new RServiceResult<DivanPersonRelation>(null, "نسبت پیدا نشد.");
+                }
+
+                return new RServiceResult<DivanPersonRelation>(relation);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonRelation>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get a single affiliation edge by its own id, with both sides' names resolved - the
+        /// Kind == Affiliation counterpart of GetRelationByIdAsync, used the same way by
+        /// /User/SuggestPersonRelationEdit?affiliationId={id}
+        /// </summary>
+        /// <param name="affiliationId"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonAffiliation>> GetAffiliationByIdAsync(int affiliationId)
+        {
+            try
+            {
+                var affiliation = await _context.DivanPersonAffiliations
+                    .Include(a => a.Person1)
+                    .Include(a => a.Person2)
+                    .Where(a => a.Id == affiliationId)
+                    .SingleOrDefaultAsync();
+
+                if (affiliation == null)
+                {
+                    return new RServiceResult<DivanPersonAffiliation>(null, "وابستگی پیدا نشد.");
+                }
+
+                return new RServiceResult<DivanPersonAffiliation>(affiliation);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonAffiliation>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// submit a suggested addition, change or removal of a kinship edge
+        /// </summary>
+        /// <param name="suggestion"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonRelationEditSuggestion>> SuggestPersonRelationEditAsync(DivanPersonRelationEditSuggestion suggestion)
+        {
+            try
+            {
+                if (suggestion == null)
+                {
+                    return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "اطلاعات پیشنهاد ناقص است.");
+                }
+
+                DivanPersonRelation existingRelation = null;
+                DivanPersonAffiliation existingAffiliation = null;
+                if (suggestion.Action == PersonRelationSuggestionAction.Modify || suggestion.Action == PersonRelationSuggestionAction.Remove)
+                {
+                    if (suggestion.Kind == PersonRelationSuggestionKind.Affiliation)
+                    {
+                        if (suggestion.ExistingAffiliationId == null)
+                        {
+                            return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "وابستگی مورد نظر برای ویرایش یا حذف مشخص نشده است.");
+                        }
+
+                        existingAffiliation = await _context.DivanPersonAffiliations
+                            .Include(a => a.Person1)
+                            .Include(a => a.Person2)
+                            .Where(a => a.Id == suggestion.ExistingAffiliationId.Value)
+                            .SingleOrDefaultAsync();
+
+                        if (existingAffiliation == null)
+                        {
+                            return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "وابستگی مورد نظر پیدا نشد.");
+                        }
+
+                        // same trust-the-existing-row convention as the Family branch below
+                        suggestion.Person1Id = existingAffiliation.Person1Id;
+                        suggestion.Person2Id = existingAffiliation.Person2Id;
+                        if (suggestion.Action == PersonRelationSuggestionAction.Remove)
+                        {
+                            suggestion.SuggestedAffiliationType = existingAffiliation.AffiliationType;
+                            suggestion.SuggestedNote = existingAffiliation.Note;
+                        }
+                        else if (suggestion.Action == PersonRelationSuggestionAction.Modify && suggestion.SuggestedAffiliationType != null
+                            && _CrossesSymmetricDirectionalBoundary(existingAffiliation.AffiliationType, suggestion.SuggestedAffiliationType.Value))
+                        {
+                            return new RServiceResult<DivanPersonRelationEditSuggestion>(null,
+                                "تغییر نوع وابستگی بین یک نوع متقارن (مثل هم‌عصر/متحد/رقیب/همراه) و یک نوع جهت‌دار (که در آن یک طرف زیردست/حامی/جانشین/... طرف دیگر است) ممکن نیست، چون جهت صحیح طرف اول و دوم برای نوع تازه معلوم نیست. لطفاً این وابستگی را حذف کرده و یک وابستگی تازه با نوع و جهت درست پیشنهاد دهید.");
+                        }
+                    }
+                    else
+                    {
+                        if (suggestion.ExistingRelationId == null)
+                        {
+                            return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "نسبت مورد نظر برای ویرایش یا حذف مشخص نشده است.");
+                        }
+
+                        existingRelation = await _context.DivanPersonRelations
+                            .Include(r => r.Person1)
+                            .Include(r => r.Person2)
+                            .Where(r => r.Id == suggestion.ExistingRelationId.Value)
+                            .SingleOrDefaultAsync();
+
+                        if (existingRelation == null)
+                        {
+                            return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "نسبت مورد نظر پیدا نشد.");
+                        }
+
+                        // always trust the existing relation's own Person1Id/Person2Id/type/etc over
+                        // whatever the client sent, so the suggestion is guaranteed self-consistent with
+                        // what it actually targets, even for a Remove-display
+                        suggestion.Person1Id = existingRelation.Person1Id;
+                        suggestion.Person2Id = existingRelation.Person2Id;
+                        if (suggestion.Action == PersonRelationSuggestionAction.Remove)
+                        {
+                            suggestion.SuggestedRelationType = existingRelation.RelationType;
+                            suggestion.SuggestedDegreeHint = existingRelation.DegreeHint;
+                            suggestion.SuggestedNote = existingRelation.Note;
+                        }
+                    }
+                }
+                else // Add
+                {
+                    if (suggestion.Person1Id == suggestion.Person2Id)
+                    {
+                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "دو طرف یک نسبت نمی‌توانند یک نفر باشند.");
+                    }
+                }
+
+                var person1 = await _context.DivanRelatedPersons.Where(p => p.Id == suggestion.Person1Id).SingleOrDefaultAsync();
+                var person2 = await _context.DivanRelatedPersons.Where(p => p.Id == suggestion.Person2Id).SingleOrDefaultAsync();
+                if (person1 == null || person2 == null)
+                {
+                    return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "یکی از دو طرف نسبت پیدا نشد.");
+                }
+
+                if (suggestion.Kind == PersonRelationSuggestionKind.Family &&
+                    (suggestion.Action == PersonRelationSuggestionAction.Add || suggestion.Action == PersonRelationSuggestionAction.Modify))
+                {
+                    var excludeRelationId = suggestion.Action == PersonRelationSuggestionAction.Modify ? suggestion.ExistingRelationId : null;
+                    var validationError = await _ValidateFamilyRelationAsync(suggestion.Person1Id, suggestion.Person2Id, suggestion.SuggestedRelationType, excludeRelationId);
+                    if (validationError != null)
+                    {
+                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null, validationError);
+                    }
+                }
+
+                suggestion.Id = 0;
+                suggestion.ExistingRelation = null;
+                suggestion.ExistingAffiliation = null;
+                suggestion.Person1 = null;
+                suggestion.Person2 = null;
+                suggestion.Date = DateTime.Now;
+                suggestion.SuggestedNote = string.IsNullOrWhiteSpace(suggestion.SuggestedNote) ? null : suggestion.SuggestedNote.Trim();
+                suggestion.SuggestionNote = string.IsNullOrWhiteSpace(suggestion.SuggestionNote) ? null : suggestion.SuggestionNote.Trim();
+                suggestion.Reviewed = false;
+                suggestion.Result = CorrectionReviewResult.NotReviewed;
+                suggestion.ReviewNote = null;
+                suggestion.ReviewerUserId = null;
+
+                _context.DivanPersonRelationEditSuggestions.Add(suggestion);
+                await _context.SaveChangesAsync();
+
+                bool isAffiliation = suggestion.Kind == PersonRelationSuggestionKind.Affiliation;
+                string actionTitle = suggestion.Action switch
+                {
+                    PersonRelationSuggestionAction.Add => isAffiliation ? "پیشنهاد وابستگی جدید" : "پیشنهاد نسبت خویشاوندی جدید",
+                    PersonRelationSuggestionAction.Modify => isAffiliation ? "پیشنهاد ویرایش وابستگی" : "پیشنهاد ویرایش نسبت خویشاوندی",
+                    _ => isAffiliation ? "پیشنهاد حذف وابستگی" : "پیشنهاد حذف نسبت خویشاوندی",
+                };
+                string edgeLabel = isAffiliation ? "وابستگی" : "نسبت خویشاوندی";
+                string actionText = suggestion.Action switch
+                {
+                    PersonRelationSuggestionAction.Add => $"کاربری پیشنهاد افزودن {edgeLabel} جدید بین «{person1.Name}» و «{person2.Name}» را داده است.",
+                    PersonRelationSuggestionAction.Modify => $"کاربری پیشنهاد ویرایش {edgeLabel} بین «{person1.Name}» و «{person2.Name}» را داده است.",
+                    _ => $"کاربری پیشنهاد حذف {edgeLabel} بین «{person1.Name}» و «{person2.Name}» را داده است.",
+                };
+
+                await NotifyModeratorsOfPendingSuggestionAsync(
+                    actionTitle,
+                    actionText + " لطفاً بخش <a href=\"https://ganjoor.net/Admin/ReviewPersonRelationEdits\">ویرایش‌های پیشنهادی نسبت‌های خویشاوندی</a> را بررسی فرمایید."
+                );
+
+                return new RServiceResult<DivanPersonRelationEditSuggestion>(suggestion);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonRelationEditSuggestion>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get the next unreviewed relation-edit suggestion for the moderator queue
+        /// </summary>
+        /// <param name="skip"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonRelationEditSuggestion>> GetNextUnreviewedPersonRelationEditSuggestionAsync(int skip)
+        {
+            try
+            {
+                var suggestion = await _context.DivanPersonRelationEditSuggestions
+                    .Include(s => s.Person1)
+                    .Include(s => s.Person2)
+                    .Include(s => s.ExistingRelation)
+                    .Include(s => s.ExistingAffiliation)
+                    .Include(s => s.User)
+                    .Where(s => s.Reviewed == false)
+                    .OrderBy(s => s.Id)
+                    .Skip(skip)
+                    .FirstOrDefaultAsync();
+
+                return new RServiceResult<DivanPersonRelationEditSuggestion>(suggestion);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonRelationEditSuggestion>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// unreviewed relation-edit suggestion count
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RServiceResult<int>> GetUnreviewedPersonRelationEditSuggestionCountAsync()
+        {
+            try
+            {
+                return new RServiceResult<int>(await _context.DivanPersonRelationEditSuggestions.Where(s => s.Reviewed == false).CountAsync());
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<int>(0, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// apply a moderator's decision to a pending relation-edit suggestion
+        /// </summary>
+        /// <param name="moderatorUserId"></param>
+        /// <param name="suggestionId"></param>
+        /// <param name="result"></param>
+        /// <param name="reviewNote"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonRelationEditSuggestion>> ModeratePersonRelationEditSuggestionAsync(Guid moderatorUserId, int suggestionId, CorrectionReviewResult result, string reviewNote)
+        {
+            try
+            {
+                var suggestion = await _context.DivanPersonRelationEditSuggestions
+                    .Include(s => s.Person1)
+                    .Include(s => s.Person2)
+                    .Where(s => s.Id == suggestionId)
+                    .SingleOrDefaultAsync();
+
+                if (suggestion == null)
+                {
+                    return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "پیشنهاد پیدا نشد.");
+                }
+
+                if (suggestion.Reviewed)
+                {
+                    return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "این پیشنهاد پیش‌تر بررسی شده است.");
+                }
+
+                var person1Name = suggestion.Person1?.Name;
+                var person2Name = suggestion.Person2?.Name;
+
+                if (result == CorrectionReviewResult.Approved)
+                {
+                    if (suggestion.Kind == PersonRelationSuggestionKind.Affiliation)
+                    {
+                        switch (suggestion.Action)
+                        {
+                            case PersonRelationSuggestionAction.Add:
+                                _context.DivanPersonAffiliations.Add(new DivanPersonAffiliation()
+                                {
+                                    Person1Id = suggestion.Person1Id,
+                                    Person2Id = suggestion.Person2Id,
+                                    AffiliationType = suggestion.SuggestedAffiliationType ?? PersonAffiliationType.Other,
+                                    Note = suggestion.SuggestedNote,
+                                });
+                                break;
+                            case PersonRelationSuggestionAction.Modify:
+                                {
+                                    var existing = await _context.DivanPersonAffiliations.Where(a => a.Id == suggestion.ExistingAffiliationId.Value).SingleOrDefaultAsync();
+                                    if (existing == null)
+                                    {
+                                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "وابستگی مورد نظر دیگر وجود ندارد.");
+                                    }
+                                    var newAffiliationType = suggestion.SuggestedAffiliationType ?? existing.AffiliationType;
+                                    if (_CrossesSymmetricDirectionalBoundary(existing.AffiliationType, newAffiliationType))
+                                    {
+                                        // Person1Id/Person2Id were fixed when the ORIGINAL (symmetric or
+                                        // directional) type was created/approved, and a Modify suggestion
+                                        // never lets the submitter re-pick which side is which (see the
+                                        // "جهت ... قابل تغییر نیست" hint in SuggestPersonRelationEdit.cshtml)
+                                        // - so crossing this boundary would silently keep the old Person1/
+                                        // Person2 assignment under a type whose direction convention no
+                                        // longer matches it
+                                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null,
+                                            "تغییر نوع وابستگی بین یک نوع متقارن (مثل هم‌عصر/متحد/رقیب/همراه) و یک نوع جهت‌دار (که در آن یک طرف زیردست/حامی/جانشین/... طرف دیگر است) ممکن نیست، چون جهت صحیح طرف اول و دوم برای نوع تازه معلوم نیست. لطفاً این وابستگی را حذف کرده و یک وابستگی تازه با نوع و جهت درست پیشنهاد دهید.");
+                                    }
+                                    existing.AffiliationType = newAffiliationType;
+                                    existing.Note = suggestion.SuggestedNote;
+                                    break;
+                                }
+                            case PersonRelationSuggestionAction.Remove:
+                                {
+                                    var existing = await _context.DivanPersonAffiliations.Where(a => a.Id == suggestion.ExistingAffiliationId.Value).SingleOrDefaultAsync();
+                                    if (existing != null)
+                                    {
+                                        // any other still-pending suggestion targeting this same affiliation
+                                        // would otherwise dangle once it's gone - auto-reject those too
+                                        var conflicting = await _context.DivanPersonRelationEditSuggestions
+                                            .Where(s => !s.Reviewed && s.Id != suggestion.Id && s.ExistingAffiliationId == existing.Id)
+                                            .ToListAsync();
+                                        foreach (var c in conflicting)
+                                        {
+                                            c.Reviewed = true;
+                                            c.Result = CorrectionReviewResult.RejectedBecauseUnnecessaryChange;
+                                            c.ReviewNote = "این وابستگی پیش‌تر حذف شد.";
+                                            c.ReviewDate = DateTime.Now;
+                                        }
+                                        _context.DivanPersonAffiliations.Remove(existing);
+                                    }
+                                    break;
+                                }
+                        }
+                    }
+                    else
+                    {
+                        switch (suggestion.Action)
+                        {
+                            case PersonRelationSuggestionAction.Add:
+                                {
+                                    // re-validated here (not just at submission time in
+                                    // SuggestPersonRelationEditAsync) in case another suggestion
+                                    // touching the same people/relations was approved in between
+                                    var validationError = await _ValidateFamilyRelationAsync(suggestion.Person1Id, suggestion.Person2Id, suggestion.SuggestedRelationType, null);
+                                    if (validationError != null)
+                                    {
+                                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null, validationError);
+                                    }
+                                    _context.DivanPersonRelations.Add(new DivanPersonRelation()
+                                    {
+                                        Person1Id = suggestion.Person1Id,
+                                        Person2Id = suggestion.Person2Id,
+                                        RelationType = suggestion.SuggestedRelationType,
+                                        DegreeHint = suggestion.SuggestedDegreeHint,
+                                        Note = suggestion.SuggestedNote,
+                                    });
+                                    break;
+                                }
+                            case PersonRelationSuggestionAction.Modify:
+                                {
+                                    var existing = await _context.DivanPersonRelations.Where(r => r.Id == suggestion.ExistingRelationId.Value).SingleOrDefaultAsync();
+                                    if (existing == null)
+                                    {
+                                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null, "نسبت مورد نظر دیگر وجود ندارد.");
+                                    }
+                                    var validationError = await _ValidateFamilyRelationAsync(suggestion.Person1Id, suggestion.Person2Id, suggestion.SuggestedRelationType, existing.Id);
+                                    if (validationError != null)
+                                    {
+                                        return new RServiceResult<DivanPersonRelationEditSuggestion>(null, validationError);
+                                    }
+                                    existing.RelationType = suggestion.SuggestedRelationType;
+                                    existing.DegreeHint = suggestion.SuggestedDegreeHint;
+                                    existing.Note = suggestion.SuggestedNote;
+                                    break;
+                                }
+                            case PersonRelationSuggestionAction.Remove:
+                                {
+                                    var existing = await _context.DivanPersonRelations.Where(r => r.Id == suggestion.ExistingRelationId.Value).SingleOrDefaultAsync();
+                                    if (existing != null)
+                                    {
+                                        // any other still-pending suggestion targeting this same relation
+                                        // would otherwise dangle once it's gone - auto-reject those too
+                                        var conflicting = await _context.DivanPersonRelationEditSuggestions
+                                            .Where(s => !s.Reviewed && s.Id != suggestion.Id && s.ExistingRelationId == existing.Id)
+                                            .ToListAsync();
+                                        foreach (var c in conflicting)
+                                        {
+                                            c.Reviewed = true;
+                                            c.Result = CorrectionReviewResult.RejectedBecauseUnnecessaryChange;
+                                            c.ReviewNote = "این نسبت پیش‌تر حذف شد.";
+                                            c.ReviewDate = DateTime.Now;
+                                        }
+                                        _context.DivanPersonRelations.Remove(existing);
+                                    }
+                                    break;
+                                }
+                        }
+                    }
+                }
+
+                suggestion.Reviewed = true;
+                suggestion.Result = result;
+                suggestion.ReviewNote = reviewNote;
+                suggestion.ReviewDate = DateTime.Now;
+                suggestion.ReviewerUserId = moderatorUserId;
+
+                await _context.SaveChangesAsync();
+
+                string edgeLabel = suggestion.Kind == PersonRelationSuggestionKind.Affiliation ? "وابستگی" : "نسبت خویشاوندی";
+                string actionLabel = suggestion.Action switch
+                {
+                    PersonRelationSuggestionAction.Add => $"افزودن {edgeLabel}",
+                    PersonRelationSuggestionAction.Modify => $"ویرایش {edgeLabel}",
+                    _ => $"حذف {edgeLabel}",
+                };
+
+                if (result == CorrectionReviewResult.Approved)
+                {
+                    await _notificationService.PushNotification(
+                        suggestion.UserId,
+                        $"تأیید {actionLabel}",
+                        $"پیشنهاد شما برای {actionLabel} بین «{person1Name}» و «{person2Name}» تأیید و اعمال شد. از این که به تکمیل اطلاعات گنجور کمک کردید سپاسگزاریم."
+                    );
+                }
+                else
+                {
+                    await _notificationService.PushNotification(
+                        suggestion.UserId,
+                        $"رد {actionLabel}",
+                        $"پیشنهاد شما برای {actionLabel} بین «{person1Name}» و «{person2Name}» تأیید نشد." +
+                        (string.IsNullOrWhiteSpace(reviewNote) ? "" : $"{Environment.NewLine}یادداشت بازبین: «{reviewNote}»"),
+                        NotificationType.Warning
+                    );
+                }
+
+                return new RServiceResult<DivanPersonRelationEditSuggestion>(suggestion);
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonRelationEditSuggestion>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get the whole known network of people, for the force-directed "ontology" explorer
+        /// </summary>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonGraphViewModel>> GetPersonGraphAsync()
+        {
+            try
+            {
+                var relations = await _context.DivanPersonRelations.ToListAsync();
+                var affiliations = await _context.DivanPersonAffiliations.ToListAsync();
+
+                var involvedPersonIds = new HashSet<int>();
+                foreach (var r in relations)
+                {
+                    involvedPersonIds.Add(r.Person1Id);
+                    involvedPersonIds.Add(r.Person2Id);
+                }
+                foreach (var a in affiliations)
+                {
+                    involvedPersonIds.Add(a.Person1Id);
+                    involvedPersonIds.Add(a.Person2Id);
+                }
+
+                var persons = await _context.DivanRelatedPersons
+                    .Where(p => involvedPersonIds.Contains(p.Id))
+                    .ToListAsync();
+                var personById = persons.ToDictionary(p => p.Id);
+
+                // no "work" scope here, so every node is directly part of the graph - none of them
+                // are a one-hop addition the way GetCatPersonGraphAsync's are
+                var nodes = _BuildGraphNodes(persons, null);
+                var edges = _BuildGraphEdges(relations, affiliations, personById);
+
+                return new RServiceResult<DivanPersonGraphViewModel>(new DivanPersonGraphViewModel()
+                {
+                    Nodes = nodes,
+                    Edges = edges,
+                });
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonGraphViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// get every category id in the subtree rooted at catId (catId itself plus every descendant,
+        /// walked breadth-first) - a lighter-weight, purpose-built counterpart of
+        /// DivanService._populateCategoryChildren (which builds full category objects via
+        /// _GetCatById); this only needs ids, so it queries them directly
+        /// </summary>
+        private async Task<List<int>> _GetCategorySubtreeIdsAsync(int catId)
+        {
+            var result = new List<int> { catId };
+            var queue = new Queue<int>();
+            queue.Enqueue(catId);
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                var childIds = await _context.DivanCategories
+                    .Where(c => c.ParentId == current)
+                    .Select(c => c.Id)
+                    .ToListAsync();
+                foreach (var childId in childIds)
+                {
+                    result.Add(childId);
+                    queue.Enqueue(childId);
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// get the network of people relevant to one work/category (e.g. a poet's Shahnameh, or one
+        /// story within it like Nezami's Leyli o Majnoon) - the category-scoped counterpart of
+        /// GetPersonGraphAsync, for the "شخصیت‌ها" tab on a category/poet page. Starts from every
+        /// person directly tagged (PoemGeoDateTag.PersonId) in a poem under catId's subtree, then
+        /// adds their relatives/affiliates one hop out even when
+        /// those relatives are never tagged in the work themselves - so, say, a hero's father still
+        /// shows up if he's known but never named in a verse, which helps a reader unfamiliar with
+        /// the story rather than leaving the tree looking broken. Those one-hop additions are marked
+        /// DirectlyTagged = false so the client can draw them as secondary.
+        /// </summary>
+        /// <param name="catId"></param>
+        /// <returns></returns>
+        public async Task<RServiceResult<DivanPersonGraphViewModel>> GetCatPersonGraphAsync(int catId)
+        {
+            try
+            {
+                var catExists = await _context.DivanCategories.Where(c => c.Id == catId).AnyAsync();
+                if (!catExists)
+                {
+                    return new RServiceResult<DivanPersonGraphViewModel>(null, "بخش پیدا نشد.");
+                }
+
+                var catIds = await _GetCategorySubtreeIdsAsync(catId);
+
+                var directPersonIds = await _context.PoemGeoDateTags
+                    .Where(t => t.MachineGenerated == false && t.PersonId != null && catIds.Contains(t.Poem.CatId))
+                    .Select(t => t.PersonId.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (directPersonIds.Count == 0)
+                {
+                    return new RServiceResult<DivanPersonGraphViewModel>(new DivanPersonGraphViewModel()
+                    {
+                        Nodes = new List<DivanPersonGraphNode>(),
+                        Edges = new List<DivanPersonGraphEdge>(),
+                    });
+                }
+
+                var directIdSet = new HashSet<int>(directPersonIds);
+
+                var oneHopRelations = await _context.DivanPersonRelations
+                    .Where(r => directIdSet.Contains(r.Person1Id) || directIdSet.Contains(r.Person2Id))
+                    .ToListAsync();
+                var oneHopAffiliations = await _context.DivanPersonAffiliations
+                    .Where(a => directIdSet.Contains(a.Person1Id) || directIdSet.Contains(a.Person2Id))
+                    .ToListAsync();
+
+                var allIdSet = new HashSet<int>(directIdSet);
+                foreach (var r in oneHopRelations)
+                {
+                    allIdSet.Add(r.Person1Id);
+                    allIdSet.Add(r.Person2Id);
+                }
+                foreach (var a in oneHopAffiliations)
+                {
+                    allIdSet.Add(a.Person1Id);
+                    allIdSet.Add(a.Person2Id);
+                }
+
+                // re-query rather than reuse oneHopRelations/oneHopAffiliations, so an edge between
+                // two one-hop additions (not just their link back to a directly-tagged person) is
+                // also included, now that the final node set is known
+                var relations = await _context.DivanPersonRelations
+                    .Where(r => allIdSet.Contains(r.Person1Id) && allIdSet.Contains(r.Person2Id))
+                    .ToListAsync();
+                var affiliations = await _context.DivanPersonAffiliations
+                    .Where(a => allIdSet.Contains(a.Person1Id) && allIdSet.Contains(a.Person2Id))
+                    .ToListAsync();
+
+                var persons = await _context.DivanRelatedPersons
+                    .Where(p => allIdSet.Contains(p.Id))
+                    .ToListAsync();
+                var personById = persons.ToDictionary(p => p.Id);
+
+                var nodes = _BuildGraphNodes(persons, directIdSet);
+                var edges = _BuildGraphEdges(relations, affiliations, personById);
+
+                return new RServiceResult<DivanPersonGraphViewModel>(new DivanPersonGraphViewModel()
+                {
+                    Nodes = nodes,
+                    Edges = edges,
+                });
+            }
+            catch (Exception exp)
+            {
+                return new RServiceResult<DivanPersonGraphViewModel>(null, exp.ToString());
+            }
+        }
+
+        /// <summary>
+        /// shared node-list builder for GetPersonGraphAsync/GetCatPersonGraphAsync - directlyTaggedIds
+        /// null means "everyone counts as directly part of the graph" (the whole-site graph has no
+        /// notion of one-hop additions)
+        /// </summary>
+        private static List<DivanPersonGraphNode> _BuildGraphNodes(List<DivanRelatedPerson> persons, HashSet<int> directlyTaggedIds)
+        {
+            return persons.Select(p => new DivanPersonGraphNode()
+            {
+                Id = p.Id,
+                Name = p.Name,
+                HasFamilyTree = !string.IsNullOrEmpty(p.FamilyTreeCaption),
+                DirectlyTagged = directlyTaggedIds == null || directlyTaggedIds.Contains(p.Id),
+                Importance = (int)p.Importance,
+            }).ToList();
+        }
+
+        /// <summary>
+        /// shared edge-list builder for GetPersonGraphAsync/GetCatPersonGraphAsync - flattens
+        /// DivanPersonRelation and DivanPersonAffiliation rows into the common
+        /// DivanPersonGraphEdge shape, resolving both sides' names from personById
+        /// </summary>
+        private static List<DivanPersonGraphEdge> _BuildGraphEdges(List<DivanPersonRelation> relations, List<DivanPersonAffiliation> affiliations, Dictionary<int, DivanRelatedPerson> personById)
+        {
+            var edges = new List<DivanPersonGraphEdge>();
+
+            foreach (var r in relations)
+            {
+                edges.Add(new DivanPersonGraphEdge()
+                {
+                    Person1Id = r.Person1Id,
+                    Person1Name = personById.TryGetValue(r.Person1Id, out var rp1) ? rp1.Name : "",
+                    Person2Id = r.Person2Id,
+                    Person2Name = personById.TryGetValue(r.Person2Id, out var rp2) ? rp2.Name : "",
+                    Category = "Relation",
+                    TypeValue = (int)r.RelationType,
+                    DegreeHint = r.DegreeHint,
+                    Note = r.Note,
+                });
+            }
+
+            foreach (var a in affiliations)
+            {
+                edges.Add(new DivanPersonGraphEdge()
+                {
+                    Person1Id = a.Person1Id,
+                    Person1Name = personById.TryGetValue(a.Person1Id, out var ap1) ? ap1.Name : "",
+                    Person2Id = a.Person2Id,
+                    Person2Name = personById.TryGetValue(a.Person2Id, out var ap2) ? ap2.Name : "",
+                    Category = "Affiliation",
+                    TypeValue = (int)a.AffiliationType,
+                    Note = a.Note,
+                });
+            }
+
+            return edges;
+        }
+
+        /// <summary>
+        /// Database Context
+        /// </summary>
+        protected readonly RMuseumDbContext _context;
+
+        /// <summary>
+        /// used to find every user holding the Divan:Modify permission, to notify them when a new
+        /// suggestion needs review - same permission the moderation endpoints themselves require
+        /// </summary>
+        protected readonly IAppUserService _appUserService;
+
+        /// <summary>
+        /// used to notify moderators of a new pending suggestion, and submitters of its outcome -
+        /// same service/pattern DivanService uses for poem corrections and song suggestions
+        /// </summary>
+        protected readonly IRNotificationService _notificationService;
+
+        /// <summary>
+        /// constructor
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="appUserService"></param>
+        /// <param name="notificationService"></param>
+        public DivanRelatedPersonService(RMuseumDbContext context, IAppUserService appUserService, IRNotificationService notificationService)
+        {
+            _context = context;
+            _appUserService = appUserService;
+            _notificationService = notificationService;
+        }
+
+        /// <summary>
+        /// notify every user holding the Divan:Modify permission that a new suggestion of the
+        /// given kind is pending review at reviewPageUrl - shared by both suggestion types below
+        /// </summary>
+        private async Task NotifyModeratorsOfPendingSuggestionAsync(string title, string htmlText)
+        {
+            var moderators = await _appUserService.GetUsersHavingPermission(RMuseumSecurableItem.DivanEntityShortName, SecurableItem.ModifyOperationShortName);
+            if (string.IsNullOrEmpty(moderators.ExceptionString))
+            {
+                foreach (var moderator in moderators.Result)
+                {
+                    await _notificationService.PushNotification((Guid)moderator.Id, title, htmlText, NotificationType.ActionRequired);
+                }
+            }
+        }
+    }
+}

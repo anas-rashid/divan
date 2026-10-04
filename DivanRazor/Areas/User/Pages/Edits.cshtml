@@ -1,0 +1,581 @@
+﻿@page
+@model DivanRazor.Areas.User.Pages.EditsModel
+@using DNTPersianUtils.Core
+@using RMuseum.Models.Divan
+@using DivanRazor.Utils
+@{
+    Layout = "_UserPanelLayout";
+    ViewData["Title"] = "ویرایش‌های من";
+    await DivanRazor.Utils.DivanSessionChecker.ApplyPermissionsToViewData(Request, Response, ViewData);
+}
+<div class="up-page-header">
+    <h1>@ViewData["Title"]</h1>
+</div>
+@if (Model.LastError != "")
+{
+    <div class="up-alert up-alert--danger">@Model.LastError</div>
+}
+else
+{
+
+    if (@Model.CanEdit)
+    {
+        @if (Model.Profile != null)
+        {
+
+            <div id="profile" class="up-card">
+                <p>
+                    <a href="/hashieha?userId=@Model.Profile.Id">@Model.Profile.NickName</a>
+
+                    @if (!string.IsNullOrEmpty(Model.Profile.Website))
+                    {
+                        <a href="@Model.Profile.Website">🌐</a>
+                    }
+
+
+                </p>
+
+                @if (!string.IsNullOrEmpty(Model.Profile.Bio))
+                {
+                    @Html.Raw(Model.Profile.Bio)
+                }
+            </div>
+        }
+        else
+        {
+            <div class="up-form-actions">
+                <a role="button" href="/User/Edits?AllUsers=1" class="up-btn up-btn--ghost">ویرایش‌های همه</a>
+            </div>
+        }
+
+        <script>
+            async function rollBackCorrection(correctionId) {
+                var ok = await upConfirm('ویرایش معکوس ایجاد شود؟');
+                if (!ok) return;
+
+                $.ajax({
+                    type: "POST",
+                    url: '?handler=RollBackCorrection',
+                    data: {
+                        correctionId: correctionId,
+                    },
+                    success: function () {
+                        upToast('انجام شد.', 'success');
+                        location.reload(true);
+                    },
+                    error: function (e) {
+                        upToast(e.responseText || 'خطایی رخ داد.', 'error');
+                    }
+
+                });
+            }
+        </script>
+
+    }
+
+    <partial name="_Pagination" model="Model.PaginationLinks" />
+
+    @if (Model.Corrections.Count == 0)
+    {
+        <partial name="_EmptyState" model="@("شما هنوز هیچ ویرایشی در دیوان انجام نداده‌اید. برای آشنایی با نحوهٔ ویرایش اشعار <a href=\"https://blog.ganjoor.net/1400/05/23/notes-for-suggesting-corrections/\" target=\"_blank\">اینجا</a> را ببینید.")" />
+    }
+
+    @foreach (var correction in Model.Corrections)
+    {
+        <div class="up-list-item" id="correction-@correction.Id">
+            <table>
+                <tr>
+                    <td colspan="3"><a href="/?p=@correction.PoemId" target="_blank">مشاهدهٔ متن شعر یا بخش</a></td>
+                </tr>
+
+                @if (Model.AllUsersEdits)
+                {
+                    <tr>
+                        <td colspan="3"><a href="/hashieha/?userid=@correction.UserId" target="_blank">@correction.UserNickname</a></td>
+                    </tr>
+                }
+
+                <tr>
+                    <td>متن اولیه</td>
+                    <td>تغییرات من</td>
+                    <td>نتیجهٔ بررسی</td>
+                </tr>
+
+                @if (correction.Title != null)
+                {
+                    <tr>
+                        <td>
+                            <p style="color:red" id="title-original-@correction.Id">@correction.OriginalTitle</p>
+                        </td>
+                        <td>
+                            <p style="color:green" id="title-edited-@correction.Id">@correction.Title</p>
+                        </td>
+                        <td>
+                            <partial name="_ReviewResultBadge" model="correction.Result" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <p id="title-compare-@correction.Id">@correction.OriginalTitle</p>
+                            <script>
+                                $(document).ready(function () {
+                                    compareCorrectionBlocks('title-original-@correction.Id', 'title-edited-@correction.Id', 'title-compare-@correction.Id');
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(correction.ReviewNote))
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <p>@correction.ReviewNote</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+                @if (correction.Rhythm != null)
+                {
+                    <tr>
+                        <td>
+                            <p style="color:red">@correction.OriginalRhythm</p>
+                        </td>
+                        <td>
+                            <p style="color:green">@correction.Rhythm</p>
+                        </td>
+                        <td>
+                            <partial name="_ReviewResultBadge" model="correction.RhythmResult" />
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(correction.ReviewNote))
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <p>@correction.ReviewNote</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+
+                @if (correction.PoemSummary != null)
+                {
+                    <tr>
+                        <td>
+                            خلاصه: <p style="color:red" id="summary-original-@correction.Id">@correction.OriginalPoemSummary</p>
+                        </td>
+                        <td>
+                            <p style="color:green" id="summary-edited-@correction.Id">@correction.PoemSummary</p>
+                        </td>
+                        <td>
+                            <partial name="_ReviewResultBadge" model="correction.SummaryReviewResult" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">
+                            <p id="summary-compare-@correction.Id">@correction.OriginalPoemSummary</p>
+                            <script>
+                                $(document).ready(function () {
+                                    compareCorrectionBlocks('summary-original-@correction.Id', 'summary-edited-@correction.Id', 'summary-compare-@correction.Id');
+                                });
+                            </script>
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(correction.ReviewNote))
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <p>@correction.ReviewNote</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+
+                @if (correction.RhymeLetters != null)
+                {
+                    <tr>
+                        <td>
+                            <p style="color:red">قافیه: @correction.OriginalRhymeLetters</p>
+                        </td>
+                        <td>
+                            <p style="color:green">@correction.RhymeLetters</p>
+                        </td>
+                        <td>
+                            <partial name="_ReviewResultBadge" model="correction.RhymeLettersReviewResult" />
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(correction.ReviewNote))
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <p>@correction.ReviewNote</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+
+
+                @if (correction.Rhythm2 != null)
+                {
+                    <tr>
+                        <td colspan="3">
+                            وزن دوم
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p style="color:red">@correction.OriginalRhythm2</p>
+                        </td>
+                        <td>
+                            <p style="color:green">@correction.Rhythm2</p>
+                        </td>
+                        <td>
+                            <partial name="_ReviewResultBadge" model="correction.Rhythm2Result" />
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(correction.ReviewNote))
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <p>@correction.ReviewNote</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+
+                @if (correction.PoemFormat != null)
+                {
+                    <tr>
+                        <td colspan="3">
+                            قالب شعری
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <p style="color:red">@RMuseum.Services.Implementation.DivanPoemFormatConvertor.GetString(correction.OriginalPoemFormat)</p>
+                        </td>
+                        <td>
+                            <p style="color:green">@RMuseum.Services.Implementation.DivanPoemFormatConvertor.GetString(correction.PoemFormat)</p>
+                        </td>
+                        <td>
+                            <partial name="_ReviewResultBadge" model="correction.PoemFormatReviewResult" />
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(correction.ReviewNote))
+                    {
+                        <tr>
+                            <td colspan="3">
+                                <p>@correction.ReviewNote</p>
+                            </td>
+                        </tr>
+                    }
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+
+                @if (correction.GeoDateTags != null && correction.GeoDateTags.Length > 0)
+                    @foreach (var geoTag in correction.GeoDateTags)
+                    {
+                        <tr>
+                            <td colspan="3">
+                                @(GeoDateTagCorrectionDisplay.IsPersonTag(geoTag) ? "نامبرده" : "برچسب جغرافیایی/تاریخی") -
+                                @if (geoTag.CoupletIndex == null)
+                                {
+                                    <text>کل شعر</text>
+                                }
+                                else
+                                {
+                                    <a href="/?p=@correction.PoemId#bn@(geoTag.CoupletIndex+1)" target="_blank">بیت @((geoTag.CoupletIndex + 1).ToPersianNumbers())</a>
+                                }
+                            </td>
+                        </tr>
+                        @if (geoTag.MarkForDelete)
+                        {
+                            <tr>
+                                <td>
+                                    <p style="color:red">درخواست حذف برچسب موجود</p>
+                                </td>
+                                <td>
+                                    <p style="color:green">حذف شود</p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="geoTag.Result" />
+                                </td>
+                            </tr>
+                        }
+                        else if (GeoDateTagCorrectionDisplay.IsPersonTag(geoTag))
+                        {
+                            <tr>
+                                <td>
+                                    <p style="color:red">-</p>
+                                </td>
+                                <td>
+                                    <p style="color:green">
+                                        @if (geoTag.PersonId != null)
+                                        {
+                                            <a href="javascript:void(0)" onclick="PersonWindow.open(@geoTag.PersonId)">@(geoTag.Person != null ? geoTag.Person.Name : $"نامبرده #{geoTag.PersonId}")</a>
+                                        }
+                                        else
+                                        {
+                                            var suggestedPersonName = GeoDateTagCorrectionDisplay.GetSuggestedPersonName(geoTag.SuggestedPersonGraphJson);
+                                            <text>نامبردۀ جدید@(string.IsNullOrEmpty(suggestedPersonName) ? "" : $": {suggestedPersonName}")</text>
+                                        }
+                                    </p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="geoTag.Result" />
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            <tr>
+                                <td>
+                                    <p style="color:red">-</p>
+                                </td>
+                                <td>
+                                    <p style="color:green">
+                                        @if (geoTag.LocationId != null)
+                                        {
+                                            @(geoTag.Location != null ? geoTag.Location.Name : $"مکان #{geoTag.LocationId}")
+                                        }
+                                        else if (!string.IsNullOrEmpty(geoTag.SuggestedLocationName))
+                                        {
+                                            @($"{geoTag.SuggestedLocationName} ({geoTag.SuggestedLatitude}, {geoTag.SuggestedLongitude})")
+                                        }
+                                        @if (geoTag.LunarYear != null)
+                                        {
+                                            <text> - سال @geoTag.LunarYear</text>
+                                            if (geoTag.LunarMonth != null)
+                                            {
+                                                <text>/@geoTag.LunarMonth</text>
+                                                if (geoTag.LunarDay != null)
+                                                {
+                                                    <text>/@geoTag.LunarDay</text>
+                                                }
+                                            }
+                                        }
+                                    </p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="geoTag.Result" />
+                                </td>
+                            </tr>
+                        }
+                        @if (!string.IsNullOrEmpty(geoTag.SuggestionNote))
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    <p>یادداشت من: @geoTag.SuggestionNote</p>
+                                </td>
+                            </tr>
+                        }
+                        @if (!string.IsNullOrEmpty(geoTag.ReviewNote))
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    <p>@geoTag.ReviewNote</p>
+                                </td>
+                            </tr>
+                        }
+                        <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                    }
+
+                @if (correction.VerseOrderText != null && correction.VerseOrderText.Length > 0)
+                    @foreach (var verse in correction.VerseOrderText)
+                    {
+                        @if (verse.MarkForDelete)
+                        {
+                            <tr>
+                                <td>
+                                    <p>@verse.OriginalText</p>
+                                </td>
+                                <td>
+                                    <p>باید حذف شود</p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="verse.MarkForDeleteResult" />
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                        else if (verse.NewVerse)
+                        {
+                            <tr>
+                                <td>
+                                    <p>پیشنهاد مصرع جدید</p>
+
+                                </td>
+                                <td>
+                                    <p>@verse.Text</p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="verse.NewVerseResult" />
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                        else if (verse.Text != null)
+                        {
+                            <tr>
+                                <td>
+                                    <p style="color:red" id="verse-@verse.Id-original-@correction.Id">@verse.OriginalText</p>
+                                </td>
+                                <td>
+                                    <p style="color:green" id="verse-@verse.Id-edited-@correction.Id">@verse.Text</p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="verse.Result" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <p id="verse-@verse.Id-compare-@correction.Id">@verse.OriginalText</p>
+                                    <script>
+                                        $(document).ready(function () {
+                                            compareCorrectionBlocks('verse-@verse.Id-original-@correction.Id', 'verse-@verse.Id-edited-@correction.Id', 'verse-@verse.Id-compare-@correction.Id');
+                                        });
+                                    </script>
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                        @if (verse.CoupletSummary != null)
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    @verse.OriginalText
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    معنی: <p style="color:red" id="verse-summary-@verse.Id-original-@correction.Id">@verse.OriginalCoupletSummary</p>
+                                </td>
+                                <td>
+                                    <p style="color:green" id="verse-summary-@verse.Id-edited-@correction.Id">@verse.CoupletSummary</p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="verse.SummaryReviewResult" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="3">
+                                    <p id="verse-summary-@verse.Id-compare-@correction.Id">@verse.OriginalCoupletSummary</p>
+                                    <script>
+                                        $(document).ready(function () {
+                                            compareCorrectionBlocks('verse-summary-@verse.Id-original-@correction.Id', 'verse-summary-@verse.Id-edited-@correction.Id', 'verse-summary-@verse.Id-compare-@correction.Id');
+                                        });
+                                    </script>
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                        @if (verse.VersePosition != null && !verse.NewVerse && verse.VersePositionResult != CorrectionReviewResult.NotSuggestedByUser)
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    @verse.OriginalText
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    @if (verse.OriginalVersePosition != null)
+                                    {
+                                        <p>تبدیل نوع مصرع از @RMuseum.Models.Divan.VersePositionHelper.GetVersePositionString((VersePosition)verse.OriginalVersePosition)</p>
+                                    }
+                                </td>
+                                <td>
+                                    <p style="color:orange">تبدیل نوع مصرع به @RMuseum.Models.Divan.VersePositionHelper.GetVersePositionString((VersePosition)verse.VersePosition)</p>
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="verse.VersePositionResult" />
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                        @if (verse.LanguageId != null && !verse.NewVerse && verse.LanguageReviewResult != CorrectionReviewResult.NotSuggestedByUser)
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    @verse.OriginalText
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    @if (verse.OriginalLanguageId != null)
+                                    {
+                                        <p>تغییر زبان از @Model.Languages.Where(l => l.Id == verse.OriginalLanguageId).Single().Name </p>
+                                    }
+                                    else
+                                    {
+                                        <p>تغییر زبان از فارسی</p>
+                                    }
+                                </td>
+                                <td>
+                                    @if (verse.LanguageId != null)
+                                    {
+                                        <p>به @Model.Languages.Where(l => l.Id == verse.LanguageId).Single().Name </p>
+                                    }
+                                    else
+                                    {
+                                        <p>به فارسی</p>
+                                    }
+                                </td>
+                                <td>
+                                    <partial name="_ReviewResultBadge" model="verse.LanguageReviewResult" />
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                        @if (!string.IsNullOrEmpty(verse.ReviewNote))
+                        {
+                            <tr>
+                                <td colspan="3">
+                                    <p>@verse.ReviewNote</p>
+                                </td>
+                            </tr>
+                            <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                        }
+                    }
+                @if (!string.IsNullOrEmpty(correction.Note))
+                {
+                    <tr>
+                        <td>یادداشت:</td>
+                        <td colspan="2">
+                            @correction.Note
+                        </td>
+                    </tr>
+                    <tr><td colspan="3" style="background-color:black">&nbsp;</td></tr>
+                }
+
+                <tr>
+                    <td colspan="3">
+                        @if (correction.Reviewed)
+                        {
+                            <a role="button" class="up-btn up-btn--danger up-btn--block" href="/User/Editor?id=@correction.PoemId">ویرایش مجدد</a>
+                        }
+                        else
+                        {
+                            <a role="button" class="up-btn up-btn--primary up-btn--block" href="/User/Editor?id=@correction.PoemId">مشاهده</a>
+                        }
+                    </td>
+                </tr>
+
+                @if (correction.Reviewed)
+                {
+                    <tr>
+                        <td colspan="3">
+                            <a role="button" class="up-btn up-btn--ghost up-btn--block" onclick="rollBackCorrection(@correction.Id)">برگشت به وضعیت قبل از این ویرایش</a>
+                        </td>
+                    </tr>
+                }
+
+            </table>
+
+        </div>
+    }
+
+    <partial name="_Pagination" model="Model.PaginationLinks" />
+}

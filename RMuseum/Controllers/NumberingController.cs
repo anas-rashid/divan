@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using RMuseum.Models.Auth.Memory;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Services;
 using RSecurityBackend.Models.Auth.Memory;
 using System.Collections.Generic;
@@ -23,7 +23,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorNumbering[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanNumbering[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetNumberingsAsync()
         {
@@ -41,7 +41,7 @@ namespace RMuseum.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorNumbering))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanNumbering))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetNumberingAsync(int id)
         {
@@ -58,7 +58,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet("cat/{id}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorNumbering[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanNumbering[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetNumberingsRelatedToCategoryAsync(int id)
         {
@@ -68,7 +68,7 @@ namespace RMuseum.Controllers
             var res2 = await _numberingService.GetNumberingsForDirectSubCatsAsync(id);
             if (!string.IsNullOrEmpty(res2.ExceptionString))
                 return BadRequest(res2.ExceptionString);
-            List<GanjoorNumbering> combined = new List<GanjoorNumbering>();
+            List<DivanNumbering> combined = new List<DivanNumbering>();
             foreach (var numbering in res1.Result)
             {
                 combined.Add(numbering);
@@ -91,7 +91,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet("couplet/{poemId}/{coupletIndex}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorCoupletNumberViewModel[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanCoupletNumberViewModel[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetNumberingsForCouplet(int poemId, int coupletIndex)
         {
@@ -107,11 +107,11 @@ namespace RMuseum.Controllers
         /// <param name="numbering"></param>
         /// <returns></returns>
         [HttpPost]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorNumbering))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanNumbering))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> AddNumberingAsync([FromBody] GanjoorNumbering numbering)
+        public async Task<IActionResult> AddNumberingAsync([FromBody] DivanNumbering numbering)
         {
             if (ReadOnlyMode)
                 return BadRequest("سایت به دلایل فنی مثل انتقال سرور موقتاً در حالت فقط خواندنی قرار دارد. لطفاً ساعاتی دیگر مجدداً تلاش کنید.");
@@ -127,11 +127,11 @@ namespace RMuseum.Controllers
         /// <param name="numbering"></param>
         /// <returns></returns>
         [HttpPut]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> UpdateNumberingAsync([FromBody] GanjoorNumbering numbering)
+        public async Task<IActionResult> UpdateNumberingAsync([FromBody] DivanNumbering numbering)
         {
             if (ReadOnlyMode)
                 return BadRequest("سایت به دلایل فنی مثل انتقال سرور موقتاً در حالت فقط خواندنی قرار دارد. لطفاً ساعاتی دیگر مجدداً تلاش کنید.");
@@ -142,7 +142,7 @@ namespace RMuseum.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -162,7 +162,7 @@ namespace RMuseum.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPut("recount/start/{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -181,7 +181,7 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("generatemissing")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + SecurableItem.ModifyOperationShortName)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -221,14 +221,14 @@ namespace RMuseum.Controllers
         /// <summary>
         /// numbering service
         /// </summary>
-        private readonly IGanjoorNumberingService _numberingService;
+        private readonly IDivanNumberingService _numberingService;
 
         /// <summary>
         /// constructor
         /// </summary>
         /// <param name="numberingService"></param>
         /// <param name="configuration"></param>
-        public NumberingController(IGanjoorNumberingService numberingService, IConfiguration configuration)
+        public NumberingController(IDivanNumberingService numberingService, IConfiguration configuration)
         {
             _numberingService = numberingService;
             Configuration = configuration;

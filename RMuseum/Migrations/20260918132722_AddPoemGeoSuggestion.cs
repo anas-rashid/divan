@@ -11,7 +11,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoemGeoDateTagCorrection",
+                name: "DivanPoemGeoDateTagCorrection",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -31,41 +31,41 @@ namespace RMuseum.Migrations
                     ExistingTagId = table.Column<int>(type: "int", nullable: true),
                     Result = table.Column<int>(type: "int", nullable: false),
                     ReviewNote = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    GanjoorPoemCorrectionId = table.Column<int>(type: "int", nullable: true)
+                    DivanPoemCorrectionId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoemGeoDateTagCorrection", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoemGeoDateTagCorrection", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemGeoDateTagCorrection_GanjoorGeoLocations_LocationId",
+                        name: "FK_DivanPoemGeoDateTagCorrection_DivanGeoLocations_LocationId",
                         column: x => x.LocationId,
-                        principalTable: "GanjoorGeoLocations",
+                        principalTable: "DivanGeoLocations",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemGeoDateTagCorrection_GanjoorPoemCorrections_GanjoorPoemCorrectionId",
-                        column: x => x.GanjoorPoemCorrectionId,
-                        principalTable: "GanjoorPoemCorrections",
+                        name: "FK_DivanPoemGeoDateTagCorrection_DivanPoemCorrections_DivanPoemCorrectionId",
+                        column: x => x.DivanPoemCorrectionId,
+                        principalTable: "DivanPoemCorrections",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemGeoDateTagCorrection_GanjoorRelatedPersons_PersonId",
+                        name: "FK_DivanPoemGeoDateTagCorrection_DivanRelatedPersons_PersonId",
                         column: x => x.PersonId,
-                        principalTable: "GanjoorRelatedPersons",
+                        principalTable: "DivanRelatedPersons",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemGeoDateTagCorrection_GanjoorPoemCorrectionId",
-                table: "GanjoorPoemGeoDateTagCorrection",
-                column: "GanjoorPoemCorrectionId");
+                name: "IX_DivanPoemGeoDateTagCorrection_DivanPoemCorrectionId",
+                table: "DivanPoemGeoDateTagCorrection",
+                column: "DivanPoemCorrectionId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemGeoDateTagCorrection_LocationId",
-                table: "GanjoorPoemGeoDateTagCorrection",
+                name: "IX_DivanPoemGeoDateTagCorrection_LocationId",
+                table: "DivanPoemGeoDateTagCorrection",
                 column: "LocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemGeoDateTagCorrection_PersonId",
-                table: "GanjoorPoemGeoDateTagCorrection",
+                name: "IX_DivanPoemGeoDateTagCorrection_PersonId",
+                table: "DivanPoemGeoDateTagCorrection",
                 column: "PersonId");
         }
 
@@ -73,7 +73,7 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorPoemGeoDateTagCorrection");
+                name: "DivanPoemGeoDateTagCorrection");
         }
     }
 }

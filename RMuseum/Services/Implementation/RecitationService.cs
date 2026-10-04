@@ -1,19 +1,19 @@
 ﻿using DNTPersianUtils.Core;
 using FluentFTP;
-using ganjoor;
+using divan;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using RMuseum.DbContext;
 using RMuseum.Models.Auth.Memory;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.GanjoorAudio;
-using RMuseum.Models.GanjoorAudio.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.DivanAudio;
+using RMuseum.Models.DivanAudio.ViewModels;
 using RMuseum.Models.UploadSession;
 using RMuseum.Models.UploadSession.ViewModels;
 using RMuseum.Services.Implementation;
-using RMuseum.Services.Implementation.ImportedFromDesktopGanjoor;
+using RMuseum.Services.Implementation.ImportedFromDesktopDivan;
 using RSecurityBackend.Models.Auth.ViewModels;
 using RSecurityBackend.Models.Generic;
 using RSecurityBackend.Models.Notification;
@@ -52,8 +52,8 @@ namespace RMuseum.Services.Implementationa
                 //whenever I had not a reference to audio.Owner in the final selection it became null, so this strange arrangement is not all because of my stupidity!
                 var source =
                      from audio in _context.Recitations.AsNoTracking().Include(a => a.Owner)
-                     join poem in _context.GanjoorPoems
-                     on audio.GanjoorPostId equals poem.Id
+                     join poem in _context.DivanPoems
+                     on audio.DivanPostId equals poem.Id
                      where
                      (filteredUserId == Guid.Empty || audio.OwnerId == filteredUserId)
                      &&
@@ -79,8 +79,8 @@ namespace RMuseum.Services.Implementationa
                      from mistake in _context.RecitationApprovedMistakes.AsNoTracking()
                      join audio in _context.Recitations.Include(a => a.Owner)
                      on mistake.RecitationId equals audio.Id
-                     join poem in _context.GanjoorPoems
-                     on audio.GanjoorPostId equals poem.Id
+                     join poem in _context.DivanPoems
+                     on audio.DivanPostId equals poem.Id
                      where
                      (filteredUserId == Guid.Empty || audio.OwnerId == filteredUserId)
                      &&
@@ -115,8 +115,8 @@ namespace RMuseum.Services.Implementationa
             {
                 var source =
                                  from audio in _context.Recitations.AsNoTracking()
-                                 join poem in _context.GanjoorPoems
-                                 on audio.GanjoorPostId equals poem.Id
+                                 join poem in _context.DivanPoems
+                                 on audio.DivanPostId equals poem.Id
                                  where
                                  audio.ReviewStatus == AudioReviewStatus.Approved
                                  &&
@@ -141,7 +141,7 @@ namespace RMuseum.Services.Implementationa
                                  select new PublicRecitationViewModel()
                                  {
                                      Id = audio.Id,
-                                     PoemId = audio.GanjoorPostId,
+                                     PoemId = audio.DivanPostId,
                                      PoemFullTitle = poem.FullTitle,
                                      PoemFullUrl = poem.FullUrl,
                                      AudioTitle = audio.AudioTitle,
@@ -174,8 +174,8 @@ namespace RMuseum.Services.Implementationa
             {
                 var source =
                                  from audio in _context.Recitations.AsNoTracking()
-                                 join poem in _context.GanjoorPoems
-                                 on audio.GanjoorPostId equals poem.Id
+                                 join poem in _context.DivanPoems
+                                 on audio.DivanPostId equals poem.Id
                                  where
                                  poem.CatId == catId
                                  &&
@@ -202,7 +202,7 @@ namespace RMuseum.Services.Implementationa
                                  select new PublicRecitationViewModel()
                                  {
                                      Id = audio.Id,
-                                     PoemId = audio.GanjoorPostId,
+                                     PoemId = audio.DivanPostId,
                                      PoemFullTitle = poem.FullTitle,
                                      PoemFullUrl = poem.FullUrl,
                                      AudioTitle = audio.AudioTitle,
@@ -234,8 +234,8 @@ namespace RMuseum.Services.Implementationa
             {
                 var source =
                                  from audio in _context.Recitations.AsNoTracking()
-                                 join poem in _context.GanjoorPoems.Include(p => p.Cat)
-                                 on audio.GanjoorPostId equals poem.Id
+                                 join poem in _context.DivanPoems.Include(p => p.Cat)
+                                 on audio.DivanPostId equals poem.Id
                                  where
                                  poem.Cat.PoetId == poetId
                                  &&
@@ -262,7 +262,7 @@ namespace RMuseum.Services.Implementationa
                                  select new PublicRecitationViewModel()
                                  {
                                      Id = audio.Id,
-                                     PoemId = audio.GanjoorPostId,
+                                     PoemId = audio.DivanPostId,
                                      PoemFullTitle = poem.FullTitle,
                                      PoemFullUrl = poem.FullUrl,
                                      AudioTitle = audio.AudioTitle,
@@ -303,9 +303,9 @@ namespace RMuseum.Services.Implementationa
             try
             {
                 bool loadFromExternalServer = bool.Parse(Configuration.GetSection("ExternalFTPServer")["LoadFromExternalServer"]);
-                var source = from poem in _context.GanjoorPoems.AsNoTracking()
+                var source = from poem in _context.DivanPoems.AsNoTracking()
                              from audio in _context.Recitations
-                                               .Where(a => a.GanjoorPostId == poem.Id && a.ReviewStatus == AudioReviewStatus.Approved && a.AudioSyncStatus == AudioSyncStatus.SynchronizedOrRejected && a.RecitationType == RecitationType.Normal)
+                                               .Where(a => a.DivanPostId == poem.Id && a.ReviewStatus == AudioReviewStatus.Approved && a.AudioSyncStatus == AudioSyncStatus.SynchronizedOrRejected && a.RecitationType == RecitationType.Normal)
                                                .OrderBy(a => a.AudioOrder)
                                                .Take(1)
                                                .DefaultIfEmpty()
@@ -315,7 +315,7 @@ namespace RMuseum.Services.Implementationa
                              select new PublicRecitationViewModel()
                              {
                                  Id = audio.Id,
-                                 PoemId = audio.GanjoorPostId,
+                                 PoemId = audio.DivanPostId,
                                  PoemFullTitle = poem.FullTitle,
                                  PoemFullUrl = poem.FullUrl,
                                  AudioTitle = audio.AudioTitle,
@@ -358,7 +358,7 @@ namespace RMuseum.Services.Implementationa
                 return new RServiceResult<bool>(
                     await _context.Recitations.AsNoTracking().Where(
                     a =>
-                    _context.GanjoorPoems.Where(p => p.CatId == catId && p.Id == a.GanjoorPostId
+                    _context.DivanPoems.Where(p => p.CatId == catId && p.Id == a.DivanPostId
                     &&
                     a.ReviewStatus == AudioReviewStatus.Approved
                     ).Any()
@@ -381,14 +381,14 @@ namespace RMuseum.Services.Implementationa
             bool loadFromExternalServer = bool.Parse(Configuration.GetSection("ExternalFTPServer")["LoadFromExternalServer"]);
             var source =
                  from audio in _context.Recitations.AsNoTracking()
-                 join poem in _context.GanjoorPoems
-                 on audio.GanjoorPostId equals poem.Id
+                 join poem in _context.DivanPoems
+                 on audio.DivanPostId equals poem.Id
                  where
                  audio.ReviewStatus == AudioReviewStatus.Approved && audio.AudioSyncStatus == AudioSyncStatus.SynchronizedOrRejected && audio.Id == id
                  select new PublicRecitationViewModel()
                  {
                      Id = audio.Id,
-                     PoemId = audio.GanjoorPostId,
+                     PoemId = audio.DivanPostId,
                      PoemFullTitle = poem.FullTitle,
                      PoemFullUrl = poem.FullUrl,
                      AudioTitle = audio.AudioTitle,
@@ -429,8 +429,8 @@ namespace RMuseum.Services.Implementationa
                      from audio in _context.Recitations.AsNoTracking()
                      .Include(a => a.Owner)
                      .Where(a => a.Id == id)
-                     join poem in _context.GanjoorPoems
-                     on audio.GanjoorPostId equals poem.Id
+                     join poem in _context.DivanPoems
+                     on audio.DivanPostId equals poem.Id
                      select new RecitationViewModel(audio, audio.Owner, poem, "");
 
                 narration = await source.SingleOrDefaultAsync();
@@ -457,7 +457,7 @@ namespace RMuseum.Services.Implementationa
             if (recitation.ReviewStatus == AudioReviewStatus.Approved)
             {
 
-                int GanjoorPostId = recitation.GanjoorPostId;
+                int DivanPostId = recitation.DivanPostId;
 
                 recitation.AudioSyncStatus = AudioSyncStatus.Deleted;
                 _context.Recitations.Update(recitation);
@@ -486,7 +486,7 @@ namespace RMuseum.Services.Implementationa
 
                   });
 
-                await _ganjoorService.CacheCleanForPageById(GanjoorPostId);
+                await _divanService.CacheCleanForPageById(DivanPostId);
             }
             else
             {
@@ -499,7 +499,7 @@ namespace RMuseum.Services.Implementationa
         /// <summary>
         /// Replace only the synchronization (xml) file of an existing, approved recitation owned by the user.
         /// The recitation's mp3 file is left untouched. The uploaded xml's embedded PoemId and audio file
-        /// checksum must match the target recitation's GanjoorPostId and Mp3FileCheckSum respectively (i.e.
+        /// checksum must match the target recitation's DivanPostId and Mp3FileCheckSum respectively (i.e.
         /// it must be a resync of the very same, already uploaded, mp3 file) or the request is rejected -
         /// this method never accepts a new mp3, only a corrected/retimed xml for the existing one.
         /// On success the updated xml (and the unchanged mp3) are re-published to the external/backup FTP
@@ -584,13 +584,13 @@ namespace RMuseum.Services.Implementationa
                 return new RServiceResult<bool>(false, "فایل xml اطلاعات معتبری ندارد.");
             }
 
-            if (audio.PoemId != recitation.GanjoorPostId)
+            if (audio.PoemId != recitation.DivanPostId)
             {
                 if (File.Exists(tempXmlFilePath))
                 {
                     File.Delete(tempXmlFilePath);
                 }
-                string msg = $"شناسهٔ شعر درج شده در فایل xml ({audio.PoemId}) با شناسهٔ شعر خوانش انتخابی ({recitation.GanjoorPostId} - {recitation.AudioTitle}) همخوانی ندارد.";
+                string msg = $"شناسهٔ شعر درج شده در فایل xml ({audio.PoemId}) با شناسهٔ شعر خوانش انتخابی ({recitation.DivanPostId} - {recitation.AudioTitle}) همخوانی ندارد.";
                 await _notificationService.PushNotification
                 (
                     userId,
@@ -660,7 +660,7 @@ namespace RMuseum.Services.Implementationa
         public async Task<RServiceResult<RecitationVerseSync[]>> GetPoemNarrationVerseSyncArray(int id)
         {
             var narration = await _context.Recitations.AsNoTracking().Where(a => a.Id == id).SingleOrDefaultAsync();
-            var verses = await _context.GanjoorVerses.AsNoTracking().Where(v => v.PoemId == narration.GanjoorPostId).OrderBy(v => v.VOrder).ToListAsync();
+            var verses = await _context.DivanVerses.AsNoTracking().Where(v => v.PoemId == narration.DivanPostId).OrderBy(v => v.VOrder).ToListAsync();
 
             string xml = File.ReadAllText(narration.LocalXmlFilePath);
 
@@ -675,7 +675,7 @@ namespace RMuseum.Services.Implementationa
             verseSyncs.Add(new RecitationVerseSync()
             {
                 VerseOrder = 0,
-                VerseText = (await _context.GanjoorPoems.Where(p => p.Id == narration.GanjoorPostId).FirstOrDefaultAsync()).Title,
+                VerseText = (await _context.DivanPoems.Where(p => p.Id == narration.DivanPostId).FirstOrDefaultAsync()).Title,
                 AudioStartMilliseconds = 0
             });
             foreach (var syncInfo in elObject.Element("PoemAudio").Element("SyncArray").Elements("SyncInfo"))
@@ -832,10 +832,10 @@ namespace RMuseum.Services.Implementationa
 
                   });
 
-                await _ganjoorService.CacheCleanForPageById(narration.GanjoorPostId);
+                await _divanService.CacheCleanForPageById(narration.DivanPostId);
 
             }
-            return new RServiceResult<RecitationViewModel>(new RecitationViewModel(narration, narration.Owner, await _context.GanjoorPoems.Where(p => p.Id == narration.GanjoorPostId).SingleOrDefaultAsync(), ""));
+            return new RServiceResult<RecitationViewModel>(new RecitationViewModel(narration, narration.Owner, await _context.DivanPoems.Where(p => p.Id == narration.DivanPostId).SingleOrDefaultAsync(), ""));
         }
 
         /// <summary>
@@ -1061,12 +1061,12 @@ namespace RMuseum.Services.Implementationa
                         try
                         {
                             //although each xml can theorically contain more than one file information
-                            //this assumption was never implemented and used in Desktop Ganjoor which produces this xml file
+                            //this assumption was never implemented and used in Desktop Divan which produces this xml file
                             //within the loop code the file is moved somewhere else and if the loop reaches is unexpected second path
                             //the code would fail!
                             foreach (PoemAudio audio in PoemAudioListProcessor.Load(file.FilePath))
                             {
-                                var audioPoem = await context.GanjoorPoems.AsNoTracking().Where(p => p.Id == audio.PoemId).SingleOrDefaultAsync();
+                                var audioPoem = await context.DivanPoems.AsNoTracking().Where(p => p.Id == audio.PoemId).SingleOrDefaultAsync();
                                 var preUploadedRecitaion = await context.Recitations.Include(r => r.Owner).AsNoTracking().Where(a => a.Mp3FileCheckSum == audio.FileCheckSum && a.ReviewStatus != AudioReviewStatus.Rejected).SingleOrDefaultAsync();
                                 if (audioPoem == null)
                                 {
@@ -1087,10 +1087,10 @@ namespace RMuseum.Services.Implementationa
                                 else
                                 if (preUploadedRecitaion != null)
                                 {
-                                    var preUploadedPoem = await context.GanjoorPoems.AsNoTracking().Where(p => p.Id == preUploadedRecitaion.GanjoorPostId).SingleOrDefaultAsync();
+                                    var preUploadedPoem = await context.DivanPoems.AsNoTracking().Where(p => p.Id == preUploadedRecitaion.DivanPostId).SingleOrDefaultAsync();
                                     session.UploadedFiles.Where(f => f.Id == file.Id).SingleOrDefault().ProcessResultMsg
                                             = $"فایل صوتیی همسان با فایل ارسالی پیشتر بارگذاری شده است.{Environment.NewLine}" +
-                                            $"مشخصات فایل پیشتر بارگذاری شده: {preUploadedRecitaion.AudioTitle} - {preUploadedRecitaion.AudioArtist} {Environment.NewLine} شناسهٔ شعر: {preUploadedRecitaion.GanjoorPostId} {Environment.NewLine}" +
+                                            $"مشخصات فایل پیشتر بارگذاری شده: {preUploadedRecitaion.AudioTitle} - {preUploadedRecitaion.AudioArtist} {Environment.NewLine} شناسهٔ شعر: {preUploadedRecitaion.DivanPostId} {Environment.NewLine}" +
                                             $"{(preUploadedPoem == null ? "شعر نامشخص" : preUploadedPoem.FullTitle)} {Environment.NewLine} کاربر: {preUploadedRecitaion.Owner.NickName}";
                                     context.UploadSessions.Update(session);
 
@@ -1100,7 +1100,7 @@ namespace RMuseum.Services.Implementationa
                                          "خطا در پردازش فایل ارسالی",
                                          $"{file.FileName}{Environment.NewLine}" +
                                          $"فایل صوتیی همسان با فایل ارسالی پیشتر بارگذاری شده است.{Environment.NewLine}" +
-                                         $"مشخصات فایل پیشتر بارگذاری شده: {Environment.NewLine}{preUploadedRecitaion.AudioTitle} - {preUploadedRecitaion.AudioArtist} {Environment.NewLine} شناسهٔ شعر: {preUploadedRecitaion.GanjoorPostId} {Environment.NewLine}" +
+                                         $"مشخصات فایل پیشتر بارگذاری شده: {Environment.NewLine}{preUploadedRecitaion.AudioTitle} - {preUploadedRecitaion.AudioArtist} {Environment.NewLine} شناسهٔ شعر: {preUploadedRecitaion.DivanPostId} {Environment.NewLine}" +
                                          $"{(preUploadedPoem == null ? "شعر نامشخص" : preUploadedPoem.FullTitle)} {Environment.NewLine} کاربر: {preUploadedRecitaion.Owner.NickName}"
 
                                          , NotificationType.Error
@@ -1160,14 +1160,14 @@ namespace RMuseum.Services.Implementationa
                                     else
                                     {
                                         bool overCrowdedPoem = false;
-                                        if (maxRecitationsPerPoem != 0 && maxRecitationsPerPoem <= (await context.Recitations.AsNoTracking().CountAsync(r => r.GanjoorPostId == audio.PoemId && r.ReviewStatus == AudioReviewStatus.Approved && r.RecitationType == recitationType)))
+                                        if (maxRecitationsPerPoem != 0 && maxRecitationsPerPoem <= (await context.Recitations.AsNoTracking().CountAsync(r => r.DivanPostId == audio.PoemId && r.ReviewStatus == AudioReviewStatus.Approved && r.RecitationType == recitationType)))
                                         {
                                             if
                                             (
                                             !(
                                             session.SessionType == UploadSessionType.ReplaceAudio
                                             &&
-                                            await context.Recitations.Where(r => r.OwnerId == session.UseId && r.GanjoorPostId == audio.PoemId && r.AudioArtist == defProfile.ArtistName).AnyAsync()
+                                            await context.Recitations.Where(r => r.OwnerId == session.UseId && r.DivanPostId == audio.PoemId && r.AudioArtist == defProfile.ArtistName).AnyAsync()
                                             )
                                             )
                                             {
@@ -1198,7 +1198,7 @@ namespace RMuseum.Services.Implementationa
                                             bool replace = false;
                                             if (session.SessionType == UploadSessionType.ReplaceAudio)
                                             {
-                                                Recitation existing = await context.Recitations.Where(r => r.OwnerId == session.UseId && r.GanjoorPostId == audio.PoemId && r.AudioArtist == defProfile.ArtistName && r.RecitationType == recitationType && r.ReviewStatus == AudioReviewStatus.Approved).FirstOrDefaultAsync();
+                                                Recitation existing = await context.Recitations.Where(r => r.OwnerId == session.UseId && r.DivanPostId == audio.PoemId && r.AudioArtist == defProfile.ArtistName && r.RecitationType == recitationType && r.ReviewStatus == AudioReviewStatus.Approved).FirstOrDefaultAsync();
                                                 if (existing != null)
                                                 {
                                                     replace = true;
@@ -1222,7 +1222,7 @@ namespace RMuseum.Services.Implementationa
                                                     await context.SaveChangesAsync();
                                                     if (recomputeOrders)
                                                     {
-                                                        await _ComputePoemRecitationsOrdersAsync(context, existing.GanjoorPostId, true);
+                                                        await _ComputePoemRecitationsOrdersAsync(context, existing.DivanPostId, true);
                                                     }
 
                                                     _backgroundTaskQueue.QueueBackgroundWorkItem
@@ -1263,10 +1263,10 @@ namespace RMuseum.Services.Implementationa
 
                                                 Recitation narration = new Recitation()
                                                 {
-                                                    GanjoorPostId = audio.PoemId,
+                                                    DivanPostId = audio.PoemId,
                                                     OwnerId = session.UseId,
-                                                    GanjoorAudioId = 1 + await context.Recitations.OrderByDescending(a => a.GanjoorAudioId).Select(a => a.GanjoorAudioId).FirstOrDefaultAsync(),
-                                                    AudioOrder = 1 + await context.Recitations.Where(a => a.GanjoorPostId == audio.PoemId).OrderByDescending(a => a.AudioOrder).Select(a => a.AudioOrder).FirstOrDefaultAsync(),
+                                                    DivanAudioId = 1 + await context.Recitations.OrderByDescending(a => a.DivanAudioId).Select(a => a.DivanAudioId).FirstOrDefaultAsync(),
+                                                    AudioOrder = 1 + await context.Recitations.Where(a => a.DivanPostId == audio.PoemId).OrderByDescending(a => a.AudioOrder).Select(a => a.AudioOrder).FirstOrDefaultAsync(),
                                                     FileNameWithoutExtension = fileNameWithoutExtension,
                                                     SoundFilesFolder = currentTargetFolder,
                                                     AudioTitle = string.IsNullOrEmpty(audio.PoemTitle) ? audio.Description : audio.PoemTitle,
@@ -1291,7 +1291,7 @@ namespace RMuseum.Services.Implementationa
 
                                                 if (narration.AudioTitle.IndexOf("فایل صوتی") == 0) //no modification on title
                                                 {
-                                                    GanjoorPoem poem = await context.GanjoorPoems.Where(p => p.Id == audio.PoemId).SingleOrDefaultAsync();
+                                                    DivanPoem poem = await context.DivanPoems.Where(p => p.Id == audio.PoemId).SingleOrDefaultAsync();
                                                     if (poem != null)
                                                     {
                                                         narration.AudioTitle = poem.Title;
@@ -1450,10 +1450,10 @@ namespace RMuseum.Services.Implementationa
                         }
                     });
 
-                await _ganjoorService.CacheCleanForPageById(narration.GanjoorPostId);
+                await _divanService.CacheCleanForPageById(narration.DivanPostId);
             }
 
-            return new RServiceResult<RecitationViewModel>(new RecitationViewModel(narration, narration.Owner, await _context.GanjoorPoems.Where(p => p.Id == narration.GanjoorPostId).SingleOrDefaultAsync(), ""));
+            return new RServiceResult<RecitationViewModel>(new RecitationViewModel(narration, narration.Owner, await _context.DivanPoems.Where(p => p.Id == narration.DivanPostId).SingleOrDefaultAsync(), ""));
         }
 
 
@@ -1533,7 +1533,7 @@ namespace RMuseum.Services.Implementationa
                     replace ? "به‌روزآوری نهایی خوانش ارسالی" : "انتشار نهایی خوانش ارسالی",
                     $"خوانش ارسالی {narration.AudioTitle} منتشر شد.{Environment.NewLine}" +
                     $"لطفا توجه فرمایید که ممکن است ظاهر شدن تأثیر تغییرات روی سایت به دلیل تنظیمات حفظ کارایی گنجور تا یک روز طول بکشد.{Environment.NewLine}" +
-                    $"می‌توانید با مراجعه به <a href=\"https://ganjoor.net/?p={narration.GanjoorPostId}\">این صفحه</a> وضعیت آن را بررسی کنید."
+                    $"می‌توانید با مراجعه به <a href=\"https://ganjoor.net/?p={narration.DivanPostId}\">این صفحه</a> وضعیت آن را بررسی کنید."
                     , NotificationType.NoActionRequired
                 );
 
@@ -1631,7 +1631,7 @@ namespace RMuseum.Services.Implementationa
                 }
 
                 string audioTitle = narration.AudioTitle;
-                int GanjoorPostId = narration.GanjoorPostId;
+                int DivanPostId = narration.DivanPostId;
                 Guid userId = narration.OwnerId;
 
                 await _FinalizeDelete(context, narration);
@@ -1647,7 +1647,7 @@ namespace RMuseum.Services.Implementationa
                     "حذف نهایی خوانش ارسالی",
                     $"خوانش ارسالی {audioTitle} حذف شد.{Environment.NewLine}" +
                     $"لطفاً توجه فرمایید که ممکن است ظاهر شدن تأثیر تغییرات روی وبگاه به دلیل تنظیمات حفظ کارایی گنجور تا یک روز طول بکشد.{Environment.NewLine}" +
-                    $"می‌توانید با مراجعه به <a href=\"https://ganjoor.net/?p={GanjoorPostId}\">این صفحه</a> وضعیت آن را بررسی کنید."
+                    $"می‌توانید با مراجعه به <a href=\"https://ganjoor.net/?p={DivanPostId}\">این صفحه</a> وضعیت آن را بررسی کنید."
                     , NotificationType.NoActionRequired
                 );
 
@@ -1736,7 +1736,7 @@ namespace RMuseum.Services.Implementationa
                     "به‌روزآوری نهایی اطلاعات خوانش ارسالی",
                     $"اطلاعات خوانش ارسالی {narration.AudioTitle} به‌روز شد.{Environment.NewLine}" +
                     $"لطفا توجه فرمایید که فایل‌های صوتی معمولاً روی مرورگرها کَش می‌شوند. جهت اطمینان از جایگزینی فایل می‌بایست با مرورگری که تا به حال شعر را با آن ندیده‌اید بررسی بفرمایید.{Environment.NewLine}" +
-                    $"می‌توانید با مراجعه به <a href=\"https://ganjoor.net/?p={narration.GanjoorPostId}\">این صفحه</a> وضعیت آن را بررسی کنید."
+                    $"می‌توانید با مراجعه به <a href=\"https://ganjoor.net/?p={narration.DivanPostId}\">این صفحه</a> وضعیت آن را بررسی کنید."
                     , NotificationType.NoActionRequired
                 );
                 }
@@ -2314,8 +2314,8 @@ namespace RMuseum.Services.Implementationa
                   from tracker in _context.RecitationPublishingTrackers.AsNoTracking()
                   join recitation in _context.Recitations.Include(a => a.Owner)
                  on tracker.PoemNarrationId equals recitation.Id
-                  join poem in _context.GanjoorPoems
-                 on recitation.GanjoorPostId equals poem.Id
+                  join poem in _context.DivanPoems
+                 on recitation.DivanPostId equals poem.Id
                   where
                   (filteredUserId == Guid.Empty || recitation.OwnerId == filteredUserId)
                   &&
@@ -2410,7 +2410,7 @@ namespace RMuseum.Services.Implementationa
                 recitation.InitialScore = 100;
                 _context.Update(recitation);
                 await _context.SaveChangesAsync();
-                await ComputePoemRecitationsOrdersAsync(recitation.GanjoorPostId);
+                await ComputePoemRecitationsOrdersAsync(recitation.DivanPostId);
             }
             return new RServiceResult<int>(recitations.Count);
         }
@@ -2424,8 +2424,8 @@ namespace RMuseum.Services.Implementationa
         {
             var source =
                  from audio in _context.Recitations.AsNoTracking().Include(a => a.Owner)
-                 join poem in _context.GanjoorPoems
-                 on audio.GanjoorPostId equals poem.Id
+                 join poem in _context.DivanPoems
+                 on audio.DivanPostId equals poem.Id
                  where
                  (filteredUserId == Guid.Empty || audio.OwnerId == filteredUserId)
                  &&
@@ -2505,8 +2505,8 @@ namespace RMuseum.Services.Implementationa
             var source =
                  from report in _context.RecitationErrorReports.Include(r => r.Recitation).Include(r => r.Reporter)
                  orderby report.DateTime
-                 join poem in _context.GanjoorPoems
-                 on report.Recitation.GanjoorPostId equals poem.Id
+                 join poem in _context.DivanPoems
+                 on report.Recitation.DivanPostId equals poem.Id
                  select
                  new RecitationErrorReportViewModel()
                  {
@@ -2661,7 +2661,7 @@ namespace RMuseum.Services.Implementationa
                    NotificationType.ActionRequired
                );
 
-                await ComputePoemRecitationsOrdersAsync(recitation.GanjoorPostId);
+                await ComputePoemRecitationsOrdersAsync(recitation.DivanPostId);
 
                 return new RServiceResult<bool>(true);
             }
@@ -2687,7 +2687,7 @@ namespace RMuseum.Services.Implementationa
                 await _context.SaveChangesAsync();
 
 
-                await ComputePoemRecitationsOrdersAsync(recitation.GanjoorPostId);
+                await ComputePoemRecitationsOrdersAsync(recitation.DivanPostId);
 
                 return new RServiceResult<bool>(true);
             }
@@ -2739,7 +2739,7 @@ namespace RMuseum.Services.Implementationa
             {
                 var recitations =
                     await context.Recitations
-                        .Where(r => r.ReviewStatus == AudioReviewStatus.Approved && r.GanjoorPostId == poemId)
+                        .Where(r => r.ReviewStatus == AudioReviewStatus.Approved && r.DivanPostId == poemId)
                         .OrderBy(r => r.Id) //this causes the oldest recirations to become the first one
                         .ToListAsync();
 
@@ -2833,7 +2833,7 @@ namespace RMuseum.Services.Implementationa
                 _context.RecitationUserUpVotes.Add(vote);
                 await _context.SaveChangesAsync();
 
-                await ComputePoemRecitationsOrdersAsync(recitation.GanjoorPostId);
+                await ComputePoemRecitationsOrdersAsync(recitation.DivanPostId);
 
                 return new RServiceResult<bool>(true);
 
@@ -2863,7 +2863,7 @@ namespace RMuseum.Services.Implementationa
                 _context.Remove(vote);
                 await _context.SaveChangesAsync();
 
-                await ComputePoemRecitationsOrdersAsync(recitation.GanjoorPostId);
+                await ComputePoemRecitationsOrdersAsync(recitation.DivanPostId);
 
                 return new RServiceResult<bool>(true);
 
@@ -2918,8 +2918,8 @@ namespace RMuseum.Services.Implementationa
             bool loadFromExternalServer = bool.Parse(Configuration.GetSection("ExternalFTPServer")["LoadFromExternalServer"]);
             var source =
                  from upvote in _context.RecitationUserUpVotes.AsNoTracking().Include(u => u.Recitation)
-                 join poem in _context.GanjoorPoems
-                 on upvote.Recitation.GanjoorPostId equals poem.Id
+                 join poem in _context.DivanPoems
+                 on upvote.Recitation.DivanPostId equals poem.Id
                  where
                  upvote.UserId == userId
                  orderby upvote.DateTime descending
@@ -3002,7 +3002,7 @@ namespace RMuseum.Services.Implementationa
                                             PoemAudio audio = PoemAudioListProcessor.Load(recitation.LocalXmlFilePath).First();
                                             if (audio.FileCheckSum != mp3CheckSum)
                                             {
-                                                string backupFile = recitation.LocalMp3FilePath.Replace("C:\\inetpub\\iganjoor", "C:\\audiobackups-restored");
+                                                string backupFile = recitation.LocalMp3FilePath.Replace("C:\\inetpub\\idivan", "C:\\audiobackups-restored");
                                                 if (File.Exists(backupFile))
                                                 {
                                                     File.Copy(backupFile, recitation.LocalMp3FilePath, true);
@@ -3098,9 +3098,9 @@ namespace RMuseum.Services.Implementationa
         private readonly IMemoryCache _memoryCache;
 
         /// <summary>
-        /// ganjoor service
+        /// divan service
         /// </summary>
-        private readonly IGanjoorService _ganjoorService;
+        private readonly IDivanService _divanService;
 
 
         /// <summary>
@@ -3112,8 +3112,8 @@ namespace RMuseum.Services.Implementationa
         /// <param name="notificationService"></param>
         /// <param name="userService"></param>
         /// <param name="memoryCache"></param>
-        /// <param name="ganjoorService"></param>
-        public RecitationService(RMuseumDbContext context, IConfiguration configuration, IBackgroundTaskQueue backgroundTaskQueue, IRNotificationService notificationService, IAppUserService userService, IMemoryCache memoryCache, IGanjoorService ganjoorService)
+        /// <param name="divanService"></param>
+        public RecitationService(RMuseumDbContext context, IConfiguration configuration, IBackgroundTaskQueue backgroundTaskQueue, IRNotificationService notificationService, IAppUserService userService, IMemoryCache memoryCache, IDivanService divanService)
         {
             _context = context;
             Configuration = configuration;
@@ -3121,7 +3121,7 @@ namespace RMuseum.Services.Implementationa
             _notificationService = notificationService;
             _userService = userService;
             _memoryCache = memoryCache;
-            _ganjoorService = ganjoorService;
+            _divanService = divanService;
         }
     }
 }

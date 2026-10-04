@@ -8,7 +8,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<bool>(
                 name: "AffectedThePoem",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -18,7 +18,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "AffectedThePoem",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
         }
     }
 }

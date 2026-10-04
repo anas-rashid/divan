@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoetSuggestedPictures",
+                name: "DivanPoetSuggestedPictures",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -24,45 +24,45 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoetSuggestedPictures", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoetSuggestedPictures", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoetSuggestedPictures_AspNetUsers_SuggestedById",
+                        name: "FK_DivanPoetSuggestedPictures_AspNetUsers_SuggestedById",
                         column: x => x.SuggestedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorPoetSuggestedPictures_GanjoorPoets_PoetId",
+                        name: "FK_DivanPoetSuggestedPictures_DivanPoets_PoetId",
                         column: x => x.PoetId,
-                        principalTable: "GanjoorPoets",
+                        principalTable: "DivanPoets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoetSuggestedPictures_GeneralImages_PictureId",
+                        name: "FK_DivanPoetSuggestedPictures_GeneralImages_PictureId",
                         column: x => x.PictureId,
                         principalTable: "GeneralImages",
                         principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoetSuggestedPictures_PictureId",
-                table: "GanjoorPoetSuggestedPictures",
+                name: "IX_DivanPoetSuggestedPictures_PictureId",
+                table: "DivanPoetSuggestedPictures",
                 column: "PictureId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoetSuggestedPictures_PoetId",
-                table: "GanjoorPoetSuggestedPictures",
+                name: "IX_DivanPoetSuggestedPictures_PoetId",
+                table: "DivanPoetSuggestedPictures",
                 column: "PoetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoetSuggestedPictures_SuggestedById",
-                table: "GanjoorPoetSuggestedPictures",
+                name: "IX_DivanPoetSuggestedPictures_SuggestedById",
+                table: "DivanPoetSuggestedPictures",
                 column: "SuggestedById");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorPoetSuggestedPictures");
+                name: "DivanPoetSuggestedPictures");
         }
     }
 }

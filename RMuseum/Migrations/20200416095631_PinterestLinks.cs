@@ -12,9 +12,9 @@ namespace RMuseum.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(nullable: false),
-                    GanjoorPostId = table.Column<int>(nullable: false),
-                    GanjoorUrl = table.Column<string>(nullable: true),
-                    GanjoorTitle = table.Column<string>(nullable: true),
+                    DivanPostId = table.Column<int>(nullable: false),
+                    DivanUrl = table.Column<string>(nullable: true),
+                    DivanTitle = table.Column<string>(nullable: true),
                     AltText = table.Column<string>(nullable: true),
                     LinkType = table.Column<int>(nullable: false),
                     PinterestUrl = table.Column<string>(nullable: true),

@@ -57,7 +57,7 @@ namespace RMuseum
             // Add service and create Policy with options
             services.AddCors(options =>
             {
-                options.AddPolicy("GanjoorCorsPolicy",
+                options.AddPolicy("DivanCorsPolicy",
                     builder => builder.SetIsOriginAllowed(_ => true)
                     .AllowAnyMethod()
                     .AllowAnyHeader()
@@ -142,7 +142,7 @@ namespace RMuseum
                     ValidateAudience = false,
                     ValidAudience = "Everyone",
                     ValidateIssuer = true,
-                    ValidIssuer = Configuration.GetSection("RSecurityBackend")["ApplicationName"] ?? "Ganjoor", // divan: issuer follows ApplicationName (the token issuer)
+                    ValidIssuer = Configuration.GetSection("RSecurityBackend")["ApplicationName"] ?? "Divan", // divan: issuer follows ApplicationName (the token issuer)
 
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes($"{Configuration.GetSection("Security")["Secret"]}")),
@@ -196,8 +196,8 @@ namespace RMuseum
                     TermsOfService = new Uri("https://ganjoor.net/contact"),
                     Contact = new OpenApiContact
                     {
-                        Name = "Ganjoor",
-                        Email = "ganjoor@ganjoor.net",
+                        Name = "Divan",
+                        Email = "divan@ganjoor.net",
                         Url = new Uri("https://ganjoor.net")
                     }
                 }
@@ -245,7 +245,7 @@ namespace RMuseum
             services.AddTransient<IImageFileService, ImageFileServiceEF>();
 
             //app user services
-            services.AddTransient<IAppUserService, GanjoorAppUserService>();
+            services.AddTransient<IAppUserService, DivanAppUserService>();
 
             //user groups services
             services.AddTransient<IUserRoleService, RoleService>();
@@ -275,8 +275,8 @@ namespace RMuseum
             //audio service
             services.AddTransient<IRecitationService, RecitationService>();
 
-            //ganjoor service
-            services.AddTransient<IGanjoorService, GanjoorService>();
+            //divan service
+            services.AddTransient<IDivanService, DivanService>();
 
             //music catalogue service
 
@@ -293,16 +293,16 @@ namespace RMuseum
             services.AddTransient<IDonationService, DonationService>();
 
             //translation service
-            services.AddTransient<IGanjoorTranslationService, GanjoorTranslationService>();
+            services.AddTransient<IDivanTranslationService, DivanTranslationService>();
 
             //numbering service
-            services.AddTransient<IGanjoorNumberingService, GanjoorNumberingService>();
+            services.AddTransient<IDivanNumberingService, DivanNumberingService>();
 
             //geo location service
             services.AddTransient<IGeoLocationService, GeoLocationService>();
 
             //related people (family tree / person tagging) service
-            services.AddTransient<IGanjoorRelatedPersonService, GanjoorRelatedPersonService>();
+            services.AddTransient<IDivanRelatedPersonService, DivanRelatedPersonService>();
 
             //tracking service
             services.AddTransient<IUserVisitsTrackingService, UserVisitsTrackingService>();
@@ -333,8 +333,8 @@ namespace RMuseum
 
             // See LazySemanticSearchResources.cs: this is deliberately NOT
             // services.AddSingleton<EmbeddingIndex>(sp => EmbeddingIndex.Load(...)) anymore. That
-            // eager, throwing factory is what caused a production 503 on the whole /api/ganjoor
-            // surface when the configured paths were wrong — GanjoorController's constructor
+            // eager, throwing factory is what caused a production 503 on the whole /api/divan
+            // surface when the configured paths were wrong — DivanController's constructor
             // (via ISemanticSearchService) couldn't be built, so nothing under that route could
             // run. LazySemanticSearchResources defers the actual load to first real use and
             // never throws; a failure there disables semantic search only.
@@ -363,13 +363,13 @@ namespace RMuseum
                 // Razor "/Error" page or MVC "Error" action for the old app.UseExceptionHandler("/Error")
                 // to redirect to - that redirect just 404s, and (especially when hosted behind IIS/ANCM,
                 // as in production here) a 404 with no body of its own can get replaced by IIS's own
-                // generic HTML error page instead. Either way, callers - including GanjooRazor's own
+                // generic HTML error page instead. Either way, callers - including DivanRazor's own
                 // server-side page handlers, which otherwise assume every error body is a JSON-encoded
                 // string - got back unreadable HTML instead of the real exception, visible only by
                 // digging through the Windows Event Log. Handling the exception directly here instead
                 // of redirecting anywhere guarantees a small JSON-string body with the real exception
                 // message, in the exact same shape a normal RServiceResult.ExceptionString error already
-                // comes back as (see e.g. GanjoorController's "return BadRequest(res.ExceptionString)"),
+                // comes back as (see e.g. DivanController's "return BadRequest(res.ExceptionString)"),
                 // so every existing client-side error handler keeps working unchanged.
                 app.UseExceptionHandler(errApp =>
                 {
@@ -402,7 +402,7 @@ namespace RMuseum
             app.UseAuthentication();
 
             // global policy - assign here or on each controller
-            app.UseCors("GanjoorCorsPolicy");
+            app.UseCors("DivanCorsPolicy");
 
             app.UseRouting();
 

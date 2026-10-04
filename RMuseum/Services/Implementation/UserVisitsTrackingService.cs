@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using RMuseum.DbContext;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
 using RSecurityBackend.Models.Generic;
 using RSecurityBackend.Services;
 using RSecurityBackend.Services.Implementation;
@@ -23,14 +23,14 @@ namespace RMuseum.Services.Implementation
         /// <param name="userId"></param>
         /// <param name="poemId"></param>
         /// <returns>previous visit date/time if any</returns>
-        public async Task<RServiceResult<GanjoorUserPrePoemVisitViewModel>> AddAsync(Guid userId, int poemId)
+        public async Task<RServiceResult<DivanUserPrePoemVisitViewModel>> AddAsync(Guid userId, int poemId)
         {
             bool keepHistory = false;
             var kRes = await _optionsService.GetValueAsync("KeepHistory", userId, null);
             if (!string.IsNullOrEmpty(kRes.Result))
                 bool.TryParse(kRes.Result, out keepHistory);
             if (!keepHistory)
-                return new RServiceResult<GanjoorUserPrePoemVisitViewModel>(new GanjoorUserPrePoemVisitViewModel()
+                return new RServiceResult<DivanUserPrePoemVisitViewModel>(new DivanUserPrePoemVisitViewModel()
                 {
                     LastVisit = null,
                     TotalVisits = 0,
@@ -38,7 +38,7 @@ namespace RMuseum.Services.Implementation
                 });
 
             
-            var oldTracks = await _context.GanjoorUserPoemVisits.Where(v => v.PoemId == poemId && v.UserId == userId).ToArrayAsync();
+            var oldTracks = await _context.DivanUserPoemVisits.Where(v => v.PoemId == poemId && v.UserId == userId).ToArrayAsync();
             int count = oldTracks.Any() ? Math.Max(oldTracks.Last().Counter, 1) : 0;
             DateTime? preVisit = oldTracks.Any() ? oldTracks.Last().DateTime : null;
             _context.RemoveRange(oldTracks);
@@ -46,7 +46,7 @@ namespace RMuseum.Services.Implementation
 
             count++;
 
-            GanjoorUserPoemVisit visit = new GanjoorUserPoemVisit()
+            DivanUserPoemVisit visit = new DivanUserPoemVisit()
             {
                 UserId = userId,
                 PoemId = poemId,
@@ -57,9 +57,9 @@ namespace RMuseum.Services.Implementation
             _context.Add(visit);
             await _context.SaveChangesAsync();
 
-            return new RServiceResult<GanjoorUserPrePoemVisitViewModel>
+            return new RServiceResult<DivanUserPrePoemVisitViewModel>
                 (
-                new GanjoorUserPrePoemVisitViewModel()
+                new DivanUserPrePoemVisitViewModel()
                 {
                     LastVisit = preVisit,
                     TotalVisits = count,
@@ -76,7 +76,7 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> DeleteAsync(Guid userId, Guid recordId)
         {
-            var rec = await _context.GanjoorUserPoemVisits.Where(v => v.UserId == userId && v.Id == recordId).SingleOrDefaultAsync();//userId is not needed but it is added to prevent accidental delete of other users data
+            var rec = await _context.DivanUserPoemVisits.Where(v => v.UserId == userId && v.Id == recordId).SingleOrDefaultAsync();//userId is not needed but it is added to prevent accidental delete of other users data
             if(rec == null)
                 return new RServiceResult<bool>(false, "record not found!");
             _context.Remove(rec);
@@ -101,7 +101,7 @@ namespace RMuseum.Services.Implementation
             {
                 try
                 {
-                    var recs = await _context.GanjoorUserPoemVisits.Where(v => v.UserId == userId).ToArrayAsync();
+                    var recs = await _context.DivanUserPoemVisits.Where(v => v.UserId == userId).ToArrayAsync();
                     _context.RemoveRange(recs);
                     await _context.SaveChangesAsync();
                 }
@@ -119,30 +119,30 @@ namespace RMuseum.Services.Implementation
         /// <param name="paging"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<(PaginationMetadata PagingMeta, GanjoorUserBookmarkViewModel[] HistoryItems)>> GetUserHistoryAsync(PagingParameterModel paging, Guid userId)
+        public async Task<RServiceResult<(PaginationMetadata PagingMeta, DivanUserBookmarkViewModel[] HistoryItems)>> GetUserHistoryAsync(PagingParameterModel paging, Guid userId)
         {
             var source =
-                 _context.GanjoorUserPoemVisits
+                 _context.DivanUserPoemVisits
                  .Include(b => b.Poem).ThenInclude(p => p.Cat).ThenInclude(c => c.Poet)
                  .Where(b => b.UserId == userId)
                 .OrderByDescending(b => b.DateTime)
                 .AsQueryable();
 
-            (PaginationMetadata PagingMeta, GanjoorUserPoemVisit[] HistoryItems) historiesPage =
-                await QueryablePaginator<GanjoorUserPoemVisit>.Paginate(source, paging);
+            (PaginationMetadata PagingMeta, DivanUserPoemVisit[] HistoryItems) historiesPage =
+                await QueryablePaginator<DivanUserPoemVisit>.Paginate(source, paging);
 
 
-            List<GanjoorUserBookmarkViewModel> result = new List<GanjoorUserBookmarkViewModel>();
+            List<DivanUserBookmarkViewModel> result = new List<DivanUserBookmarkViewModel>();
             foreach (var historyItem in historiesPage.HistoryItems)
             {
-                var verses = await _context.GanjoorVerses.AsNoTracking().Where(v => v.PoemId == historyItem.PoemId && v.CoupletIndex == 0).OrderBy(v => v.VOrder).ToListAsync();
+                var verses = await _context.DivanVerses.AsNoTracking().Where(v => v.PoemId == historyItem.PoemId && v.CoupletIndex == 0).OrderBy(v => v.VOrder).ToListAsync();
                 result.Add
                     (
-                    new GanjoorUserBookmarkViewModel()
+                    new DivanUserBookmarkViewModel()
                     {
                         Id = historyItem.Id,
                         PoetName = historyItem.Poem.Cat.Poet.Nickname,
-                        PoetImageUrl = $"{WebServiceUrl.Url}{$"/api/ganjoor/poet/image/{historyItem.Poem.FullUrl.Substring(1, historyItem.Poem.FullUrl.IndexOf('/', 1) - 1)}.gif"}",
+                        PoetImageUrl = $"{WebServiceUrl.Url}{$"/api/divan/poet/image/{historyItem.Poem.FullUrl.Substring(1, historyItem.Poem.FullUrl.IndexOf('/', 1) - 1)}.gif"}",
                         PoemFullTitle = historyItem.Poem.FullTitle,
                         PoemFullUrl = historyItem.Poem.FullUrl,
                         CoupletIndex = 0,
@@ -153,7 +153,7 @@ namespace RMuseum.Services.Implementation
                     );
             }
             
-            return new RServiceResult<(PaginationMetadata PagingMeta, GanjoorUserBookmarkViewModel[] HistoryItems)>
+            return new RServiceResult<(PaginationMetadata PagingMeta, DivanUserBookmarkViewModel[] HistoryItems)>
                 ((historiesPage.PagingMeta, result.ToArray()));
         }
 

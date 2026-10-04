@@ -12,14 +12,14 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "Importance",
-                table: "GanjoorRelatedPersons",
+                table: "DivanRelatedPersons",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "SuggestedImportance",
-                table: "GanjoorPersonEditSuggestions",
+                table: "DivanPersonEditSuggestions",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -30,11 +30,11 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Importance",
-                table: "GanjoorRelatedPersons");
+                table: "DivanRelatedPersons");
 
             migrationBuilder.DropColumn(
                 name: "SuggestedImportance",
-                table: "GanjoorPersonEditSuggestions");
+                table: "DivanPersonEditSuggestions");
         }
     }
 }

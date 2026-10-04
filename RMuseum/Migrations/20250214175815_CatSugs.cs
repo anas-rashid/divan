@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorCatCorrections",
+                name: "DivanCatCorrections",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -36,39 +36,39 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorCatCorrections", x => x.Id);
+                    table.PrimaryKey("PK_DivanCatCorrections", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorCatCorrections_AspNetUsers_ReviewerUserId",
+                        name: "FK_DivanCatCorrections_AspNetUsers_ReviewerUserId",
                         column: x => x.ReviewerUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorCatCorrections_AspNetUsers_UserId",
+                        name: "FK_DivanCatCorrections_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GanjoorCatCorrections_GanjoorCategories_CatId",
+                        name: "FK_DivanCatCorrections_DivanCategories_CatId",
                         column: x => x.CatId,
-                        principalTable: "GanjoorCategories",
+                        principalTable: "DivanCategories",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCatCorrections_CatId",
-                table: "GanjoorCatCorrections",
+                name: "IX_DivanCatCorrections_CatId",
+                table: "DivanCatCorrections",
                 column: "CatId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCatCorrections_ReviewerUserId",
-                table: "GanjoorCatCorrections",
+                name: "IX_DivanCatCorrections_ReviewerUserId",
+                table: "DivanCatCorrections",
                 column: "ReviewerUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCatCorrections_UserId",
-                table: "GanjoorCatCorrections",
+                name: "IX_DivanCatCorrections_UserId",
+                table: "DivanCatCorrections",
                 column: "UserId");
         }
 
@@ -76,7 +76,7 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorCatCorrections");
+                name: "DivanCatCorrections");
         }
     }
 }

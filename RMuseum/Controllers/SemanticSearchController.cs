@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using RMuseum.Models.Ganjoor.SemanticSearch;
+using RMuseum.Models.Divan.SemanticSearch;
 using RMuseum.Services.Implementation;
 using RMuseum.Utils.SemanticSearch;
 using System;
@@ -10,17 +10,17 @@ namespace RMuseum.Controllers
 {
     /// <summary>
     /// Semantic ("find a poem about...") search — deliberately its own controller, not a method
-    /// on GanjoorController, after a production incident: GanjoorController's constructor took
+    /// on DivanController, after a production incident: DivanController's constructor took
     /// ISemanticSearchService (indirectly requiring EmbeddingIndex/QueryEmbedder to load
     /// successfully), so a resource-loading failure prevented the ENTIRE controller from being
-    /// constructed — a 503 on every endpoint under /api/ganjoor, not just this feature. Same
-    /// route prefix as before (api/ganjoor), so the endpoint's URL is unchanged
-    /// (POST /api/ganjoor/search/semantic) — only which controller class hosts it changed.
+    /// constructed — a 503 on every endpoint under /api/divan, not just this feature. Same
+    /// route prefix as before (api/divan), so the endpoint's URL is unchanged
+    /// (POST /api/divan/search/semantic) — only which controller class hosts it changed.
     /// A future failure in this feature's own dependencies can now only ever affect this one
-    /// controller/endpoint, never GanjoorController or anything else.
+    /// controller/endpoint, never DivanController or anything else.
     /// </summary>
     [Produces("application/json")]
-    [Route("api/ganjoor")]
+    [Route("api/divan")]
     [ApiController]
     public class SemanticSearchController : ControllerBase
     {

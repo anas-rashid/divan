@@ -1,0 +1,46 @@
+﻿@page
+@model DivanRazor.Areas.Admin.Pages.PageHistoryModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@using DNTPersianUtils.Core
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "سابقهٔ ویرایش";
+}
+
+<div class="up-page-header">
+    <h1>@ViewData["Title"]</h1>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.LastMessage))
+{
+    <p class="up-hint">@Model.LastMessage</p>
+}
+
+@if (Model.OlderVersions != null && Model.OlderVersions.Length > 0)
+{
+    <table>
+        <tr>
+            <th>شناسه</th>
+            <th>تاریخ</th>
+            <th>یاداشت</th>
+        </tr>
+        @foreach (var olderVersion in Model.OlderVersions)
+        {
+            <tr id="tr-@olderVersion.Id">
+                <td>
+                    <a href="/Admin/EarlierVersion?id=@olderVersion.Id">@olderVersion.Id</a>
+                </td>
+                <td>
+                    @olderVersion.RecordDate.ToFriendlyPersianDateTextify()
+                </td>
+                <td>
+                    @olderVersion.Note
+                </td>
+            </tr>
+        }
+    </table>
+}
+else
+{
+    <partial name="_EmptyState" model="@("سابقه‌ای برای این صفحه ثبت نشده است.")" />
+}

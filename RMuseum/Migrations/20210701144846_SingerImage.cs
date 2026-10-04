@@ -9,18 +9,18 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<Guid>(
                 name: "RImageId",
-                table: "GanjoorSingers",
+                table: "DivanSingers",
                 type: "uniqueidentifier",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorSingers_RImageId",
-                table: "GanjoorSingers",
+                name: "IX_DivanSingers_RImageId",
+                table: "DivanSingers",
                 column: "RImageId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_GanjoorSingers_GeneralImages_RImageId",
-                table: "GanjoorSingers",
+                name: "FK_DivanSingers_GeneralImages_RImageId",
+                table: "DivanSingers",
                 column: "RImageId",
                 principalTable: "GeneralImages",
                 principalColumn: "Id",
@@ -30,16 +30,16 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_GanjoorSingers_GeneralImages_RImageId",
-                table: "GanjoorSingers");
+                name: "FK_DivanSingers_GeneralImages_RImageId",
+                table: "DivanSingers");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorSingers_RImageId",
-                table: "GanjoorSingers");
+                name: "IX_DivanSingers_RImageId",
+                table: "DivanSingers");
 
             migrationBuilder.DropColumn(
                 name: "RImageId",
-                table: "GanjoorSingers");
+                table: "DivanSingers");
         }
     }
 }

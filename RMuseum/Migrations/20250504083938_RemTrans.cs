@@ -12,17 +12,17 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorVerseTranslation");
+                name: "DivanVerseTranslation");
 
             migrationBuilder.DropTable(
-                name: "GanjoorPoemTranslations");
+                name: "DivanPoemTranslations");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoemTranslations",
+                name: "DivanPoemTranslations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -37,76 +37,76 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoemTranslations", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoemTranslations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemTranslations_AspNetUsers_UserId",
+                        name: "FK_DivanPoemTranslations_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemTranslations_GanjoorLanguages_LanguageId",
+                        name: "FK_DivanPoemTranslations_DivanLanguages_LanguageId",
                         column: x => x.LanguageId,
-                        principalTable: "GanjoorLanguages",
+                        principalTable: "DivanLanguages",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoemTranslations_GanjoorPoems_PoemId",
+                        name: "FK_DivanPoemTranslations_DivanPoems_PoemId",
                         column: x => x.PoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GanjoorVerseTranslation",
+                name: "DivanVerseTranslation",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     VerseId = table.Column<int>(type: "int", nullable: false),
-                    GanjoorPoemTranslationId = table.Column<int>(type: "int", nullable: true),
+                    DivanPoemTranslationId = table.Column<int>(type: "int", nullable: true),
                     TText = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorVerseTranslation", x => x.Id);
+                    table.PrimaryKey("PK_DivanVerseTranslation", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorVerseTranslation_GanjoorPoemTranslations_GanjoorPoemTranslationId",
-                        column: x => x.GanjoorPoemTranslationId,
-                        principalTable: "GanjoorPoemTranslations",
+                        name: "FK_DivanVerseTranslation_DivanPoemTranslations_DivanPoemTranslationId",
+                        column: x => x.DivanPoemTranslationId,
+                        principalTable: "DivanPoemTranslations",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorVerseTranslation_GanjoorVerses_VerseId",
+                        name: "FK_DivanVerseTranslation_DivanVerses_VerseId",
                         column: x => x.VerseId,
-                        principalTable: "GanjoorVerses",
+                        principalTable: "DivanVerses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemTranslations_LanguageId",
-                table: "GanjoorPoemTranslations",
+                name: "IX_DivanPoemTranslations_LanguageId",
+                table: "DivanPoemTranslations",
                 column: "LanguageId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemTranslations_PoemId",
-                table: "GanjoorPoemTranslations",
+                name: "IX_DivanPoemTranslations_PoemId",
+                table: "DivanPoemTranslations",
                 column: "PoemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoemTranslations_UserId",
-                table: "GanjoorPoemTranslations",
+                name: "IX_DivanPoemTranslations_UserId",
+                table: "DivanPoemTranslations",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorVerseTranslation_GanjoorPoemTranslationId",
-                table: "GanjoorVerseTranslation",
-                column: "GanjoorPoemTranslationId");
+                name: "IX_DivanVerseTranslation_DivanPoemTranslationId",
+                table: "DivanVerseTranslation",
+                column: "DivanPoemTranslationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorVerseTranslation_VerseId",
-                table: "GanjoorVerseTranslation",
+                name: "IX_DivanVerseTranslation_VerseId",
+                table: "DivanVerseTranslation",
                 column: "VerseId");
         }
     }

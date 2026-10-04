@@ -7,8 +7,8 @@ using RMuseum.Models.Artifact;
 using RMuseum.Models.Artifact.ViewModels;
 using RMuseum.Models.Bookmark;
 using RMuseum.Models.Bookmark.ViewModels;
-using RMuseum.Models.GanjoorIntegration;
-using RMuseum.Models.GanjoorIntegration.ViewModels;
+using RMuseum.Models.DivanIntegration;
+using RMuseum.Models.DivanIntegration.ViewModels;
 using RMuseum.Models.ImportJob;
 using RMuseum.Models.Note;
 using RMuseum.Models.Note.ViewModels;
@@ -28,7 +28,7 @@ using System.Threading.Tasks;
 using DNTPersianUtils.Core;
 using FluentFTP;
 using RSecurityBackend.Models.Notification;
-using RMuseum.Models.Ganjoor;
+using RMuseum.Models.Divan;
 using RMuseum.Models.Auth.Memory;
 
 namespace RMuseum.Services.Implementation
@@ -1643,9 +1643,9 @@ namespace RMuseum.Services.Implementation
                     _context.RemoveRange(notes);
                 }
 
-                if (await _context.GanjoorLinks.Where(l => l.ArtifactId == artifactId).AnyAsync())
+                if (await _context.DivanLinks.Where(l => l.ArtifactId == artifactId).AnyAsync())
                 {
-                    var links = await _context.GanjoorLinks.Where(l => l.ArtifactId == artifactId).ToListAsync();
+                    var links = await _context.DivanLinks.Where(l => l.ArtifactId == artifactId).ToListAsync();
                     _context.RemoveRange(links);
                 }
 
@@ -2795,28 +2795,28 @@ namespace RMuseum.Services.Implementation
 
 
         /// <summary>
-        /// suggest ganjoor link
+        /// suggest divan link
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="link"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorLinkViewModel>> SuggestGanjoorLink(Guid userId, LinkSuggestion link)
+        public async Task<RServiceResult<DivanLinkViewModel>> SuggestDivanLink(Guid userId, LinkSuggestion link)
         {
             RArtifactMasterRecord artifact = await _context.Artifacts.AsNoTracking().Include(a => a.CoverImage).Where(a => a.FriendlyUrl == link.ArtifactFriendlyUrl).SingleOrDefaultAsync();
 
-            GanjoorLink alreadySuggest =
-            await _context.GanjoorLinks.
-                Where(l => l.GanjoorPostId == link.GanjoorPostId && l.ArtifactId == artifact.Id && l.ItemId == link.ItemId && l.ReviewResult != ReviewResult.Rejected)
+            DivanLink alreadySuggest =
+            await _context.DivanLinks.
+                Where(l => l.DivanPostId == link.DivanPostId && l.ArtifactId == artifact.Id && l.ItemId == link.ItemId && l.ReviewResult != ReviewResult.Rejected)
                 .SingleOrDefaultAsync();
             if (alreadySuggest != null)
-                return new RServiceResult<GanjoorLinkViewModel>(null, "این مورد پیشتر پیشنهاد شده است.");
+                return new RServiceResult<DivanLinkViewModel>(null, "این مورد پیشتر پیشنهاد شده است.");
 
-            GanjoorLink suggestion =
-                new GanjoorLink()
+            DivanLink suggestion =
+                new DivanLink()
                 {
-                    GanjoorPostId = link.GanjoorPostId,
-                    GanjoorTitle = link.GanjoorTitle,
-                    GanjoorUrl = link.GanjoorUrl,
+                    DivanPostId = link.DivanPostId,
+                    DivanTitle = link.DivanTitle,
+                    DivanUrl = link.DivanUrl,
                     ArtifactId = artifact.Id,
                     ItemId = link.ItemId,
                     SuggestedById = userId,
@@ -2824,7 +2824,7 @@ namespace RMuseum.Services.Implementation
                     ReviewResult = ReviewResult.Awaiting
                 };
 
-            _context.GanjoorLinks.Add(suggestion);
+            _context.DivanLinks.Add(suggestion);
             await _context.SaveChangesAsync();
 
             string entityName, entityFriendlyUrl;
@@ -2846,7 +2846,7 @@ namespace RMuseum.Services.Implementation
                 externalNormalSizeImageUrl = item.Images.First().ExternalNormalSizeImageUrl;
             }
 
-            var moderators = await _userService.GetUsersHavingPermission(RMuseumSecurableItem.ArtifactEntityShortName, RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName);
+            var moderators = await _userService.GetUsersHavingPermission(RMuseumSecurableItem.ArtifactEntityShortName, RMuseumSecurableItem.ReviewDivanLinksOperationShortName);
             if (string.IsNullOrEmpty(moderators.ExceptionString)) //if not, do nothing!
             {
                 foreach (var moderator in moderators.Result)
@@ -2869,13 +2869,13 @@ namespace RMuseum.Services.Implementation
 
             var user = (await _userService.GetUserInformation(userId)).Result;
 
-            GanjoorLinkViewModel viewModel
-                = new GanjoorLinkViewModel()
+            DivanLinkViewModel viewModel
+                = new DivanLinkViewModel()
                 {
                     Id = suggestion.Id,
-                    GanjoorPostId = suggestion.GanjoorPostId,
-                    GanjoorUrl = suggestion.GanjoorUrl,
-                    GanjoorTitle = suggestion.GanjoorTitle,
+                    DivanPostId = suggestion.DivanPostId,
+                    DivanUrl = suggestion.DivanUrl,
+                    DivanTitle = suggestion.DivanTitle,
                     EntityName = entityName,
                     EntityFriendlyUrl = entityFriendlyUrl,
                     EntityImageId = entityImageId,
@@ -2899,7 +2899,7 @@ namespace RMuseum.Services.Implementation
                     IsTextOriginalSource = suggestion.IsTextOriginalSource,
                     ExternalNormalSizeImageUrl = externalNormalSizeImageUrl,
                 };
-            return new RServiceResult<GanjoorLinkViewModel>(viewModel);
+            return new RServiceResult<DivanLinkViewModel>(viewModel);
         }
 
         /// <summary>
@@ -2910,7 +2910,7 @@ namespace RMuseum.Services.Implementation
         {
             return new RServiceResult<int>
                 (
-                  await _context.GanjoorLinks.AsNoTracking()
+                  await _context.DivanLinks.AsNoTracking()
                  .Include(l => l.SuggestedBy)
                  .Include(l => l.Artifact)
                  .Include(l => l.Item).ThenInclude(i => i.Images)
@@ -2924,10 +2924,10 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="skip"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorLinkViewModel[]>> GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(int skip)
+        public async Task<RServiceResult<DivanLinkViewModel[]>> GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(int skip)
         {
-            GanjoorLink link =
-            await _context.GanjoorLinks.AsNoTracking()
+            DivanLink link =
+            await _context.DivanLinks.AsNoTracking()
                  .Include(l => l.SuggestedBy)
                  .Include(l => l.Artifact).ThenInclude(l => l.CoverImage)
                  .Include(l => l.Item).ThenInclude(i => i.Images)
@@ -2936,16 +2936,16 @@ namespace RMuseum.Services.Implementation
                  .Skip(skip)
                  .FirstOrDefaultAsync();
             if (link == null)
-                return new RServiceResult<GanjoorLinkViewModel[]>(null);
-            List<GanjoorLinkViewModel> result = new List<GanjoorLinkViewModel>();
+                return new RServiceResult<DivanLinkViewModel[]>(null);
+            List<DivanLinkViewModel> result = new List<DivanLinkViewModel>();
             result.Add
                      (
-                     new GanjoorLinkViewModel()
+                     new DivanLinkViewModel()
                      {
                          Id = link.Id,
-                         GanjoorPostId = link.GanjoorPostId,
-                         GanjoorUrl = link.GanjoorUrl,
-                         GanjoorTitle = link.GanjoorTitle,
+                         DivanPostId = link.DivanPostId,
+                         DivanUrl = link.DivanUrl,
+                         DivanTitle = link.DivanTitle,
                          EntityName = link.Item == null ? link.Artifact.Name : link.Artifact.Name + " » " + link.Item.Name,
                          EntityFriendlyUrl = link.Item == null ? $"/items/{link.Artifact.FriendlyUrl}" : $"/items/{link.Artifact.FriendlyUrl}/{link.Item.FriendlyUrl}",
                          EntityImageId = link.Item == null ? link.Artifact.CoverImageId : link.Item.Images.First().Id,
@@ -2970,24 +2970,24 @@ namespace RMuseum.Services.Implementation
                          ExternalNormalSizeImageUrl = link.Item == null ? link.Artifact.CoverImage.ExternalNormalSizeImageUrl : link.Item.Images.First().ExternalNormalSizeImageUrl,
                      }
                      );
-            GanjoorLink preLink =
-            await _context.GanjoorLinks.AsNoTracking()
+            DivanLink preLink =
+            await _context.DivanLinks.AsNoTracking()
                  .Include(l => l.SuggestedBy)
                  .Include(l => l.Artifact).ThenInclude(l => l.CoverImage)
                  .Include(l => l.Item).ThenInclude(i => i.Images)
-                 .Where(l => l.ReviewResult == ReviewResult.Approved && l.DisplayOnPage && l.GanjoorPostId == link.GanjoorPostId && l.ArtifactId == link.ArtifactId)
+                 .Where(l => l.ReviewResult == ReviewResult.Approved && l.DisplayOnPage && l.DivanPostId == link.DivanPostId && l.ArtifactId == link.ArtifactId)
                  .OrderBy(l => l.SuggestionDate)
                  .FirstOrDefaultAsync();
             if (preLink != null)
             {
                 result.Add
                      (
-                     new GanjoorLinkViewModel()
+                     new DivanLinkViewModel()
                      {
                          Id = preLink.Id,
-                         GanjoorPostId = preLink.GanjoorPostId,
-                         GanjoorUrl = preLink.GanjoorUrl,
-                         GanjoorTitle = preLink.GanjoorTitle,
+                         DivanPostId = preLink.DivanPostId,
+                         DivanUrl = preLink.DivanUrl,
+                         DivanTitle = preLink.DivanTitle,
                          EntityName = preLink.Item == null ? preLink.Artifact.Name : preLink.Artifact.Name + " » " + preLink.Item.Name,
                          EntityFriendlyUrl = preLink.Item == null ? $"/items/{preLink.Artifact.FriendlyUrl}" : $"/items/{preLink.Artifact.FriendlyUrl}/{preLink.Item.FriendlyUrl}",
                          EntityImageId = preLink.Item == null ? preLink.Artifact.CoverImageId : preLink.Item.Images.First().Id,
@@ -3013,37 +3013,37 @@ namespace RMuseum.Services.Implementation
                      }
                      );
             }
-            return new RServiceResult<GanjoorLinkViewModel[]>(result.ToArray());
+            return new RServiceResult<DivanLinkViewModel[]>(result.ToArray());
         }
 
 
         /// <summary>
-        /// get suggested ganjoor links
+        /// get suggested divan links
         /// </summary>
         /// <param name="status"></param>
         /// <param name="notSynced"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorLinkViewModel[]>> GetSuggestedLinks(ReviewResult status, bool notSynced)
+        public async Task<RServiceResult<DivanLinkViewModel[]>> GetSuggestedLinks(ReviewResult status, bool notSynced)
         {
-            GanjoorLink[] links =
-            await _context.GanjoorLinks.AsNoTracking()
+            DivanLink[] links =
+            await _context.DivanLinks.AsNoTracking()
                  .Include(l => l.SuggestedBy)
                  .Include(l => l.Artifact).ThenInclude(a => a.CoverImage)
                  .Include(l => l.Item).ThenInclude(i => i.Images)
                  .Where(l => l.ReviewResult == status && (notSynced == false || !l.Synchronized))
                  .OrderBy(l => l.SuggestionDate)
                  .ToArrayAsync();
-            List<GanjoorLinkViewModel> result = new List<GanjoorLinkViewModel>();
-            foreach (GanjoorLink link in links)
+            List<DivanLinkViewModel> result = new List<DivanLinkViewModel>();
+            foreach (DivanLink link in links)
             {
                 result.Add
                     (
-                    new GanjoorLinkViewModel()
+                    new DivanLinkViewModel()
                     {
                         Id = link.Id,
-                        GanjoorPostId = link.GanjoorPostId,
-                        GanjoorUrl = link.GanjoorUrl,
-                        GanjoorTitle = link.GanjoorTitle,
+                        DivanPostId = link.DivanPostId,
+                        DivanUrl = link.DivanUrl,
+                        DivanTitle = link.DivanTitle,
                         EntityName = link.Item == null ? link.Artifact.Name : link.Artifact.Name + " » " + link.Item.Name,
                         EntityFriendlyUrl = link.Item == null ? $"/items/{link.Artifact.FriendlyUrl}" : $"/items/{link.Artifact.FriendlyUrl}/{link.Item.FriendlyUrl}",
                         EntityImageId = link.Item == null ? link.Artifact.CoverImageId : link.Item.Images.First().Id,
@@ -3069,7 +3069,7 @@ namespace RMuseum.Services.Implementation
                     }
                     );
             }
-            return new RServiceResult<GanjoorLinkViewModel[]>(result.ToArray());
+            return new RServiceResult<DivanLinkViewModel[]>(result.ToArray());
         }
 
         /// <summary>
@@ -3081,19 +3081,19 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> ReviewSuggestedLink(Guid linkId, Guid userId, ReviewResult result)
         {
-            GanjoorLink link =
-            await _context.GanjoorLinks
+            DivanLink link =
+            await _context.DivanLinks
                  .Include(l => l.Artifact).ThenInclude(a => a.Tags).ThenInclude(t => t.RTag)
                  .Include(l => l.Item).ThenInclude(i => i.Tags).ThenInclude(t => t.RTag)
                  .Where(l => l.Id == linkId)
                  .SingleOrDefaultAsync();
 
-            var poem = (await _ganjoorService.GetPoemById(link.GanjoorPostId)).Result;//if it fails here nothing is updated
+            var poem = (await _divanService.GetPoemById(link.DivanPostId)).Result;//if it fails here nothing is updated
             string titleInTOC = poem == null ? "" : poem.FullTitle;
 
             if (poem != null && poem.Verses.Length > 0)
             {
-                link.GanjoorTitle = poem.FullTitle;
+                link.DivanTitle = poem.FullTitle;
                 titleInTOC += $" - {poem.Verses[0].Text}";
             }
 
@@ -3105,7 +3105,7 @@ namespace RMuseum.Services.Implementation
             if (
                 link.ReviewResult == ReviewResult.Approved
                 &&
-                !await _context.GanjoorLinks.Where(l => l.ArtifactId == link.ArtifactId && l.GanjoorPostId == link.GanjoorPostId && l.ReviewResult == ReviewResult.Approved && l.DisplayOnPage).AnyAsync()
+                !await _context.DivanLinks.Where(l => l.ArtifactId == link.ArtifactId && l.DivanPostId == link.DivanPostId && l.ReviewResult == ReviewResult.Approved && l.DisplayOnPage).AnyAsync()
                 )
             {
                 link.DisplayOnPage = true;
@@ -3113,10 +3113,10 @@ namespace RMuseum.Services.Implementation
 
 
 
-                await _ganjoorService.CacheCleanForPageById(link.GanjoorPostId);
+                await _divanService.CacheCleanForPageById(link.DivanPostId);
             }//if not user must decide through UI for this link
 
-            _context.GanjoorLinks.Update(link);
+            _context.DivanLinks.Update(link);
 
             if (link.ReviewResult == ReviewResult.Approved)
             {
@@ -3137,8 +3137,8 @@ namespace RMuseum.Services.Implementation
                     }
                 }
 
-                RTagValue tag = await TagHandler.PrepareAttribute(_context, "Ganjoor Link", link.GanjoorTitle, 1);
-                tag.ValueSupplement = link.GanjoorUrl;
+                RTagValue tag = await TagHandler.PrepareAttribute(_context, "Divan Link", link.DivanTitle, 1);
+                tag.ValueSupplement = link.DivanUrl;
                 if (link.Item == null)
                 {
                     link.Artifact.Tags.Add(tag);
@@ -3183,40 +3183,40 @@ namespace RMuseum.Services.Implementation
         }
 
         /// <summary>
-        /// remove ganjoor link
+        /// remove divan link
         /// </summary>
         /// <param name="id"></param>
         /// <param name="removeItemLink"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<bool>> RemoveGanjoorLinkAsync(Guid id, bool removeItemLink)
+        public async Task<RServiceResult<bool>> RemoveDivanLinkAsync(Guid id, bool removeItemLink)
         {
             try
             {
-                GanjoorLink link =
-                    await _context.GanjoorLinks
+                DivanLink link =
+                    await _context.DivanLinks
                     .Where(l => l.Id == id)
                     .SingleAsync();
                 if(removeItemLink)
                 {
-                    GanjoorPoem poem = await _context.GanjoorPoems.AsNoTracking().Where(p => p.Id == link.GanjoorPostId).SingleOrDefaultAsync();
+                    DivanPoem poem = await _context.DivanPoems.AsNoTracking().Where(p => p.Id == link.DivanPostId).SingleOrDefaultAsync();
                     if (poem != null)
                     {
                         var item = await _context.Items.Include(i => i.Tags).Where(i => i.Id == link.ItemId).SingleAsync();
                         bool itemNeedsUpdate = false;
-                        RTag ganjoorlinkTagType = await _context.Tags.AsNoTracking().Where(a => a.NameInEnglish == "Ganjoor Link").SingleAsync();
-                        if (item.Tags.Any(t => t.RTagId == ganjoorlinkTagType.Id && t.ValueSupplement == $"https://ganjoor.net{poem.FullUrl}"))
+                        RTag divanlinkTagType = await _context.Tags.AsNoTracking().Where(a => a.NameInEnglish == "Divan Link").SingleAsync();
+                        if (item.Tags.Any(t => t.RTagId == divanlinkTagType.Id && t.ValueSupplement == $"https://ganjoor.net{poem.FullUrl}"))
                         {
-                            var tags = item.Tags.Where(t => t.RTagId == ganjoorlinkTagType.Id && t.ValueSupplement == $"https://ganjoor.net{poem.FullUrl}").ToList();
+                            var tags = item.Tags.Where(t => t.RTagId == divanlinkTagType.Id && t.ValueSupplement == $"https://ganjoor.net{poem.FullUrl}").ToList();
                             foreach (var tag in tags)
                             {
                                 item.Tags.Remove(tag);
                             }
                             itemNeedsUpdate = true;
                         }
-                        RTag ganjoorTOCTagType = await _context.Tags.AsNoTracking().Where(a => a.NameInEnglish == "Title in TOC").SingleAsync();
-                        if (item.Tags.Any(t => t.RTagId == ganjoorTOCTagType.Id && t.Value == poem.FullTitle))
+                        RTag divanTOCTagType = await _context.Tags.AsNoTracking().Where(a => a.NameInEnglish == "Title in TOC").SingleAsync();
+                        if (item.Tags.Any(t => t.RTagId == divanTOCTagType.Id && t.Value == poem.FullTitle))
                         {
-                            var tags = item.Tags.Where(t => t.RTagId == ganjoorTOCTagType.Id && t.Value == poem.FullTitle).ToList();
+                            var tags = item.Tags.Where(t => t.RTagId == divanTOCTagType.Id && t.Value == poem.FullTitle).ToList();
                             foreach (var tag in tags)
                             {
                                 item.Tags.Remove(tag);
@@ -3245,8 +3245,8 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<string[]>> AddTOCForSuggestedLinks()
         {
-            GanjoorLink[] links =
-            await _context.GanjoorLinks
+            DivanLink[] links =
+            await _context.DivanLinks
                  .Include(l => l.Artifact).ThenInclude(a => a.Tags).ThenInclude(t => t.RTag)
                  .Include(l => l.Item).ThenInclude(i => i.Tags).ThenInclude(t => t.RTag)
                  .Where(l => l.ReviewResult == ReviewResult.Approved)
@@ -3254,9 +3254,9 @@ namespace RMuseum.Services.Implementation
 
             List<string> lst = new List<string>();
 
-            foreach (GanjoorLink link in links)
+            foreach (DivanLink link in links)
             {
-                var poem = (await _ganjoorService.GetPoemById(link.GanjoorPostId)).Result;//if it fails here nothing is updated
+                var poem = (await _divanService.GetPoemById(link.DivanPostId)).Result;//if it fails here nothing is updated
                 string titleInTOC = poem.FullTitle;
 
                 if (poem.Verses.Length > 0)
@@ -3299,18 +3299,18 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> SynchronizeSuggestedLink(Guid linkId, bool displayOnPage)
         {
-            GanjoorLink link =
-            await _context.GanjoorLinks
+            DivanLink link =
+            await _context.DivanLinks
                  .Where(l => l.Id == linkId)
                  .SingleOrDefaultAsync();
 
             link.Synchronized = true;
             link.DisplayOnPage = displayOnPage;
 
-            _context.GanjoorLinks.Update(link);
+            _context.DivanLinks.Update(link);
             await _context.SaveChangesAsync();
 
-            await _ganjoorService.CacheCleanForPageById(link.GanjoorPostId);
+            await _divanService.CacheCleanForPageById(link.DivanPostId);
 
             return new RServiceResult<bool>(true);
         }
@@ -3339,9 +3339,9 @@ namespace RMuseum.Services.Implementation
                     new PinterestLinkViewModel()
                     {
                         Id = link.Id,
-                        GanjoorPostId = link.GanjoorPostId,
-                        GanjoorUrl = link.GanjoorUrl,
-                        GanjoorTitle = link.GanjoorTitle,
+                        DivanPostId = link.DivanPostId,
+                        DivanUrl = link.DivanUrl,
+                        DivanTitle = link.DivanTitle,
                         AltText = link.AltText,
                         LinkType = link.LinkType,
                         PinterestImageUrl = link.PinterestImageUrl,
@@ -3375,7 +3375,7 @@ namespace RMuseum.Services.Implementation
             await _context.PinterestLinks.Where
                 (
                 p =>
-                p.GanjoorPostId == suggestion.GanjoorPostId
+                p.DivanPostId == suggestion.DivanPostId
                 &&
                 p.PinterestUrl == suggestion.PinterestUrl
                 &&
@@ -3386,9 +3386,9 @@ namespace RMuseum.Services.Implementation
 
             PinterestLink link = new PinterestLink()
             {
-                GanjoorPostId = suggestion.GanjoorPostId,
-                GanjoorTitle = suggestion.GanjoorTitle,
-                GanjoorUrl = suggestion.GanjoorUrl,
+                DivanPostId = suggestion.DivanPostId,
+                DivanTitle = suggestion.DivanTitle,
+                DivanUrl = suggestion.DivanUrl,
                 AltText = suggestion.AltText,
                 LinkType = suggestion.LinkType,
                 PinterestUrl = suggestion.PinterestUrl,
@@ -3401,7 +3401,7 @@ namespace RMuseum.Services.Implementation
             };
             _context.PinterestLinks.Add(link);
             await _context.SaveChangesAsync();
-            var moderators = await _userService.GetUsersHavingPermission(RMuseumSecurableItem.ArtifactEntityShortName, RMuseumSecurableItem.ReviewGanjoorLinksOperationShortName);
+            var moderators = await _userService.GetUsersHavingPermission(RMuseumSecurableItem.ArtifactEntityShortName, RMuseumSecurableItem.ReviewDivanLinksOperationShortName);
             if (string.IsNullOrEmpty(moderators.ExceptionString)) //if not, do nothing!
             {
                 foreach (var moderator in moderators.Result)
@@ -3421,9 +3421,9 @@ namespace RMuseum.Services.Implementation
                 new PinterestLinkViewModel()
                 {
                     Id = link.Id,
-                    GanjoorPostId = link.GanjoorPostId,
-                    GanjoorUrl = link.GanjoorUrl,
-                    GanjoorTitle = link.GanjoorTitle,
+                    DivanPostId = link.DivanPostId,
+                    DivanUrl = link.DivanUrl,
+                    DivanTitle = link.DivanTitle,
                     AltText = link.AltText,
                     LinkType = link.LinkType,
                     PinterestImageUrl = link.PinterestImageUrl,
@@ -3523,7 +3523,7 @@ namespace RMuseum.Services.Implementation
                                     {
                                         fileName = Guid.NewGuid() + "-" + friendlyUrl + ".jpg";
                                     }
-                                    RServiceResult<RPictureFile> picture = await _pictureFileService.Add(link.GanjoorTitle, link.AltText, 1, null, link.PinterestUrl, imageStream, fileName, "Pinterest");
+                                    RServiceResult<RPictureFile> picture = await _pictureFileService.Add(link.DivanTitle, link.AltText, 1, null, link.PinterestUrl, imageStream, fileName, "Pinterest");
                                     if (picture.Result == null)
                                     {
                                         return new RServiceResult<bool>(false, $"_pictureFileService.Add : {picture.ExceptionString}");
@@ -3600,8 +3600,8 @@ namespace RMuseum.Services.Implementation
 
                                     meta.Add(tag);
 
-                                    tag = await TagHandler.PrepareAttribute(_context, "Ganjoor Link", link.GanjoorTitle, 1);
-                                    tag.ValueSupplement = link.GanjoorUrl;
+                                    tag = await TagHandler.PrepareAttribute(_context, "Divan Link", link.DivanTitle, 1);
+                                    tag.ValueSupplement = link.DivanUrl;
 
                                     meta.Add(tag);
 
@@ -3976,9 +3976,9 @@ namespace RMuseum.Services.Implementation
         protected readonly IRNotificationService _notificationService;
 
         /// <summary>
-        /// Ganjoor Service
+        /// Divan Service
         /// </summary>
-        private readonly IGanjoorService _ganjoorService;
+        private readonly IDivanService _divanService;
 
         /// <summary>
         /// constructor
@@ -3989,8 +3989,8 @@ namespace RMuseum.Services.Implementation
         /// <param name="backgroundTaskQueue"></param>
         /// <param name="userService"></param>
         /// <param name="notificationService"></param>
-        /// <param name="ganjoorService"></param>
-        public ArtifactService(RMuseumDbContext context, IConfiguration configuration, IPictureFileService pictureFileService, IBackgroundTaskQueue backgroundTaskQueue, IAppUserService userService, IRNotificationService notificationService, IGanjoorService ganjoorService)
+        /// <param name="divanService"></param>
+        public ArtifactService(RMuseumDbContext context, IConfiguration configuration, IPictureFileService pictureFileService, IBackgroundTaskQueue backgroundTaskQueue, IAppUserService userService, IRNotificationService notificationService, IDivanService divanService)
         {
             _context = context;
             _pictureFileService = pictureFileService;
@@ -3998,7 +3998,7 @@ namespace RMuseum.Services.Implementation
             _backgroundTaskQueue = backgroundTaskQueue;
             _userService = userService;
             _notificationService = notificationService;
-            _ganjoorService = ganjoorService;
+            _divanService = divanService;
         }
     }
 }

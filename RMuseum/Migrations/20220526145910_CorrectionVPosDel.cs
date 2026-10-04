@@ -10,33 +10,33 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<bool>(
                 name: "MarkForDelete",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<int>(
                 name: "MarkForDeleteResult",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "OriginalVersePosition",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "VersePosition",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "VersePositionResult",
-                table: "GanjoorVerseVOrderText",
+                table: "DivanVerseVOrderText",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -46,23 +46,23 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "MarkForDelete",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "MarkForDeleteResult",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "OriginalVersePosition",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "VersePosition",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
 
             migrationBuilder.DropColumn(
                 name: "VersePositionResult",
-                table: "GanjoorVerseVOrderText");
+                table: "DivanVerseVOrderText");
         }
     }
 }

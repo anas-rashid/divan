@@ -9,7 +9,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorDuplicates",
+                name: "DivanDuplicates",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -20,35 +20,35 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorDuplicates", x => x.Id);
+                    table.PrimaryKey("PK_DivanDuplicates", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorDuplicates_GanjoorPoems_DestPoemId",
+                        name: "FK_DivanDuplicates_DivanPoems_DestPoemId",
                         column: x => x.DestPoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorDuplicates_GanjoorPoems_SrcPoemId",
+                        name: "FK_DivanDuplicates_DivanPoems_SrcPoemId",
                         column: x => x.SrcPoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorDuplicates_DestPoemId",
-                table: "GanjoorDuplicates",
+                name: "IX_DivanDuplicates_DestPoemId",
+                table: "DivanDuplicates",
                 column: "DestPoemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorDuplicates_SrcPoemId",
-                table: "GanjoorDuplicates",
+                name: "IX_DivanDuplicates_SrcPoemId",
+                table: "DivanDuplicates",
                 column: "SrcPoemId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorDuplicates");
+                name: "DivanDuplicates");
         }
     }
 }

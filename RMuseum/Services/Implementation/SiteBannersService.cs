@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using RMuseum.DbContext;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
 using RSecurityBackend.Models.Generic;
 using RSecurityBackend.Models.Image;
 using RSecurityBackend.Services;
@@ -27,16 +27,16 @@ namespace RMuseum.Services.Implementation
         /// <param name="targetUrl"></param>
         /// <param name="active"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorSiteBannerViewModel>> AddSiteBanner(Stream imageStream, string fileName, string alternateText, string targetUrl, bool active)
+        public async Task<RServiceResult<DivanSiteBannerViewModel>> AddSiteBanner(Stream imageStream, string fileName, string alternateText, string targetUrl, bool active)
         {
             RServiceResult<RImage> image = await _imageFileService.Add(null, imageStream, fileName, "SiteBanners");
 
             if (!string.IsNullOrEmpty(image.ExceptionString))
             {
-                return new RServiceResult<GanjoorSiteBannerViewModel>(null, image.ExceptionString);
+                return new RServiceResult<DivanSiteBannerViewModel>(null, image.ExceptionString);
             }
 
-            GanjoorSiteBanner banner = new GanjoorSiteBanner()
+            DivanSiteBanner banner = new DivanSiteBanner()
             {
                 RImage = image.Result,
                 AlternateText = alternateText,
@@ -44,14 +44,14 @@ namespace RMuseum.Services.Implementation
                 Active = active
             };
 
-            _context.GanjoorSiteBanners.Add(banner);
+            _context.DivanSiteBanners.Add(banner);
             await _context.SaveChangesAsync();
 
             await CleanBannersCache();
 
-            return new RServiceResult<GanjoorSiteBannerViewModel>
+            return new RServiceResult<DivanSiteBannerViewModel>
                 (
-                new GanjoorSiteBannerViewModel()
+                new DivanSiteBannerViewModel()
                 {
                     Id = banner.Id,
                     ImageUrl = $"api/rimages/{banner.RImageId}.jpg",
@@ -72,7 +72,7 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> ModifySiteBanner(int id, string alternateText, string targetUrl, bool active)
         {
-            GanjoorSiteBanner target = await _context.GanjoorSiteBanners.Where(b => b.Id == id).SingleOrDefaultAsync();
+            DivanSiteBanner target = await _context.DivanSiteBanners.Where(b => b.Id == id).SingleOrDefaultAsync();
             if (target == null)
                 return new RServiceResult<bool>(false);//not found
 
@@ -80,7 +80,7 @@ namespace RMuseum.Services.Implementation
             target.TargetUrl = targetUrl;
             target.Active = active;
 
-            _context.GanjoorSiteBanners.Update(target);
+            _context.DivanSiteBanners.Update(target);
 
             await _context.SaveChangesAsync();
 
@@ -96,11 +96,11 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> DeleteSiteBanner(int id)
         {
-            GanjoorSiteBanner target = await _context.GanjoorSiteBanners.Where(b => b.Id == id).SingleOrDefaultAsync();
+            DivanSiteBanner target = await _context.DivanSiteBanners.Where(b => b.Id == id).SingleOrDefaultAsync();
             if (target == null)
                 return new RServiceResult<bool>(false);//not found
 
-            _context.GanjoorSiteBanners.Remove(target);
+            _context.DivanSiteBanners.Remove(target);
 
             await _context.SaveChangesAsync();
 
@@ -113,11 +113,11 @@ namespace RMuseum.Services.Implementation
         /// get site banners
         /// </summary>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorSiteBannerViewModel[]>> GetSiteBanners()
+        public async Task<RServiceResult<DivanSiteBannerViewModel[]>> GetSiteBanners()
         {
-            return new RServiceResult<GanjoorSiteBannerViewModel[]>(
-                await _context.GanjoorSiteBanners
-                .Select(b => new GanjoorSiteBannerViewModel()
+            return new RServiceResult<DivanSiteBannerViewModel[]>(
+                await _context.DivanSiteBanners
+                .Select(b => new DivanSiteBannerViewModel()
                 {
                     Id = b.Id,
                     ImageUrl = $"api/rimages/{b.RImageId}.jpg",
@@ -137,11 +137,11 @@ namespace RMuseum.Services.Implementation
 
         private async Task CleanBannersCache()
         {
-            int[] idSet = await _context.GanjoorSiteBanners.Select(b => b.Id).ToArrayAsync();
+            int[] idSet = await _context.DivanSiteBanners.Select(b => b.Id).ToArrayAsync();
             foreach (int id in idSet)
             {
                 var cacheKey = GetBannerCacheKey(id);
-                if (_memoryCache.TryGetValue(id, out GanjoorSiteBannerViewModel o))
+                if (_memoryCache.TryGetValue(id, out DivanSiteBannerViewModel o))
                 {
                     _memoryCache.Remove(id);
                 }
@@ -156,26 +156,26 @@ namespace RMuseum.Services.Implementation
         /// get a random site banner
         /// </summary>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorSiteBannerViewModel>> GetARandomActiveSiteBanner()
+        public async Task<RServiceResult<DivanSiteBannerViewModel>> GetARandomActiveSiteBanner()
         {
             if (!_memoryCache.TryGetValue(_cacheKeyForIdSet, out int[] idSet))
             {
-                idSet = await _context.GanjoorSiteBanners.Where(b => b.Active == true).Select(b => b.Id).ToArrayAsync();
+                idSet = await _context.DivanSiteBanners.Where(b => b.Active == true).Select(b => b.Id).ToArrayAsync();
                 _memoryCache.Set(_cacheKeyForIdSet, idSet, TimeSpan.FromHours(1));
             }
             if (idSet.Length == 0)
-                return new RServiceResult<GanjoorSiteBannerViewModel>(null);//no active banner
+                return new RServiceResult<DivanSiteBannerViewModel>(null);//no active banner
 
             Random rnd = new Random(DateTime.Now.Millisecond);
             int id = idSet[rnd.Next(0, idSet.Length)];
 
             var cachKey = GetBannerCacheKey(id);
-            if (!_memoryCache.TryGetValue(cachKey, out GanjoorSiteBannerViewModel banner))
+            if (!_memoryCache.TryGetValue(cachKey, out DivanSiteBannerViewModel banner))
             {
                 banner =
-                    await _context.GanjoorSiteBanners
+                    await _context.DivanSiteBanners
                     .Where(b => b.Id == id)
-                    .Select(b => new GanjoorSiteBannerViewModel()
+                    .Select(b => new DivanSiteBannerViewModel()
                     {
                         Id = b.Id,
                         ImageUrl = $"api/rimages/{b.RImageId}.jpg",
@@ -188,7 +188,7 @@ namespace RMuseum.Services.Implementation
                 _memoryCache.Set(cachKey, banner, TimeSpan.FromHours(1));
             }
 
-            return new RServiceResult<GanjoorSiteBannerViewModel>(banner);
+            return new RServiceResult<DivanSiteBannerViewModel>(banner);
         }
 
         /// <summary>

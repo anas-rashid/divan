@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Models.Generic.ViewModels;
 using RMuseum.Services;
 using RSecurityBackend.Models.Generic;

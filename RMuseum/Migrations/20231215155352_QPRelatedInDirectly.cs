@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<bool>(
                 name: "IndirectQuotation",
-                table: "GanjoorQuotedPoems",
+                table: "DivanQuotedPoems",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -23,7 +23,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "IndirectQuotation",
-                table: "GanjoorQuotedPoems");
+                table: "DivanQuotedPoems");
         }
     }
 }

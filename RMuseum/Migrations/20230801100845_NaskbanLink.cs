@@ -39,13 +39,13 @@ namespace RMuseum.Migrations
                 defaultValue: 0);
 
             migrationBuilder.CreateTable(
-                name: "PDFGanjoorLinks",
+                name: "PDFDivanLinks",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    GanjoorPostId = table.Column<int>(type: "int", nullable: false),
-                    GanjoorUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    GanjoorTitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DivanPostId = table.Column<int>(type: "int", nullable: false),
+                    DivanUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DivanTitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PDFBookId = table.Column<int>(type: "int", nullable: false),
                     PageNumber = table.Column<int>(type: "int", nullable: false),
                     SuggestedById = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -60,14 +60,14 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PDFGanjoorLinks", x => x.Id);
+                    table.PrimaryKey("PK_PDFDivanLinks", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_PDFGanjoorLinks_AspNetUsers_ReviewerId",
+                        name: "FK_PDFDivanLinks_AspNetUsers_ReviewerId",
                         column: x => x.ReviewerId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_PDFGanjoorLinks_AspNetUsers_SuggestedById",
+                        name: "FK_PDFDivanLinks_AspNetUsers_SuggestedById",
                         column: x => x.SuggestedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
@@ -75,13 +75,13 @@ namespace RMuseum.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_PDFGanjoorLinks_ReviewerId",
-                table: "PDFGanjoorLinks",
+                name: "IX_PDFDivanLinks_ReviewerId",
+                table: "PDFDivanLinks",
                 column: "ReviewerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_PDFGanjoorLinks_SuggestedById",
-                table: "PDFGanjoorLinks",
+                name: "IX_PDFDivanLinks_SuggestedById",
+                table: "PDFDivanLinks",
                 column: "SuggestedById");
         }
 
@@ -89,7 +89,7 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "PDFGanjoorLinks");
+                name: "PDFDivanLinks");
 
             migrationBuilder.DropColumn(
                 name: "IsTextOriginalSource",

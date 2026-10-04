@@ -11,78 +11,78 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse10VOrder",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse10VOrderResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse5VOrder",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse5VOrderResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse6VOrder",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse6VOrderResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse7VOrder",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse7VOrderResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse8VOrder",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse8VOrderResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse9VOrder",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "BreakFromVerse9VOrderResult",
-                table: "GanjoorPoemSectionCorrections",
+                table: "DivanPoemSectionCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -110,51 +110,51 @@ namespace RMuseum.Migrations
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse10VOrder",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse10VOrderResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse5VOrder",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse5VOrderResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse6VOrder",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse6VOrderResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse7VOrder",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse7VOrderResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse8VOrder",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse8VOrderResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse9VOrder",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
 
             migrationBuilder.DropColumn(
                 name: "BreakFromVerse9VOrderResult",
-                table: "GanjoorPoemSectionCorrections");
+                table: "DivanPoemSectionCorrections");
         }
     }
 }

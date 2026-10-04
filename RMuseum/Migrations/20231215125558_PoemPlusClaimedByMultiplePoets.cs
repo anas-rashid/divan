@@ -12,14 +12,14 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<bool>(
                 name: "ClaimedByBothPoets",
-                table: "GanjoorQuotedPoems",
+                table: "DivanQuotedPoems",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
                 name: "ClaimedByMultiplePoets",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
@@ -30,11 +30,11 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "ClaimedByBothPoets",
-                table: "GanjoorQuotedPoems");
+                table: "DivanQuotedPoems");
 
             migrationBuilder.DropColumn(
                 name: "ClaimedByMultiplePoets",
-                table: "GanjoorPoems");
+                table: "DivanPoems");
         }
     }
 }

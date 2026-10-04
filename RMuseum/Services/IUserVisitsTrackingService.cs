@@ -1,4 +1,4 @@
-﻿using RMuseum.Models.Ganjoor.ViewModels;
+﻿using RMuseum.Models.Divan.ViewModels;
 using RSecurityBackend.Models.Generic;
 using System;
 using System.Threading.Tasks;
@@ -16,7 +16,7 @@ namespace RMuseum.Services
         /// <param name="userId"></param>
         /// <param name="poemId"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorUserPrePoemVisitViewModel>> AddAsync(Guid userId, int poemId);
+        Task<RServiceResult<DivanUserPrePoemVisitViewModel>> AddAsync(Guid userId, int poemId);
 
         /// <summary>
         /// delete record
@@ -40,6 +40,6 @@ namespace RMuseum.Services
         /// <param name="paging"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        Task<RServiceResult<(PaginationMetadata PagingMeta, GanjoorUserBookmarkViewModel[] HistoryItems)>> GetUserHistoryAsync(PagingParameterModel paging, Guid userId);
+        Task<RServiceResult<(PaginationMetadata PagingMeta, DivanUserBookmarkViewModel[] HistoryItems)>> GetUserHistoryAsync(PagingParameterModel paging, Guid userId);
     }
 }

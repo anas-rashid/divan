@@ -9,28 +9,28 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "Nickname",
-                table: "GanjoorPoets",
+                table: "DivanPoets",
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "Published",
-                table: "GanjoorPoets",
+                table: "DivanPoets",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "RImageId",
-                table: "GanjoorPoets",
+                table: "DivanPoets",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoets_RImageId",
-                table: "GanjoorPoets",
+                name: "IX_DivanPoets_RImageId",
+                table: "DivanPoets",
                 column: "RImageId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_GanjoorPoets_GeneralImages_RImageId",
-                table: "GanjoorPoets",
+                name: "FK_DivanPoets_GeneralImages_RImageId",
+                table: "DivanPoets",
                 column: "RImageId",
                 principalTable: "GeneralImages",
                 principalColumn: "Id",
@@ -40,24 +40,24 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_GanjoorPoets_GeneralImages_RImageId",
-                table: "GanjoorPoets");
+                name: "FK_DivanPoets_GeneralImages_RImageId",
+                table: "DivanPoets");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorPoets_RImageId",
-                table: "GanjoorPoets");
+                name: "IX_DivanPoets_RImageId",
+                table: "DivanPoets");
 
             migrationBuilder.DropColumn(
                 name: "Nickname",
-                table: "GanjoorPoets");
+                table: "DivanPoets");
 
             migrationBuilder.DropColumn(
                 name: "Published",
-                table: "GanjoorPoets");
+                table: "DivanPoets");
 
             migrationBuilder.DropColumn(
                 name: "RImageId",
-                table: "GanjoorPoets");
+                table: "DivanPoets");
         }
     }
 }

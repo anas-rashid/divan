@@ -1,0 +1,170 @@
+@page
+@model DivanRazor.Areas.User.Pages.SuggestNewPersonRelationModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_UserPanelLayout";
+    ViewData["Title"] = "پیشنهاد خویشاوند یا وابستگی جدید";
+    await DivanRazor.Utils.DivanSessionChecker.ApplyPermissionsToViewData(Request, Response, ViewData);
+}
+@if (!string.IsNullOrEmpty(Model.LastError))
+{
+    <div class="up-alert up-alert--danger">@Model.LastError</div>
+}
+else
+{
+    <div class="up-page-header">
+        <h1>پیشنهاد خویشاوند یا وابستگی جدید برای: @Model.Person.Name</h1>
+    </div>
+
+    <p class="up-hint">
+        این پیشنهاد مستقیماً اعمال نمی‌شود؛ پس از بررسی و تأیید توسط مدیران، به تبارنامه/شبکهٔ وابستگی‌های
+        <a href="javascript:void(0)" onclick="PersonWindow.open(@Model.Person.Id)">@Model.Person.Name</a> افزوده خواهد شد.
+    </p>
+
+    @if (!string.IsNullOrEmpty(Model.LastResult))
+    {
+        <p>@Html.Raw(Model.LastResult)</p>
+    }
+
+    <script>
+        // full catalog of every person except the subject ($Model.Person) - same shape/purpose as
+        // allGeoLocations/allGeoPeople in ReviewEdits.cshtml/Editor.cshtml, see OtherPeopleJson
+        var otherPeopleCatalog = @Html.Raw(Model.OtherPeopleJson);
+    </script>
+
+    <div class="up-card">
+        <form method="post" action="/User/SuggestNewPersonRelation?personId=@Model.Person.Id&amp;Handler=Suggest">
+            @Html.AntiForgeryToken()
+
+            <table>
+                <tr>
+                    <td>خویشاوند یا نامبردۀ دیگر:</td>
+                    <td>
+                        <div class="up-autocomplete-wrap">
+                            <input type="text" id="other-person-search" autocomplete="off" placeholder="نام خویشاوند یا نامبردۀ دیگر را تایپ کنید..."
+                                   value="@(Model.OtherPersonId != 0 ? (Model.OtherPeople ?? new List<RMuseum.Models.Divan.DivanRelatedPerson>()).Where(p => p.Id == Model.OtherPersonId).Select(p => p.Name).FirstOrDefault() : null)" />
+                            <input type="hidden" asp-for="OtherPersonId" />
+                            <div id="other-person-results" class="up-autocomplete-results" style="display:none;"></div>
+                        </div>
+                        <p class="up-hint"><small>
+                            اگر بیش از یک نامبرده با نام مشابه در فهرست باشد (مثلاً شخصیت‌های شاهنامه)، پس از انتخاب از روی سال تولد/وفات مطمئن شوید
+                            یا با کلیک روی 👁 اطلاعات کامل آن را ببینید.
+                        </small></p>
+                        <script>
+                            setupPersonAutocomplete(
+                                document.getElementById('other-person-search'),
+                                document.getElementById('OtherPersonId'),
+                                document.getElementById('other-person-results'),
+                                otherPeopleCatalog,
+                                null,
+                                function (typedText) {
+                                    upToast('این نامبرده در فهرست نیست. طرف دیگر یک رابطه باید از قبل تعریف‌شده باشد؛ برای افزودن یک نامبردۀ تازه، ابتدا او را به‌طور جدا از صفحهٔ ویرایشگر تعریف کنید.', 'error');
+                                }
+                            );
+                        </script>
+                    </td>
+                </tr>
+                <tr>
+                    <td>نوع پیوند:</td>
+                    <td>
+                        <select id="RelationKindGroup" asp-for="RelationKindGroup">
+                            <option value="family">نسبت خویشاوندی (پدر/مادر، فرزند، همسر، نیا/نواده...)</option>
+                            <option value="affiliation">وابستگی غیرخویشاوندی (وزیر، مشاور، حامی، متحد، رقیب...)</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <table id="family-relation-fields">
+                <tr>
+                    <td>نسبت با @Model.Person.Name:</td>
+                    <td>
+                        <select asp-for="RelationKind">
+                            <option value="Child">فرزند این نامبرده است</option>
+                            <option value="Parent">پدر یا مادر این نامبرده است</option>
+                            <option value="Sibling">خواهر یا برادر این نامبرده است</option>
+                            <option value="Spouse">همسر این نامبرده است</option>
+                            <option value="DistantAncestor">نیای دور این نامبرده است (بدون نسل مشخص)</option>
+                            <option value="DistantDescendant">نوادهٔ دور این نامبرده است (بدون نسل مشخص)</option>
+                        </select>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        درجه (فقط برای نیا/نواده):
+                        <p class="up-hint"><small>مثلاً برای پدربزرگ/مادربزرگ عدد ۲ را وارد کنید. اگر نمی‌دانید خالی بگذارید.</small></p>
+                    </td>
+                    <td><input asp-for="DegreeHint" /></td>
+                </tr>
+            </table>
+
+            <table id="affiliation-fields" style="display:none">
+                <tr>
+                    <td>وابستگی با @Model.Person.Name:</td>
+                    <td>
+                        <select asp-for="AffiliationKind">
+                            <option value="Minister_Other">او وزیر یا کارگزار این نامبرده بود</option>
+                            <option value="Minister_Subject">این نامبرده وزیر یا کارگزار او بود</option>
+                            <option value="Advisor_Other">او مشاور این نامبرده بود</option>
+                            <option value="Advisor_Subject">این نامبرده مشاور او بود</option>
+                            <option value="Courtier_Other">او از درباریان/همراهان این نامبرده بود</option>
+                            <option value="Courtier_Subject">این نامبرده از درباریان/همراهان او بود</option>
+                            <option value="Servant_Other">او خدمتگزار این نامبرده بود</option>
+                            <option value="Servant_Subject">این نامبرده خدمتگزار او بود</option>
+                            <option value="Patron_Other">او از این نامبرده حمایت می‌کرد (حامی او بود)</option>
+                            <option value="Patron_Subject">این نامبرده از او حمایت می‌کرد (حامی او بود)</option>
+                            <option value="Successor_Other">او جانشین این نامبرده شد (پس از او آمد)</option>
+                            <option value="Successor_Subject">این نامبرده جانشین او شد (پس از او آمد)</option>
+                            <option value="Panegyrized_Other">او در شعری این نامبرده را مدح/ستایش کرد (مدح‌گوی او بود)</option>
+                            <option value="Panegyrized_Subject">این نامبرده در شعری او را مدح/ستایش کرد (مدح‌گوی او بود)</option>
+                            <option value="Satirized_Other">او در شعری این نامبرده را هجو کرد (هجوگوی او بود)</option>
+                            <option value="Satirized_Subject">این نامبرده در شعری او را هجو کرد (هجوگوی او بود)</option>
+                            <option value="MilitaryCommander_Other">او سردار این نامبرده بود</option>
+                            <option value="MilitaryCommander_Subject">این نامبرده سردار او بود</option>
+                            <option value="Champion_Other">او پهلوان این نامبرده بود</option>
+                            <option value="Champion_Subject">این نامبرده پهلوان او بود</option>
+                            <option value="Ally">با او متحد/هم‌پیمان بود</option>
+                            <option value="Rival">با او رقیب/دشمن بود</option>
+                            <option value="Companion">با او همراه/همدم بود</option>
+                            <option value="Contemporary">هم‌عصر او بود (بدون نسبت دیگر)</option>
+                            <option value="Killer_Other">او این نامبرده را کشت</option>
+                            <option value="Killer_Subject">این نامبرده او را کشت</option>
+                            <option value="Other">نوع دیگر (در یادداشت توضیح دهید)</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+
+            <table>
+                <tr>
+                    <td>یادداشت (مستندسازی):</td>
+                    <td><textarea asp-for="Note" rows="3" cols="60"></textarea></td>
+                </tr>
+                <tr>
+                    <td>یادداشت برای مدیر بررسی‌کننده:</td>
+                    <td><textarea asp-for="SuggestionNote" rows="3" cols="60"></textarea></td>
+                </tr>
+            </table>
+
+            <input type="submit" value="ثبت پیشنهاد" class="up-btn up-btn--success" />
+            <a role="button" href="javascript:void(0)" onclick="history.back()" class="up-btn up-btn--ghost">انصراف</a>
+        </form>
+    </div>
+
+    <script>
+        (function () {
+            var groupSelect = document.getElementById('RelationKindGroup');
+            var familyFields = document.getElementById('family-relation-fields');
+            var affiliationFields = document.getElementById('affiliation-fields');
+
+            function applyKindGroup() {
+                var isAffiliation = groupSelect.value === 'affiliation';
+                familyFields.style.display = isAffiliation ? 'none' : '';
+                affiliationFields.style.display = isAffiliation ? '' : 'none';
+            }
+
+            groupSelect.addEventListener('change', applyKindGroup);
+            applyKindGroup();
+        })();
+    </script>
+}

@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorQuotedPoems",
+                name: "DivanQuotedPoems",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -42,7 +42,7 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorQuotedPoems", x => x.Id);
+                    table.PrimaryKey("PK_DivanQuotedPoems", x => x.Id);
                 });
         }
 
@@ -50,7 +50,7 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorQuotedPoems");
+                name: "DivanQuotedPoems");
         }
     }
 }

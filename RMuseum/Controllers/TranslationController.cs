@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using RMuseum.Models.Auth.Memory;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Services;
 using RSecurityBackend.Models.Generic;
 using System;
@@ -25,7 +25,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet("languages")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorLanguage[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanLanguage[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetLanguagesAsync()
         {
@@ -43,7 +43,7 @@ namespace RMuseum.Controllers
 
         [HttpGet("languages/{id}")]
         [AllowAnonymous]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorLanguage))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanLanguage))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetLanguageAsync(int id)
         {
@@ -59,11 +59,11 @@ namespace RMuseum.Controllers
         /// <param name="lang"></param>
         /// <returns></returns>
         [HttpPost("languages")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Translations)]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorLanguage))]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Translations)]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanLanguage))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> AddLanguageAsync([FromBody] GanjoorLanguage lang)
+        public async Task<IActionResult> AddLanguageAsync([FromBody] DivanLanguage lang)
         {
             if (ReadOnlyMode)
                 return BadRequest("سایت به دلایل فنی مثل انتقال سرور موقتاً در حالت فقط خواندنی قرار دارد. لطفاً ساعاتی دیگر مجدداً تلاش کنید.");
@@ -79,11 +79,11 @@ namespace RMuseum.Controllers
         /// <param name="lang"></param>
         /// <returns></returns>
         [HttpPut("languages")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Translations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Translations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
-        public async Task<IActionResult> UpdateLangaugeAsync([FromBody] GanjoorLanguage lang)
+        public async Task<IActionResult> UpdateLangaugeAsync([FromBody] DivanLanguage lang)
         {
             if (ReadOnlyMode)
                 return BadRequest("سایت به دلایل فنی مثل انتقال سرور موقتاً در حالت فقط خواندنی قرار دارد. لطفاً ساعاتی دیگر مجدداً تلاش کنید.");
@@ -94,7 +94,7 @@ namespace RMuseum.Controllers
         }
 
         [HttpDelete("languages/{id}")]
-        [Authorize(Policy = RMuseumSecurableItem.GanjoorEntityShortName + ":" + RMuseumSecurableItem.Translations)]
+        [Authorize(Policy = RMuseumSecurableItem.DivanEntityShortName + ":" + RMuseumSecurableItem.Translations)]
         [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(bool))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
@@ -129,7 +129,7 @@ namespace RMuseum.Controllers
         /// <summary>
         /// translation service
         /// </summary>
-        private readonly IGanjoorTranslationService _translationService;
+        private readonly IDivanTranslationService _translationService;
 
         /// <summary>
         /// Configuration
@@ -141,7 +141,7 @@ namespace RMuseum.Controllers
         /// </summary>
         /// <param name="translationService"></param>
         /// <param name="configuration"></param>
-        public TranslationController(IGanjoorTranslationService translationService, IConfiguration configuration)
+        public TranslationController(IDivanTranslationService translationService, IConfiguration configuration)
         {
             _translationService = translationService;
             Configuration = configuration;

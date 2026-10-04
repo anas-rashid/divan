@@ -8,7 +8,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorDonations",
+                name: "DivanDonations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -26,11 +26,11 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorDonations", x => x.Id);
+                    table.PrimaryKey("PK_DivanDonations", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
-                name: "GanjoorExpenses",
+                name: "DivanExpenses",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -42,7 +42,7 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorExpenses", x => x.Id);
+                    table.PrimaryKey("PK_DivanExpenses", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -51,36 +51,36 @@ namespace RMuseum.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    GanjoorDonationId = table.Column<int>(type: "int", nullable: false),
+                    DivanDonationId = table.Column<int>(type: "int", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    GanjoorExpenseId = table.Column<int>(type: "int", nullable: true)
+                    DivanExpenseId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_DonationExpenditure", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_DonationExpenditure_GanjoorDonations_GanjoorDonationId",
-                        column: x => x.GanjoorDonationId,
-                        principalTable: "GanjoorDonations",
+                        name: "FK_DonationExpenditure_DivanDonations_DivanDonationId",
+                        column: x => x.DivanDonationId,
+                        principalTable: "DivanDonations",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_DonationExpenditure_GanjoorExpenses_GanjoorExpenseId",
-                        column: x => x.GanjoorExpenseId,
-                        principalTable: "GanjoorExpenses",
+                        name: "FK_DonationExpenditure_DivanExpenses_DivanExpenseId",
+                        column: x => x.DivanExpenseId,
+                        principalTable: "DivanExpenses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_DonationExpenditure_GanjoorDonationId",
+                name: "IX_DonationExpenditure_DivanDonationId",
                 table: "DonationExpenditure",
-                column: "GanjoorDonationId");
+                column: "DivanDonationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_DonationExpenditure_GanjoorExpenseId",
+                name: "IX_DonationExpenditure_DivanExpenseId",
                 table: "DonationExpenditure",
-                column: "GanjoorExpenseId");
+                column: "DivanExpenseId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -89,10 +89,10 @@ namespace RMuseum.Migrations
                 name: "DonationExpenditure");
 
             migrationBuilder.DropTable(
-                name: "GanjoorDonations");
+                name: "DivanDonations");
 
             migrationBuilder.DropTable(
-                name: "GanjoorExpenses");
+                name: "DivanExpenses");
         }
     }
 }

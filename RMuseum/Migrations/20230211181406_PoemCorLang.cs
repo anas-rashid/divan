@@ -12,20 +12,20 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "Language",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "LanguageReviewResult",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "OriginalLanguage",
-                table: "GanjoorPoemCorrections",
+                table: "DivanPoemCorrections",
                 type: "nvarchar(max)",
                 nullable: true);
         }
@@ -35,15 +35,15 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Language",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "LanguageReviewResult",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
 
             migrationBuilder.DropColumn(
                 name: "OriginalLanguage",
-                table: "GanjoorPoemCorrections");
+                table: "DivanPoemCorrections");
         }
     }
 }

@@ -1,4 +1,4 @@
-# Divan stack: SQL Server + API (RMuseum) + site (GanjooRazor) behind Caddy (automatic HTTPS).
+# Divan stack: SQL Server + API (RMuseum) + site (DivanRazor) behind Caddy (automatic HTTPS).
 # Setup: cp .env.example .env, edit it, then `docker compose up -d --build`. See DIVAN.md.
 services:
   db:
@@ -31,22 +31,22 @@ services:
       PictureFileService__TrashStoragePath: /data/museum-trash
       AudioUploadService__TempUploadPath: /data/tempaudio
       AudioUploadService__LocalAudioRepositoryPath: /data/audio
-      Ganjoor__SitemapLocation: /data/sitemap.xml
+      Divan__SitemapLocation: /data/sitemap.xml
       PublicDataExport__LocalWorkingCopyPath: /data/public-export
     volumes:
       - data:/data
     restart: unless-stopped
 
   site:
-    build: { context: ., args: { PROJECT: GanjooRazor } }
+    build: { context: ., args: { PROJECT: DivanRazor } }
     depends_on: [api]
     environment:
       APIRoot: http://api:8080                 # server-side calls stay on the docker network
       GlobalAPIRoot: https://${API_DOMAIN}     # what browsers use
       SiteUrl: https://${SITE_DOMAIN}
       DataProtectionPersistPath: /data/keys
-      TrackingScript: ""                       # upstream's is Ganjoor's analytics
-      SemanticSearchAPIRoot: ""                # upstream's indexes Persian Ganjoor, not Divan
+      TrackingScript: ""                       # upstream's is Divan's analytics
+      SemanticSearchAPIRoot: ""                # upstream's indexes Persian Divan, not Divan
     volumes:
       - data:/data
     restart: unless-stopped

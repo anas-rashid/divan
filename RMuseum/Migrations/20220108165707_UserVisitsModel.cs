@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorUserPoemVisits",
+                name: "DivanUserPoemVisits",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
@@ -20,35 +20,35 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorUserPoemVisits", x => x.Id);
+                    table.PrimaryKey("PK_DivanUserPoemVisits", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorUserPoemVisits_AspNetUsers_UserId",
+                        name: "FK_DivanUserPoemVisits_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorUserPoemVisits_GanjoorPoems_PoemId",
+                        name: "FK_DivanUserPoemVisits_DivanPoems_PoemId",
                         column: x => x.PoemId,
-                        principalTable: "GanjoorPoems",
+                        principalTable: "DivanPoems",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorUserPoemVisits_PoemId",
-                table: "GanjoorUserPoemVisits",
+                name: "IX_DivanUserPoemVisits_PoemId",
+                table: "DivanUserPoemVisits",
                 column: "PoemId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorUserPoemVisits_UserId",
-                table: "GanjoorUserPoemVisits",
+                name: "IX_DivanUserPoemVisits_UserId",
+                table: "DivanUserPoemVisits",
                 column: "UserId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorUserPoemVisits");
+                name: "DivanUserPoemVisits");
         }
     }
 }

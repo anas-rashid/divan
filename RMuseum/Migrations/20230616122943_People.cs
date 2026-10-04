@@ -17,7 +17,7 @@ namespace RMuseum.Migrations
                 nullable: true);
 
             migrationBuilder.CreateTable(
-                name: "GanjoorRelatedPersons",
+                name: "DivanRelatedPersons",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -34,16 +34,16 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorRelatedPersons", x => x.Id);
+                    table.PrimaryKey("PK_DivanRelatedPersons", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorRelatedPersons_GanjoorGeoLocations_BirthLocationId",
+                        name: "FK_DivanRelatedPersons_DivanGeoLocations_BirthLocationId",
                         column: x => x.BirthLocationId,
-                        principalTable: "GanjoorGeoLocations",
+                        principalTable: "DivanGeoLocations",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorRelatedPersons_GanjoorGeoLocations_DeathLocationId",
+                        name: "FK_DivanRelatedPersons_DivanGeoLocations_DeathLocationId",
                         column: x => x.DeathLocationId,
-                        principalTable: "GanjoorGeoLocations",
+                        principalTable: "DivanGeoLocations",
                         principalColumn: "Id");
                 });
 
@@ -53,20 +53,20 @@ namespace RMuseum.Migrations
                 column: "PersonId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorRelatedPersons_BirthLocationId",
-                table: "GanjoorRelatedPersons",
+                name: "IX_DivanRelatedPersons_BirthLocationId",
+                table: "DivanRelatedPersons",
                 column: "BirthLocationId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorRelatedPersons_DeathLocationId",
-                table: "GanjoorRelatedPersons",
+                name: "IX_DivanRelatedPersons_DeathLocationId",
+                table: "DivanRelatedPersons",
                 column: "DeathLocationId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_PoemGeoDateTags_GanjoorRelatedPersons_PersonId",
+                name: "FK_PoemGeoDateTags_DivanRelatedPersons_PersonId",
                 table: "PoemGeoDateTags",
                 column: "PersonId",
-                principalTable: "GanjoorRelatedPersons",
+                principalTable: "DivanRelatedPersons",
                 principalColumn: "Id");
         }
 
@@ -74,11 +74,11 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_PoemGeoDateTags_GanjoorRelatedPersons_PersonId",
+                name: "FK_PoemGeoDateTags_DivanRelatedPersons_PersonId",
                 table: "PoemGeoDateTags");
 
             migrationBuilder.DropTable(
-                name: "GanjoorRelatedPersons");
+                name: "DivanRelatedPersons");
 
             migrationBuilder.DropIndex(
                 name: "IX_PoemGeoDateTags_PersonId",

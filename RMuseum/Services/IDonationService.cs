@@ -17,7 +17,7 @@ namespace RMuseum.Services
         /// <param name="editingUserId"></param>
         /// <param name="donation"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorDonationViewModel>> AddDonation(Guid editingUserId, GanjoorDonationViewModel donation);
+        Task<RServiceResult<DivanDonationViewModel>> AddDonation(Guid editingUserId, DivanDonationViewModel donation);
 
         /// <summary>
         /// delete donation
@@ -42,7 +42,7 @@ namespace RMuseum.Services
         /// <param name="editingUserId"></param>
         /// <param name="expense"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorExpense>> AddExpense(Guid editingUserId, GanjoorExpense expense);
+        Task<RServiceResult<DivanExpense>> AddExpense(Guid editingUserId, DivanExpense expense);
 
         /// <summary>
         /// update expense
@@ -80,27 +80,27 @@ namespace RMuseum.Services
         /// returns all donations
         /// </summary>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorDonationViewModel[]>> GetDonations();
+        Task<RServiceResult<DivanDonationViewModel[]>> GetDonations();
 
         /// <summary>
         /// get donation by id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorDonationViewModel>> GetDonation(int id);
+        Task<RServiceResult<DivanDonationViewModel>> GetDonation(int id);
 
         /// <summary>
         /// returns all expenses
         /// </summary>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorExpense[]>> GetExpenses();
+        Task<RServiceResult<DivanExpense[]>> GetExpenses();
 
         /// <summary>
         /// get expense by id
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorExpense>> GetExpense(int id);
+        Task<RServiceResult<DivanExpense>> GetExpense(int id);
 
         /// <summary>
         /// Show Donating Information (temporary switch off/on)

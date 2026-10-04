@@ -1,0 +1,22 @@
+﻿namespace RMuseum.Models.DivanAudio
+{
+    /// <summary>
+    /// recitation type
+    /// </summary>
+    public enum RecitationType
+    {
+        /// <summary>
+        /// normal recitations
+        /// </summary>
+        Normal = 0,
+        /// <summary>
+        /// commantaries
+        /// </summary>
+        Commentary = 1,
+
+        /// <summary>
+        /// unfiltered
+        /// </summary>
+        Unfiltered = 1000,
+    }
+}

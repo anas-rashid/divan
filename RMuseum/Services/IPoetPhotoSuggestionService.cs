@@ -1,4 +1,4 @@
-﻿using RMuseum.Models.Ganjoor.ViewModels;
+﻿using RMuseum.Models.Divan.ViewModels;
 using RSecurityBackend.Models.Generic;
 using System;
 using System.IO;
@@ -16,14 +16,14 @@ namespace RMuseum.Services
         /// </summary>
         /// <param name="poetId"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel[]>> GetPoetSuggestedPhotosAsync(int poetId);
+        Task<RServiceResult<DivanPoetSuggestedPictureViewModel[]>> GetPoetSuggestedPhotosAsync(int poetId);
 
         /// <summary>
         /// returns a single suggested photo
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel>> GetPoetSuggestedPhotoByIdAsync(int id);
+        Task<RServiceResult<DivanPoetSuggestedPictureViewModel>> GetPoetSuggestedPhotoByIdAsync(int id);
         /// <summary>
         /// suggest a new photo for a poet
         /// </summary>
@@ -35,14 +35,14 @@ namespace RMuseum.Services
         /// <param name="description"></param>
         /// <param name="srcUrl"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel>> SuggestPhotoForPoet(int poetId, Guid userId, Stream imageStream, string fileName, string title, string description, string srcUrl);
+        Task<RServiceResult<DivanPoetSuggestedPictureViewModel>> SuggestPhotoForPoet(int poetId, Guid userId, Stream imageStream, string fileName, string title, string description, string srcUrl);
 
         /// <summary>
         /// next unpublished suggested photo for poets
         /// </summary>
         /// <param name="skip"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorPoetSuggestedPictureViewModel>> GetNextUnmoderatedPoetSuggestedPhotoAsync(int skip);
+        Task<RServiceResult<DivanPoetSuggestedPictureViewModel>> GetNextUnmoderatedPoetSuggestedPhotoAsync(int skip);
 
         /// <summary>
         /// unpublished suggested photos count for poets
@@ -55,7 +55,7 @@ namespace RMuseum.Services
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        Task<RServiceResult<bool>> ModifyPoetSuggestedPhotoAsync(GanjoorPoetSuggestedPictureViewModel model);
+        Task<RServiceResult<bool>> ModifyPoetSuggestedPhotoAsync(DivanPoetSuggestedPictureViewModel model);
 
         /// <summary>
         /// delete  a suggested photo for poets

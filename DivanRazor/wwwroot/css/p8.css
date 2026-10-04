@@ -1,0 +1,3547 @@
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('/fonts/Vazirmatn-Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('/fonts/Vazirmatn-Medium.woff2') format('woff2');
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Vazirmatn';
+    src: url('/fonts/Vazirmatn-Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Material Icons';
+    font-style: normal;
+    font-weight: 400;
+    src: url('/css/Material-Icons.woff2') format('woff2');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'IranNastaliq';
+    src: url('/fonts/IranNastaliq-Web.woff2?v=1.5') format('woff2');
+    ascent-override: 120%;
+    descent-override: 40%;
+    line-gap-override: 20%;
+    font-display: swap;
+}
+
+:root {
+    color-scheme: light;
+
+    --bg-page:        #fbf6ea;
+    --card-paper:     #fffdf7;
+    --card-poem:      #f6edd6;
+    --card-inner:     #f6efe3;
+    --card-nested:    #eee3d0;
+
+    --ink-black:      #17130f;
+    --text-muted:     #635543;
+
+    --lapis:          #0d1d30;
+    --lapis-hover:    #163252;
+    --gold:           #b88828;
+    --gold-light:     #dfcd9f;
+    --brand:          #bf3f2a;
+
+    --gold-subtle:    #f5edd8;
+    --border-gold:    #b8a78c;
+
+    --accent-bg:      var(--card-inner);
+    --accent-border:  var(--border-gold);
+    --accent-text:    var(--lapis);
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        color-scheme: dark;
+
+        --bg-page:        #14120f;
+        --card-paper:     #181510;
+        --card-poem:      #1c1916;
+        --card-inner:     #242019;
+        --card-nested:    #2d2620;
+
+        --ink-black:      #e7ded0;
+        --text-muted:     #9e9185;
+
+        --lapis:          #f0f6fc;
+        --lapis-hover:    #78b7ff;
+        --gold:           #c9a050;
+        --gold-light:     #3a322b;
+        --brand:          #d4553a;
+        --gold-subtle:    #2a2418;
+        --border-gold:    #9b7332;
+
+        --accent-bg:      var(--card-inner);
+        --accent-border:  var(--border-gold);
+        --accent-text:    var(--lapis);
+    }
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Vazirmatn';
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    text-align: center;
+    background-color: var(--bg-page);
+    color: var(--ink-black);
+}
+
+#hdr, #hdr2 {
+    max-width: 752px;
+    margin: auto;
+    display: block;
+    text-align: center;
+    direction: rtl;
+    clear: both
+}
+
+#hdr {
+    padding: 16px;
+}
+
+#hdr2 {
+    margin-bottom: 3px;
+}
+
+h1 {
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#hdr2 h1 {
+    float: right;
+    height: 100px;
+}
+
+
+.home-logo {
+    width: auto;
+    margin: auto;
+    border-radius: 12px;
+    padding: 6px;
+    transition: all 0.2s ease;
+}
+
+
+h1 a img {
+    border: none;
+    display: block;
+    padding: 6px;
+}
+
+a {
+    text-decoration: none;
+}
+
+.bk-background {
+}
+
+#fa {
+    direction: rtl;
+    font-family: 'Vazirmatn';
+    font-weight: 300;
+    font-size: 1em;
+    padding-bottom: 50px;
+}
+
+    #fa a {
+        color: var(--lapis);
+    }
+
+
+h2 {
+    font-family: 'Vazirmatn';
+    font-weight: bold;
+    font-size: 1.2em;
+    margin: 3px auto;
+    color: var(--accent-text)
+}
+
+form:after, form div:after {
+    content: ".";
+    display: block;
+    visibility: hidden;
+    clear: both;
+    height: 0
+}
+
+.actionbox {
+    position: relative;
+    margin: auto;
+    line-height: normal;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+}
+
+#hdr2 .actionbox {
+    margin: 0;
+    float: left;
+    font-family: 'Vazirmatn';
+    font-weight: 300;
+    font-size: 1em;
+}
+
+
+#main, .sitem, .poem {
+    max-width: 752px;
+    margin: 18px auto;
+    display: block;
+    border: 2px solid var(--accent-border);
+    border-radius: 18px;
+    padding: 0;
+    background-color: var(--card-poem);
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.16);
+}
+
+@media (max-width: 700px) {
+    #main,
+    .poem,
+    .sitem {
+        margin: 16px auto;
+        padding: 24px 16px;
+        border-radius: 12px;
+    }
+}
+
+.sitem, .poem {
+    margin: 16px auto;
+    padding: 0;
+}
+
+.poem {
+    background-color: #f3e9d0;
+}
+
+.poem p {
+    text-indent: 20px;
+    text-align: justify;
+    margin-left: 16px;
+    margin-right: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+    .poem {
+        background-color: var(--card-poem);
+    }
+
+    #main, .sitem, .poem {
+        border-width: 1px;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25),
+                    0 16px 36px -14px rgba(0, 0, 0, 0.55),
+                    0 0 0 1px rgba(201, 160, 80, 0.08);
+    }
+}
+
+.poem-excerpt a {
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+    transition: color 0.2s ease, -webkit-text-fill-color 0.2s ease;
+}
+
+.poem-excerpt a:hover {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    text-decoration: underline;
+}
+
+
+
+form {
+    margin: 0;
+    padding: 0;
+    font-size: 100%;
+}
+
+label {
+    font-size: 100%;
+    color: var(--ink-black)
+}
+
+input, select, textarea {
+    font-family: 'Vazirmatn';
+    font-weight: 300;
+    font-size: 0.8em;
+    padding: 2px;
+    text-align: right;
+    color: var(--text-muted);
+    border: 2px solid var(--accent-border);
+    background-color: var(--card-paper)
+}
+
+select {
+    width: 190px;
+    margin-top: 3px;
+}
+
+.inputText {
+    margin-top: 3px;
+}
+
+.linputText {
+    margin-top: 3px;
+    direction: ltr;
+    text-align: left
+}
+
+/* #searchhorm input, #searchhorm select, #searchhorm label (further below in this file) float
+   them all right, which is how the search box's input/combo/button end up in the right order in
+   this RTL layout - each one floats to the right of the one before it. Wrapping the text input in
+   this span for the clear button moved it out from under that rule (a plain, non-floated span
+   isn't selected by "#searchhorm input"), which is what reshuffled the search box the first time
+   this shipped. Floating the wrapper itself the same way, and cancelling the float that still lands
+   on the nested input, restores the original left-to-right float order. */
+#searchhorm .home-search-input-wrap {
+    position: relative;
+    float: right;
+    margin: 1px;
+}
+
+#searchhorm .home-search-input-wrap input {
+    float: none;
+    margin: 0;
+}
+
+#searchhorm .home-search-input-wrap .inputText {
+    padding-inline-end: 20px;
+}
+
+.home-search-clear {
+    position: absolute;
+    inset-inline-end: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    color: var(--text-muted);
+    padding: 0 3px;
+    user-select: none;
+}
+
+.home-search-clear:hover {
+    color: var(--ink-black);
+}
+
+/* A book matched by the top search box's live filter (see onHomeSearchInput()/
+   buildHomeBookResultChip() in bk.js) - rendered alongside matching poets in #home-found-poets, so
+   it needs the same flex-row layout .spacer:has(.poet) gives poet results, but triggered on its own
+   class too since a search can match only books and no poets at all. */
+.spacer:has(.home-book-result) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 14px 28px;
+    margin: 15px auto 25px auto;
+    padding: 0;
+    clear: both;
+}
+
+/* Sized and laid out to match .spacer .poet exactly (110px column, 76x96 "portrait" area, same pill
+   caption below) so a book result sits proportionate to the poet results next to it instead of
+   looming over them as its own, differently-sized shape. */
+.home-book-result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 110px;
+    margin: 0 0 10px 0;
+    text-decoration: none;
+    transition: transform 0.25s ease;
+}
+
+.home-book-result:hover {
+    transform: translateY(-5px);
+}
+
+.home-book-result-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 76px;
+    height: 96px;
+    border-radius: 10px;
+    padding: 6px;
+    overflow: hidden;
+    text-align: center;
+    color: #fdf8ee;
+    font-family: 'IranNastaliq', serif;
+    font-size: 1rem;
+    line-height: 1.35;
+    box-shadow:
+        0 0 0 2px var(--gold),
+        0 0 0 5px var(--bg-page),
+        0 0 0 7px var(--border-gold),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.25s ease;
+}
+
+.home-book-result:hover .home-book-result-cover {
+    box-shadow:
+        0 0 0 2px var(--brand),
+        0 0 0 5px var(--bg-page),
+        0 0 0 7px var(--brand),
+        0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.home-book-result-caption {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    text-align: center;
+    /* 11px top margin, not 5px: matches the poet pill's effective gap. .spacer .poet .caption is a
+       flex item with margin-top:6px wrapping an <a> with its own margin-top:5px - flex items don't
+       collapse margins with their children, so those two stack to an 11px gap above the poet's
+       pill. This caption has no such wrapper, so its own margin-top has to carry the full 11px to
+       land at the same vertical offset as the poet pill next to it. */
+    margin: 11px 0 8px 0;
+    padding: 6px 12px;
+    border-radius: 12px;
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-gold);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+.home-book-result:hover .home-book-result-caption {
+    background-color: var(--gold-subtle);
+    border-color: var(--brand);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Home page "قفسهٔ کتابها" book shelf - see initHomeBooksShelf()/buildBookSpine() in bk.js. */
+#books-shelf-outer {
+    position: relative;
+}
+
+#books-shelf-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding: 10px 34px 26px;
+}
+
+#books-shelf-wrap::-webkit-scrollbar {
+    display: none;
+}
+
+.books-shelf-handle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--accent-border);
+    background-color: var(--card-paper);
+    color: var(--ink-black);
+    font-size: 1.2rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.books-shelf-handle:hover {
+    background-color: var(--brand);
+    color: #fff;
+}
+
+.books-shelf-handle-right {
+    right: 0;
+}
+
+.books-shelf-handle-left {
+    left: 0;
+}
+
+#books-shelf {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    width: max-content;
+    min-width: 100%;
+    padding: 0 10px;
+}
+
+.book-spine {
+    position: relative;
+    flex: 0 0 auto;
+    width: 56px;
+    height: 230px;
+    border-radius: 4px 4px 3px 3px;
+    cursor: pointer;
+    box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.28);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, width 0.3s ease, height 0.3s ease;
+    outline-offset: 3px;
+}
+
+.book-spine:hover,
+.book-spine:focus-visible {
+    transform: translateY(-12px);
+    box-shadow: 4px 12px 20px rgba(0, 0, 0, 0.4);
+}
+
+.book-spine.expanded {
+    width: 170px;
+    height: 262px;
+}
+
+.book-spine.expanded:hover {
+    transform: translateY(-6px);
+}
+
+.spine-compact {
+    position: absolute;
+    inset: 0;
+}
+
+.book-spine.expanded .spine-compact {
+    display: none;
+}
+
+.spine-title,
+.spine-poet {
+    position: absolute;
+    left: 50%;
+    transform-origin: center center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: center;
+    color: #fdf8ee;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    pointer-events: none;
+}
+
+.spine-title {
+    top: 95px;
+    width: 150px;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font-family: 'IranNastaliq', serif;
+    font-size: 1.2rem;
+}
+
+.spine-poet {
+    top: 200px;
+    width: 50px;
+    transform: translate(-50%, -50%) rotate(-90deg);
+    font-size: 0.68rem;
+    opacity: 0.85;
+}
+
+.spine-cover {
+    display: none;
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 12px;
+    text-align: center;
+    color: #fdf8ee;
+}
+
+.book-spine.expanded .spine-cover {
+    display: flex;
+}
+
+.spine-cover-title {
+    font-family: 'IranNastaliq', serif;
+    font-size: 1.7rem;
+    line-height: 1.5;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+.spine-cover-poet {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.spine-cover-close {
+    position: absolute;
+    top: 6px;
+    inset-inline-end: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, 0.25);
+    color: #fdf8ee;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.spine-cover-close:hover {
+    background: rgba(0, 0, 0, 0.4);
+}
+
+#guides {
+    max-width: 860px;
+    display: block;
+    text-align: center;
+    margin: 15px auto;
+    padding: 0 10px;
+    width: 100%;
+}
+
+    #guides p {
+        text-indent: 0;
+        margin: 5px;
+        font-family: 'Vazirmatn';
+        font-weight: 300;
+        font-size: 1em;
+        line-height: 24px
+    }
+
+.spacer .poet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 110px;
+    margin: 0 0 10px 0;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.spacer .poet:hover {
+    transform: translateY(-5px);
+}
+
+.spacer .poet > a {
+    display: block;
+    width: 76px;
+    height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    background: var(--card-paper);
+    box-shadow:
+        0 0 0 2px var(--gold),
+        0 0 0 5px var(--bg-page),
+        0 0 0 7px var(--border-gold),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.25s ease;
+}
+
+.spacer .poet:hover > a {
+    box-shadow:
+        0 0 0 2px var(--brand),
+        0 0 0 5px var(--bg-page),
+        0 0 0 7px var(--brand),
+        0 6px 18px rgba(0, 0, 0, 0.22);
+}
+
+.spacer .poet > a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: auto;
+    filter: contrast(1.08) saturate(1.12) brightness(1.02);
+}
+
+.spacer .poet > a[href="/map"] {
+    width: 86px;
+    height: 86px;
+    box-shadow: none;
+}
+
+.sitem .poet {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    width: auto;
+    margin: 8px 0;
+}
+
+.sitem .poet > img {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow:
+        0 0 0 2px var(--gold),
+        0 0 0 4px var(--bg-page),
+        0 0 0 5px var(--border-gold);
+}
+
+.sitem .poet > a {
+    width: auto;
+    height: auto;
+    border-radius: 50%;
+    box-shadow: none;
+    background: none;
+    color: var(--text-muted);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px;
+}
+
+
+.poemtab {
+    border-top: 1px dashed var(--border-gold);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 0 6px 0;
+    justify-content: center;
+}
+
+#tab-items {
+    border: none !important;
+}
+
+.poemtablinks {
+    display: inline-table;
+    transition: all 0.2s ease;
+}
+
+.spacer .poet .caption {
+    display: block;
+    width: 100%;
+    font-family: 'Vazirmatn';
+    font-weight: 300;
+    font-size: 0.8em;
+    text-align: center;
+    margin-top: 6px;
+    margin-bottom: 12px;
+}
+
+    .spacer .poet .caption a {
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        padding: 6px 12px;
+        background-color: var(--card-inner);
+        border: 1px solid var(--border-gold);
+        margin: 5px 0 8px 0;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--lapis) !important;
+        -webkit-text-fill-color: var(--lapis) !important;
+        transition: all 0.2s ease;
+    }
+
+    .spacer .poet:hover .caption a {
+        background-color: var(--gold-subtle);
+        border-color: var(--brand);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .spacer .poet .caption a:hover {
+        background-color: var(--gold-subtle);
+        border-color: var(--brand);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .poemtablinks a {
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+        padding: 6px 12px;
+        background-color: var(--card-inner);
+        border: 1px solid var(--border-gold);
+        margin-top: 5px;
+        font-size: 0.76rem;
+        font-weight: 600;
+        color: var(--lapis) !important;
+        -webkit-text-fill-color: var(--lapis) !important;
+        transition: all 0.2s ease;
+    }
+
+    .poemtablinks a:hover {
+        background-color: var(--gold-subtle) !important;
+        border-color: var(--brand) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        color: var(--lapis) !important;
+        -webkit-text-fill-color: var(--lapis) !important;
+    }
+
+
+.poemtablinks {
+    max-height: 20px;
+    font-size: 0.8em;
+}
+
+#fa .spacer .poet .caption a {
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+}
+
+#fa .poemtablinks a {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+}
+
+    #fa .spacer .poet .caption a:hover, #fa .poemtablinks a:hover {
+        font-weight: bold;
+        background-color: var(--gold-subtle);
+    }
+
+#fa .active a {
+    font-weight: bold;
+    background-color: var(--gold-subtle) !important;
+    border-color: var(--brand) !important;
+    color: var(--lapis) !important;
+    -webkit-text-fill-color: var(--lapis) !important;
+}
+
+.width-100per {
+    width: 100% !important;
+}
+
+.text-align-center {
+    text-align: center;
+}
+
+
+a img {
+    border: none;
+    width: 100%;
+    display: block
+}
+
+.divan-comment img {
+    max-width: 100%;
+}
+
+
+.hilite {
+    color: var(--ink-black);
+    background-color: var(--gold)
+}
+
+.hilite1 {
+    color: var(--ink-black);
+    background-color: var(--gold-light)
+}
+
+.hilite2 {
+    color: var(--ink-black);
+    background-color: var(--gold-light)
+}
+
+.hilite3 {
+    color: var(--ink-black);
+    background-color: var(--gold-subtle)
+}
+
+div.spacer, .item, .b2, .c {
+    clear: both;
+}
+
+.spacer:has(.poet) {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 14px 28px;
+    margin: 15px auto 25px auto;
+    padding: 0;
+    clear: both;
+}
+
+div.n, div.l {
+    clear: both;
+}
+
+
+.navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 820px;
+    margin: 0 auto;
+}
+
+.navleft, .navright {
+    float: none;
+    padding: 0;
+    text-align: center;
+    flex: 1;
+}
+
+.navleft a, .navright a {
+    color: var(--lapis) !important;
+    -webkit-text-fill-color: var(--lapis) !important;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    border-bottom: 1px dashed var(--border-gold);
+    padding-bottom: 2px;
+    transition: all 0.2s ease;
+}
+
+.navleft a:hover, .navright a:hover {
+    color: var(--gold) !important;
+    -webkit-text-fill-color: var(--gold) !important;
+    border-bottom-color: var(--gold);
+}
+
+.navleft span, .navright span {
+    color: var(--border-gold);
+}
+
+.b {
+    margin: auto;
+    margin-bottom: 6px;
+    text-align: center;
+    clear: both;
+}
+
+.b:hover {
+    background: linear-gradient(90deg, transparent, var(--gold-subtle) 15%, var(--gold-subtle) 85%, transparent);
+    border-radius: 6px;
+}
+
+.b:hover .bnum {
+    opacity: 1;
+}
+
+.b::after {
+    content: "✤";
+    color: var(--brand);
+    font-size: 0.72rem;
+    opacity: 0.75;
+}
+
+.m1 {
+    width: 45%;
+    float: right;
+}
+
+.m2 {
+    width: 45%;
+    float: left;
+}
+
+    .m1 p, .m2 p {
+        font-family: 'Vazirmatn';
+        font-weight: 300;
+        font-size: 0.9em;
+        font-style: normal;
+        text-indent: 0;
+        margin: 0;
+        line-height: 26px;
+    }
+
+.m1 p {
+    text-align: left;
+    padding-left: 4px;
+}
+
+.m2 p {
+    text-align: right;
+    padding-right: 4px;
+}
+
+.b2 p {
+    text-align: center;
+}
+
+.m1 p, .m2 p, .b2 p, .n p {
+    color: inherit;
+}
+
+@media (max-width: 950px) {
+    .b {
+        padding: 8px 0;
+        border-bottom: 1px dashed var(--gold-light);
+    }
+    .b::after {
+        display: none;
+    }
+    .b > .bnum {
+        display: block;
+        float: none;
+        margin: 0 auto 4px auto;
+        width: 36px;
+        height: 22px;
+    }
+    .m1 .bnum, .m2 .bnum, .n .bnum, .l .bnum {
+        display: none;
+    }
+    .m1, .m2 {
+        width: 100%;
+        max-width: 100%;
+        float: none;
+        white-space: normal;
+        overflow: visible;
+    }
+    .m1 p, .m2 p {
+        text-align: center;
+        font-size: 1.38rem;
+        line-height: 2.2;
+        padding: 0;
+        white-space: normal;
+    }
+}
+
+.item {
+    padding-top: 20px;
+}
+
+#summaries {
+    margin-top: 20px;
+}
+
+#summaries > .century {
+    font-size: 1.1rem;
+    padding: 6px 32px;
+}
+
+.coupletsummary {
+    border-radius: 8px;
+}
+
+nav#nav {
+    margin: 16px 0;
+}
+
+.divan-comment, .inlinesimi, .audio-player {
+    margin-right: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s ease;
+    margin-top: 16px;
+    border-radius: 12px;
+    padding: 6px;
+    overflow-x: hidden;
+}
+
+.inlinesimi, .audio-player {
+    margin-left: 20px;
+}
+
+.audio-player {
+    padding: 16px;
+    text-indent: 0;
+}
+
+.divan-comment {
+    background: var(--card-paper);
+    border: 1px solid var(--border-gold);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin: 14px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    direction: rtl;
+    text-align: right;
+    transition: all 0.25s ease;
+}
+
+.divan-comment:hover {
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+    border-color: var(--gold);
+}
+
+.divan-comment .divan-comment {
+    background: var(--card-inner);
+    border: none;
+    border-right: 3px solid var(--gold);
+    border-radius: 0 10px 10px 0;
+    margin-top: 14px;
+    margin-right: 16px;
+    margin-left: 0;
+    padding: 12px 16px;
+    box-shadow: none;
+}
+
+.divan-comment .divan-comment:hover {
+    background: var(--card-nested);
+}
+
+.comment-author {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: flex-start;
+    gap: 4px 8px;
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+    font-weight: 700;
+    font-size: 0.92rem;
+    border-bottom: 1px solid var(--border-gold);
+    padding: 0 4px 6px 4px;
+    margin-bottom: 10px;
+    background: transparent;
+}
+
+.comment-author a {
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+    font-weight: 700;
+}
+
+.comment-author a:hover {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+}
+
+.comments-link {
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+    font-weight: 700;
+}
+
+.comments-link:hover {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+}
+
+.comment-author small {
+    color: var(--text-muted);
+    -webkit-text-fill-color: var(--text-muted);
+    font-weight: normal;
+    font-size: 0.72rem;
+}
+
+.divan-comment blockquote {
+    background: transparent;
+    border: none;
+    margin: 0;
+    padding: 0;
+    quotes: none;
+}
+
+.divan-comment blockquote:before {
+    display: none;
+}
+
+.divan-comment blockquote p {
+    color: var(--ink-black);
+    -webkit-text-fill-color: var(--ink-black);
+    line-height: 2;
+    font-size: 0.95rem;
+    text-align: justify;
+    margin: 6px 0;
+    word-break: break-word;
+}
+
+.divan-comment p a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    margin: 0 1px;
+    border-radius: 6px;
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-gold);
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+.divan-comment p a:hover {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: var(--card-paper) !important;
+    -webkit-text-fill-color: var(--card-paper) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.divan-comment p a .pageicons {
+    font-size: 16px;
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+.divan-comment p a:hover .pageicons {
+    color: var(--card-paper);
+    -webkit-text-fill-color: var(--card-paper);
+}
+
+.divan-comment blockquote a {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    text-decoration: underline;
+    font-weight: 600;
+}
+
+/* --- Poem-page comment thread only (_CommentPartial.cshtml) ---
+   The rules above are shared by every page that reuses the plain ".divan-comment" class
+   for layout (FAQ answers, bookmark private notes, photo captions, etc.) and are left exactly
+   as they were so none of those pages change. The two classes below are new and are applied
+   only inside _CommentPartial.cshtml, so they can't affect anything else even by accident:
+     - ".comment-actions" on the action-icon <p> (reply/edit/delete/like/...): unchanged from
+       before, just given its own name instead of relying on the generic "p a" match.
+     - ".comment-body" on the <blockquote> that holds a commenter's own sanitized HTML: the
+       sanitizer allows <p> in comment content, so a link a commenter pasted inside their own
+       <p> was ALSO matching ".divan-comment p a" above and coming out as a boxed icon-button
+       instead of plain text - that's the bug being fixed here. Both selectors below combine
+       two classes on the same element (.divan-comment plus the new class), which makes them
+       more specific than the shared single-class rules above, so they win only where the new
+       class is actually present. */
+.divan-comment .comment-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    margin: 0 1px;
+    border-radius: 6px;
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-gold);
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+.divan-comment .comment-actions a:hover {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: var(--card-paper) !important;
+    -webkit-text-fill-color: var(--card-paper) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.divan-comment .comment-actions a .pageicons {
+    font-size: 16px;
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+.divan-comment .comment-actions a:hover .pageicons {
+    color: var(--card-paper);
+    -webkit-text-fill-color: var(--card-paper);
+}
+
+/* Links a commenter typed/pasted into their own comment text: plain text, no box, no
+   underline, no font-size/weight change - just a color that reads as "clickable", same
+   convention as .comments-link/.comment-author a. */
+.divan-comment .comment-body a {
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+}
+
+.divan-comment .comment-body a:hover {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+}
+
+.sit {
+    display: block;
+    float: right;
+    max-width: 508px
+}
+
+#comments {
+    border-top: 2px solid var(--border-gold);
+    margin-top: 20px;
+    padding-top: 16px;
+}
+
+#comments, #profile, .comments-like-div, .bnumdiv {
+    margin: 16px auto 6px;
+    display: block;
+    padding: 3px;
+    clear: both;
+    border-top: 1px solid var(--border-gold);
+}
+
+.loadingcontainer {
+    margin: 14px;
+    display: block;
+    padding: 3px;
+    clear: both;
+}
+
+.notice, .c p {
+    width: 90%;
+    margin: 14px auto;
+    display: block;
+    background-color: var(--card-inner);
+    padding: 16px;
+    clear: both;
+    border: 1.5px solid var(--border-gold);
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    max-width: 680px;
+}
+
+.c p {
+    font-size: 0.8em;
+}
+
+#commentsp h3, #comments h3 {
+    font-family: 'Vazirmatn';
+    font-weight: 700;
+    font-size: 0.9em;
+    margin: 3px auto;
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    text-align: center;
+}
+
+#comments h3 {
+    font-size: 1.3rem;
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    border-bottom: 2px solid var(--brand);
+    display: inline-block;
+    padding: 0 24px 6px;
+    margin: 8px auto 16px;
+}
+
+#commentsp p, #comments p {
+    text-indent: 20px;
+    text-align: justify;
+    color: var(--ink-black);
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#comments p {
+    color: var(--ink-black)
+}
+
+#commentsp label {
+    color: var(--ink-black)
+}
+
+.actionlink {
+    cursor: pointer
+}
+
+textarea {
+    background-color: var(--gold-subtle)
+}
+
+form div.notes p.last {
+    margin: 0;
+}
+
+form div.required label, label.required {
+    color: var(--brand)
+}
+
+form div.optional label, label.optional {
+    font-weight: normal
+}
+
+form div label {
+    clear: both;
+    display: block;
+    float: right;
+    width: 120px;
+    padding: 3px 5px;
+    margin: 0 0 5px 0;
+    text-align: left
+}
+
+.inputText {
+    margin-top: 3px;
+    height: 13px
+}
+
+.linputText {
+    margin-top: 3px;
+    height: 13px;
+    direction: ltr;
+    text-align: left
+}
+
+
+form div.submit {
+    text-align: center
+}
+
+
+
+.lft {
+    direction: ltr;
+    unicode-bidi: bidi-override
+}
+
+table {
+    font-family: 'Vazirmatn';
+    font-weight: 300;
+    font-size: 0.8em;
+    border-collapse: collapse;
+    max-width: 600px;
+    margin: auto;
+    margin-top: 10px;
+    text-align: center;
+}
+
+td {
+    border: 1px solid var(--accent-border);
+}
+
+.noborder {
+    border: none;
+}
+
+tr {
+    background: var(--card-inner);
+}
+
+    tr.h td {
+        border-top: 1px solid var(--gold);
+        border-bottom: 1px solid var(--gold);
+        background: var(--gold-subtle);
+    }
+
+    tr.e {
+        background: var(--card-paper);
+    }
+
+td.c1 {
+    width: 50px;
+}
+
+td.c3, td.c4 {
+    width: 100px;
+}
+
+td.c2 {
+    width: 350px;
+}
+
+
+
+#selection-image {
+    background: url('/image/loghatname.png') 0 0 no-repeat;
+    width: 25px;
+    height: 29px;
+    position: absolute;
+    top: -50px;
+    left: -50px;
+}
+
+#vajje {
+    background: url('/image/vajje.png') 0 0 no-repeat;
+    width: 25px;
+    height: 29px;
+    position: absolute;
+    top: 20px;
+    left: -50px;
+}
+
+#abjad {
+    background: url('/image/abjad.png') 0 0 no-repeat;
+    width: 28px;
+    height: 29px;
+    position: absolute;
+    top: 20px;
+    left: -50px;
+}
+
+#vazn {
+    background: url('/image/vazn.png') 0 0 no-repeat;
+    width: 41px;
+    height: 25px;
+    position: absolute;
+    top: 0px;
+    left: 100px;
+}
+
+.poet-pic-wrap {
+    width: 82px;
+    margin: auto;
+}
+
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+
+#searchhorm {
+    margin: auto;
+    max-width: 500px;
+}
+
+#searchform {
+    float: left;
+    max-width: 150px;
+}
+
+    #searchform input,
+    #searchform select,
+    #searchhorm input,
+    #searchhorm select {
+        width: 150px;
+        margin: 3px 0;
+        padding: 4px;
+        float: left;
+        height: 30px;
+    }
+
+#searchhorm input,
+#searchhorm select,
+#searchhorm label {
+    float: right;
+    margin: 1px;
+}
+
+    #searchhorm input[type="submit"] {
+        width: 50px;
+    }
+
+.bnum {
+    width: 50px !important;
+    height: 28px;
+    clear: right;
+    margin-left: -50px;
+    cursor: pointer;
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    opacity: 0.85;
+}
+
+.n .bnum, .l .bnum {
+    margin-left: 0px;
+}
+
+.b, .b1, .n {
+    scroll-margin-top: 43px;
+}
+
+
+.normalbnum {
+    float: right;
+    position: relative;
+}
+
+.bandnum {
+    margin: auto;
+}
+
+#pretab, .poempretab {
+    margin-bottom: 60px;
+}
+
+#days-placeholder{
+    margin-top: 1em;
+}
+
+.stats-section {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+
+.stats-section-no-grid {
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    display: grid;
+    gap: 15px;
+    text-align: center;
+}
+
+
+.stat-item {
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+pagination-controls {
+    margin: 20px 0;
+    gap: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
+@media(max-width: 768px) {
+    .b {
+        margin-bottom: 15px;
+    }
+
+        .b p {
+            text-align: center;
+            font-size: 1.1em;
+        }
+
+        .b > div:not(.bnum) {
+            width: 100%;
+            float: none;
+        }
+
+    .tooltip {
+        font-size: 1.1em;
+    }
+
+    .bnum, .n .bnum, .l .bnum {
+        margin: auto;
+    }
+
+    .normalbnum {
+        position: unset;
+        right: unset;
+    }
+}
+
+.tooltip {
+    font-family: 'Vazirmatn';
+}
+
+    .tooltip a {
+        border-radius: 10px;
+        height: 100%;
+        padding: 0.5em;
+        cursor: pointer;
+        color: white;
+        text-decoration: none;
+    }
+
+        .tooltip a:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: white;
+        }
+
+    .tooltip::before {
+        content: '';
+        display: block;
+        border-left: 0.5em solid transparent;
+        border-right: 0.5em solid transparent;
+        border-bottom: 0.5em solid rgba(14, 17, 17, 0.9);
+        position: absolute;
+        top: 0;
+        margin-top: -0.5em;
+        left: 50%; /* Position the pointer at the center of the tooltip */
+        transform: translateX(-50%); /* Center-align the pointer */
+    }
+
+.jp-video-270p {
+    width: 100%;
+}
+
+ol {
+    list-style-type: persian;
+}
+
+    ol li {
+        margin-right: 2em;
+        float: right;
+    }
+
+#login {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+#login-container {
+    display: flex;
+}
+
+    #login-container form {
+        margin: auto; /* nice thing of auto margin if display:flex; it center both horizontal and vertical :) */
+    }
+
+    #login-container td {
+        border: 0;
+    }
+
+    #login-container input {
+        direction: ltr;
+        text-align: left;
+    }
+
+.alert-text {
+    color: var(--gold);
+}
+
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: var(--ink-black); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* w/ opacity */
+    padding-top: 60px;
+}
+
+/* Modal Content/Box */
+.modal-content {
+    background-color: var(--card-inner);
+    margin: 5px auto; /* 15% from the top and centered */
+    border: 1px solid var(--border-gold);
+    font-size: 1.25em;
+    padding: 6px;
+}
+
+
+    .modal-content td {
+        border: none
+    }
+
+
+/* The Close Button */
+.close {
+    /* Position it in the top right corner outside of the modal */
+    position: absolute;
+    right: 25px;
+    top: 0;
+    color: var(--ink-black);
+    font-size: 35px;
+    font-weight: bold;
+}
+
+    /* Close button on hover */
+    .close:hover,
+    .close:focus {
+        color: var(--lapis);
+        cursor: pointer;
+    }
+
+/* Changelog modal */
+.changelog-modal-content {
+    max-width: 640px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.changelog-title {
+    color: var(--accent-text);
+    margin: 4px 0 10px 0;
+    font-size: 1.1em;
+    border-bottom: 1px dashed var(--border-gold);
+    padding-bottom: 8px;
+}
+
+.changelog-list {
+    overflow-y: auto;
+    font-size: 0.75em;
+}
+
+.changelog-loading {
+    text-align: center;
+    color: var(--accent-text);
+    padding: 20px 0;
+}
+
+.changelog-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 8px 4px;
+    border-bottom: 1px dashed var(--border-gold);
+}
+
+    .changelog-item:last-child {
+        border-bottom: none;
+    }
+
+.changelog-date {
+    flex: 0 0 auto;
+    color: var(--lapis);
+    font-weight: bold;
+    white-space: nowrap;
+    direction: ltr;
+}
+
+.changelog-desc {
+    flex: 1 1 auto;
+    color: var(--accent-text);
+    line-height: 1.7;
+}
+
+/* Add Zoom Animation */
+.animate {
+    -webkit-animation: animatezoom 0.6s;
+    animation: animatezoom 0.6s
+}
+
+@-webkit-keyframes animatezoom {
+    from {
+        -webkit-transform: scale(0)
+    }
+
+    to {
+        -webkit-transform: scale(1)
+    }
+}
+
+@keyframes animatezoom {
+    from {
+        transform: scale(0)
+    }
+
+    to {
+        transform: scale(1)
+    }
+}
+
+@keyframes logo-spin {
+    from {
+        transform: rotate(325deg);
+    }
+
+    to {
+        transform: rotate(0deg);
+    }
+}
+
+.spinnerIcon {
+    animation: logo-spin 1s 5 cubic-bezier(.6,-0.28,.74,.05);
+}
+
+
+
+
+/* Change styles for span and cancel button on extra small screens */
+@media screen and (max-width: 300px) {
+    span.psw {
+        display: block;
+        float: none;
+    }
+}
+
+.loginImgContainer {
+}
+
+.refComment {
+    width: 90%
+}
+
+.commentquote {
+    background: var(--card-inner);
+    border-right: 4px solid var(--gold);
+    border-radius: 0 8px 8px 0;
+    margin: 12px 0;
+    padding: 10px 16px;
+    quotes: "\201C""\201D""\2018""\2019";
+    text-align: right;
+}
+
+    .commentquote:before {
+        color: var(--brand);
+        content: open-quote;
+        font-size: 3em;
+        line-height: 0.1em;
+        margin-left: 0.25em;
+        vertical-align: -0.4em;
+    }
+
+    .commentquote p {
+        display: inline;
+    }
+
+.material-icons, .pageicons, .inlinebutton, .info-buttons, .recitation-icons, .noindent-info-button {
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -moz-font-feature-settings: 'liga';
+    -moz-osx-font-smoothing: grayscale;
+    fill: var(--accent-text);
+}
+
+.footer-contents .material-icons {
+    font-size: 10px;
+}
+
+.info-buttons {
+    direction: rtl;
+    vertical-align: middle;
+    text-indent: 5px;
+}
+
+.noindent-info-button {
+    direction: rtl;
+    vertical-align: middle;
+}
+
+.pageicons {
+    font-size: 14px;
+    direction: rtl;
+    text-indent: 0;
+    color: var(--accent-text);
+}
+
+.inlineanchor {
+    display: inline;
+    cursor: pointer;
+}
+
+.inlinebutton {
+    color: var(--lapis);
+}
+
+
+.submitCommentButton, form div input.inputSubmit, #postcomment.inputSubmit, input[type="submit"] {
+    padding: 0px;
+    text-align: center;
+    background-color: var(--accent-bg);
+    border-radius: 5px;
+    color: var(--accent-text);
+    height: 30px;
+    font-family: 'Vazirmatn';
+    cursor: pointer;
+}
+
+.submitCommentButton:hover, form div input.inputSubmit:hover, #postcomment.inputSubmit:hover, input[type="submit"]:hover {
+    background-color: var(--card-nested);
+    color: var(--lapis-hover);
+    -webkit-text-fill-color: var(--lapis-hover);
+    transform: translateY(-1px);
+}
+
+.textualbutton, .pagebutton, .recitation-button {
+    cursor: pointer;
+    color: var(--accent-text) !important;
+    background-color: var(--accent-bg);
+    display: block;
+    text-align: center;
+    border-color: var(--accent-border);
+    border-radius: 5px;
+    box-shadow: 0 5px 0.3rem rgba(0, 0, 0, 0.3);
+}
+
+.textualbutton {
+    width: 100%;
+}
+
+.pagebutton {
+    background: var(--card-inner);
+    border: 2px solid var(--border-gold);
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    border-radius: 20px;
+    padding: 7px 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.25s ease;
+    display: inline-block;
+    margin: 5px;
+}
+
+.pagebutton:hover {
+    background: var(--card-nested);
+    color: var(--lapis-hover);
+    -webkit-text-fill-color: var(--lapis-hover);
+    transform: translateY(-1px);
+}
+
+.pagebutton svg {
+    fill: var(--lapis);
+    vertical-align: middle;
+}
+
+.pagebutton:hover svg {
+    fill: var(--lapis-hover);
+}
+
+
+.century, .century-alt, .part-title-block, .part-title-block-alt {
+    clear: both;
+    font-family: 'Vazirmatn';
+    font-weight: 700;
+    font-size: 1em;
+    text-align: center;
+    color: var(--accent-text);
+    background-color: var(--gold-subtle);
+    display: block;
+    margin: 8px auto;
+    border-radius: 10px;
+    border: 1.5px solid var(--border-gold);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    padding: 4px 8px;
+    margin: 20px;
+    transition: all 0.2s ease;
+}
+
+.part-title-block:hover, .part-title-block-alt:hover {
+    background-color: var(--gold-light);
+    border-color: var(--brand);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.14);
+    transform: translateY(-1px);
+}
+
+.century a, .century-alt a, .part-title-block a, .part-title-block-alt a {
+    color: var(--text-muted) !important;
+    -webkit-text-fill-color: var(--text-muted) !important;
+}
+
+#fa .century a, #fa .century-alt a, #fa .part-title-block a, #fa .part-title-block-alt a {
+    color: var(--text-muted) !important;
+    -webkit-text-fill-color: var(--text-muted) !important;
+}
+
+#fa .part-title-block a, #fa .part-title-block-alt a {
+    display: block;
+}
+
+.century-alt, .part-title-block-alt {
+    background-color: var(--card-nested);
+}
+
+#comments .poem-info p {
+    text-align: center;
+    text-indent: 0;
+}
+
+.poem-actions {
+    display: flex;
+    justify-content: space-evenly;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.related-songs, .related-images-frame, .comment-author, .inlinesimi-poem-more {
+    border-width: 3px;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    display: block;
+    width: 95%;
+    border-radius: 20px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 6px;
+}
+
+.related-songs {
+    background: transparent url('/image/note.png') top center repeat scroll;
+}
+
+.related-song {
+    text-align: right;
+    margin: 10px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 20px;
+    color: var(--ink-black);
+    padding: 6px;
+}
+
+    .related-song a {
+        color: var(--ink-black) !important;
+    }
+
+.related-images {
+    display: flex;
+    clear: both;
+    width: auto;
+    margin: auto;
+    flex-flow: wrap;
+    text-align: center;
+}
+
+    .related-images a {
+        text-align: center;
+        margin: auto
+    }
+
+.related-image-container, .related-image-container-main {
+    text-align: center;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 200px;
+}
+
+.related-image-container-main {
+    width: 300px;
+}
+
+.related-image, .related-image-main {
+    width: 200px;
+    float: right;
+    padding: 6px;
+}
+
+.related-image-main {
+    width: 300px;
+}
+
+.related-image-is-text-source {
+    background-color: var(--card-nested);
+    border-radius: 5px;
+    color: var(--ink-black);
+    font-size: small;
+    padding: 6px;
+}
+
+    .related-image-is-text-source a {
+        color: var(--lapis) !important;
+        -webkit-text-fill-color: var(--lapis) !important;
+    }
+
+
+.comment-author, inlinesimi-poem-more {
+    background: var(--card-nested);
+}
+
+#map {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    width: 100%;
+}
+
+#map-guide {
+    position: absolute;
+    height: 180px;
+    bottom: 0px;
+    width: 90%;
+    left: 5%;
+    z-index: 1000;
+    text-align: center;
+    font-family: 'Vazirmatn';
+    font-size: 1em;
+    background: transparent url('/image/pbk-b.jpg') top center repeat scroll;
+    display: block;
+    background-color: var(--gold-light);
+    border: 2px solid var(--accent-border);
+    border-radius: 20px;
+    padding: 16px;
+}
+
+#map-guide div p,
+#map-guide div p a {
+    color: var(--gold-subtle);
+}
+
+#rangeInput {
+    width: 100%;
+}
+
+#comments .simitext p {
+    text-align: center;
+    text-indent: 0;
+}
+
+.footer-contents {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 50px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.link-list-internals {
+    grid-column: 1/2;
+    grid-row: 1/1;
+}
+
+.link-list-tools {
+    grid-column: 2/3;
+    grid-row: 1/1;
+}
+
+.link-list-about {
+    grid-column: 3/4;
+    grid-row: 1/1;
+}
+
+@media (max-width: 768px) {
+    .footer-contents {
+        grid-template-columns: 1fr 1fr;
+        grid-gap: 20px;
+    }
+
+    .link-list-internals {
+        grid-column: 1/2;
+        grid-row: auto;
+    }
+
+    .link-list-tools {
+        grid-column: 2/3;
+        grid-row: auto;
+    }
+
+    .link-list-about {
+        grid-column: 1/3;
+        grid-row: auto;
+        column-count: 2;
+        column-gap: 20px;
+    }
+
+    .link-list-about li {
+        break-inside: avoid;
+    }
+}
+
+#footer {
+    background: var(--card-inner);
+    border: 1.5px solid var(--border-gold);
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+    padding: 24px 20px;
+    max-width: 860px;
+    margin: 20px auto;
+    text-align: center;
+    display: block;
+    clear: both;
+    font-size: 0.8em;
+}
+
+    #footer ul {
+        list-style: none;
+    }
+
+    #footer li {
+        text-align: right;
+        padding-right: 20px;
+        margin-top: 5px;
+    }
+
+        #footer li a {
+            color: var(--accent-text);
+        }
+
+            #footer li a:hover {
+                border-bottom: 2px solid var(--accent-border);
+            }
+
+@media (min-width: 769px) {
+    #footer .link-list-tools li {
+        padding-right: 50px;
+    }
+}
+
+.recitaion-info {
+}
+
+.display-none {
+    display: none;
+}
+
+.hidden-recitation {
+    display: none;
+}
+
+.bnum-partial-table {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.bnum-partial-narrators {
+    flex: 1 1 180px;
+    min-width: 150px;
+    height: 36px;
+    padding: 4px 10px;
+    border: 1px solid var(--border-gold);
+    border-radius: 6px;
+    background: var(--card-paper);
+}
+
+.bnum-partial-narrate-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px;
+    padding: 6px 14px;
+    background: var(--lapis);
+    border: 1px solid var(--lapis);
+    border-radius: 6px;
+    color: var(--card-paper);
+    -webkit-text-fill-color: var(--card-paper);
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.bnum-partial-action-box {
+    background: var(--card-inner);
+    border: 1px solid var(--border-gold);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 8px 0 10px;
+    padding: 4px 8px;
+    border-top: 1px solid var(--gold-light);
+    border-bottom: 1px solid var(--gold-light);
+    width: 100%;
+    clear: both;
+}
+
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+#footer .footer-icon {
+    fill: var(--lapis);
+    vertical-align: middle;
+    margin-left: 6px;
+    transition: fill 0.2s ease;
+}
+
+#footer li a:hover .footer-icon {
+    fill: var(--lapis-hover);
+}
+
+.color-white {
+    color: var(--lapis) !important;
+    fill: var(--lapis) !important;
+}
+
+.color-gray {
+    color: var(--text-muted) !important;
+}
+
+.color-yellow {
+    color: var(--gold) !important;
+}
+
+.color-disabled {
+    color: var(--text-muted) !important;
+    fill: var(--text-muted) !important;
+}
+
+.clear-both {
+    clear: both;
+}
+
+.audio-partial-action-box {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 10px 0;
+}
+
+.recitation-button {
+    display: inline-flex;
+    padding: 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    background-color: var(--card-inner);
+    border: 1px solid var(--border-gold);
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+.recitation-button:hover {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: var(--card-paper) !important;
+    -webkit-text-fill-color: var(--card-paper) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.recitation-button:hover .recitation-icons {
+    color: var(--card-paper);
+    -webkit-text-fill-color: var(--card-paper);
+}
+
+.recitation-icons {
+    font-size: 22px;
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    transition: all 0.2s ease;
+}
+
+audio {
+    width: 100%;
+}
+
+.recitaion-mistakes-header {
+    clear: both;
+    font-size: 0.8em;
+    text-align: center;
+    color: var(--accent-text);
+    background-color: var(--accent-bg);
+    display: block;
+    text-align: center;
+    margin: 14px;
+    border-radius: 20px;
+    border-color: var(--accent-border);
+    border-style: solid;
+    border-width: 3px;
+}
+
+.recitaion-mistake {
+    font-size: 0.8em;
+    width: 90%;
+    margin: auto;
+    text-align: center;
+    border-style: dotted;
+}
+
+#cat {
+    width: 150px;
+}
+
+.display-block {
+    display: block;
+}
+
+.margin-auto {
+    margin: auto;
+}
+
+.pinterest_suggest {
+    background-color: var(--brand);
+    color: var(--card-paper);
+    font-family: 'Vazirmatn';
+    font-size: 1.5em;
+    width: 100%;
+    cursor: pointer;
+}
+
+#poets, #page-hierarchy {
+    width: 100%;
+    text-align: center;
+    margin: 4px 0 6px 0;
+}
+
+#page-hierarchy a,
+#page-hierarchy span {
+    color: var(--text-muted);
+    -webkit-text-fill-color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+#page-hierarchy h2 {
+    margin: 4px 0 8px 0;
+}
+
+#page-hierarchy h2 a {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    font-family: 'IranNastaliq', serif;
+    font-size: 2.1rem;
+    line-height: 2.4;
+    display: inline-block;
+    padding: 5px 20px;
+    border-bottom: 2px solid var(--brand);
+    text-shadow: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    max-width: 575px;
+}
+
+.poets-poet {
+    width: auto;
+    float: right;
+}
+
+#poet-image {
+    width: 82px;
+    margin: 0 auto 4px auto;
+}
+
+#poet-image img {
+    width: 82px;
+    height: 104px;
+    border-radius: 50%;
+    object-fit: cover;
+    box-shadow:
+        0 0 0 2px var(--border-gold),
+        0 0 0 4px var(--card-paper),
+        0 0 0 6px var(--border-gold),
+        0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+.spotify-track-icon {
+    display: inline;
+    width: 16px;
+}
+
+.comment-table {
+    max-width: 100%;
+    width: 100%;
+    margin: 0;
+}
+
+.red-color {
+    color: var(--brand) !important;
+}
+
+.green-color {
+    color: #2e7d32 !important;
+}
+
+.max-width-100per {
+    max-width: 100%;
+}
+
+.max-width-none {
+    max-width: none;
+}
+
+.circled-number-container {
+    width: 100%;
+    direction: ltr;
+    display: inline-flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    row-gap: 4px;
+    column-gap: 8px;
+}
+
+.circled-number-container a {
+    text-decoration: none;
+    display: inline-flex;
+}
+
+.circled-number-container .circled-number {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: var(--card-inner);
+    border: 1.5px solid var(--border-gold);
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    font-family: 'Vazirmatn', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.circled-number-container a:hover .circled-number {
+    background: var(--card-nested);
+    border-color: var(--border-gold);
+    color: var(--lapis-hover);
+    -webkit-text-fill-color: var(--lapis-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.circled-number, .circled-number-diff, .navbar-help-button {
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    padding: 2px;
+    background-color: var(--card-paper);
+    border: 1px solid var(--border-gold);
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    text-align: center;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin: 2px;
+}
+
+.circled-number:hover {
+    background: var(--card-nested);
+    border-color: var(--lapis);
+    transform: translateY(-1px);
+}
+
+.circled-number-diff {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--card-nested);
+    border: 1.5px solid var(--border-gold);
+    padding: 0;
+    margin: 8px auto;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+
+.navbar-help-button {
+    background-color: var(--card-inner);
+    border-radius: 0;
+}
+
+#navbarhelp {
+    background: var(--card-inner) none repeat scroll 0;
+    opacity: .95;
+    border-radius: 10px;
+}
+
+
+
+
+#findpoet {
+    text-align: center;
+}
+
+
+
+.visible-notification-badge {
+    position: absolute;
+    padding: 1px;
+    border-radius: 100%;
+    background: var(--brand);
+    width: 14px;
+    height: 14px;
+    margin-top: -8px;
+    margin-right: -5px;
+}
+
+fieldset {
+    padding: 6px;
+    border: none;
+    border-radius: 20px;
+}
+
+.margin-top-5px {
+    margin-top: 5px;
+}
+
+.padding-20px {
+    padding: 16px;
+}
+
+.td-button-container {
+    padding: 4px;
+}
+
+
+.editor-button {
+    cursor: pointer;
+    color: var(--accent-text) !important;
+    display: block;
+    text-align: center;
+    border-color: var(--accent-border);
+    border-radius: 5px;
+    box-shadow: 0 5px 0.3rem rgba(0, 0, 0, 0.3);
+    width: 100%;
+    padding: 3px;
+}
+
+.background-green {
+    background-color: #2e7d32 !important;
+}
+
+
+.background-red {
+    background-color: var(--gold-subtle) !important;
+}
+
+.background-gray {
+    background-color: var(--text-muted) !important;
+}
+
+.background-white {
+    background-color: var(--card-paper) !important;
+}
+
+.background-darkgreen {
+    background-color: var(--gold) !important;
+}
+
+.nobackground {
+    background: none !important;
+}
+
+.signupemail {
+    text-align: left;
+    direction: ltr;
+    width: 100%;
+}
+
+.font-size-1em {
+    font-size: 1em !important;
+}
+
+.font-size-2em {
+    font-size: 2em !important;
+}
+
+.padding-bottom-50px {
+    padding-bottom: 50px !important;
+}
+
+.rtl-right {
+    direction: rtl;
+    text-align: right;
+}
+
+#main-navbar, .sticky, .utilbar {
+    max-width: 752px;
+    margin: auto;
+    margin-top: 2px;
+    margin-bottom: 2px;
+    display: block;
+    background-color: var(--accent-bg);
+    border-radius: 20px;
+    border: 2px solid var(--accent-border);
+    overflow: hidden;
+}
+
+    #main-navbar .pagebutton {
+        display: inline-table;
+        border: 3px solid var(--accent-border);
+        padding-top: 0;
+        padding-bottom: 0;
+        padding-left: 10px;
+        padding-right: 10px;
+        background-color: var(--accent-bg);
+    }
+
+    #main-navbar .circled-number {
+        background-color: var(--accent-bg);
+    }
+
+    #main-navbar a[role="button"]:hover .noborder-btn,
+    #main-navbar a[role="button"]:hover .circled-number,
+    #main-navbar a[role="button"]:hover .pagebutton {
+        background: var(--card-nested);
+        transform: translateY(-1px);
+    }
+
+    #main-navbar a[role="button"]:hover svg {
+        fill: var(--lapis-hover);
+    }
+
+.utilbar {
+    background: none;
+    border: none;
+}
+/* The sticky class is added to the navbar with JS when it reaches its scroll position */
+.sticky {
+    position: sticky !important;
+    top: 0;
+    z-index: 2;
+    border-radius: 0px !important;
+}
+
+.mouse-icon::after {
+    content: '\e323'; /* mouse */
+    font-family: 'Material Icons';
+}
+
+.format_list_numbered_rtl::after {
+    content: '\e267'; /* format_list_numbered_rtl */
+    font-family: 'Material Icons';
+}
+
+.copylink-icon::after {
+    content: '\e157'; /* link */
+    font-family: 'Material Icons';
+}
+
+.copytext-icon::after {
+    content: '\e14d'; /* content_copy */
+    font-family: 'Material Icons';
+}
+
+.share-icon::after {
+    content: '\e80d'; /* share */
+    font-family: 'Material Icons';
+}
+
+.rhyming-poems::after {
+    content: '\e8b6'; /* search */
+    font-family: 'Material Icons';
+}
+
+.translate-button::after {
+    content: '\e8e2'; /* translate */
+    font-family: 'Material Icons';
+}
+
+.edit-poem-button::after {
+    content: '\e3c9'; /* edit */
+    font-family: 'Material Icons';
+}
+
+.edit-note-poem-button::after {
+    content: '\e745'; /* edit_note */
+    font-family: 'Material Icons';
+}
+
+.autorenew::after {
+    content: '\e863'; /* autorenew */
+    font-family: 'Material Icons';
+}
+
+.queue_music::after {
+    content: '\e03d'; /* queue_music */
+    font-family: 'Material Icons';
+}
+
+.music_note::after {
+    content: '\e405'; /* music_note */
+    font-family: 'Material Icons';
+}
+
+.photo_camera::after {
+    content: '\e412'; /* photo_camera */
+    font-family: 'Material Icons';
+}
+
+.help-button::after {
+    content: '\e887'; /* help */
+    font-family: 'Material Icons';
+}
+
+.close-button::after {
+    content: '\e5cd'; /* close */
+    font-family: 'Material Icons';
+}
+
+.next-inline-result::after {
+    content: '\e5db'; /* arrow_downward */
+    font-family: 'Material Icons';
+}
+
+.prev-inline-result::after {
+    content: '\e5d8'; /* arrow_upward */
+    font-family: 'Material Icons';
+}
+
+
+.recitation-download::after {
+    content: '\f090'; /* download */
+    font-family: 'Material Icons';
+}
+
+.recitation-play::after {
+    content: '\e037'; /* play_arrow */
+    font-family: 'Material Icons';
+}
+
+.recitation-report::after {
+    content: '\e153'; /* flag */
+    font-family: 'Material Icons';
+}
+
+.recitation-scrollunlock::after {
+    content: '\e641'; /* no_encryption */
+    font-family: 'Material Icons';
+}
+
+.recitation-scrolllock::after {
+    content: '\e897'; /* lock */
+    font-family: 'Material Icons';
+}
+
+.recitation-novote::after {
+    content: '\e9f3'; /* thumb_up_off_alt */
+    font-family: 'Material Icons';
+}
+
+.recitation-vote::after {
+    content: '\e817'; /* thumb_up_alt */
+    font-family: 'Material Icons';
+}
+
+.recitation-score::after {
+    content: '\ea5f'; /* calculate */
+    font-family: 'Material Icons';
+}
+
+.recitation-website::after {
+    content: '\e80b'; /* public */
+    font-family: 'Material Icons';
+}
+
+
+.recitation-listen::after {
+    content: '\e023'; /* hearing */
+    font-family: 'Material Icons';
+}
+
+.commentary-listen::after {
+    content: '\ebe8'; /* spatial_audio_off */
+    font-family: 'Material Icons';
+}
+
+.recitation-comments::after {
+    content: '\e8af'; /* question_answer */
+    font-family: 'Material Icons';
+}
+
+.recitation-explore::after {
+    content: '\e2db'; /* travel_explore */
+    font-family: 'Material Icons';
+}
+
+.recitation-music::after {
+    content: '\e063'; /* music_video */
+    font-family: 'Material Icons';
+}
+
+.recitation-manuscripts::after {
+    content: '\e666'; /* auto_stories */
+    font-family: 'Material Icons';
+}
+
+.recitation-navigation::after {
+    content: '\e5c3'; /*apps */
+    font-family: 'Material Icons';
+}
+
+.quoted-poems::after {
+    content: '\e244'; /* format_quote */
+    font-family: 'Material Icons';
+}
+
+.face-photo::after {
+    content: '\f8dd'; /* face_5 */
+    font-family: 'Material Icons';
+}
+
+
+.map-icon::after {
+    content: '\e80b'; /* public */
+    font-family: 'Material Icons';
+}
+
+.query_stats::after {
+    content: '\e4fc'; /* query_stats */
+    font-family: 'Material Icons';
+}
+
+.percent::after {
+    content: '\eb58'; /* percent */
+    font-family: 'Material Icons';
+}
+
+
+.expand_circle_down::after, .collapse_circle_down::after {
+    content: '\e7cd'; /* expand_circle_down */
+    font-family: 'Material Icons';
+}
+
+.expand_circle_down {
+    transform: rotate(180deg);
+}
+
+.collapse_circle_down {
+    transform: none;
+}
+
+.bookmarks-icon::after {
+    content: '\e743'; /* hotel_class */
+    font-family: 'Material Icons';
+}
+
+.bookmarking-icon::after {
+    content: '\e838'; /* star */
+    font-family: 'Material Icons';
+}
+
+.menu-icon::after {
+    content: '\e5d2'; /* menu */
+    font-family: 'Material Icons';
+}
+
+
+.notifications-icon::after {
+    content: '\e7f4'; /* notifications */
+    font-family: 'Material Icons';
+}
+
+.home-icon::after {
+    content: '\e88a'; /* home */
+    font-family: 'Material Icons';
+}
+
+.user-home-icon::after {
+    content: '\f02e'; /* manage_accounts */
+    font-family: 'Material Icons';
+}
+
+.history-icon::after {
+    content: '\e889'; /* history */
+    font-family: 'Material Icons';
+}
+
+.done-icon::after {
+    content: '\e876'; /* done */
+    font-family: 'Material Icons';
+}
+
+.delete-icon::after {
+    content: '\e872'; /* delete */
+    font-family: 'Material Icons';
+}
+
+.menu-book::after {
+    content: '\ea19'; /* menu_book */
+    font-family: 'Material Icons';
+}
+
+.print::after {
+    content: '\e8ad'; /* print */
+    font-family: 'Material Icons';
+}
+
+
+.logout-icon::after {
+    content: '\ef6f'; /* run_circle */
+    font-family: 'Material Icons';
+}
+
+.account-icon::after {
+    content: '\e853'; /* account_circle */
+    font-family: 'Material Icons';
+}
+
+
+.pin-button::after {
+    content: '\f10d'; /* push_pin */
+    font-family: 'Material Icons';
+}
+
+.up-btn::after {
+    content: '\f182'; /* arrow_circle_up */
+    font-family: 'Material Icons';
+}
+
+.down-btn::after {
+    content: '\f181'; /* arrow_circle_down */
+    font-family: 'Material Icons';
+}
+
+.left-btn::after {
+    content: '\eaa7'; /* arrow_circle_left */
+    font-family: 'Material Icons';
+}
+
+.right-btn::after {
+    content: '\eaaa'; /* arrow_circle_right */
+    font-family: 'Material Icons';
+}
+
+.balance::after {
+    content: '\eaf6'; /* balance */
+    font-family: 'Material Icons';
+}
+
+.float-right {
+    float: right;
+}
+
+.float-left {
+    float: left;
+}
+
+.width-76px {
+    width: 76px;
+}
+
+.display-inline-flex {
+    display: inline-flex;
+}
+
+.noborder-btn {
+    width: 34px;
+    height: 34px;
+    padding: 2px;
+    background-color: var(--accent-bg);
+    border: 3px solid var(--accent-border);
+    color: var(--accent-text);
+    text-align: center;
+    display: inline-table;
+    margin: 2px;
+    border: none;
+    background: unset;
+    padding: 6px;
+}
+
+.mirror {
+    -moz-transform: scale(-1, 1);
+    -webkit-transform: scale(-1, 1);
+    -o-transform: scale(-1, 1);
+    -ms-transform: scale(-1, 1);
+    transform: scale(-1, 1);
+}
+
+#catmap, .inline-map {
+    margin-top: 50px;
+    height: 300px;
+}
+
+.w3-sidebar {
+    height: 100%;
+    width: 300px;
+    top: 0px;
+    background-color: var(--accent-bg);
+    position: fixed !important;
+    z-index: 1;
+    overflow: auto
+}
+
+.w3-bar-block .w3-dropdown-hover, .w3-bar-block .w3-dropdown-click {
+    width: 100%
+}
+
+    .w3-bar-block .w3-dropdown-hover .w3-dropdown-content, .w3-bar-block .w3-dropdown-click .w3-dropdown-content {
+        min-width: 100%
+    }
+
+    .w3-bar-block .w3-dropdown-hover .w3-button, .w3-bar-block .w3-dropdown-click .w3-button {
+        width: 100%;
+        padding: 8px 16px
+    }
+
+
+
+.w3-bar .w3-bar-item {
+    padding: 8px 16px;
+    float: left;
+    width: auto;
+    border: none;
+    display: block;
+    outline: 0;
+}
+
+.w3-bar-block .w3-bar-item {
+    width: 90%;
+    display: block;
+    border: none;
+    white-space: normal;
+    float: none;
+    outline: 0;
+    text-align: right;
+    background-color: var(--accent-bg);
+    margin: 14px;
+    border-radius: 20px;
+    color: var(--accent-text);
+}
+
+.w3-bar-block.w3-center .w3-bar-item {
+    text-align: center
+}
+
+.w3-bar-item a {
+    color: var(--accent-text) !important;
+}
+
+.w3-block {
+    display: block;
+    width: 100%
+}
+
+.w3-btn, .w3-button {
+    border: none;
+    display: inline-block;
+    padding: 8px 16px;
+    vertical-align: middle;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    background-color: inherit;
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap
+}
+
+    .w3-btn:hover {
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19)
+    }
+
+.w3-btn, .w3-button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none
+}
+
+    .w3-disabled, .w3-btn:disabled, .w3-button:disabled {
+        cursor: not-allowed;
+        opacity: 0.3
+    }
+
+        .w3-disabled *, :disabled * {
+            pointer-events: none
+        }
+
+.w3-dropdown-hover:hover > .w3-button:first-child, .w3-dropdown-click:hover > .w3-button:first-child {
+    background-color: var(--card-nested);
+    color: var(--ink-black)
+}
+
+.w3-bar-block .w3-dropdown-hover .w3-button, .w3-bar-block .w3-dropdown-click .w3-button {
+    width: 100%;
+    padding: 8px 16px
+}
+
+.w3-bar .w3-button {
+    white-space: normal
+}
+
+.w3-dropdown-hover.w3-mobile, .w3-dropdown-hover.w3-mobile .w3-btn, .w3-dropdown-hover.w3-mobile .w3-button, .w3-dropdown-click.w3-mobile, .w3-dropdown-click.w3-mobile .w3-btn, .w3-dropdown-click.w3-mobile .w3-button {
+    width: 100%
+}
+
+.sidebar-close {
+    border: 1px solid var(--card-paper) !important;
+}
+
+.book {
+    width: 150px !important;
+}
+
+    .book img {
+        border: 1px solid var(--accent-border);
+    }
+
+#icon-sun {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: none;
+}
+
+#icon-sun svg {
+    fill: var(--gold);
+}
+
+#icon-moon {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: none;
+}
+
+#icon-moon svg {
+    fill: var(--lapis);
+}
+
+#theme-toggle,
+a:has(#icon-sun) {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    z-index: 999;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--card-inner);
+    border: 1.5px solid var(--border-gold);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+#theme-toggle:hover,
+a:has(#icon-sun):hover {
+    background: var(--card-nested);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.charContainer {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+.charCell {
+    border: 1px solid var(--accent-border);
+    padding: 8px;
+    margin: 4px;
+    cursor: pointer;
+}
+
+.margin-15px {
+    margin: 15px !important;
+}
+
+.inline-small {
+    display: inline;
+    font-size: small;
+    color: var(--brand);
+}
+
+mark {
+    background: var(--brand);
+}
+
+    mark.currentInlineResult {
+        background: var(--brand);
+    }
+
+.ribbon-parent {
+    overflow: hidden; /* required */
+    position: relative; /* required  for demo*/
+}
+
+.ribbon {
+    margin: 0;
+    padding: 0;
+    background: var(--accent-bg);
+    color: var(--accent-text);
+    padding: 0.5em 0;
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translateX(30%) translateY(0%) rotate(45deg);
+    transform-origin: top left;
+}
+
+    .ribbon:before,
+    .ribbon:after {
+        content: '';
+        position: absolute;
+        top: 0;
+        margin: 0 -1px; /* tweak */
+        width: 100%;
+        height: 100%;
+        background: var(--accent-bg);
+    }
+
+    .ribbon:before {
+        right: 100%;
+    }
+
+    .ribbon:after {
+        left: 100%;
+    }
+
+    .ribbon a {
+        color: var(--accent-text) !important;
+    }
+
+.main-image-container {
+    position: relative;
+    display: inline-block; /* Changed to inline-block for better control */
+    width: fit-content;
+    border: 5px solid var(--border-gold);
+}
+
+.main-image-ribbon {
+    position: absolute; /* Changed to absolute for precise positioning */
+    top: 0; /* Align to the top edge of the container */
+    right: 0; /* Align to the right edge of the container */
+    background-color: var(--brand);
+    color: var(--card-paper);
+    padding: 5px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    /* Clip the corners */
+    clip-path: polygon(0 0, 100% 0%, 100% 100%, 0% 100%, 10% 50%);
+    z-index: 10;
+}
+
+.main-image-source {
+    display: block;
+    max-width: 100%;
+    height: auto;
+}
+
+.footer-icon {
+    fill: var(--accent-text);
+}
+
+.tabcontent {
+    display: none;
+}
+
+.tab button {
+    background-color: inherit;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    transition: 0.3s;
+    border-radius: 5px;
+    box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 8px 0px;
+    padding: 6px;
+    margin: 1px;
+    background-color: var(--accent-bg);
+    color: var(--accent-text);
+}
+
+    .tab button:hover {
+        font-weight: bold;
+        background-color: var(--accent-bg);
+    }
+
+    .tab button.active {
+        background-color: var(--brand);
+    }
+
+.expandable-container-wrapper {
+    position: relative;
+}
+
+.expandable-content {
+    width: 100%;
+    overflow: hidden;
+    transition: height 0.3s ease-out;
+    position: relative;
+}
+
+/* Blurred bottom overlay effect */
+.expandable-blur-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 200px; /* Height of the blur effect */
+    background: linear-gradient(to bottom, transparent, var(--card-poem));
+    pointer-events: none; /* Prevents interaction */
+    transition: opacity 0.3s ease-out;
+}
+
+/* ---------- poet/category bio text links - same size as body text,
+   just a distinguishing color (matches the .poem-excerpt TOC-link look) ---------- */
+
+.divan-bio-text a {
+    color: var(--brand);
+    -webkit-text-fill-color: var(--brand);
+    transition: color 0.2s ease, -webkit-text-fill-color 0.2s ease;
+}
+
+.divan-bio-text a:hover {
+    color: var(--lapis);
+    -webkit-text-fill-color: var(--lapis);
+    text-decoration: underline;
+}
+
+/* leaves room above #after-bio so the sticky/pinned #main-navbar (~60-70px,
+   38px circled icon buttons + padding/border) doesn't cover the target when
+   jumping there via the menu-icon button - harmless when the navbar isn't
+   pinned too, just a bit of extra breathing room above the content */
+#after-bio {
+    scroll-margin-top: 50px;
+}
+
+/* ---------- sticky mini audio-player (recitation seek controls stay
+   reachable while scrolling the poem text) ---------- */
+
+.up-sticky-player {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--card-inner);
+    border-top: 1px solid var(--border-gold);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.15);
+}
+
+.up-sticky-player__narrator {
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--lapis);
+    flex-shrink: 0;
+}
+
+.up-sticky-player__audio-slot {
+    flex: 1;
+    min-width: 0;
+}
+
+    .up-sticky-player__audio-slot audio {
+        width: 100%;
+        display: block;
+    }
+
+.up-sticky-player__lock {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--lapis);
+    padding: 4px 6px;
+    flex-shrink: 0;
+}
+
+    .up-sticky-player__lock:hover {
+        color: var(--brand);
+    }
+
+.up-sticky-player__jump {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--lapis);
+    padding: 4px 6px;
+    flex-shrink: 0;
+}
+
+    .up-sticky-player__jump:hover {
+        color: var(--brand);
+    }
+
+.up-sticky-player__close {
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--lapis);
+    padding: 4px 6px;
+    flex-shrink: 0;
+}
+
+    .up-sticky-player__close:hover {
+        color: var(--brand);
+    }
+
+@media (max-width: 600px) {
+    .up-sticky-player__narrator {
+        display: none;
+    }
+}

@@ -1,0 +1,477 @@
+﻿@page
+@model DivanRazor.Pages.PhotosModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="ur-PK" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(HttpContext).RequestToken" />
+    <title>
+        @Html.Raw(ViewData["Title"])
+    </title>
+    <link href="~/css/p8.css" asp-append-version="true" rel="stylesheet" type="text/css" />
+    <partial name="_DivanHead" />
+    <link rel="shortcut icon" href="/favicon.ico?version=1" type="image/x-icon" />
+    <link rel="search" type="application/opensearchdescription+xml" title="دیوان" href="/search.xml" />
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/bk.js" asp-append-version="true"></script>
+    <script>
+        var cookieValue = getCookie("playerScrollLock");
+        var playerScrollLock = cookieValue === "true";
+
+        cookieValue = getCookie("stickyEnabled");
+        var stickyEnabled = cookieValue != "false";
+    </script>
+
+    @if (Model.Poet != null)
+    {
+        <script src="/lib/tinymce/tinymce.min.js"></script>
+        <script>
+            tinymce.init({
+                selector: 'textarea.editor',
+                language: 'fa_IR',
+                menubar: false,
+                plugins: 'link paste image',
+                contextmenu: false,
+                toolbar: 'undo redo | alignleft aligncenter alignright alignjustify | link',
+                paste_auto_cleanup_on_paste: true,
+                paste_remove_styles: true,
+                paste_remove_styles_if_webkit: true,
+                paste_strip_class_attributes: true,
+                a11y_advanced_options: true,
+                skin: (window.matchMedia("(prefers-color-scheme: dark)").matches && localStorage.getItem("scheme") != "light" ? "oxide-dark" : localStorage.getItem("scheme") == "dark" ? "oxide-dark" : "oxide"),
+                content_css: (window.matchMedia("(prefers-color-scheme: dark)").matches && localStorage.getItem("scheme") != "light" ? "dark" : localStorage.getItem("scheme") == "dark" ? "dark" : false),
+            });
+
+
+            function suggestNote(buttonSelector) {
+                var commentformSelector = '#commentform';
+
+                $(commentformSelector).unbind('submit').bind('submit', function(e) {
+
+                    e.preventDefault(); // avoid to execute the actual submit of the form.
+
+                    $(buttonSelector).text('در حال ارسال پیشنهاد ...');
+                    $(buttonSelector).prop("disabled", true);
+
+                    $('#comment-error').remove();
+
+                    var parent1 = $('#lines');
+
+                    var form = $(this);
+                    var url = form.attr('action');
+                    var originalHtml = form.find('textarea').val();
+
+                    $.ajax({
+                        type: "POST",
+                        url: url,
+                        data: form.serialize(), // serializes the form's elements.
+                        error: function(data) {
+                            $(data).appendTo(parent1);
+                            $(buttonSelector).text('پیشنهاد');
+                            $(buttonSelector).prop("disabled", false);
+                        },
+                        success: function(data) {
+                            var $rendered = $(data);
+                            var hadAnyError = $rendered.is('#comment-error');
+                            var hadSanitizerError = checkAppendedHtmlForSanitizerError($rendered, originalHtml);
+
+                            if (!hadSanitizerError) {
+                                $rendered.appendTo(parent1);
+                            }
+                            $(buttonSelector).text('پیشنهاد');
+                            $(buttonSelector).prop("disabled", false);
+                            if (!hadAnyError) {
+                                form[0].reset();
+                            }
+                        },
+                    });
+
+                });
+            }
+        </script>
+    }
+
+</head>
+<body>
+    @if (!string.IsNullOrEmpty(Model.LastError))
+    {
+        @Model.LastError
+    }
+    else
+    {
+        <div id="hdr">
+            <h1>
+                @if (Model.Poet == null)
+                {
+                    <a href="/photos" title="چهره‌های دیوان"><img src="/image/gdap.png" alt="@ViewData["Title"]" class="home-logo" /></a>
+                }
+                else
+                {
+                    <a href="/photos" title="چهره‌های دیوان"><img src="@Model.Poet.ImageUrl" alt="@ViewData["Title"]" class="home-logo" /></a>
+                }
+            </h1>
+            <h2>
+                @if (Model.Poet == null)
+                {
+                    <text>
+                        چهره‌های دیوان
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        پیشنهاد تصویر برای <a href="@Model.Poet.FullUrl" target="_blank">@Model.Poet.Nickname</a>
+                    </text>
+                }
+
+            </h2>
+            @if (Model.Poet != null)
+            {
+                <h3>
+                    <a href="/photos">سخنوران دیگر</a>
+                </h3>
+            }
+            <h3><a href="/">برگشت به دیوان</a></h3>
+            <p>
+                از طریق این صفحه می‌توانید تصویر مد نظر یا طراحی شدهٔ خود را برای سخنوران محبوبتان پیشنهاد دهید.
+            </p>
+            <div class="notice">
+                <p><small>هدف اولیهٔ استفاده از تصاویر سخنوران در دیوان آسان کردن فرایند جستجو و مرور اشعار است. از عموم ادبای ایران زمین (تقریباً همهٔ غیر معاصرین) تصویر مستندی به جا نمانده و تصویری که ما از سعدی، حافظ، مولانا و فردوسی و دیگر بزرگانمان در ذهن داریم حاصل کار هنرمندان معاصر است. به همین جهت و به این جهت که خصوصاً برای سخنورانی که شهرت زیادی ندارند تصاویری که به نیت و به نام آنها ارائه شده باشد یافت نمی‌شد در دیوان بعضاً از تصاویری که به نام دیگران ارائه شده استفاده کرده‌ایم.</small></p>
+                <p>
+                    <small>
+                        اگر تمایل دارید این فرایند را بهبود دهید یا اگر هنرمند هستید و علاقه دارید اثر خودتان را برای خصوصاً سخنوران کمتر شناخته شده در دیوان و در قالب چهرهٔ سخنوران یا ادیبان ببینید از این صفحه استفاده کنید.
+                    </small>
+                </p>
+                <p><small>سخنور مد نظرتان را انتخاب کنید و تصویر مد نظرتان را بارگذاری کنید. توجه فرمایید که از لحاظ هنری امکان استفاده از تصاویری که با تصاویر موجود همخوان نباشند (مثلاً حالت طراحی سیاه قلم داشته باشند یا خیلی مینیاتوری باشند) وجود ندارد. تلاش کنید تصویری که ارائه می‌کنید شاخص باشد و بتوان با یک نگاه تفاوت آن را با بقیهٔ تصاویر تشخیص داد. توجه فرمایید که در نهایت تصاویر باید در قالب قاب بیضوی ایستادهٔ دیوان بریده شوند منتهی شما تصویر کامل را ارسال بفرمایید.</small></p>
+                <p><small>به گونه‌ای دیگر نیز می‌توانید به این پروژه کمک کنید و آن این که برای کمک به تناسب تصاویر با زندگی واقعی سخنوران اگر نکات خاصی که روی تصویر آنها تأثیرگذار است می‌دانید با ارائهٔ لینک یا مستندات (مثلاً ذکر شعری که در آن به این نکات اشاره شده) آنها را عنوان کنید. مثلاً ذکر این که سخنوری در جوانی از دنیا رفته می‌تواند نکتهٔ مهمی باشد تا سن تصویر متناسب با زندگی واقعی سخنور باشد و ... . </small></p>
+
+            </div>
+        </div>
+        <div id="fa">
+
+            <partial name="_InlineLoginPartial" model="Model" />
+
+            <div id="main">
+                <div id="guides">
+
+                    @if (Model.Poet == null)
+                    {
+                        <div class="clear-both">
+                            <input type="text" id="findpoet" placeholder="جستجوی سخنور" size="35" value="" oninput="onInlineSearch(this.value, 'found-poets', 'poet')" />
+                            <div class="spacer" id="found-poets"></div>
+                        </div>
+                        <div class="century">
+                            فهرست سخنوران
+                        </div>
+                        <div class="spacer">
+                            @foreach (var poet in Model.Poets)
+                            {
+                                <div class="poet" data-value="@poet.Nickname">
+                                    <a href="/photos?p=@poet.FullUrl.Substring(1)" title="@poet.Name"><img src="@poet.ImageUrl" alt="@poet.Name" /></a>
+                                    <div class="caption">
+                                        <a href="/photos?p=@poet.FullUrl.Substring(1)">@poet.Nickname</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.Poet != null)
+                    {
+                        <div class="clear-both">
+                            <a href="@Model.Poet.FullUrl">زندگینامه و آثار @Model.Poet.Nickname را اینجا ببینید.</a>
+                        </div>
+
+
+
+                        <div id="lines" class="comments-like-div">
+                            <div class="century">
+                                نکات جالب توجه دربارهٔ @Model.Poet.Nickname که در انتخاب تصویر او اهمیت دارند:
+                            </div>
+
+                            @if (Model.ModeratePoetPhotos)
+                            {
+                                <script>
+                                    function deleteSpec(id) {
+                                        if (!confirm('آیا از حذف این نکته اطمینان دارید؟'))
+                                            return;
+
+
+                                        $.ajax({
+                                            type: "DELETE",
+                                            url: '?Handler=SpecLine',
+                                            data: {
+                                                id: id
+                                            },
+                                            error: function(e) {
+                                                if (e.responseText == null)
+                                                    alert(e);
+                                                else
+                                                    alert(e.responseText);
+                                            },
+                                            success: function() {
+                                                location.reload();
+                                            },
+                                        });
+                                    }
+                                </script>
+                            }
+
+                            @foreach (var line in Model.SpecLines)
+                            {
+                                <partial name="_PoetSpecLinePartial" model=@(new _PoetSpecLinePartialModel(){Line = line, ModeratePoetPhotos = Model.ModeratePoetPhotos}) />
+                            }
+
+
+                            <div class="clear-both">
+                                @if (Model.LoggedIn)
+                                {
+                                    <form method="post" id="commentform" action="?handler=Suggest">
+                                        @Html.AntiForgeryToken()
+                                        <fieldset>
+                                            <legend>💬 شما نکتهٔ تازه‌ای پیشنهاد کنید ...</legend>
+                                            <table class="comment-table">
+                                                <tr>
+                                                    <td>
+                                                        <div class="required">
+                                                            <textarea name="contents" id="contents" class="inputTextarea editor width-100per" tabindex="4" rows="10"></textarea>
+                                                        </div>
+                                                        <input type="hidden" name="poetId" id="poetId" value="@Model.Poet.Id" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <button name="postcomment" id="postcomment" class="submitCommentButton width-100per" onclick="return suggestNote('#postcomment');">پیشنهاد</button>
+                                                    </td>
+                                                </tr>
+                                            </table>
+
+
+                                            <div class="notice">
+                                                <p>
+                                                    نکات پیشنهادی پس از بررسی منتشر می‌شوند. لطفاً توجه فرمایید که نکتهٔ مد نظر پیش‌تر اضافه نشده باشد و مستند باشد.
+                                                </p>
+                                            </div>
+                                        </fieldset>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <div class="notice" id="commentform">
+                                        <p>
+                                            برای پیشنهاد نکات دیگری راجع به @Model.Poet.Nickname که ممکن است روی تصویر خیالی یا حقیقی او تأثیرگذار باشد در دیوان <a href="/signup" target="_blank">نام‌نویسی</a> کنید و با نام کاربری خود از طریق آیکون 👤 گوشهٔ پایین سمت چپ صفحات به آن وارد شوید.
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+
+                        <div class="century">
+                            تصاویر پیشنهاد شده برای @Model.Poet.Nickname
+                        </div>
+                        @if (Model.ModeratePoetPhotos)
+                        {
+                            <script>
+                                function choosePhoto(id) {
+                                    if (!confirm('این تصویر انتخاب شده است؟'))
+                                        return;
+
+                                    var url = '?handler=ChoosePhoto';
+
+                                    $.ajax({
+                                        type: "PUT",
+                                        url: url,
+                                        data: {
+                                            id: id
+                                        },
+                                        error: function(e) {
+                                            if (e.responseText == null)
+                                                alert(e);
+                                            else
+                                                alert(e.responseText);
+                                        },
+                                        success: function() {
+                                            location.reload();
+                                        },
+                                    });
+                                }
+
+                                function deletePhoto(id) {
+                                    if (!confirm('آیا از حذف این تصویر اطمینان دارید؟'))
+                                        return;
+
+
+                                    $.ajax({
+                                        type: "DELETE",
+                                        url: '',
+                                        data: {
+                                            id: id
+                                        },
+                                        error: function(e) {
+                                            if (e.responseText == null)
+                                                alert(e);
+                                            else
+                                                alert(e.responseText);
+                                        },
+                                        success: function() {
+                                            location.reload();
+                                        },
+                                    });
+                                }
+                            </script>
+                        }
+
+
+                        <div id="photos">
+                            @foreach (var photo in Model.Photos)
+                            {
+                                <div class="divan-comment">
+                                    <div class="century">
+                                        @photo.Title
+
+                                        @if (photo.ChosenOne)
+                                        {
+                                            <i class="notranslate noindent-info-button done-icon"></i>
+                                        }
+                                    </div>
+
+                                    <div class="clear-both">
+                                        <img src="@Html.Raw(photo.ExternalNormalSizeImageUrl.Replace("/norm/", "/orig/"))" alt="@photo.Title" class="max-width-100per" />
+                                    </div>
+
+                                    <div class="comments-like-div">
+                                        @Html.Raw(photo.Description)
+                                    </div>
+
+                                    @if (Model.ModeratePoetPhotos)
+                                    {
+                                        <div class="clear-both">
+                                            <a role="button" onclick="choosePhoto(@photo.Id)" class="pagebutton" title="انتخاب شده"><i class="notranslate noindent-info-button done-icon"></i></a>
+                                            <a role="button" href="/User/SuggestedPoetPhotos?id=@photo.Id" class="pagebutton" title="ویرایش"><i class="notranslate noindent-info-button edit-poem-button"></i></a>
+                                            <a role="button" onclick="deletePhoto(@photo.Id)" class="pagebutton" title="حذف"><i class="notranslate noindent-info-button delete-icon"></i></a>
+                                        </div>
+                                    }
+                                </div>
+
+                            }
+
+                            @if (Model.UploadedPhoto != null)
+                            {
+                                <div class="divan-comment">
+                                    <div class="clear-both">
+                                        @Model.UploadedPhoto.Title
+                                    </div>
+
+                                    <div class="clear-both">
+                                        <img src="@Html.Raw(Model.UploadedPhoto.ImageUrl)" alt="@Model.UploadedPhoto.Title" class="max-width-100per" />
+                                    </div>
+
+                                    <div class="comments-like-div">
+                                        @Html.Raw(Model.UploadedPhoto.Description)
+                                    </div>
+
+                                    <div class="clear-both red-color">
+                                        پیشنهاد شما پس از بررسی قابل مشاهده خواهد بود.
+                                    </div>
+                                </div>
+                            }
+
+                            <div class="clear-both">
+                                @if (Model.LoggedIn)
+                                {
+                                    @if (string.IsNullOrEmpty(Model.LastError) && Model.UploadedPhoto == null)
+                                    {
+                                        <form method="post" enctype="multipart/form-data">
+                                            @Html.AntiForgeryToken()
+                                            <fieldset>
+                                                <legend>💬 شما تصویر تازه‌ای پیشنهاد کنید ...</legend>
+                                                <table class="comment-table">
+                                                    <tr>
+                                                        <td>
+                                                            تصویر:
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <div class="required">
+                                                                <input type="file" accept="image/*" asp-for="Upload.Image" />
+                                                            </div>
+                                                            <input asp-for="Upload.PoetId" value="@Model.Poet.Id" type="hidden" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            عنوان:
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <input asp-for="Upload.Title" />
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            توضیح:
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <textarea asp-for="Upload.Description" class="inputTextarea editor width-100per" tabindex="4" rows="10"></textarea>
+                                                        </td>
+                                                    </tr>
+
+                                                    <tr>
+                                                        <td>
+                                                            <input type="submit" value="بارگذاری" />
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+
+                                                <div class="notice">
+                                                    <p>
+                                                        تصاویر پیشنهادی پس از بررسی منتشر می‌شوند.
+                                                    </p>
+                                                </div>
+                                            </fieldset>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <a role="button" class="pagebutton" href="/photos?p=@Model.Poet.FullUrl.Substring(1)">بارگذاری تصویر دیگر</a>
+                                    }
+
+                                }
+                                else
+                                {
+                                    <div class="notice">
+                                        <p>
+                                            برای پیشنهاد تصویر دیگری برای @Model.Poet.Nickname در دیوان <a href="/signup" target="_blank">نام‌نویسی</a> کنید و با نام کاربری خود از طریق آیکون 👤 گوشهٔ پایین سمت چپ صفحات به آن وارد شوید.
+                                        </p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+
+                    }
+
+
+                    <div class="spacer"></div>
+
+                </div>
+            </div>
+
+            <partial name="_FooterPartial" model=@(new _FooterPartialModel(){StickyEnabled = true}) />
+        </div>
+    }
+
+
+</body>
+</html>

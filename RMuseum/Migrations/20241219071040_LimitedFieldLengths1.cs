@@ -12,7 +12,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AlterColumn<string>(
                 name: "CoupletSummary",
-                table: "GanjoorVerses",
+                table: "DivanVerses",
                 type: "nvarchar(4000)",
                 maxLength: 4000,
                 nullable: true,
@@ -22,7 +22,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "UrlSlug",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(32)",
                 maxLength: 32,
                 nullable: true,
@@ -32,7 +32,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "Title",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(1500)",
                 maxLength: 1500,
                 nullable: true,
@@ -42,7 +42,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "SourceUrlSlug",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(16)",
                 maxLength: 16,
                 nullable: true,
@@ -52,7 +52,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "SourceName",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(64)",
                 maxLength: 64,
                 nullable: true,
@@ -62,7 +62,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "RhymeLetters",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(64)",
                 maxLength: 64,
                 nullable: true,
@@ -72,7 +72,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "PoemSummary",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(3000)",
                 maxLength: 3000,
                 nullable: true,
@@ -82,7 +82,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "OldTagPageUrl",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(32)",
                 maxLength: 32,
                 nullable: true,
@@ -92,7 +92,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "OldTag",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(16)",
                 maxLength: 16,
                 nullable: true,
@@ -102,7 +102,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "Language",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(8)",
                 maxLength: 8,
                 nullable: true,
@@ -112,7 +112,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "FullTitle",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(1500)",
                 maxLength: 1500,
                 nullable: true,
@@ -126,7 +126,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AlterColumn<string>(
                 name: "CoupletSummary",
-                table: "GanjoorVerses",
+                table: "DivanVerses",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -136,7 +136,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "UrlSlug",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -146,7 +146,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "Title",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -156,7 +156,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "SourceUrlSlug",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -166,7 +166,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "SourceName",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -176,7 +176,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "RhymeLetters",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -186,7 +186,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "PoemSummary",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -196,7 +196,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "OldTagPageUrl",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -206,7 +206,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "OldTag",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -216,7 +216,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "Language",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),
@@ -226,7 +226,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AlterColumn<string>(
                 name: "FullTitle",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true,
                 oldClrType: typeof(string),

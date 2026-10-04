@@ -13,37 +13,37 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "BookName",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "MapName",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<Guid>(
                 name: "RImageId",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "uniqueidentifier",
                 nullable: true);
 
             migrationBuilder.AddColumn<bool>(
                 name: "SumUpSubsGeoLocations",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorCategories_RImageId",
-                table: "GanjoorCategories",
+                name: "IX_DivanCategories_RImageId",
+                table: "DivanCategories",
                 column: "RImageId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_GanjoorCategories_GeneralImages_RImageId",
-                table: "GanjoorCategories",
+                name: "FK_DivanCategories_GeneralImages_RImageId",
+                table: "DivanCategories",
                 column: "RImageId",
                 principalTable: "GeneralImages",
                 principalColumn: "Id");
@@ -53,28 +53,28 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_GanjoorCategories_GeneralImages_RImageId",
-                table: "GanjoorCategories");
+                name: "FK_DivanCategories_GeneralImages_RImageId",
+                table: "DivanCategories");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorCategories_RImageId",
-                table: "GanjoorCategories");
+                name: "IX_DivanCategories_RImageId",
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "BookName",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "MapName",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "RImageId",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "SumUpSubsGeoLocations",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
         }
     }
 }

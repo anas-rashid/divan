@@ -1,0 +1,10 @@
+﻿@model DivanRazor.Pages._MultipleQuotedPoemsPartialModel
+@using DNTPersianUtils.Core
+@{
+    Layout = null;
+}
+
+@foreach (var q in Model.DivanQuotedPoems)
+{
+    <partial name="_QuotedPoemPartial.cshtml" model=@Model.GetQuotedPoemModel(q, Model.PoetImageUrl, Model.PoetNickName) />
+}

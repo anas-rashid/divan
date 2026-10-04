@@ -10,73 +10,73 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<string>(
                 name: "Language",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "MixedModeOrder",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<bool>(
                 name: "Published",
-                table: "GanjoorPoems",
+                table: "DivanPoems",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<bool>(
                 name: "NoIndex",
-                table: "GanjoorPages",
+                table: "DivanPages",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<string>(
                 name: "RedirectFromFullUrl",
-                table: "GanjoorPages",
+                table: "DivanPages",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "CatType",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<string>(
                 name: "Description",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "DescriptionHtml",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "nvarchar(max)",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "MixedModeOrder",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<bool>(
                 name: "Published",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<int>(
                 name: "TableOfContentsStyle",
-                table: "GanjoorCategories",
+                table: "DivanCategories",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -86,47 +86,47 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Language",
-                table: "GanjoorPoems");
+                table: "DivanPoems");
 
             migrationBuilder.DropColumn(
                 name: "MixedModeOrder",
-                table: "GanjoorPoems");
+                table: "DivanPoems");
 
             migrationBuilder.DropColumn(
                 name: "Published",
-                table: "GanjoorPoems");
+                table: "DivanPoems");
 
             migrationBuilder.DropColumn(
                 name: "NoIndex",
-                table: "GanjoorPages");
+                table: "DivanPages");
 
             migrationBuilder.DropColumn(
                 name: "RedirectFromFullUrl",
-                table: "GanjoorPages");
+                table: "DivanPages");
 
             migrationBuilder.DropColumn(
                 name: "CatType",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "Description",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "DescriptionHtml",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "MixedModeOrder",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "Published",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
 
             migrationBuilder.DropColumn(
                 name: "TableOfContentsStyle",
-                table: "GanjoorCategories");
+                table: "DivanCategories");
         }
     }
 }

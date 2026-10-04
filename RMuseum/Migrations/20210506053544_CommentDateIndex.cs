@@ -7,16 +7,16 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorComments_CommentDate",
-                table: "GanjoorComments",
+                name: "IX_DivanComments_CommentDate",
+                table: "DivanComments",
                 column: "CommentDate");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorComments_CommentDate",
-                table: "GanjoorComments");
+                name: "IX_DivanComments_CommentDate",
+                table: "DivanComments");
         }
     }
 }

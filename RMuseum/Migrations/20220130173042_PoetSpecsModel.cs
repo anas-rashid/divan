@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "GanjoorPoetSuggestedSpecLines",
+                name: "DivanPoetSuggestedSpecLines",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -23,35 +23,35 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPoetSuggestedSpecLines", x => x.Id);
+                    table.PrimaryKey("PK_DivanPoetSuggestedSpecLines", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_GanjoorPoetSuggestedSpecLines_AspNetUsers_SuggestedById",
+                        name: "FK_DivanPoetSuggestedSpecLines_AspNetUsers_SuggestedById",
                         column: x => x.SuggestedById,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_GanjoorPoetSuggestedSpecLines_GanjoorPoets_PoetId",
+                        name: "FK_DivanPoetSuggestedSpecLines_DivanPoets_PoetId",
                         column: x => x.PoetId,
-                        principalTable: "GanjoorPoets",
+                        principalTable: "DivanPoets",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoetSuggestedSpecLines_PoetId",
-                table: "GanjoorPoetSuggestedSpecLines",
+                name: "IX_DivanPoetSuggestedSpecLines_PoetId",
+                table: "DivanPoetSuggestedSpecLines",
                 column: "PoetId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPoetSuggestedSpecLines_SuggestedById",
-                table: "GanjoorPoetSuggestedSpecLines",
+                name: "IX_DivanPoetSuggestedSpecLines_SuggestedById",
+                table: "DivanPoetSuggestedSpecLines",
                 column: "SuggestedById");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorPoetSuggestedSpecLines");
+                name: "DivanPoetSuggestedSpecLines");
         }
     }
 }

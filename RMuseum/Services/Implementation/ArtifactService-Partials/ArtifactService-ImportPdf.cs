@@ -1,7 +1,7 @@
 ﻿/*
  * removed
 
-using ganjoor;
+using divan;
 using Microsoft.EntityFrameworkCore;
 using RMuseum.DbContext;
 using RMuseum.Models.Artifact;

@@ -14,7 +14,7 @@ using System.IO;
 using System.Drawing;
 using FluentFTP;
 using System.Threading.Tasks;
-using RMuseum.Models.GanjoorIntegration;
+using RMuseum.Models.DivanIntegration;
 using Betalgo.Ranul.OpenAI.Contracts.Requests.Image;
 
 
@@ -27,7 +27,7 @@ namespace RMuseum.Services.Implementation
     {
         public async Task OpenAIStartCreatingImagesForPoemsAsync(int startPoetId)
         {
-            string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+            string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
             var systemUserId = (Guid)(await _userService.FindUserByEmail(systemEmail)).Result.Id;
 
             _backgroundTaskQueue.QueueBackgroundWorkItem
@@ -98,10 +98,10 @@ namespace RMuseum.Services.Implementation
 
                           await jobProgressServiceEF.UpdateJob(job.Id, 0, $"Query Poems");
 
-                          var poets = await context.GanjoorPoets.AsNoTracking().Where(p => p.Id >= startPoetId).OrderBy(p => p.Id).ToListAsync();
+                          var poets = await context.DivanPoets.AsNoTracking().Where(p => p.Id >= startPoetId).OrderBy(p => p.Id).ToListAsync();
                           foreach (var poet in poets)
                           {                              
-                              var poems = await context.GanjoorPoems.Include(p => p.Cat).AsNoTracking().Where(p => p.Cat.PoetId == poet.Id).ToListAsync();
+                              var poems = await context.DivanPoems.Include(p => p.Cat).AsNoTracking().Where(p => p.Cat.PoetId == poet.Id).ToListAsync();
                               await jobProgressServiceEF.UpdateJob(job.Id, 0, $"PoetId = {poet.Id}, Starting, {poems.Count}");
                               for (var i = 0; i < poems.Count; i++)
                               {
@@ -109,7 +109,7 @@ namespace RMuseum.Services.Implementation
 
                                   await jobProgressServiceEF.UpdateJob(job.Id, i, $"{i} از {poems.Count} - {poem.FullTitle}");
 
-                                  if (true == await context.GanjoorLinks.Where(l => l.ArtifactId == book.Id && l.GanjoorPostId == poem.Id).AnyAsync())
+                                  if (true == await context.DivanLinks.Where(l => l.ArtifactId == book.Id && l.DivanPostId == poem.Id).AnyAsync())
                                       continue;
 
                                   if (!string.IsNullOrEmpty(poem.PlainText))
@@ -254,11 +254,11 @@ namespace RMuseum.Services.Implementation
                                               };
 
                                               var promptTag = await TagHandler.PrepareAttribute(context, "AI Prompt", prompt, 1);
-                                              var ganjoorTag = await TagHandler.PrepareAttribute(context, "Ganjoor Link", poem.FullTitle, 1);
-                                              ganjoorTag.ValueSupplement = $"https://ganjoor.net{poem.FullUrl}";
+                                              var divanTag = await TagHandler.PrepareAttribute(context, "Divan Link", poem.FullTitle, 1);
+                                              divanTag.ValueSupplement = $"https://ganjoor.net{poem.FullUrl}";
                                               var storyTag = await TagHandler.PrepareAttribute(context, "Story", story, 1);
                                               var poemTextTag = await TagHandler.PrepareAttribute(context, "Original Text", poem.PlainText, 1);
-                                              page.Tags = [promptTag, ganjoorTag, storyTag, poemTextTag];
+                                              page.Tags = [promptTag, divanTag, storyTag, poemTextTag];
 
                                               if (
                                                                File.Exists
@@ -371,12 +371,12 @@ namespace RMuseum.Services.Implementation
                                               );
 
 
-                                              GanjoorLink suggestion =
-                                               new GanjoorLink()
+                                              DivanLink suggestion =
+                                               new DivanLink()
                                                {
-                                                   GanjoorPostId = poem.Id,
-                                                   GanjoorTitle = poem.FullTitle,
-                                                   GanjoorUrl = $"https://ganjoor.net{poem.FullUrl}",
+                                                   DivanPostId = poem.Id,
+                                                   DivanTitle = poem.FullTitle,
+                                                   DivanUrl = $"https://ganjoor.net{poem.FullUrl}",
                                                    ArtifactId = book.Id,
                                                    ItemId = page.Id,
                                                    SuggestedById = systemUserId,
@@ -386,7 +386,7 @@ namespace RMuseum.Services.Implementation
                                                    Synchronized = true,
                                                };
 
-                                              context.GanjoorLinks.Add(suggestion);
+                                              context.DivanLinks.Add(suggestion);
                                               await context.SaveChangesAsync();
                                           }
                                       }
@@ -529,7 +529,7 @@ namespace RMuseum.Services.Implementation
 
         public async Task OpenAIStartCreatingImagesForPoemsOfflineAsync()
         {
-            string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+            string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
             var systemUserId = (Guid)(await _userService.FindUserByEmail(systemEmail)).Result.Id;
 
             _backgroundTaskQueue.QueueBackgroundWorkItem
@@ -593,12 +593,12 @@ namespace RMuseum.Services.Implementation
 
                           await jobProgressServiceEF.UpdateJob(job.Id, 0, $"Query Poems");
 
-                          var poets = await context.GanjoorPoets.AsNoTracking().OrderBy(p => p.Id).ToListAsync();
+                          var poets = await context.DivanPoets.AsNoTracking().OrderBy(p => p.Id).ToListAsync();
                           foreach (var poet in poets)
                           {
                               if (!Directory.Exists($"C:\\ai\\{poet.Id}"))
                                   continue;
-                              var poems = await context.GanjoorPoems.Include(p => p.Cat).AsNoTracking().Where(p => p.Cat.PoetId == poet.Id).ToListAsync();
+                              var poems = await context.DivanPoems.Include(p => p.Cat).AsNoTracking().Where(p => p.Cat.PoetId == poet.Id).ToListAsync();
                               await jobProgressServiceEF.UpdateJob(job.Id, 0, $"PoetId = {poet.Id}, Starting, {poems.Count}");
                               for (var i = 0; i < poems.Count; i++)
                               {
@@ -610,7 +610,7 @@ namespace RMuseum.Services.Implementation
 
                                   await jobProgressServiceEF.UpdateJob(job.Id, i, $"{i} از {poems.Count} - {poem.FullTitle}");
 
-                                  if (true == await context.GanjoorLinks.Where(l => l.ArtifactId == book.Id && l.GanjoorPostId == poem.Id).AnyAsync())
+                                  if (true == await context.DivanLinks.Where(l => l.ArtifactId == book.Id && l.DivanPostId == poem.Id).AnyAsync())
                                       continue;
 
                                   string story = File.ReadAllText($"C:\\ai\\{poet.Id}\\{poem.Id}.txt");
@@ -632,11 +632,11 @@ namespace RMuseum.Services.Implementation
                                   };
 
                                   var promptTag = await TagHandler.PrepareAttribute(context, "AI Prompt", prompt, 1);
-                                  var ganjoorTag = await TagHandler.PrepareAttribute(context, "Ganjoor Link", poem.FullTitle, 1);
-                                  ganjoorTag.ValueSupplement = $"https://ganjoor.net{poem.FullUrl}";
+                                  var divanTag = await TagHandler.PrepareAttribute(context, "Divan Link", poem.FullTitle, 1);
+                                  divanTag.ValueSupplement = $"https://ganjoor.net{poem.FullUrl}";
                                   var storyTag = await TagHandler.PrepareAttribute(context, "Story", story, 1);
                                   var poemTextTag = await TagHandler.PrepareAttribute(context, "Original Text", poem.PlainText, 1);
-                                  page.Tags = [promptTag, ganjoorTag, storyTag, poemTextTag];
+                                  page.Tags = [promptTag, divanTag, storyTag, poemTextTag];
 
                                   if (
                                                    File.Exists
@@ -752,12 +752,12 @@ namespace RMuseum.Services.Implementation
                                   );
 
 
-                                  GanjoorLink suggestion =
-                                   new GanjoorLink()
+                                  DivanLink suggestion =
+                                   new DivanLink()
                                    {
-                                       GanjoorPostId = poem.Id,
-                                       GanjoorTitle = poem.FullTitle,
-                                       GanjoorUrl = $"https://ganjoor.net{poem.FullUrl}",
+                                       DivanPostId = poem.Id,
+                                       DivanTitle = poem.FullTitle,
+                                       DivanUrl = $"https://ganjoor.net{poem.FullUrl}",
                                        ArtifactId = book.Id,
                                        ItemId = page.Id,
                                        SuggestedById = systemUserId,
@@ -767,7 +767,7 @@ namespace RMuseum.Services.Implementation
                                        Synchronized = true,
                                    };
 
-                                  context.GanjoorLinks.Add(suggestion);
+                                  context.DivanLinks.Add(suggestion);
                                   await context.SaveChangesAsync();
                               }
                               Directory.Delete($"C:\\ai\\{poet.Id}");

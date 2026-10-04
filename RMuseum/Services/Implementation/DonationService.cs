@@ -10,7 +10,7 @@ using DNTPersianUtils.Core;
 using RSecurityBackend.Services.Implementation;
 using RSecurityBackend.Services;
 using Microsoft.Extensions.Configuration;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Models.Accounting.ViewModels;
 
 namespace RMuseum.Services.Implementation
@@ -27,9 +27,9 @@ namespace RMuseum.Services.Implementation
         /// <param name="editingUserId"></param>
         /// <param name="donation"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorDonationViewModel>> AddDonation(Guid editingUserId, GanjoorDonationViewModel donation)
+        public async Task<RServiceResult<DivanDonationViewModel>> AddDonation(Guid editingUserId, DivanDonationViewModel donation)
         {
-            var d = new GanjoorDonation()
+            var d = new DivanDonation()
             {
                 DateString = LanguageUtils.FormatDate(donation.RecordDate),
                 RecordDate = donation.RecordDate,
@@ -45,13 +45,13 @@ namespace RMuseum.Services.Implementation
             if (!string.IsNullOrEmpty(donation.Unit))
                 d.AmountString = $"{d.AmountString} {d.Unit}";
 
-            _context.GanjoorDonations.Add(d);
+            _context.DivanDonations.Add(d);
             await _context.SaveChangesAsync();
 
             if (!string.IsNullOrEmpty(d.Unit) && d.Amount > 0)
             {
                 var expenses =
-                await _context.GanjoorExpenses
+                await _context.DivanExpenses
                     .Include(e => e.DonationExpenditures)
                     .Where(e => e.Unit == d.Unit && (e.Amount - e.DonationExpenditures.Sum(x => x.Amount)) > 0)
                     .OrderBy(e => e.Id)
@@ -70,18 +70,18 @@ namespace RMuseum.Services.Implementation
                     DonationExpenditure n = new DonationExpenditure()
                     {
                         Amount = remaining,
-                        GanjoorDonationId = d.Id
+                        DivanDonationId = d.Id
                     };
 
                     expense.DonationExpenditures.Add(n);
-                    _context.GanjoorExpenses.Update(expense);
+                    _context.DivanExpenses.Update(expense);
                     var amount = d.Remaining == d.Amount && remaining == d.Remaining ? "" : d.Remaining == remaining ? "" : $"مبلغ {LanguageUtils.FormatMoney(remaining)} {d.Unit} آن ";
                     var part = expense.DonationExpenditures.Count == 0 && remaining == expense.Amount ? "" : "بخشی از ";
                     if (!string.IsNullOrEmpty(d.ExpenditureDesc))
                         d.ExpenditureDesc += " ";
                     d.ExpenditureDesc += $"{amount}جهت تأمین {part}هزینهٔ {expense.Description} به مبلغ {LanguageUtils.FormatMoney(expense.Amount)} {d.Unit} صرف شد ({LanguageUtils.FormatDate(expense.ExpenseDate)}).";
                     d.Remaining -= remaining;
-                    _context.GanjoorDonations.Update(d);
+                    _context.DivanDonations.Update(d);
                     await _context.SaveChangesAsync();
                 }
             }
@@ -98,7 +98,7 @@ namespace RMuseum.Services.Implementation
 
 
 
-            return new RServiceResult<GanjoorDonationViewModel>(donation);
+            return new RServiceResult<DivanDonationViewModel>(donation);
         }
 
         /// <summary>
@@ -110,11 +110,11 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> UpdateDonation(Guid editingUserId, int id, UpdateDateDescriptionViewModel updateModel)
         {
-            var donation = await _context.GanjoorDonations.Where(d => d.Id == id).SingleAsync();
+            var donation = await _context.DivanDonations.Where(d => d.Id == id).SingleAsync();
             donation.RecordDate = updateModel.Date;
             donation.DateString = LanguageUtils.FormatDate(donation.RecordDate);
             donation.DonorName = updateModel.Description;
-            _context.GanjoorDonations.Update(donation);
+            _context.DivanDonations.Update(donation);
             await _context.SaveChangesAsync();
             await RegenerateDonationsPage(editingUserId, $"ویرایش کمک مالی از {donation.DonorName} به مبلغ {donation.AmountString}");//ignore possible errors here!
             return new RServiceResult<bool>(true);
@@ -128,10 +128,10 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> DeleteDonation(Guid editingUserId, int id)
         {
-            var donation = await _context.GanjoorDonations.Where(d => d.Id == id).SingleAsync();
+            var donation = await _context.DivanDonations.Where(d => d.Id == id).SingleAsync();
             if (donation.ImportedRecord)
             {
-                var sumExpenditures = await _context.DonationExpenditure.AsNoTracking().Where(x => x.GanjoorDonationId == id).SumAsync(x => x.Amount);
+                var sumExpenditures = await _context.DonationExpenditure.AsNoTracking().Where(x => x.DivanDonationId == id).SumAsync(x => x.Amount);
                 if (sumExpenditures != (donation.Amount - donation.Remaining))
                 {
                     return new RServiceResult<bool>(false, "حذف این ردیف از طریق API امکان ندارد.");
@@ -139,7 +139,7 @@ namespace RMuseum.Services.Implementation
 
             }
             string note = $"حذف کمک مالی از {donation.DonorName} به مبلغ {donation.AmountString}";
-            _context.GanjoorDonations.Remove(donation);
+            _context.DivanDonations.Remove(donation);
             await _context.SaveChangesAsync();
 
             await RegenerateDonationsPage(editingUserId, note);//ignore possible errors here!
@@ -153,17 +153,17 @@ namespace RMuseum.Services.Implementation
         /// <param name="editingUserId"></param>
         /// <param name="expense"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorExpense>> AddExpense(Guid editingUserId, GanjoorExpense expense)
+        public async Task<RServiceResult<DivanExpense>> AddExpense(Guid editingUserId, DivanExpense expense)
         {
             expense.DonationExpenditures = new List<DonationExpenditure>();//fix swagger posting a list which causes a donation to be added
-            _context.GanjoorExpenses.Add(expense);
+            _context.DivanExpenses.Add(expense);
             await _context.SaveChangesAsync();
 
             if (!string.IsNullOrEmpty(expense.Unit) && expense.Amount > 0)
             {
                 var expenseRemaining = expense.Amount;
 
-                var donations = await _context.GanjoorDonations.Where(d => d.Unit == expense.Unit && d.Remaining > 0).OrderBy(d => d.Id).ToListAsync();
+                var donations = await _context.DivanDonations.Where(d => d.Unit == expense.Unit && d.Remaining > 0).OrderBy(d => d.Id).ToListAsync();
                 foreach (var d in donations)
                 {
                     if (expenseRemaining <= 0)
@@ -178,11 +178,11 @@ namespace RMuseum.Services.Implementation
                     DonationExpenditure n = new DonationExpenditure()
                     {
                         Amount = remaining,
-                        GanjoorDonationId = d.Id
+                        DivanDonationId = d.Id
                     };
 
                     expense.DonationExpenditures.Add(n);
-                    _context.GanjoorExpenses.Update(expense);
+                    _context.DivanExpenses.Update(expense);
 
                     var amount = d.Remaining == d.Amount && remaining == d.Remaining ? "" : d.Remaining == remaining ? "باقیماندهٔ آن " : $"مبلغ {LanguageUtils.FormatMoney(remaining)} {d.Unit} آن ";
                     var part = expense.DonationExpenditures.Count == 1 && remaining == expenseRemaining ? "" : "بخشی از ";
@@ -190,7 +190,7 @@ namespace RMuseum.Services.Implementation
                         d.ExpenditureDesc += " ";
                     d.ExpenditureDesc += $"{amount}جهت تأمین {part}هزینهٔ {expense.Description} به مبلغ {LanguageUtils.FormatMoney(expense.Amount)} {d.Unit} صرف شد ({LanguageUtils.FormatDate(expense.ExpenseDate)}).";
                     d.Remaining -= remaining;
-                    _context.GanjoorDonations.Update(d);
+                    _context.DivanDonations.Update(d);
 
 
                     await _context.SaveChangesAsync();
@@ -201,7 +201,7 @@ namespace RMuseum.Services.Implementation
 
             await RegenerateDonationsPage(editingUserId, $"ثبت هزینهٔ {expense.Description} به مبلغ {LanguageUtils.FormatMoney(expense.Amount)} {expense.Unit}");//ignore possible errors here!
 
-            return new RServiceResult<GanjoorExpense>(expense);
+            return new RServiceResult<DivanExpense>(expense);
         }
 
         /// <summary>
@@ -214,18 +214,18 @@ namespace RMuseum.Services.Implementation
 
         public async Task<RServiceResult<bool>> UpdateExpense(Guid editingUserId, int id, UpdateDateDescriptionViewModel updateModel)
         {
-            var expense = await _context.GanjoorExpenses.Include(e => e.DonationExpenditures).Where(d => d.Id == id).SingleAsync();
-            List<GanjoorDonation> donations = new List<GanjoorDonation>();
+            var expense = await _context.DivanExpenses.Include(e => e.DonationExpenditures).Where(d => d.Id == id).SingleAsync();
+            List<DivanDonation> donations = new List<DivanDonation>();
             foreach (var expenditure in expense.DonationExpenditures)
             {
-                if (!donations.Where(d => d.Id == expenditure.GanjoorDonationId).Any())
+                if (!donations.Where(d => d.Id == expenditure.DivanDonationId).Any())
                 {
-                    donations.Add(await _context.GanjoorDonations.Where(d => d.Id == expenditure.GanjoorDonationId).SingleAsync());
+                    donations.Add(await _context.DivanDonations.Where(d => d.Id == expenditure.DivanDonationId).SingleAsync());
                 }
             }
             expense.ExpenseDate = updateModel.Date;
             expense.Description = updateModel.Description;
-            _context.GanjoorExpenses.Update(expense);
+            _context.DivanExpenses.Update(expense);
             await _context.SaveChangesAsync();
 
             await RegenerateDonationsExpenditureDesc(donations);
@@ -236,7 +236,7 @@ namespace RMuseum.Services.Implementation
 
         }
 
-        private async Task RegenerateDonationsExpenditureDesc(List<GanjoorDonation> donations)
+        private async Task RegenerateDonationsExpenditureDesc(List<DivanDonation> donations)
         {
             if (donations.Count > 0)
             {
@@ -245,15 +245,15 @@ namespace RMuseum.Services.Implementation
                     donation.Remaining = donation.Amount;
                     donation.ExpenditureDesc = "";
 
-                    var donationExpenses = await _context.GanjoorExpenses.AsNoTracking()
+                    var donationExpenses = await _context.DivanExpenses.AsNoTracking()
                                                                             .Include(e => e.DonationExpenditures)
                                                                             .Where(e => e.DonationExpenditures
-                                                                            .Any(x => x.GanjoorDonationId == donation.Id))
+                                                                            .Any(x => x.DivanDonationId == donation.Id))
                                                                             .ToListAsync();
 
                     foreach (var donationExpense in donationExpenses)
                         foreach (var donationExpenditure in donationExpense.DonationExpenditures)
-                            if (donationExpenditure.GanjoorDonationId == donation.Id)
+                            if (donationExpenditure.DivanDonationId == donation.Id)
                             {
                                 var amount = donation.Remaining == donation.Amount && donationExpenditure.Amount == donation.Remaining ? "" : donation.Remaining == donationExpenditure.Amount ? "باقیماندهٔ آن " : $"مبلغ {LanguageUtils.FormatMoney(donationExpenditure.Amount)} {donation.Unit} آن ";
                                 var part = donationExpense.DonationExpenditures.Count == 1 && donationExpenditure.Amount == donationExpense.Amount ? "" : "بخشی از ";
@@ -263,7 +263,7 @@ namespace RMuseum.Services.Implementation
                                 donation.Remaining -= donationExpenditure.Amount;
                             }
 
-                    _context.GanjoorDonations.Update(donation);
+                    _context.DivanDonations.Update(donation);
                 }
 
                 await _context.SaveChangesAsync();
@@ -278,15 +278,15 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> DeleteExpense(Guid editingUserId, int id)
         {
-            var expense = await _context.GanjoorExpenses.Include(e => e.DonationExpenditures).Where(e => e.Id == id).SingleAsync();
+            var expense = await _context.DivanExpenses.Include(e => e.DonationExpenditures).Where(e => e.Id == id).SingleAsync();
             string note = $"حذف هزینهٔ {expense.Description} به مبلغ {LanguageUtils.FormatMoney(expense.Amount)} {expense.Unit}";
 
-            List<GanjoorDonation> donations = new List<GanjoorDonation>();
+            List<DivanDonation> donations = new List<DivanDonation>();
             foreach (var expenditure in expense.DonationExpenditures)
             {
-                if (!donations.Where(d => d.Id == expenditure.GanjoorDonationId).Any())
+                if (!donations.Where(d => d.Id == expenditure.DivanDonationId).Any())
                 {
-                    donations.Add(await _context.GanjoorDonations.Where(d => d.Id == expenditure.GanjoorDonationId).SingleAsync());
+                    donations.Add(await _context.DivanDonations.Where(d => d.Id == expenditure.DivanDonationId).SingleAsync());
                 }
 
                 _context.DonationExpenditure.Remove(expenditure);
@@ -294,7 +294,7 @@ namespace RMuseum.Services.Implementation
 
             await _context.SaveChangesAsync();
 
-            _context.GanjoorExpenses.Remove(expense);
+            _context.DivanExpenses.Remove(expense);
             await _context.SaveChangesAsync();
 
             await RegenerateDonationsExpenditureDesc(donations);
@@ -309,17 +309,17 @@ namespace RMuseum.Services.Implementation
         /// returns all donations
         /// </summary>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorDonationViewModel[]>> GetDonations()
+        public async Task<RServiceResult<DivanDonationViewModel[]>> GetDonations()
         {
-            return new RServiceResult<GanjoorDonationViewModel[]>
+            return new RServiceResult<DivanDonationViewModel[]>
                 (
-                await _context.GanjoorDonations
+                await _context.DivanDonations
                               .AsNoTracking()
                               .OrderByDescending(d => d.Id)
                               .Select
                               (
                                 d =>
-                                new GanjoorDonationViewModel()
+                                new DivanDonationViewModel()
                                 {
                                     Id = d.Id,
                                     Amount = d.Amount,
@@ -342,17 +342,17 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorDonationViewModel>> GetDonation(int id)
+        public async Task<RServiceResult<DivanDonationViewModel>> GetDonation(int id)
         {
-            return new RServiceResult<GanjoorDonationViewModel>
+            return new RServiceResult<DivanDonationViewModel>
                 (
-                await _context.GanjoorDonations
+                await _context.DivanDonations
                               .AsNoTracking()
                               .Where(d => d.Id == id)
                               .Select
                               (
                                 d =>
-                                new GanjoorDonationViewModel()
+                                new DivanDonationViewModel()
                                 {
                                     Id = d.Id,
                                     Amount = d.Amount,
@@ -374,11 +374,11 @@ namespace RMuseum.Services.Implementation
         /// returns all expenses
         /// </summary>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorExpense[]>> GetExpenses()
+        public async Task<RServiceResult<DivanExpense[]>> GetExpenses()
         {
-            return new RServiceResult<GanjoorExpense[]>
+            return new RServiceResult<DivanExpense[]>
                 (
-                await _context.GanjoorExpenses.Include(x => x.DonationExpenditures)
+                await _context.DivanExpenses.Include(x => x.DonationExpenditures)
                               .AsNoTracking()
                               .OrderByDescending(x => x.Id)
                               .ToArrayAsync()
@@ -391,11 +391,11 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<RServiceResult<GanjoorExpense>> GetExpense(int id)
+        public async Task<RServiceResult<DivanExpense>> GetExpense(int id)
         {
-            return new RServiceResult<GanjoorExpense>
+            return new RServiceResult<DivanExpense>
                 (
-                await _context.GanjoorExpenses.Include(x => x.DonationExpenditures)
+                await _context.DivanExpenses.Include(x => x.DonationExpenditures)
                               .AsNoTracking()
                               .Where(e => e.Id == id)
                               .SingleOrDefaultAsync()
@@ -441,7 +441,7 @@ namespace RMuseum.Services.Implementation
 
             try
             {
-                string htmlText = await context.GanjoorPages.Where(p => p.UrlSlug == "donate").Select(p => p.HtmlText).AsNoTracking().SingleAsync();
+                string htmlText = await context.DivanPages.Where(p => p.UrlSlug == "donate").Select(p => p.HtmlText).AsNoTracking().SingleAsync();
 
                 List<DonationPageRow> rows = new List<DonationPageRow>();
 
@@ -502,7 +502,7 @@ namespace RMuseum.Services.Implementation
 
                 for (int i = rows.Count - 1; i >= 0; i--)
                 {
-                    GanjoorDonation donation = new GanjoorDonation()
+                    DivanDonation donation = new DivanDonation()
                     {
                         ImportedRecord = true,
                         DateString = rows[i].Date,
@@ -539,7 +539,7 @@ namespace RMuseum.Services.Implementation
                         donation.ExpenditureDesc = "";
                     }
 
-                    context.GanjoorDonations.Add(donation);
+                    context.DivanDonations.Add(donation);
 
                     await context.SaveChangesAsync(); //in order to make Id columns filled in desired order
 
@@ -562,7 +562,7 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<bool>> InitializeRecords()
         {
-            if (await _context.GanjoorDonations.AnyAsync())
+            if (await _context.DivanDonations.AnyAsync())
                 return new RServiceResult<bool>(true);
 
             try
@@ -596,18 +596,18 @@ namespace RMuseum.Services.Implementation
         public async Task<RServiceResult<bool>> RegenerateDonationsPage(Guid editingUserId, string note)
         {
 
-            var dbPage = await _context.GanjoorPages.Where(p => p.FullUrl == "/donate").SingleAsync();
+            var dbPage = await _context.DivanPages.Where(p => p.FullUrl == "/donate").SingleAsync();
 
-            var donations = await _context.GanjoorDonations.OrderByDescending(d => d.Id).ToArrayAsync();
+            var donations = await _context.DivanDonations.OrderByDescending(d => d.Id).ToArrayAsync();
 
-            var remSum = await _context.GanjoorDonations.Where(d => d.Unit == "تومان").SumAsync(d => d.Remaining);
+            var remSum = await _context.DivanDonations.Where(d => d.Unit == "تومان").SumAsync(d => d.Remaining);
 
 
             string htmlText = "";
 
             DateTime dateLastDonation = donations.Length > 0 ? donations[0].RecordDate : DateTime.MinValue;
             DateTime dateLastExpense = DateTime.MinValue;
-            var lastExpense = await _context.GanjoorExpenses.OrderByDescending(e => e.ExpenseDate).FirstOrDefaultAsync();
+            var lastExpense = await _context.DivanExpenses.OrderByDescending(e => e.ExpenseDate).FirstOrDefaultAsync();
             if (lastExpense != null)
             {
                 dateLastExpense = lastExpense.ExpenseDate;
@@ -619,7 +619,7 @@ namespace RMuseum.Services.Implementation
             {
                 htmlText += $"<div class=\"notice\">{Environment.NewLine}";
                 htmlText += $"<p>{Environment.NewLine}";
-                htmlText += $"در صورت تمایل به حمایت مالی از گنجور از طریق کارت عابربانک؛ لطفاً کمکهای خود را به کارت شمارهٔ <span class=\"lft\">6219-8610-2780-4979</span> (بانک سامان) به نام حمیدرضا محمدی واریز نمایید. علاوه بر آن از طریق اینترنت‌بانک سامان می‌توانید کمکهای خود را به شماره حساب <span class=\"lft\">۸۲۸-۸۰۰-۸۷۳۳۳۰-۱</span> (شمارهٔ شبا: <span class=\"lft\">IR03-0560-0828-8000-0873-3300-01</span>) واریز نمایید. لطفاً از طریق تماس با نشانی ganjoor@ganjoor.net مشخصات خودتان و مبلغ واریزی را اطلاع دهید (نام کمک دهندگان و نوع استفاده‌ای که از کمک آنها شده به مرور در همین صفحه به اطلاع خواهد رسید).{Environment.NewLine}";
+                htmlText += $"در صورت تمایل به حمایت مالی از گنجور از طریق کارت عابربانک؛ لطفاً کمکهای خود را به کارت شمارهٔ <span class=\"lft\">6219-8610-2780-4979</span> (بانک سامان) به نام حمیدرضا محمدی واریز نمایید. علاوه بر آن از طریق اینترنت‌بانک سامان می‌توانید کمکهای خود را به شماره حساب <span class=\"lft\">۸۲۸-۸۰۰-۸۷۳۳۳۰-۱</span> (شمارهٔ شبا: <span class=\"lft\">IR03-0560-0828-8000-0873-3300-01</span>) واریز نمایید. لطفاً از طریق تماس با نشانی divan@ganjoor.net مشخصات خودتان و مبلغ واریزی را اطلاع دهید (نام کمک دهندگان و نوع استفاده‌ای که از کمک آنها شده به مرور در همین صفحه به اطلاع خواهد رسید).{Environment.NewLine}";
                 htmlText += $"</p>{Environment.NewLine}";
                 htmlText += $"<p>{Environment.NewLine}";
                 htmlText += $"مبالغ واریزی جهت پرداخت هزینه‌های جاری (میزبانی وب و ...)، گسترش امکانات و همینطور پایگاه داده‌های سایت مورد استفاده قرار خواهد گرفت.{Environment.NewLine}";
@@ -644,7 +644,7 @@ namespace RMuseum.Services.Implementation
             htmlText += $"</p>{Environment.NewLine}";
 
             var expenses =
-                await _context.GanjoorExpenses
+                await _context.DivanExpenses
                     .Include(e => e.DonationExpenditures)
                     .Where(e => !string.IsNullOrEmpty(e.Unit) && (e.Amount - e.DonationExpenditures.Sum(x => x.Amount)) > 0)
                     .OrderBy(e => e.Id)
@@ -723,8 +723,8 @@ namespace RMuseum.Services.Implementation
 
             htmlText += $"</table>{Environment.NewLine}";
 
-            await _ganjoorService.UpdatePageAsync(dbPage.Id, editingUserId,
-                new GanjoorModifyPageViewModel()
+            await _divanService.UpdatePageAsync(dbPage.Id, editingUserId,
+                new DivanModifyPageViewModel()
                 {
                     Title = dbPage.Title,
                     HtmlText = htmlText,
@@ -769,9 +769,9 @@ namespace RMuseum.Services.Implementation
         private readonly IBackgroundTaskQueue _backgroundTaskQueue;
 
         /// <summary>
-        /// Ganjoor Service
+        /// Divan Service
         /// </summary>
-        private readonly IGanjoorService _ganjoorService;
+        private readonly IDivanService _divanService;
 
         /// <summary>
         /// configuration
@@ -783,13 +783,13 @@ namespace RMuseum.Services.Implementation
         /// </summary>
         /// <param name="context"></param>
         /// <param name="backgroundTaskQueue"></param>
-        /// <param name="ganjoorService"></param>
+        /// <param name="divanService"></param>
         /// <param name="configuration"></param>
-        public DonationService(RMuseumDbContext context, IBackgroundTaskQueue backgroundTaskQueue, IGanjoorService ganjoorService, IConfiguration configuration)
+        public DonationService(RMuseumDbContext context, IBackgroundTaskQueue backgroundTaskQueue, IDivanService divanService, IConfiguration configuration)
         {
             _context = context;
             _backgroundTaskQueue = backgroundTaskQueue;
-            _ganjoorService = ganjoorService;
+            _divanService = divanService;
             _configuration = configuration;
         }
     }

@@ -1,4 +1,4 @@
-using RMuseum.Models.Ganjoor.PublicExport;
+using RMuseum.Models.Divan.PublicExport;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +10,7 @@ namespace RMuseum.Utils.PublicDataExport
     /// <summary>
     /// Belt-and-suspenders check on top of the allowlist design: even though the export DTOs
     /// only ever declare the fields we explicitly want published, this scans every DTO type in
-    /// the RMuseum.Models.Ganjoor.PublicExport namespace by reflection and throws if a property
+    /// the RMuseum.Models.Divan.PublicExport namespace by reflection and throws if a property
     /// name or type looks like it could carry personal data. Call this once at application
     /// startup (Development/CI) and/or from a test — see AssertSafe().
     /// </summary>

@@ -54,7 +54,7 @@ namespace RMuseum.Utils.SemanticSearch
 
         public static async Task<QueryScopeIndex> LoadAsync(RMuseumDbContext context)
         {
-            var poets = await context.GanjoorPoets.AsNoTracking()
+            var poets = await context.DivanPoets.AsNoTracking()
                                 .Where(p => p.Published)
                                 .Select(p => new PoetScopeEntry { PoetId = p.Id, Nickname = p.Nickname })
                                 .ToListAsync();
@@ -62,13 +62,13 @@ namespace RMuseum.Utils.SemanticSearch
             // "book"/"collection" level = direct children of a poet's own root category
             // (شاهنامه, غزلیات, دیوان شمس, ...) - not deeper structural subsections, which would
             // add a lot of short, generic, easily-false-positive titles to match against.
-            var rootCatIds = await context.GanjoorCategories.AsNoTracking()
+            var rootCatIds = await context.DivanCategories.AsNoTracking()
                                     .Where(c => c.ParentId == null)
                                     .Select(c => c.Id)
                                     .ToListAsync();
             var rootCatIdSet = new HashSet<int>(rootCatIds);
 
-            var categories = await context.GanjoorCategories.AsNoTracking()
+            var categories = await context.DivanCategories.AsNoTracking()
                                     .Where(c => c.ParentId != null)
                                     .Select(c => new { c.Id, c.ParentId, c.PoetId, c.Title })
                                     .ToListAsync();

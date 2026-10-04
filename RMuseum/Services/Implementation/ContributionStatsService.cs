@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using RMuseum.DbContext;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Models.Generic.ViewModels;
 using RSecurityBackend.Models.Generic;
 using RSecurityBackend.Services;
@@ -33,17 +33,17 @@ namespace RMuseum.Services.Implementation
                     {
                         Id = userId,
                         CreateDate = (await _context.Users.Where(u => u.Id == userId).SingleAsync()).CreateDate,
-                        PoemCorrections = await _context.GanjoorPoemCorrections.Where(c => c.AffectedThePoem && c.UserId == userId).CountAsync(),
-                        SectionCorrections = await _context.GanjoorPoemSectionCorrections.Where(c => c.AffectedThePoem && c.UserId == userId).CountAsync(),
-                        CatCorrections = await _context.GanjoorCatCorrections.Where(c => c.Result == Models.Ganjoor.CorrectionReviewResult.Approved && c.UserId == userId).CountAsync(),
-                        SuggestedSongs = await _context.GanjoorPoemMusicTracks.Where(c => c.Approved && c.SuggestedById == userId).CountAsync(),
-                        QuotedPoems = await _context.GanjoorQuotedPoems.Where(c => c.Published && c.SuggestedById == userId).CountAsync(),
-                        Comments = await _context.GanjoorComments.Where(c => c.Status == Models.Artifact.PublishStatus.Published && c.UserId == userId).CountAsync(),
-                        Recitations = await _context.Recitations.Where(c => c.ReviewStatus == Models.GanjoorAudio.AudioReviewStatus.Approved && c.OwnerId == userId).CountAsync(),
-                        MuseumLinks = await _context.GanjoorLinks.Where(c => c.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && c.SuggestedById == userId).CountAsync(),
-                        PinterestLinks = await _context.PinterestLinks.Where(c => c.HumanReviewed && c.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && c.SuggestedById == userId).CountAsync(),
-                        PoetSpecLines = await _context.GanjoorPoetSuggestedSpecLines.Where(c => c.Published && c.SuggestedById == userId).CountAsync(),
-                        PoetPictures = await _context.GanjoorPoetSuggestedPictures.Where(c => c.Published && c.SuggestedById == userId).CountAsync(),
+                        PoemCorrections = await _context.DivanPoemCorrections.Where(c => c.AffectedThePoem && c.UserId == userId).CountAsync(),
+                        SectionCorrections = await _context.DivanPoemSectionCorrections.Where(c => c.AffectedThePoem && c.UserId == userId).CountAsync(),
+                        CatCorrections = await _context.DivanCatCorrections.Where(c => c.Result == Models.Divan.CorrectionReviewResult.Approved && c.UserId == userId).CountAsync(),
+                        SuggestedSongs = await _context.DivanPoemMusicTracks.Where(c => c.Approved && c.SuggestedById == userId).CountAsync(),
+                        QuotedPoems = await _context.DivanQuotedPoems.Where(c => c.Published && c.SuggestedById == userId).CountAsync(),
+                        Comments = await _context.DivanComments.Where(c => c.Status == Models.Artifact.PublishStatus.Published && c.UserId == userId).CountAsync(),
+                        Recitations = await _context.Recitations.Where(c => c.ReviewStatus == Models.DivanAudio.AudioReviewStatus.Approved && c.OwnerId == userId).CountAsync(),
+                        MuseumLinks = await _context.DivanLinks.Where(c => c.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && c.SuggestedById == userId).CountAsync(),
+                        PinterestLinks = await _context.PinterestLinks.Where(c => c.HumanReviewed && c.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && c.SuggestedById == userId).CountAsync(),
+                        PoetSpecLines = await _context.DivanPoetSuggestedSpecLines.Where(c => c.Published && c.SuggestedById == userId).CountAsync(),
+                        PoetPictures = await _context.DivanPoetSuggestedPictures.Where(c => c.Published && c.SuggestedById == userId).CountAsync(),
                         PublicUserNotes = await _context.UserNotes.Where(c => c.Status == Models.Artifact.PublishStatus.Published && c.NoteType == Models.Note.RNoteType.Public && c.RAppUserId == userId).CountAsync()
                     }
                     );
@@ -120,7 +120,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorPoemCorrections
+                   _context.DivanPoemCorrections
                         .Where(c =>
                         c.AffectedThePoem == true
                         &&
@@ -153,7 +153,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorPoemCorrections
+                        _context.DivanPoemCorrections
                         .Join
                         (
                             _context.Users,
@@ -198,16 +198,16 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorPoemCorrections
+                        Days = await _context.DivanPoemCorrections
                         .Where(f => f.AffectedThePoem
                         )
                         .GroupBy(f => f.Date.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorPoemCorrections
+                        TotalCount = await _context.DivanPoemCorrections
 
                         .Where(f => f.AffectedThePoem
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorPoemCorrections
+                        UserIds = await _context.DivanPoemCorrections
                         .Where(f => f.AffectedThePoem
                         )
                         .GroupBy(f => f.UserId).CountAsync(),
@@ -231,12 +231,12 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+                string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
                 var systemUserId = (Guid)(await _appUserService.FindUserByEmail(systemEmail)).Result.Id;
 
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorPoemSectionCorrections
+                   _context.DivanPoemSectionCorrections
                         .Where(c =>
                         c.AffectedThePoem == true && c.UserId != systemUserId
                         &&
@@ -267,12 +267,12 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+                string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
                 var systemUserId = (Guid)(await _appUserService.FindUserByEmail(systemEmail)).Result.Id;
 
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorPoemSectionCorrections
+                        _context.DivanPoemSectionCorrections
                         .Join
                         (
                             _context.Users,
@@ -313,23 +313,23 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+                string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
                 var systemUserId = (Guid)(await _appUserService.FindUserByEmail(systemEmail)).Result.Id;
 
                 return new RServiceResult<SummedUpViewModel>
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorPoemSectionCorrections
+                        Days = await _context.DivanPoemSectionCorrections
                         .Where(f => f.AffectedThePoem && f.UserId != systemUserId
                         )
                         .GroupBy(f => f.Date.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorPoemSectionCorrections
+                        TotalCount = await _context.DivanPoemSectionCorrections
 
                         .Where(f => f.AffectedThePoem && f.UserId != systemUserId
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorPoemSectionCorrections
+                        UserIds = await _context.DivanPoemSectionCorrections
                         .Where(f => f.AffectedThePoem && f.UserId != systemUserId
                         )
                         .GroupBy(f => f.UserId).CountAsync(),
@@ -356,9 +356,9 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorCatCorrections
+                   _context.DivanCatCorrections
                         .Where(c =>
-                        c.Result == Models.Ganjoor.CorrectionReviewResult.Approved
+                        c.Result == Models.Divan.CorrectionReviewResult.Approved
                         &&
                         (userId == null || c.UserId == userId)
                         )
@@ -389,7 +389,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorCatCorrections
+                        _context.DivanCatCorrections
                         .Join
                         (
                             _context.Users,
@@ -404,7 +404,7 @@ namespace RMuseum.Services.Implementation
                             }
                         )
                         .Where(f =>
-                         f.Result == Models.Ganjoor.CorrectionReviewResult.Approved
+                         f.Result == Models.Divan.CorrectionReviewResult.Approved
                         &&
                         (day == null || f.Date.Date == day) && (userId == null || f.UserId == userId))
                         .GroupBy(a => new { a.UserId, a.UserName }).Select(a => new GroupedByUserViewModel()
@@ -434,17 +434,17 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorCatCorrections
-                        .Where(f => f.Result == Models.Ganjoor.CorrectionReviewResult.Approved
+                        Days = await _context.DivanCatCorrections
+                        .Where(f => f.Result == Models.Divan.CorrectionReviewResult.Approved
                         )
                         .GroupBy(f => f.Date.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorCatCorrections
+                        TotalCount = await _context.DivanCatCorrections
 
-                        .Where(f => f.Result == Models.Ganjoor.CorrectionReviewResult.Approved
+                        .Where(f => f.Result == Models.Divan.CorrectionReviewResult.Approved
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorCatCorrections
-                        .Where(f => f.Result == Models.Ganjoor.CorrectionReviewResult.Approved
+                        UserIds = await _context.DivanCatCorrections
+                        .Where(f => f.Result == Models.Divan.CorrectionReviewResult.Approved
                         )
                         .GroupBy(f => f.UserId).CountAsync(),
                     }
@@ -470,7 +470,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorPoemMusicTracks
+                   _context.DivanPoemMusicTracks
                         .Where(c =>
                         c.Approved
                         &&
@@ -503,7 +503,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorPoemMusicTracks
+                        _context.DivanPoemMusicTracks
                         .Join
                         (
                             _context.Users,
@@ -548,16 +548,16 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorPoemMusicTracks
+                        Days = await _context.DivanPoemMusicTracks
                         .Where(f => f.Approved
                         )
                         .GroupBy(f => f.ApprovalDate.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorPoemMusicTracks
+                        TotalCount = await _context.DivanPoemMusicTracks
 
                         .Where(f => f.Approved
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorPoemMusicTracks
+                        UserIds = await _context.DivanPoemMusicTracks
                         .Where(f => f.Approved
                         )
                         .GroupBy(f => f.SuggestedById).CountAsync(),
@@ -583,7 +583,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorQuotedPoems
+                   _context.DivanQuotedPoems
                         .Where(c =>
                         c.Published && c.SuggestionDate != null
                         &&
@@ -616,7 +616,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorQuotedPoems
+                        _context.DivanQuotedPoems
                         .Join
                         (
                             _context.Users,
@@ -661,16 +661,16 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorQuotedPoems
+                        Days = await _context.DivanQuotedPoems
                         .Where(f => f.Published && f.SuggestionDate != null
                         )
                         .GroupBy(f => f.SuggestionDate!.Value.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorQuotedPoems
+                        TotalCount = await _context.DivanQuotedPoems
 
                         .Where(f => f.Published
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorQuotedPoems
+                        UserIds = await _context.DivanQuotedPoems
                         .Where(f => f.Published
                         )
                         .GroupBy(f => f.SuggestedById).CountAsync(),
@@ -696,7 +696,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorComments
+                   _context.DivanComments
                         .Where(c =>
                         c.Status == Models.Artifact.PublishStatus.Published
                         &&
@@ -729,7 +729,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorComments
+                        _context.DivanComments
                         .Join
                         (
                             _context.Users,
@@ -774,16 +774,16 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorComments
+                        Days = await _context.DivanComments
                         .Where(f => f.Status == Models.Artifact.PublishStatus.Published
                         )
                         .GroupBy(f => f.CommentDate.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorComments
+                        TotalCount = await _context.DivanComments
 
                         .Where(f => f.Status == Models.Artifact.PublishStatus.Published
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorComments
+                        UserIds = await _context.DivanComments
                         .Where(f => f.Status == Models.Artifact.PublishStatus.Published
                         )
                         .GroupBy(f => f.UserId).CountAsync(),
@@ -811,7 +811,7 @@ namespace RMuseum.Services.Implementation
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
                    _context.Recitations
                         .Where(c =>
-                        c.ReviewStatus == Models.GanjoorAudio.AudioReviewStatus.Approved
+                        c.ReviewStatus == Models.DivanAudio.AudioReviewStatus.Approved
                         &&
                         (userId == null || c.OwnerId == userId)
                         )
@@ -857,7 +857,7 @@ namespace RMuseum.Services.Implementation
                             }
                         )
                         .Where(f =>
-                         f.ReviewStatus == Models.GanjoorAudio.AudioReviewStatus.Approved
+                         f.ReviewStatus == Models.DivanAudio.AudioReviewStatus.Approved
                         &&
                         (day == null || f.UploadDate.Date == day) && (userId == null || f.UserId == userId))
                         .GroupBy(a => new { a.UserId, a.UserName }).Select(a => new GroupedByUserViewModel()
@@ -888,16 +888,16 @@ namespace RMuseum.Services.Implementation
                     new SummedUpViewModel()
                     {
                         Days = await _context.Recitations
-                        .Where(f => f.ReviewStatus == Models.GanjoorAudio.AudioReviewStatus.Approved
+                        .Where(f => f.ReviewStatus == Models.DivanAudio.AudioReviewStatus.Approved
                         )
                         .GroupBy(f => f.UploadDate.Date).CountAsync(),
                         TotalCount = await _context.Recitations
 
-                        .Where(f => f.ReviewStatus == Models.GanjoorAudio.AudioReviewStatus.Approved
+                        .Where(f => f.ReviewStatus == Models.DivanAudio.AudioReviewStatus.Approved
                         )
                         .CountAsync(),
                         UserIds = await _context.Recitations
-                        .Where(f => f.ReviewStatus == Models.GanjoorAudio.AudioReviewStatus.Approved
+                        .Where(f => f.ReviewStatus == Models.DivanAudio.AudioReviewStatus.Approved
                         )
                         .GroupBy(f => f.OwnerId).CountAsync(),
                     }
@@ -920,14 +920,14 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+                string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
                 var systemUserId = (Guid)(await _appUserService.FindUserByEmail(systemEmail)).Result.Id;
 
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorLinks
+                   _context.DivanLinks
                         .Where(c =>
-                        c.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && c.SuggestedById != systemUserId
+                        c.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && c.SuggestedById != systemUserId
                         &&
                         (userId == null || c.SuggestedById == userId)
                         )
@@ -956,12 +956,12 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+                string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
                 var systemUserId = (Guid)(await _appUserService.FindUserByEmail(systemEmail)).Result.Id;
 
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorLinks
+                        _context.DivanLinks
                         .Join
                         (
                             _context.Users,
@@ -976,7 +976,7 @@ namespace RMuseum.Services.Implementation
                             }
                         )
                         .Where(f =>
-                         f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && f.UserId != systemUserId
+                         f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && f.UserId != systemUserId
                         &&
                         (day == null || f.SuggestionDate.Date == day) && (userId == null || f.UserId == userId))
                         .GroupBy(a => new { a.UserId, a.UserName }).Select(a => new GroupedByUserViewModel()
@@ -1002,23 +1002,23 @@ namespace RMuseum.Services.Implementation
         {
             try
             {
-                string systemEmail = $"{Configuration.GetSection("Ganjoor")["SystemEmail"]}";
+                string systemEmail = $"{Configuration.GetSection("Divan")["SystemEmail"]}";
                 var systemUserId = (Guid)(await _appUserService.FindUserByEmail(systemEmail)).Result.Id;
                 return new RServiceResult<SummedUpViewModel>
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorLinks
-                        .Where(f => f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && f.SuggestedById != systemUserId
+                        Days = await _context.DivanLinks
+                        .Where(f => f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && f.SuggestedById != systemUserId
                         )
                         .GroupBy(f => f.SuggestionDate.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorLinks
+                        TotalCount = await _context.DivanLinks
 
-                        .Where(f => f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && f.SuggestedById != systemUserId
+                        .Where(f => f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && f.SuggestedById != systemUserId
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorLinks
-                        .Where(f => f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved && f.SuggestedById != systemUserId
+                        UserIds = await _context.DivanLinks
+                        .Where(f => f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved && f.SuggestedById != systemUserId
                         )
                         .GroupBy(f => f.SuggestedById).CountAsync(),
                     }
@@ -1047,7 +1047,7 @@ namespace RMuseum.Services.Implementation
                         .Where(c =>
                         c.HumanReviewed
                         &&
-                        c.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved
+                        c.ReviewResult == Models.DivanIntegration.ReviewResult.Approved
                         &&
                         (userId == null || c.SuggestedById == userId)
                         )
@@ -1096,7 +1096,7 @@ namespace RMuseum.Services.Implementation
                         .Where(f =>
                          f.HumanReviewed
                          &&
-                         f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved
+                         f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved
                         &&
                         (day == null || f.SuggestionDate.Date == day) && (userId == null || f.UserId == userId))
                         .GroupBy(a => new { a.UserId, a.UserName }).Select(a => new GroupedByUserViewModel()
@@ -1127,16 +1127,16 @@ namespace RMuseum.Services.Implementation
                     new SummedUpViewModel()
                     {
                         Days = await _context.PinterestLinks
-                        .Where(f => f.HumanReviewed && f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved
+                        .Where(f => f.HumanReviewed && f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved
                         )
                         .GroupBy(f => f.SuggestionDate.Date).CountAsync(),
                         TotalCount = await _context.PinterestLinks
 
-                        .Where(f => f.HumanReviewed && f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved
+                        .Where(f => f.HumanReviewed && f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved
                         )
                         .CountAsync(),
                         UserIds = await _context.PinterestLinks
-                        .Where(f => f.HumanReviewed && f.ReviewResult == Models.GanjoorIntegration.ReviewResult.Approved
+                        .Where(f => f.HumanReviewed && f.ReviewResult == Models.DivanIntegration.ReviewResult.Approved
                         )
                         .GroupBy(f => f.SuggestedById).CountAsync(),
                     }
@@ -1161,7 +1161,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorPoetSuggestedSpecLines
+                   _context.DivanPoetSuggestedSpecLines
                         .Where(c =>
                         c.Published
                         &&
@@ -1194,7 +1194,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorPoetSuggestedSpecLines
+                        _context.DivanPoetSuggestedSpecLines
                         .Join
                         (
                             _context.Users,
@@ -1239,16 +1239,16 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorPoetSuggestedSpecLines
+                        Days = await _context.DivanPoetSuggestedSpecLines
                         .Where(f => f.Published
                         )
                         .GroupBy(f => f.PublicationDate.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorPoetSuggestedSpecLines
+                        TotalCount = await _context.DivanPoetSuggestedSpecLines
 
                         .Where(f => f.Published
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorPoetSuggestedSpecLines
+                        UserIds = await _context.DivanPoetSuggestedSpecLines
                         .Where(f => f.Published
                         )
                         .GroupBy(f => f.SuggestedById).CountAsync(),
@@ -1274,7 +1274,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByDateViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByDateViewModel>.Paginate(
-                   _context.GanjoorPoetSuggestedPictures
+                   _context.DivanPoetSuggestedPictures
                         .Where(c =>
                         c.Published
                         &&
@@ -1307,7 +1307,7 @@ namespace RMuseum.Services.Implementation
             {
                 return new RServiceResult<(PaginationMetadata PagingMeta, GroupedByUserViewModel[] Tracks)>(
                     await QueryablePaginator<GroupedByUserViewModel>.Paginate(
-                        _context.GanjoorPoetSuggestedPictures
+                        _context.DivanPoetSuggestedPictures
                         .Join
                         (
                             _context.Users,
@@ -1352,16 +1352,16 @@ namespace RMuseum.Services.Implementation
                     (
                     new SummedUpViewModel()
                     {
-                        Days = await _context.GanjoorPoetSuggestedPictures
+                        Days = await _context.DivanPoetSuggestedPictures
                         .Where(f => f.Published
                         )
                         .GroupBy(f => f.PublicationDate.Date).CountAsync(),
-                        TotalCount = await _context.GanjoorPoetSuggestedPictures
+                        TotalCount = await _context.DivanPoetSuggestedPictures
 
                         .Where(f => f.Published
                         )
                         .CountAsync(),
-                        UserIds = await _context.GanjoorPoetSuggestedPictures
+                        UserIds = await _context.DivanPoetSuggestedPictures
                         .Where(f => f.Published
                         )
                         .GroupBy(f => f.SuggestedById).CountAsync(),

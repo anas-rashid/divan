@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "SectionId",
-                table: "GanjoorPoemProbableMetres",
+                table: "DivanPoemProbableMetres",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -20,7 +20,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "SectionId",
-                table: "GanjoorPoemProbableMetres");
+                table: "DivanPoemProbableMetres");
         }
     }
 }

@@ -1,0 +1,108 @@
+﻿@model DivanRazor.Pages._AudioPlayerPartialModel
+
+
+<div class="container">
+    @for (var nRecitationIndex = 0; nRecitationIndex < Model.Recitations.Length; nRecitationIndex++)
+    {
+        var recitaion = Model.Recitations[nRecitationIndex];
+        <div class="@Model.CSSClass(nRecitationIndex)" id="@recitaion.Id">
+            <audio id="audio-@recitaion.Id" preload="none" controls>
+                <source src="@recitaion.Mp3Url" title="@($"{recitaion.AudioTitle} به خوانش {recitaion.AudioArtist}")" data-track-number="@(nRecitationIndex + 1)">
+                مرورگر شما از پخش صدای HTML 5 پشتیبانی نمی‌کند.
+            </audio>
+            @if (nRecitationIndex != (Model.Recitations.Length - 1))
+            {
+                <script>
+                    document.getElementById('audio-@recitaion.Id').addEventListener("ended", function () {
+                        document.getElementById('audio-@Model.Recitations[nRecitationIndex + 1].Id').play();
+                        showAllRecitations();
+                    });
+                </script>
+            }
+            <div class="recitaion-info">
+                @if(Model.CategoryMode)
+                {
+                    <a role="button" href="@recitaion.PoemFullUrl" class="actionlink">@recitaion.PoemFullTitle</a> @Html.Raw(Model.getAudioDesc(recitaion))
+                }
+                else
+                {
+                    <a role="button" onclick="document.getElementById('audio-@recitaion.Id').play()" class="actionlink">@recitaion.AudioTitle</a> @Html.Raw(Model.getAudioDesc(recitaion, nRecitationIndex == 0))
+                }
+                
+            </div>
+
+            @if(!Model.CategoryMode)
+            {
+                <div class="audio-partial-action-box">
+                    <a role="button" title="پخش" class="cursor-pointer recitation-button" onclick="document.getElementById('audio-@recitaion.Id').play()"><i class="notranslate recitation-icons recitation-play"></i></a>
+                    <a role="button" title="دریافت خوانش" class="cursor-pointer recitation-button" href="@($"/AudioClip/?a={recitaion.Id}")" onclick="wpopen(this.href); return false"><i class="notranslate recitation-icons recitation-download"></i></a>
+                    <a role="button" title="گزارش خطا" class="cursor-pointer recitation-button" href="@($"/ReportRecitation/?a={recitaion.Id}")" onclick="wpopen(this.href); return false"><i class="notranslate recitation-icons recitation-report"></i></a>
+                    @if (Model.LoggedIn)
+                    {
+                        <a role="button" title="رأی به خوانش" class="cursor-pointer recitation-button" onclick="switchRecitationVote(@recitaion.Id)"><i class="notranslate recitation-icons @(recitaion.UpVotedByUser ? "recitation-vote" : "recitation-novote")" id="@($"recitaion-{recitaion.Id}")"></i></a>
+                    }
+                    <a role="button" title="اطلاعات رتبه‌بندی" class="cursor-pointer recitation-button" href="@($"/RecitationsOrder/?p={recitaion.PoemId}#a{recitaion.Id}")" onclick="wpopen(this.href); return false"><i class="notranslate recitation-icons recitation-score"></i></a>
+                    @if (recitaion.AudioArtistUrl.IndexOf("http") == 0)
+                    {
+                        <a role="button" title="@recitaion.AudioArtist" class="cursor-pointer recitation-button" href="@Html.Raw(recitaion.AudioArtistUrl)" target="_blank"><i class="notranslate recitation-icons recitation-website"></i></a>
+                    }
+                    <a role="button" title="پیوند ثابت" class="cursor-pointer recitation-button" href="@($"{recitaion.PoemFullUrl}?allaudio=1#{recitaion.Id}")" onclick="navigator.clipboard.writeText('@($"https://ganjoor.net{recitaion.PoemFullUrl}?allaudio=1#{recitaion.Id}")'); alert('نشانی در حافظه رونوشت شد.');"><i class="notranslate recitation-icons copylink-icon"></i></a>
+                </div>
+                @if (recitaion.Mistakes.Length > 0)
+                {
+                    <div class="recitaion-mistakes">
+                        <div class="recitaion-mistakes-header">
+                            اشکالات خوانش
+                        </div>
+                        @foreach (var mistake in recitaion.Mistakes)
+                        {
+                            <div class="recitaion-mistake" id="mistake-@mistake.Id">
+                                <p>
+                                    @if (mistake.CoupletIndex != -1)
+                                    {
+                                        <a href="@($"#bn{mistake.CoupletIndex + 1}")">#</a>
+                                    }
+                                    @Html.Raw(mistake.Mistake.Replace("\r\n", "<br>"))
+                                </p>
+                                @if(Model.IsAdmin)
+                                {
+                                    <a role="button" title="حذف خطا" onclick="deleteMistake(@mistake.Id)"><i class="notranslate pageicons">delete</i></a>
+                                    <a role="button" title="ویرایش خطا" onclick="editMistakeReason(@mistake.Id, '@mistake.Mistake.Replace("\r\n", "<br>")')"><i class="notranslate pageicons">edit</i></a>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                <script>
+                    document.getElementById('audio-@recitaion.Id').addEventListener('play', () => {
+                        currentAudio = document.getElementById('audio-@recitaion.Id');
+                        var audioList = document.querySelectorAll('audio');
+                        audioList.forEach(function (audioElement) {
+                            if (audioElement != currentAudio) {
+                                audioElement.pause();
+                            }
+                        });
+
+                        _setXml('@($"{DivanRazor.APIRoot.InternetUrl}/api/audio/file/{recitaion.Id}.xml")');
+                        showStickyPlayer(currentAudio, '@Html.Raw(recitaion.AudioArtist)', @recitaion.Id);
+                    });
+
+                    document.getElementById('audio-@recitaion.Id').addEventListener('timeupdate', () => {
+                        _trackTimeChanged(document.getElementById('audio-@recitaion.Id'));
+                    });
+                </script>
+            }
+           
+        </div>
+
+        @if (!Model.ShowAllRecitaions && nRecitationIndex == 4 && Model.Recitations.Length > 5)
+        {
+            <a role="button" class="pagebutton load-all-recitations" onclick="showAllRecitations()">همهٔ خوانش‌ها<i class="notranslate info-buttons">autorenew</i></a>
+        }
+    }
+    <script>
+
+    </script>
+</div>
+
+

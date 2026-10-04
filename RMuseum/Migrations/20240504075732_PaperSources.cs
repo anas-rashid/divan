@@ -20,20 +20,20 @@ namespace RMuseum.Migrations
 
             migrationBuilder.AddColumn<bool>(
                 name: "SuggestedByMachine",
-                table: "PDFGanjoorLinks",
+                table: "PDFDivanLinks",
                 type: "bit",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.CreateTable(
-                name: "GanjoorPaperSources",
+                name: "DivanPaperSources",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    GanjoorPoetId = table.Column<int>(type: "int", nullable: false),
-                    GanjoorCatId = table.Column<int>(type: "int", nullable: false),
-                    GanjoorCatFullTitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    GanjoorCatFullUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DivanPoetId = table.Column<int>(type: "int", nullable: false),
+                    DivanCatId = table.Column<int>(type: "int", nullable: false),
+                    DivanCatFullTitle = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DivanCatFullUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     BookType = table.Column<int>(type: "int", nullable: false),
                     BookFullUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     NaskbanBookId = table.Column<int>(type: "int", nullable: false),
@@ -47,7 +47,7 @@ namespace RMuseum.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_GanjoorPaperSources", x => x.Id);
+                    table.PrimaryKey("PK_DivanPaperSources", x => x.Id);
                 });
         }
 
@@ -55,7 +55,7 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "GanjoorPaperSources");
+                name: "DivanPaperSources");
 
             migrationBuilder.DropColumn(
                 name: "HumanReviewed",
@@ -63,7 +63,7 @@ namespace RMuseum.Migrations
 
             migrationBuilder.DropColumn(
                 name: "SuggestedByMachine",
-                table: "PDFGanjoorLinks");
+                table: "PDFDivanLinks");
         }
     }
 }

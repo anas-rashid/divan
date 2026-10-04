@@ -13,7 +13,7 @@ namespace RMuseum.Utils.PublicDataExport
     public class GitRepoPublisherOptions
     {
         /// <summary>
-        /// local working copy path (e.g. C:\ganjoor-public-data or /var/ganjoor/public-data)
+        /// local working copy path (e.g. C:\divan-public-data or /var/divan/public-data)
         /// </summary>
         public string LocalWorkingCopyPath { get; set; }
 
@@ -24,7 +24,7 @@ namespace RMuseum.Utils.PublicDataExport
 
         public string Branch { get; set; } = "main";
 
-        public string CommitAuthorName { get; set; } = "Ganjoor Export Bot";
+        public string CommitAuthorName { get; set; } = "Divan Export Bot";
 
         public string CommitAuthorEmail { get; set; } = "bot@ganjoor.net";
 
@@ -119,7 +119,7 @@ namespace RMuseum.Utils.PublicDataExport
         /// recycle, or a previous run of this same job that got killed mid-command rather than
         /// finishing) blocks every future git command in this working copy with a confusing
         /// "Another git process seems to be running" error, even when nothing actually is.
-        /// GanjoorService's TryStartExclusiveExportJob already guarantees only one run of a given
+        /// DivanService's TryStartExclusiveExportJob already guarantees only one run of a given
         /// export job (main or Tajik) executes at a time *within this process* — so reaching this
         /// method at all means the current call is the sole legitimate owner of this working copy
         /// right now, and any lock file found here can only be a leftover from something that is

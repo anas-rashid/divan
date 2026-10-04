@@ -8,13 +8,13 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<bool>(
                 name: "Rejected",
-                table: "GanjoorPoemMusicTracks",
+                table: "DivanPoemMusicTracks",
                 nullable: false,
                 defaultValue: false);
 
             migrationBuilder.AddColumn<string>(
                 name: "RejectionCause",
-                table: "GanjoorPoemMusicTracks",
+                table: "DivanPoemMusicTracks",
                 nullable: true);
         }
 
@@ -22,11 +22,11 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "Rejected",
-                table: "GanjoorPoemMusicTracks");
+                table: "DivanPoemMusicTracks");
 
             migrationBuilder.DropColumn(
                 name: "RejectionCause",
-                table: "GanjoorPoemMusicTracks");
+                table: "DivanPoemMusicTracks");
         }
     }
 }

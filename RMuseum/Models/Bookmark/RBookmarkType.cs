@@ -14,7 +14,7 @@
         /// </summary>
         Favorite = 1,
         /// <summary>
-        /// Private Note (GanjoorComment)
+        /// Private Note (DivanComment)
         /// </summary>
         Note = 2
     }

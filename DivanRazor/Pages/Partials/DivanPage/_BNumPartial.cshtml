@@ -1,0 +1,222 @@
+﻿@model DivanRazor.Pages._BNumPartialModel
+@using DNTPersianUtils.Core
+@{
+    Layout = null;
+}
+
+<table class="bnum-partial-table">
+    <tr>
+        <td>شماره:</td>
+        <td>
+            @((Model.CoupletIndex + 1).ToPersianNumbers())
+        </td>
+    </tr>
+    @foreach (var number in Model.Numbers)
+    {
+        <tr>
+            <td>شماره در @number.NumberingName:</td>
+            <td>@number.Number.ToPersianNumbers() از @number.TotalLines.ToPersianNumbers()</td>
+        </tr>
+        @if (number.SameTypeNumber != number.Number)
+        {
+            @if (number.IsPoemVerse)
+            {
+                <tr>
+                    <td colspan="2">بیت @number.SameTypeNumber.ToPersianNumbers() از @number.TotalCouplets.ToPersianNumbers()</td>
+                </tr>
+            }
+            else
+            {
+                <tr>
+                    <td colspan="2">پاراگراف @number.SameTypeNumber.ToPersianNumbers() از @number.TotalParagraphs.ToPersianNumbers()</td>
+                </tr>
+            }
+        }
+    }
+</table>
+
+<div class="bnum-partial-action-box">
+    @if (Model.LoggedIn)
+    {
+        <a role="button" id="editcouplet-@Model.CoupletIndex" class="cursor-pointer" onclick="editCouplet(@Model.PoemId, @Model.CoupletIndex, 'tr')" title="ویرایش از اینجا"><i class="notranslate material-icons color-white">edit</i></a>
+        <a role="button" id="editcoupletsummary-@Model.CoupletIndex" class="cursor-pointer" onclick="editCouplet(@Model.PoemId, @Model.CoupletIndex, 'summary')" title="نوشتن معنی به زبان ساده"><i class="notranslate material-icons color-white">edit_note</i></a>
+
+        <a role="button" id="bookmark-@Model.CoupletIndex" class="cursor-pointer" onclick="switchBookmark(@Model.PoemId, @Model.CoupletIndex, '-@Model.CoupletIndex')" title="@Model.BookmarkingText"><i class="notranslate material-icons color-white" id="bookmark-icon-@Model.CoupletIndex">@Model.BookmarkingIcon</i></a>
+    }
+    @if (Model.SectionsWithMetreAndRhymes.Any())
+    {
+        <text>
+            <a role="button" title="موارد هم آهنگ" class="cursor-pointer" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes.First().RhymeLetters)}")"><i class="notranslate material-icons color-white">search</i></a>
+        </text>
+
+        @for (int nSectionIndex = 1; nSectionIndex < Model.SectionsWithMetreAndRhymes.Count; nSectionIndex++)
+        {
+            <text>
+                <a role="button" title="موارد هم آهنگ (وزن یا قافیهٔ @((nSectionIndex + 1).ToPersianNumbers()))" class="cursor-pointer" href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].DivanMetre.Rhythm)}&amp;g={Uri.EscapeDataString(Model.SectionsWithMetreAndRhymes[nSectionIndex].RhymeLetters)}")"><i class="notranslate material-icons color-white">search</i></a>
+            </text>
+        }
+    }
+    <a role="button" id="share-@Model.CoupletIndex" class="cursor-pointer" onclick="webShareCouplet(@Model.CoupletIndex)" title="همرسانی"><i class="notranslate material-icons color-white">share</i></a>
+    <a role="button" title="رونوشت نشانی" class="cursor-pointer" id="copylink-@Model.CoupletIndex" onclick="copyCoupletUrl(@Model.CoupletIndex)"><i class="notranslate material-icons color-white">link</i></a>
+    <a role="button" title="رونوشت متن" class="cursor-pointer" id="copytext-@Model.CoupletIndex" onclick="copyCoupletText(@Model.CoupletIndex)"><i class="notranslate material-icons color-white">content_copy</i></a>
+</div>
+
+@foreach (var verse in Model.Verses.Where(v => !string.IsNullOrEmpty(v.CoupletSummary)).ToList())
+{
+    <div id="summary-block-@Model.CoupletIndex-@verse.VOrder" class="width-100per">
+        <div class="notice">
+            <p>@verse.CoupletSummary</p>
+            @if (Model.LoggedIn)
+            {
+                <a href="@($"/User/Editor?id={Model.PoemId}#summary-{verse.VOrder}")" role="button" class="cursor-pointer" title="ویرایش">
+                    <div class="circled-number">
+                        <i class="notranslate material-icons color-white">edit_note</i>
+                    </div>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+<div id="play-block-@Model.CoupletIndex" class="width-100per">
+    <select id="narrators-@Model.CoupletIndex" class="bnum-partial-narrators"></select>
+    <a role="button" id="listen-@Model.CoupletIndex" class="bnum-partial-narrate-btn" onclick="playCouplet(@Model.CoupletIndex)">از اینجا بخواند</a>
+</div>
+<script>
+    fillnarrations('@Model.CoupletIndex');
+</script>
+
+@if (Model.Sections.Where(s => s.DivanMetre != null).Any())
+{
+    <div>
+        <table>
+            @foreach (var s in Model.Sections.Where(sec => sec.SectionType == RMuseum.Models.Divan.PoemSectionType.WholePoem))
+            {
+                if (s.DivanMetre != null)
+                {
+                    <tr>
+                        <td>
+                            وزن:
+                        </td>
+                        <td>
+                            <a href="@Html.Raw($"/simi/?v={Uri.EscapeDataString(s.DivanMetre.Rhythm)}")">@s.DivanMetre.Rhythm</a>
+                            @if (Model.LoggedIn)
+                            {
+                                <a href="/User/Section?poemId=@Model.PoemId&index=@s.Index#metre" role="button" class="cursor-pointer" title="ویرایش وزن">
+                                    <i class="notranslate noindent-info-button edit-poem-button"></i>
+                                </a>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+}
+
+<div id="letters-stat-@Model.CoupletIndex">
+
+
+    @for (int v = 0; v < Model.Verses.Count; v++)
+    {
+        var verse = Model.Verses[v];
+        var verseTextSearchable = RMuseum.Services.Implementation.LanguageUtils.MakeTextSearchable(verse.Text);
+        var verseSameSound = RMuseum.Services.Implementation.LanguageUtils.SameSoundLetters(verseTextSearchable);
+
+        <div class="century">
+            شمار نویسه‌های همصدای مصرع @((v + 1).ToPersianNumbers()) (از @verseSameSound.Replace(" ", "").Length.ToPersianNumbers() نویسه)
+        </div>
+        <div id="letters-stat-sourceStringContainer-samev-@verse.Id" class="notice">@verseSameSound</div>
+        <div id="letters-stat-resultTableContainer-samev-@verse.Id" class="charContainer"></div>
+        <script>
+            countAndDisplayCharacters('@verseSameSound', 'letters-stat-resultTableContainer-samev-@verse.Id', 'letters-stat-sourceStringContainer-samev-@verse.Id');
+        </script>
+
+    }
+
+</div>
+
+
+
+
+
+
+<div id="comments-block-@Model.CoupletIndex" class="clear-both">
+    @foreach (var comment in Model.Comments)
+    {
+        <partial name="_CommentPartial.cshtml" model=Model.GetCommentModel(comment) />
+    }
+</div>
+@if (Model.LoggedIn)
+{
+    <script>
+        var userNotifiedOnEditInsteadOfComment = false;
+
+        function createInformationNotification() {
+            tinymce.activeEditor.notificationManager.open({
+                text: 'تمنا می‌کنیم که به جای گوشزد کردن خطاهای املایی و تایپی در حاشیه‌ها از دکمهٔ «ویرایش» استفاده کنید و خطا را تصحیح کنید.',
+                type: 'info'
+            });
+        }
+        tinymce.init({
+            selector: 'textarea.editorbnum',
+            language: 'fa_IR',
+            menubar: false,
+            plugins: 'link paste image',
+            contextmenu: false,
+            toolbar: 'undo redo | alignleft aligncenter alignright alignjustify | link',
+            paste_auto_cleanup_on_paste: true,
+            paste_remove_styles: true,
+            paste_remove_styles_if_webkit: true,
+            paste_strip_class_attributes: true,
+            a11y_advanced_options: true,
+            skin: (window.matchMedia("(prefers-color-scheme: dark)").matches && localStorage.getItem("scheme") != "light" ? "oxide-dark" : localStorage.getItem("scheme") == "dark" ? "oxide-dark" : "oxide"),
+            content_css: (window.matchMedia("(prefers-color-scheme: dark)").matches && localStorage.getItem("scheme") != "light" ? "dark" : localStorage.getItem("scheme") == "dark" ? "dark" : false),
+            setup: function (editor) {
+                editor.on('tap', function (e) {
+                    if (userNotifiedOnEditInsteadOfComment == false) {
+                        userNotifiedOnEditInsteadOfComment = true;
+                        createInformationNotification();
+                    }
+                },
+                );
+                editor.on('click', function (e) {
+                    if (userNotifiedOnEditInsteadOfComment == false) {
+                        userNotifiedOnEditInsteadOfComment = true;
+                        createInformationNotification();
+                    }
+                },
+                );
+            },
+        });
+    </script>
+    <form method="post" id="commentform-@Model.CoupletIndex" action="?handler=Comment">
+        <fieldset>
+            <legend>💬 دربارهٔ این خط حاشیه بگذارید ...</legend>
+            <table style="max-width:100%; width:100%; margin:0">
+                <tr>
+                    <td>
+                        <div class="required">
+                            <textarea name="comment" class="inputTextarea editorbnum" tabindex="4" rows="10" style="width:100%"></textarea>
+                        </div>
+                        <input type="hidden" name="poemId" value="@Model.PoemId" />
+                        <input type="hidden" name="coupletIndex" value="@Model.CoupletIndex" />
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <button name="postcomment-@Model.CoupletIndex" id="postcomment-@Model.CoupletIndex" class="submitCommentButton" onclick="return postComment('@Model.CoupletIndex', '#postcomment-@Model.CoupletIndex');" style="width:100%">درج حاشیه</button>
+                    </td>
+                </tr>
+            </table>
+        </fieldset>
+
+    </form>
+}
+else
+{
+    <p>
+        در صورت نام‌نویسی و ورود به دیوان می‌توانید برای این بیت/مصرع/پاراگراف حاشیه بنویسید.
+    </p>
+}
+

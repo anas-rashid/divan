@@ -78,7 +78,7 @@ namespace RMuseum.Utils.SemanticSearch
                     $"embeddings.f32 in '{embeddingsDirectory}' is {actualBytes} bytes, expected " +
                     $"{expectedBytes} (count={metadata.Count} x dimension={metadata.Dimension} x 4 bytes). " +
                     "The index and binary file don't agree — do not trust this data until re-verified " +
-                    "(see verify_embeddings.py in the ganjoor-embeddings tooling).");
+                    "(see verify_embeddings.py in the divan-embeddings tooling).");
 
             var vectors = new float[metadata.Count * metadata.Dimension];
             using (var stream = File.OpenRead(binPath))

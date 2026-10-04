@@ -3,8 +3,8 @@ using RMuseum.Models.Artifact;
 using RMuseum.Models.Artifact.ViewModels;
 using RMuseum.Models.Bookmark;
 using RMuseum.Models.Bookmark.ViewModels;
-using RMuseum.Models.GanjoorIntegration;
-using RMuseum.Models.GanjoorIntegration.ViewModels;
+using RMuseum.Models.DivanIntegration;
+using RMuseum.Models.DivanIntegration.ViewModels;
 using RMuseum.Models.ImportJob;
 using RMuseum.Models.Note;
 using RMuseum.Models.Note.ViewModels;
@@ -455,12 +455,12 @@ namespace RMuseum.Services
         Task<RServiceResult<(PaginationMetadata PagingMeta, RUserNoteViewModel[] Notes)>> GetAllPublicNotes(PagingParameterModel paging);
 
         /// <summary>
-        /// suggest ganjoor link
+        /// suggest divan link
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="link"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorLinkViewModel>> SuggestGanjoorLink(Guid userId, LinkSuggestion link);
+        Task<RServiceResult<DivanLinkViewModel>> SuggestDivanLink(Guid userId, LinkSuggestion link);
 
         /// <summary>
         /// get Unsynchronized image count
@@ -473,15 +473,15 @@ namespace RMuseum.Services
         /// </summary>
         /// <param name="skip"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorLinkViewModel[]>> GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(int skip);
+        Task<RServiceResult<DivanLinkViewModel[]>> GetNextUnsynchronizedSuggestedLinkWithAlreadySynchedOneForPoem(int skip);
 
         /// <summary>
-        /// get suggested ganjoor links
+        /// get suggested divan links
         /// </summary>
         /// <param name="status"></param>
         /// <param name="notSynced"></param>
         /// <returns></returns>
-        Task<RServiceResult<GanjoorLinkViewModel[]>> GetSuggestedLinks(ReviewResult status, bool notSynced);
+        Task<RServiceResult<DivanLinkViewModel[]>> GetSuggestedLinks(ReviewResult status, bool notSynced);
 
         /// <summary>
         /// Review Suggested Link
@@ -493,12 +493,12 @@ namespace RMuseum.Services
         Task<RServiceResult<bool>> ReviewSuggestedLink(Guid linkId, Guid userId, ReviewResult result);
 
         /// <summary>
-        /// remove ganjoor link
+        /// remove divan link
         /// </summary>
         /// <param name="id"></param>
         /// <param name="removeItemLink"></param>
         /// <returns></returns>
-        Task<RServiceResult<bool>> RemoveGanjoorLinkAsync(Guid id, bool removeItemLink);
+        Task<RServiceResult<bool>> RemoveDivanLinkAsync(Guid id, bool removeItemLink);
 
         /// <summary>
         /// Temporary api
@@ -565,10 +565,10 @@ namespace RMuseum.Services
         Task<RServiceResult<bool>> RemoveArtifact(Guid artifactId, bool checkJobs);
 
         /// <summary>
-        /// start filling GanjoorLink table OriginalSource values
+        /// start filling DivanLink table OriginalSource values
         /// </summary>
         /// <returns></returns>
-        RServiceResult<bool> StartFillingGanjoorLinkOriginalSources();
+        RServiceResult<bool> StartFillingDivanLinkOriginalSources();
 
         /// <summary>
         /// report a public note
@@ -625,10 +625,10 @@ namespace RMuseum.Services
         /// <summary>
         /// start setting an artifact items as text original source
         /// </summary>
-        /// <param name="ganjoorCatId"></param>
+        /// <param name="divanCatId"></param>
         /// <param name="artifactId"></param>
         /// <returns></returns>
-        RServiceResult<bool> StartSettingArtifactAsTextOriginalSource(int ganjoorCatId, Guid artifactId);
+        RServiceResult<bool> StartSettingArtifactAsTextOriginalSource(int divanCatId, Guid artifactId);
 
 
         /// <summary>
@@ -640,14 +640,14 @@ namespace RMuseum.Services
         RServiceResult<bool> StartUploadingArtifactToExternalServer(string friendlyUrl, bool skipUpload);
 
         /// <summary>
-        /// create images for ganjoor
+        /// create images for divan
         /// </summary>
         /// <param name="startPoetId"></param>
         /// <returns></returns>
         Task OpenAIStartCreatingImagesForPoemsAsync(int startPoetId);
 
         /// <summary>
-        /// create images for ganjoor - offline
+        /// create images for divan - offline
         /// </summary>
         Task OpenAIStartCreatingImagesForPoemsOfflineAsync();
 

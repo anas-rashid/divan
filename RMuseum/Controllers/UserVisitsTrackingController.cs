@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan.ViewModels;
 using RMuseum.Services;
 using RSecurityBackend.Models.Generic;
 using System;
@@ -26,7 +26,7 @@ namespace RMuseum.Controllers
         /// <returns></returns>
         [HttpGet]
         [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorUserBookmarkViewModel[]))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanUserBookmarkViewModel[]))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         public async Task<IActionResult> GetUserHistoryAsync(PagingParameterModel paging)
         {
@@ -44,10 +44,10 @@ namespace RMuseum.Controllers
         /// add a user history track
         /// </summary>
         /// <param name="poemId"></param>
-        /// <returns>GanjoorUserPrePoemVisitViewModel(LastVisit, TotalVisits)</returns>
+        /// <returns>DivanUserPrePoemVisitViewModel(LastVisit, TotalVisits)</returns>
         [HttpPost]
         [Authorize]
-        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(GanjoorUserPrePoemVisitViewModel))]
+        [ProducesResponseType((int)HttpStatusCode.OK, Type = typeof(DivanUserPrePoemVisitViewModel))]
         [ProducesResponseType((int)HttpStatusCode.BadRequest, Type = typeof(string))]
         [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
         public async Task<IActionResult> AddAsync([FromBody] int poemId)

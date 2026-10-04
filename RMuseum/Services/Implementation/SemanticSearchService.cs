@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using RMuseum.DbContext;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.SemanticSearch;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.SemanticSearch;
 using RMuseum.Utils.SemanticSearch;
 using System;
 using System.Collections.Generic;
@@ -22,9 +22,9 @@ namespace RMuseum.Services.Implementation
     }
 
     /// <summary>
-    /// Deliberately NOT a GanjoorService partial, unlike everything else in this project.
+    /// Deliberately NOT a DivanService partial, unlike everything else in this project.
     /// EmbeddingIndex (~530MB in memory) and QueryEmbedder (a loaded ONNX model) both need to be
-    /// true singletons — constructed once at startup, never per-request — while GanjoorService
+    /// true singletons — constructed once at startup, never per-request — while DivanService
     /// and RMuseumDbContext are scoped per-request throughout this codebase. Injecting a
     /// singleton's dependencies into a per-request class (or vice versa) is a real DI lifetime
     /// bug, not just an inconsistency, so this stays a separate service registered as a
@@ -32,8 +32,8 @@ namespace RMuseum.Services.Implementation
     ///
     /// Depends on LazySemanticSearchResources rather than EmbeddingIndex/QueryEmbedder directly —
     /// deliberately, after a production incident where eager, throwing DI factories for those two
-    /// meant a load failure (wrong/missing file paths) prevented GanjoorController itself from
-    /// being constructed, taking down every endpoint under /api/ganjoor with a 503, not just
+    /// meant a load failure (wrong/missing file paths) prevented DivanController itself from
+    /// being constructed, taking down every endpoint under /api/divan with a 503, not just
     /// semantic search. This class must never let a resource-loading failure become an unhandled
     /// exception that propagates past SearchAsync — see the catch below.
     ///
@@ -77,7 +77,7 @@ namespace RMuseum.Services.Implementation
 
             var response = new SemanticSearchResponseDto { Query = request.Query };
 
-            // a fresh, short-lived DbContext per call - same pattern GanjoorService's background
+            // a fresh, short-lived DbContext per call - same pattern DivanService's background
             // jobs already use throughout this codebase, since a scoped/request DbContext can't
             // be injected into this singleton service
             using (RMuseumDbContext context = new RMuseumDbContext(new DbContextOptions<RMuseumDbContext>()))
@@ -128,7 +128,7 @@ namespace RMuseum.Services.Implementation
                     // nothing for exactly that reason — it needs every descendant category, not
                     // just the one that was named.
                     var descendantCatIds = await GetDescendantCategoryIdsAsync(context, scopeCatId.Value);
-                    var ids = await context.GanjoorPoems.AsNoTracking()
+                    var ids = await context.DivanPoems.AsNoTracking()
                                         .Where(p => descendantCatIds.Contains(p.CatId))
                                         .Select(p => p.Id)
                                         .ToListAsync();
@@ -136,7 +136,7 @@ namespace RMuseum.Services.Implementation
                 }
                 else if (scopePoetId.HasValue)
                 {
-                    var ids = await context.GanjoorPoems.AsNoTracking()
+                    var ids = await context.DivanPoems.AsNoTracking()
                                         .Where(p => p.Cat.PoetId == scopePoetId.Value)
                                         .Select(p => p.Id)
                                         .ToListAsync();
@@ -154,12 +154,12 @@ namespace RMuseum.Services.Implementation
                 List<(int PoemId, float Score)> candidates = embeddingIndex.FindTopSimilar(queryVector, candidatePoolSize, allowedPoemIds);
 
                 var candidateIds = candidates.Select(c => c.PoemId).ToList();
-                var poemsById = await context.GanjoorPoems.AsNoTracking()
+                var poemsById = await context.DivanPoems.AsNoTracking()
                                         .Where(p => candidateIds.Contains(p.Id))
                                         .ToDictionaryAsync(p => p.Id);
 
                 // Gentle re-rank: a poem whose summary is still AI-generated and un-reviewed
-                // (still carries ganjoor-data's own "هوش مصنوعی:" prefix - removing it is part of
+                // (still carries divan-data's own "هوش مصنوعی:" prefix - removing it is part of
                 // that project's human-review/edit workflow) gets a small score penalty before
                 // final sorting. The DISPLAYED score stays the true, unpenalized cosine
                 // similarity (Score below uses c.Score, not AdjustedScore) - the penalty is
@@ -198,7 +198,7 @@ namespace RMuseum.Services.Implementation
                     // MaxVersesToScanForRelevance rather than the whole poem - covers the vast
                     // majority of ghazals/qasides/robaiyat in full, and still a reasonable bound
                     // for longer forms without pulling an unbounded number of rows per result.
-                    var candidateVerses = await context.GanjoorVerses.AsNoTracking()
+                    var candidateVerses = await context.DivanVerses.AsNoTracking()
                                         .Where(v => v.PoemId == poem.Id)
                                         .OrderBy(v => v.VOrder)
                                         .Take(MaxVersesToScanForRelevance)
@@ -283,7 +283,7 @@ namespace RMuseum.Services.Implementation
         }
 
         /// <summary>
-        /// ganjoor-data's own editing workflow requires this exact prefix be removed once a
+        /// divan-data's own editing workflow requires this exact prefix be removed once a
         /// human has reviewed/edited a poem's summary — its continued presence is a direct,
         /// already-existing signal for "not yet human-reviewed," not something this project
         /// invented or has to infer.
@@ -347,13 +347,13 @@ namespace RMuseum.Services.Implementation
         /// summary is clean, modern-language prose, while the verses themselves are archaic and
         /// metaphorical and often won't literally contain a query's keywords even when the
         /// couplet is genuinely on-topic. CoupletSummary is only ever read from the FIRST verse
-        /// of the pair (the "Right"/anchor position) — ganjoor-data stores it once per couplet
+        /// of the pair (the "Right"/anchor position) — divan-data stores it once per couplet
         /// there, never on the second ("Left") verse; a small number of "Left" rows do carry a
         /// stray value (a data anomaly, not a second legitimate copy), and this deliberately
         /// never reads it from that position, matching how the data is actually meant to be laid
         /// out rather than how a few rows happen to look.
         /// </summary>
-        private static List<GanjoorVerse> SelectPreviewVerses(List<GanjoorVerse> allVerses, List<string> keywords, int previewVerseCount)
+        private static List<DivanVerse> SelectPreviewVerses(List<DivanVerse> allVerses, List<string> keywords, int previewVerseCount)
         {
             if (keywords.Count > 0)
             {
@@ -381,7 +381,7 @@ namespace RMuseum.Services.Implementation
 
                 if (bestIndex >= 0)
                 {
-                    var result = new List<GanjoorVerse> { allVerses[bestIndex], allVerses[bestIndex + 1] };
+                    var result = new List<DivanVerse> { allVerses[bestIndex], allVerses[bestIndex + 1] };
                     int next = bestIndex + 2;
                     while (result.Count < previewVerseCount && next < allVerses.Count)
                     {
@@ -412,7 +412,7 @@ namespace RMuseum.Services.Implementation
 
             while (frontier.Count > 0)
             {
-                var children = await context.GanjoorCategories.AsNoTracking()
+                var children = await context.DivanCategories.AsNoTracking()
                                     .Where(c => c.ParentId.HasValue && frontier.Contains(c.ParentId.Value))
                                     .Select(c => c.Id)
                                     .ToListAsync();

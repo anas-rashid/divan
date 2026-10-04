@@ -10,7 +10,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "CachedFirstCoupletIndex",
-                table: "GanjoorPoemSections",
+                table: "DivanPoemSections",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
@@ -20,7 +20,7 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.DropColumn(
                 name: "CachedFirstCoupletIndex",
-                table: "GanjoorPoemSections");
+                table: "DivanPoemSections");
         }
     }
 }

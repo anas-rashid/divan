@@ -10,14 +10,14 @@
         /// </summary>
         public int Id { get; set; }
         /// <summary>
-        /// GanjoorDonation Id
+        /// DivanDonation Id
         /// </summary>
-        public int GanjoorDonationId { get; set; }
+        public int DivanDonationId { get; set; }
 
         /// <summary>
-        /// GanjoorDonation
+        /// DivanDonation
         /// </summary>
-        public GanjoorDonation GanjoorDonation { get; set; }
+        public DivanDonation DivanDonation { get; set; }
 
         /// <summary>
         /// amount

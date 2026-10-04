@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Services\Implementation\GanjoorService-Partials\GanjoorService-ModerateSectionCorrection.cs~RF19e20e05.TMP" />
+    <None Remove="Services\Implementation\DivanService-Partials\DivanService-ModerateSectionCorrection.cs~RF19e20e05.TMP" />
   </ItemGroup>
 
   <ItemGroup>

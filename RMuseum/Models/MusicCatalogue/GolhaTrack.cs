@@ -44,7 +44,7 @@ namespace RMuseum.Models.MusicCatalogue
         /// <summary>
         /// singer
         /// </summary>
-        public virtual GanjoorSinger Singer { get; set; }
+        public virtual DivanSinger Singer { get; set; }
 
         /// <summary>
         /// blocked from suggestion

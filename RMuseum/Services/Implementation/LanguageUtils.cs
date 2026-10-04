@@ -1,6 +1,6 @@
 ﻿using DNTPersianUtils.Core;
-using RMuseum.Models.Ganjoor;
-using RMuseum.Models.Ganjoor.ViewModels;
+using RMuseum.Models.Divan;
+using RMuseum.Models.Divan.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -119,7 +119,7 @@ namespace RMuseum.Services.Implementation
         /// <param name="bandCouplets"></param>
         /// <param name="tryWholeVerses"></param>
         /// <returns></returns>
-        public static GanjooRhymeAnalysisResult FindRhyme(List<GanjoorVerse> verses, bool secondPhase = false, bool bandCouplets = false, bool tryWholeVerses = false)
+        public static DivanRhymeAnalysisResult FindRhyme(List<DivanVerse> verses, bool secondPhase = false, bool bandCouplets = false, bool tryWholeVerses = false)
         {
             try
             {
@@ -132,7 +132,7 @@ namespace RMuseum.Services.Implementation
                     string rhyme = PrepareTextForFindingRhyme(verseTextList[0]);
                     if (string.IsNullOrEmpty(rhyme))
                     {
-                        return new GanjooRhymeAnalysisResult()
+                        return new DivanRhymeAnalysisResult()
                         {
                             Rhyme = "",
                             FailVerse = verseTextList[0]
@@ -229,13 +229,13 @@ namespace RMuseum.Services.Implementation
                                 {
                                     rhyme = "";
                                 }
-                                return new GanjooRhymeAnalysisResult()
+                                return new DivanRhymeAnalysisResult()
                                 {
                                     Rhyme = rhyme, //rhyme.Length > 50 condition check removed to search using prosody meters
                                     FailVerse = "",
                                 };
                             }
-                            return new GanjooRhymeAnalysisResult()
+                            return new DivanRhymeAnalysisResult()
                             {
                                 Rhyme = "",
                                 FailVerse = verseText
@@ -255,7 +255,7 @@ namespace RMuseum.Services.Implementation
                     ////rhyme.Length > 50 condition check removed to search using prosody meters
                     /*if (rhyme.Length > 50)
                     {
-                        return new GanjooRhymeAnalysisResult()
+                        return new DivanRhymeAnalysisResult()
                         {
                             Rhyme = "",
                             FailVerse = "",
@@ -267,7 +267,7 @@ namespace RMuseum.Services.Implementation
                         rhyme = "";
                     }
 
-                    return new GanjooRhymeAnalysisResult()
+                    return new DivanRhymeAnalysisResult()
                     {
                         Rhyme = rhyme,
                         FailVerse = ""
@@ -280,7 +280,7 @@ namespace RMuseum.Services.Implementation
 
             }
 
-            return new GanjooRhymeAnalysisResult() { Rhyme = "", FailVerse = "" };
+            return new DivanRhymeAnalysisResult() { Rhyme = "", FailVerse = "" };
         }
 
 

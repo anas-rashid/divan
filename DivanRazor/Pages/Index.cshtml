@@ -1,0 +1,228 @@
+﻿@page
+@model IndexModel
+@using DNTPersianUtils.Core
+@{
+    Layout = "_Layout";
+}
+
+@section Head {
+    <meta name="description" content="اردو کی کلاسیکی شاعری اور نثر">
+}
+
+@if (Model.OfflineMode)
+{
+    <div class="notice">
+        <p>
+            از آنجا که شما با شبکهٔ داخلی اطلاعات ایران وصل شده‌اید در حال مشاهدهٔ یک نسخهٔ آفلاین از دیوان هستید.
+        </p>
+        <p>
+            این یک نسخهٔ آفلاین با اطلاعات قدیمی از سایت دیوان است که برای ایرانیان داخل کشور که اینترنتشان قطع است در دسترس قرار گرفته است.
+        </p>
+        <p>
+            بعضی امکاناتِ نیازمند اینترنت حذف شده و برخی قابلیتها نیز ممکن است به درستی کار نکند.
+        </p>
+        <p>
+            امکانات نام‌نویسی و درج حاشیه نیز در آن غیرفعال است. اگر می‌توانید جایی اطلاعاتی وارد کنید انتظار ذخیرهٔ آن را به طور دائم نداشته باشید.
+        </p>
+        <p>
+            نسخهٔ به‌روز دیوان روی اینترنت تا پایان قطعی اینترنت در ایران برای آی.پی‌های خارج از ایران در دسترس است.
+        </p>
+    </div>
+}
+else if (Model.ReadOnlyMode)
+{
+    <div class="notice">
+        <p>
+            دیوان اس وقت صرف پڑھنے کے لیے دستیاب ہے۔
+        </p>
+        <p>
+            رکنیت اور حاشیہ لکھنے کی سہولت فی الحال بند ہے؛ یہاں درج کی گئی کوئی بھی چیز محفوظ نہیں رہے گی۔
+        </p>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.LastError))
+{
+    <div class="poem">
+        @Model.LastError
+    </div>
+}
+else
+{
+    <div id="hdr">
+        <h1><a href="/" title="دیوان" class="divan-wordmark">دیوان</a></h1>
+    </div>
+
+    <div id="fa">
+
+        <div class="actionbox">
+            <form action="/search" method="get" id="searchhorm">
+                <span class="home-search-input-wrap">
+                    <input type="text" name="s" id="s" placeholder="تلاش" class="inputText" size="35" value="" oninput="onHomeSearchInput(this.value)">
+                    <span id="home-search-clear" class="home-search-clear" style="display:none" title="صاف کریں" onclick="clearHomeSearch()">×</span>
+                </span>
+                <input type="hidden" name="es" id="es" value="1">
+                <select name="author" id="author">
+                    <option value="0" selected>تمام شعرا کے کلام میں</option>
+                    @{
+                        foreach (RMuseum.Models.Divan.ViewModels.DivanPoetViewModel poet in Model.Poets)
+                        {
+                            <option value="@poet.Id">@poet.Nickname</option>
+                        }
+                    }
+                </select>
+                <input type="submit" value="تلاش کریں">
+            </form>
+        </div>
+
+        <div class="spacer" id="home-found-poets" style="display:none"></div>
+        <p class="up-hint" id="home-search-hint" style="display:none"><small>متن میں تلاش کے لیے «تلاش کریں» دبائیں؛ نیچے کی فہرست صرف شعرا اور کتابوں کے ناموں میں تلاش کا نتیجہ ہے۔</small></p>
+
+        <partial name="_InlineLoginPartial" model="Model" />
+
+            <div id="main">
+                <div id="guides">
+
+                    <div id="home-popular-poets-row">
+                        <div class="century">
+                            مقبول شعرا
+                        </div>
+
+                        @{
+                            var popularGroup = Model.PoetGroups.Where(g => g.Id == 0).Single();
+
+                            if (popularGroup.ShowInTimeLine)
+                            {
+                                <div class="century">
+                                    @popularGroup.Name
+                                </div>
+                            }
+                            <div class="spacer">
+                                @foreach (var poet in popularGroup.Poets)
+                                {
+                                    <div class="poet" data-value="@poet.Nickname">
+                                        <a href="@poet.FullUrl" title="@poet.Name">
+                                            <img src="@(DivanRazor.APIRoot.InternetUrl+poet.ImageUrl)" alt="@poet.Name">
+                                        </a>
+                                        <div class="caption">
+                                            <a href="@poet.FullUrl">@poet.Nickname</a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    @{
+                        <div class="century" id="cl">
+                            صدیوں کے لحاظ سے
+                        </div>
+
+                        <div id="real-centuries">
+                            <div class="circled-number-container">
+                                @foreach (var g in Model.PoetGroups)
+                                {
+                                    if (g.Id != 0)
+                                    {
+                                        <a href="#pg-@g.Id">
+                                            <div class="circled-number">
+                                                @((g.HalfCenturyOrder + 2).ToPersianNumbers())
+                                            </div>
+                                        </a>
+                                    }
+                                }
+                                <a href="#gmap">
+                                    <div class="circled-number">
+                                        <i class="notranslate noindent-info-button map-icon"></i>
+                                    </div>
+                                </a>
+                            </div>
+
+                            @foreach (var poetGroup in Model.PoetGroups)
+                            {
+                                if (poetGroup.Id == 0) continue;
+                                if (poetGroup.ShowInTimeLine)
+                                {
+                                    <div class="century" id="pg-@poetGroup.Id">
+                                        @poetGroup.Name
+                                    </div>
+                                }
+                                <div class="spacer">
+                                    @foreach (var poet in poetGroup.Poets)
+                                    {
+                                        <div class="poet" data-value="@poet.Nickname">
+                                            <a href="@poet.FullUrl" title="@poet.Name">
+                                                <img src="@(DivanRazor.APIRoot.InternetUrl+poet.ImageUrl)" alt="@poet.Name">
+                                            </a>
+                                            <div class="caption">
+                                                <a href="@poet.FullUrl">@poet.Nickname</a>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                                @if (poetGroup.Id == 0)
+                                {
+                                    <div class="century" id="cl">
+                                        صدیوں کے لحاظ سے
+                                    </div>
+                                    <div class="circled-number-container">
+                                        @foreach (var g in Model.PoetGroups)
+                                        {
+                                            if (g.Id != 0)
+                                            {
+                                                <a href="#pg-@g.Id">
+                                                    <div class="circled-number">
+                                                        @((g.HalfCenturyOrder + 2).ToPersianNumbers())
+                                                    </div>
+                                                </a>
+                                            }
+                                        }
+                                    </div>
+                                }
+                            }
+                        </div>
+                    }
+
+
+
+                    <div class="century" id="gmap">
+                        <a href="/map">
+                            شعرا کی جائے پیدائش کا نقشہ
+                        </a>
+                    </div>
+                    <div class="spacer">
+                        <div class="poet">
+                            <a href="/map"><img src="/image/map.gif" alt="دیوان کا نقشہ"></a>
+                        </div>
+                    </div>
+
+                    <div class="century" id="books-shelf-caption">
+                        کتابوں کی الماری
+                    </div>
+                    <div id="books-shelf-outer">
+                        <button type="button" class="books-shelf-handle books-shelf-handle-right" aria-label="دائیں جانب مزید کتابیں" onclick="scrollBooksShelf(220)">‹</button>
+                        <div id="books-shelf-wrap">
+                            <div id="books-shelf" aria-label="کتابوں کی الماری"></div>
+                        </div>
+                        <button type="button" class="books-shelf-handle books-shelf-handle-left" aria-label="بائیں جانب مزید کتابیں" onclick="scrollBooksShelf(-220)">›</button>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <partial name="_FooterPartial" model=@(new _FooterPartialModel(){StickyEnabled = true}) />
+
+            </div>
+}
+
+@if (ViewData["TrackingScript"] != null && !string.IsNullOrEmpty(ViewData["TrackingScript"].ToString()))
+{
+    @Html.Raw(ViewData["TrackingScript"])
+}
+
+@section Scripts {
+    <script>
+        initHomeBooksShelf();
+    </script>
+}

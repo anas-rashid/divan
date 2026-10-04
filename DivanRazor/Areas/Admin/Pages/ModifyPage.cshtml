@@ -1,0 +1,251 @@
+﻿@page
+@model DivanRazor.Areas.Admin.Pages.ModifyPageModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "ویرایش";
+}
+<div class="up-page-header">
+    <h1>@ViewData["Title"]</h1>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.LastMessage))
+{
+    <div class="up-alert up-alert--info">@Html.Raw(Model.LastMessage)</div>
+}
+
+@if (Model.PageInformation != null)
+{
+    <script>
+        function defaultHtmlText() {
+            $('#ModifyModel_HtmlText').html('@Model.DefaultHtmlText');
+        }
+
+        function computePoemRhyme(poemId, elementId) {
+            $.ajax({
+                type: "GET",
+                url: '?Handler=ComputeRhyme',
+                data: {
+                    id: poemId
+                },
+                error: function() {
+                    upToast('خطا رخ داد.', 'error');
+                },
+                success: function(rhyme) {
+                    $(elementId).val(rhyme);
+                    return false;
+                },
+            });
+        }
+    </script>
+
+    <div class="up-card">
+        <form method="post" class="up-form">
+            @Html.AntiForgeryToken()
+            <div class="up-field">
+                <label>شناسهٔ صفحه</label>
+                <div class="up-field-static"><a href="/?p=@Request.Query["id"]">@Request.Query["id"]</a></div>
+            </div>
+            <div class="up-field">
+                <label asp-for="ModifyModel.Title">عنوان</label>
+                <input asp-for="ModifyModel.Title" />
+            </div>
+            <div class="up-field up-field--ltr">
+                <label asp-for="ModifyModel.UrlSlug">نامک</label>
+                <input asp-for="ModifyModel.UrlSlug" />
+            </div>
+            <div class="up-field">
+                <label asp-for="ModifyModel.HtmlText">متن</label>
+                <textarea asp-for="ModifyModel.HtmlText" tabindex="4" rows="20"></textarea>
+            </div>
+
+            @if (Model.PageInformation.DivanPageType == RMuseum.Models.Divan.DivanPageType.PoemPage)
+            {
+                <div class="up-field">
+                    <label>منبع</label>
+                    <input asp-for="ModifyModel.SourceName" placeholder="نام" />
+                    <input asp-for="ModifyModel.SourceUrlSlug" placeholder="نشانی" style="direction:ltr;text-align:left;" />
+                </div>
+                <div class="up-field">
+                    <label>دسته‌بندی کهن</label>
+                    <input asp-for="ModifyModel.OldTag" placeholder="نام" />
+                    <input asp-for="ModifyModel.OldTagPageUrl" placeholder="نشانی" style="direction:ltr;text-align:left;" />
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.Rhythm">وزن</label>
+                    <input asp-for="ModifyModel.Rhythm" list="rythms" />
+                    <datalist id="rythms">
+                        @if (Model.Rhythms != null)
+                        {
+                            foreach (var rhythm in Model.Rhythms)
+                            {
+                                <option value="@rhythm.Rhythm">@rhythm.Rhythm</option>
+                            }
+                        }
+                    </datalist>
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.RhymeLetters">حروف قافیه</label>
+                    <div class="up-form-actions">
+                        <input asp-for="ModifyModel.RhymeLetters" style="flex:1;" />
+                        <a role="button" onclick="computePoemRhyme(@Request.Query["id"], '#ModifyModel_RhymeLetters')" class="up-btn up-btn--ghost up-btn--sm">محاسبه</a>
+                    </div>
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.Language">زبان (برای کدگذاری صفحه و نه مشخصات لهجه‌ها)</label>
+                    <select asp-for="ModifyModel.Language">
+                        <option value="">اردو</option>
+                        <option value="fa">فارسی</option>
+                        <option value="ar">عربی</option>
+                    </select>
+                </div>
+            }
+
+            @if (Model.PageInformation.DivanPageType == RMuseum.Models.Divan.DivanPageType.CatPage || Model.PageInformation.DivanPageType == RMuseum.Models.Divan.DivanPageType.PoetPage || Model.PageInformation.DivanPageType == RMuseum.Models.Divan.DivanPageType.PoemPage)
+            {
+                <div class="up-field">
+                    <label asp-for="ModifyModel.Published">منتشر شده (فعلا استفاده نشده)</label>
+                    <input type="checkbox" asp-for="ModifyModel.Published" />
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.MixedModeOrder">ترتیب در فهرستها</label>
+                    <input asp-for="ModifyModel.MixedModeOrder" />
+                </div>
+            }
+
+            @if (Model.PageInformation.DivanPageType == RMuseum.Models.Divan.DivanPageType.CatPage || Model.PageInformation.DivanPageType == RMuseum.Models.Divan.DivanPageType.PoetPage)
+            {
+                <div class="up-field">
+                    <label asp-for="ModifyModel.CatType">نوع بخش (فقط بخش‌ها)</label>
+                    <select asp-for="ModifyModel.CatType">
+                        <option value="@RMuseum.Models.Divan.DivanCatType.Default">پیش‌فرض</option>
+                        <option value="@RMuseum.Models.Divan.DivanCatType.Book">کتاب</option>
+                        <option value="@RMuseum.Models.Divan.DivanCatType.BookPart">بخش</option>
+                    </select>
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.TableOfContentsStyle">نحوهٔ فهرست‌گذاری بخش (فقط بخش‌ها)</label>
+                    <select asp-for="ModifyModel.TableOfContentsStyle">
+                        <option value="@RMuseum.Models.Divan.DivanTOC.Analyse">بر اساس تحلیل بخش</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.OnlyTitles">فقط عناوین</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstVerse">عنوان و مصرع اول</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstVerse">الفبایی با مصرع اول</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithSecondVerse">الفبایی با مصرع دوم</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstCouplet">الفبایی با بیت اول</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndSecondVerse">عنوان و مصرع دوم</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstCouplet">عنوان و بیت اول</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstCenteredVerse">عنوان و مصرع بند</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstCenteredCouplet">عنوان و بیت بند</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstVerseNotSorted">الفبایی با مصرع اول - مرتب نشده</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithSecondVerseNotSorted">الفبایی با مصرع دوم - مرتب نشده</option>
+                        <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstCoupletNotSorted">الفبایی با بیت اول - مرتب نشده</option>
+                    </select>
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.Description">توضیحات متنی بخش (فقط بخش‌ها)</label>
+                    <textarea asp-for="ModifyModel.Description" rows="20"></textarea>
+                </div>
+                <div class="up-field">
+                    <label asp-for="ModifyModel.DescriptionHtml">توضیحات Html بخش (فقط بخش‌ها)</label>
+                    <textarea asp-for="ModifyModel.DescriptionHtml" class="editor"></textarea>
+                </div>
+            }
+
+            <div class="up-field">
+                <label asp-for="ModifyModel.NoIndex">ایندکس نشود</label>
+                <input type="checkbox" asp-for="ModifyModel.NoIndex" />
+            </div>
+            <div class="up-field up-field--ltr">
+                <label asp-for="ModifyModel.RedirectFromFullUrl">از این نشانی (کامل) هم به این صفحه ری‌دایرکت شود</label>
+                <input asp-for="ModifyModel.RedirectFromFullUrl" />
+            </div>
+            <div class="up-field">
+                <label asp-for="ModifyModel.Note">توضیح این ویرایش</label>
+                <input asp-for="ModifyModel.Note" />
+            </div>
+
+            <div class="up-form-actions">
+                <button type="submit" name="approve" id="approve" class="up-btn up-btn--success">ذخیره</button>
+            </div>
+
+            <div class="up-form-actions" style="margin-top:var(--up-space-3);">
+                <a href="/Admin/PageHistory?id=@Request.Query["id"]" class="up-btn up-btn--ghost up-btn--sm">سوابق</a>
+                <a role="button" href="/Admin/CatUtils?url=@Model.PageInformation.FullUrl" class="up-btn up-btn--ghost up-btn--sm">مدیریت بخش متناظر</a>
+                @if (Model.PageInformation.PoetOrCat != null)
+                {
+                    <a role="button" href="/Admin/Poet?id=@Model.PageInformation.PoetOrCat.Poet.Id" class="up-btn up-btn--ghost up-btn--sm">سخنور</a>
+                }
+            </div>
+        </form>
+    </div>
+
+    <div class="up-card">
+        <form action="?Handler=GenerateCatPage&id=@Model.PageInformation.Id" method="post" class="up-form">
+            @Html.AntiForgeryToken()
+            <div class="up-field">
+                <label asp-for="DivanTOC">تولید فهرست</label>
+                <select asp-for="DivanTOC">
+                    <option value="@RMuseum.Models.Divan.DivanTOC.Analyse">بر اساس تحلیل بخش</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.OnlyTitles">فقط عناوین</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstVerse">عنوان و مصرع اول</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstVerse">الفبایی با مصرع اول</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithSecondVerse">الفبایی با مصرع دوم</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstCouplet">الفبایی با بیت اول</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndSecondVerse">عنوان و مصرع دوم</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstCouplet">عنوان و بیت اول</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstCenteredVerse">عنوان و مصرع بند</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.TitlesAndFirstCenteredCouplet">عنوان و بیت بند</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstVerseNotSorted">الفبایی با مصرع اول - مرتب نشده</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithSecondVerseNotSorted">الفبایی با مصرع دوم - مرتب نشده</option>
+                    <option value="@RMuseum.Models.Divan.DivanTOC.AlphabeticWithFirstCoupletNotSorted">الفبایی با بیت اول - مرتب نشده</option>
+                </select>
+            </div>
+            <div class="up-form-actions">
+                <button type="submit" class="up-btn up-btn--primary">تولید</button>
+                <button type="submit" name="directInsert" id="directInsert" class="up-btn up-btn--primary">درج مستقیم</button>
+            </div>
+        </form>
+    </div>
+
+    @if (Model.PageInformation.Poem != null)
+    {
+        <div class="up-form-actions">
+            @if (Model.PageInformation.Poem.Previous != null)
+            {
+                <a href="/Admin/ModifyPage?id=@Model.PageInformation.Poem.Previous.Id" class="up-btn up-btn--ghost up-btn--sm">ویرایش شعر قبل</a>
+            }
+            @if (Model.PageInformation.Poem.Next != null)
+            {
+                <a href="/Admin/ModifyPage?id=@Model.PageInformation.Poem.Next.Id" class="up-btn up-btn--ghost up-btn--sm">ویرایش شعر بعد</a>
+            }
+        </div>
+    }
+
+    <div class="up-card">
+        <h2 class="up-card__title">ابزارها</h2>
+        <div class="up-form-actions">
+            <a role="button" onclick="defaultHtmlText()" class="up-btn up-btn--ghost up-btn--sm" title="چینش پیش‌فرض ابیات">چینش پیش‌فرض ابیات</a>
+            <a role="button" onclick="cleanCache(@Model.PageInformation.Id)" class="up-btn up-btn--ghost up-btn--sm" title="حذف کش صفحه">حذف کش صفحه</a>
+            <a role="button" onclick="rebuildSitemap()" class="up-btn up-btn--ghost up-btn--sm" title="بازسازی نقشهٔ سایت">بازسازی نقشهٔ سایت</a>
+            <a role="button" onclick="refillCoupletCounts()" class="up-btn up-btn--ghost up-btn--sm">بازشماری تعداد ابیات قطعات</a>
+            <a role="button" onclick="rebuildStats()" class="up-btn up-btn--ghost up-btn--sm" title="بازسازی صفحات آمار و اوزان عروضی">بازسازی صفحات آمار و اوزان عروضی</a>
+            <a role="button" onclick="rebuildRelatedPages()" class="up-btn up-btn--ghost up-btn--sm" title="بازسازی صفحات استقبالها">بازسازی صفحات استقبالها</a>
+            <a role="button" onclick="rebuildDigitalSourcesStats()" class="up-btn up-btn--ghost up-btn--sm" title="بازسازی آمار منابع دیجیتال">بازسازی آمار منابع دیجیتال</a>
+            <a role="button" onclick="regeneratePublicData()" class="up-btn up-btn--ghost up-btn--sm" title="بازسازی و ارسال دادهٔ عمومی دیوان">بازسازی دادهٔ عمومی</a>
+        </div>
+
+        @if (Model.PageInformation.PoetOrCat != null)
+        {
+            <div class="up-form-actions" style="margin-top:var(--up-space-2);">
+                <a role="button" onclick="rebuildRebuildWordCounts(@Model.PageInformation.PoetOrCat.Poet.Id)" class="up-btn up-btn--ghost up-btn--sm" title="شمارش واژگان">شمارش واژگان</a>
+                <a role="button" onclick="discoverNaskbanPaperSources(@Model.PageInformation.PoetOrCat.Poet.Id)" class="up-btn up-btn--ghost up-btn--sm" title="فهرست کردن کتابهای نسکبان">فهرست کردن کتابهای نسکبان</a>
+                <a role="button" onclick="discoverMusuemPaperSources(@Model.PageInformation.PoetOrCat.Poet.Id)" class="up-btn up-btn--ghost up-btn--sm" title="فهرست کردن کتابهای گنجینه">فهرست کردن کتابهای گنجینه</a>
+            </div>
+        }
+    </div>
+
+    <div class="up-form-actions">
+        <a role="button" href="/Admin/ModifyPage?id=0" class="up-btn up-btn--ghost up-btn--sm">صفحهٔ جدید</a>
+        <a role="button" href="/Admin/PageDel/?url=@Model.PageInformation.FullUrl" class="up-btn up-btn--danger up-btn--sm">حذف صفحه</a>
+    </div>
+}

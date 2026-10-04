@@ -12,33 +12,33 @@ namespace RMuseum.Migrations
         {
             migrationBuilder.AddColumn<int>(
                 name: "ExistingAffiliationId",
-                table: "GanjoorPersonRelationEditSuggestions",
+                table: "DivanPersonRelationEditSuggestions",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.AddColumn<int>(
                 name: "Kind",
-                table: "GanjoorPersonRelationEditSuggestions",
+                table: "DivanPersonRelationEditSuggestions",
                 type: "int",
                 nullable: false,
                 defaultValue: 0);
 
             migrationBuilder.AddColumn<int>(
                 name: "SuggestedAffiliationType",
-                table: "GanjoorPersonRelationEditSuggestions",
+                table: "DivanPersonRelationEditSuggestions",
                 type: "int",
                 nullable: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_GanjoorPersonRelationEditSuggestions_ExistingAffiliationId",
-                table: "GanjoorPersonRelationEditSuggestions",
+                name: "IX_DivanPersonRelationEditSuggestions_ExistingAffiliationId",
+                table: "DivanPersonRelationEditSuggestions",
                 column: "ExistingAffiliationId");
 
             migrationBuilder.AddForeignKey(
-                name: "FK_GanjoorPersonRelationEditSuggestions_GanjoorPersonAffiliations_ExistingAffiliationId",
-                table: "GanjoorPersonRelationEditSuggestions",
+                name: "FK_DivanPersonRelationEditSuggestions_DivanPersonAffiliations_ExistingAffiliationId",
+                table: "DivanPersonRelationEditSuggestions",
                 column: "ExistingAffiliationId",
-                principalTable: "GanjoorPersonAffiliations",
+                principalTable: "DivanPersonAffiliations",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
         }
@@ -47,24 +47,24 @@ namespace RMuseum.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
-                name: "FK_GanjoorPersonRelationEditSuggestions_GanjoorPersonAffiliations_ExistingAffiliationId",
-                table: "GanjoorPersonRelationEditSuggestions");
+                name: "FK_DivanPersonRelationEditSuggestions_DivanPersonAffiliations_ExistingAffiliationId",
+                table: "DivanPersonRelationEditSuggestions");
 
             migrationBuilder.DropIndex(
-                name: "IX_GanjoorPersonRelationEditSuggestions_ExistingAffiliationId",
-                table: "GanjoorPersonRelationEditSuggestions");
+                name: "IX_DivanPersonRelationEditSuggestions_ExistingAffiliationId",
+                table: "DivanPersonRelationEditSuggestions");
 
             migrationBuilder.DropColumn(
                 name: "ExistingAffiliationId",
-                table: "GanjoorPersonRelationEditSuggestions");
+                table: "DivanPersonRelationEditSuggestions");
 
             migrationBuilder.DropColumn(
                 name: "Kind",
-                table: "GanjoorPersonRelationEditSuggestions");
+                table: "DivanPersonRelationEditSuggestions");
 
             migrationBuilder.DropColumn(
                 name: "SuggestedAffiliationType",
-                table: "GanjoorPersonRelationEditSuggestions");
+                table: "DivanPersonRelationEditSuggestions");
         }
     }
 }

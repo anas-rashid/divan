@@ -1,8 +1,8 @@
-# Divan: builds RMuseum (API) or GanjooRazor (site) for Linux.
+# Divan: builds RMuseum (API) or DivanRazor (site) for Linux.
 # The projects target net10.0-windows7.0 (their RSecurityBackend dependency only ships for it), but they
 # only use the plain .NET + ASP.NET Core runtimes, so the framework-dependent output runs on Linux.
 #   docker build --build-arg PROJECT=RMuseum .
-#   docker build --build-arg PROJECT=GanjooRazor .
+#   docker build --build-arg PROJECT=DivanRazor .
 # SDK pinned to RMuseum/global.json: newer Razor compilers (10.0.4xx) reject some upstream views
 FROM mcr.microsoft.com/dotnet/sdk:10.0.302 AS build
 ARG PROJECT

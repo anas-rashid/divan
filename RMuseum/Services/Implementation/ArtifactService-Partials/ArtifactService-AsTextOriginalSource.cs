@@ -17,10 +17,10 @@ namespace RMuseum.Services.Implementation
         /// <summary>
         /// start setting an artifact items as text original source
         /// </summary>
-        /// <param name="ganjoorCatId"></param>
+        /// <param name="divanCatId"></param>
         /// <param name="artifactId"></param>
         /// <returns></returns>
-        public RServiceResult<bool> StartSettingArtifactAsTextOriginalSource(int ganjoorCatId, Guid artifactId)
+        public RServiceResult<bool> StartSettingArtifactAsTextOriginalSource(int divanCatId, Guid artifactId)
         {
             try
             {
@@ -31,18 +31,18 @@ namespace RMuseum.Services.Implementation
                                 using (RMuseumDbContext context = new RMuseumDbContext(new DbContextOptions<RMuseumDbContext>())) //this is long running job, so _context might be already been freed/collected by GC
                                 {
                                     LongRunningJobProgressServiceEF jobProgressServiceEF = new LongRunningJobProgressServiceEF(context);
-                                    var job = (await jobProgressServiceEF.NewJob($"SettingArtifactAsTextOriginalSource({ganjoorCatId}, {artifactId})", "Query Poems Data")).Result;
+                                    var job = (await jobProgressServiceEF.NewJob($"SettingArtifactAsTextOriginalSource({divanCatId}, {artifactId})", "Query Poems Data")).Result;
 
                                     try
                                     {
                                         List<int> poemIdSet = new List<int>();
-                                        await _EnumerateGanjoorCatPoemIdSet(context, poemIdSet, ganjoorCatId);
+                                        await _EnumerateDivanCatPoemIdSet(context, poemIdSet, divanCatId);
                                         await jobProgressServiceEF.UpdateJob(job.Id, 0, "Query Links Data");
-                                        var links = await context.GanjoorLinks.Where(l => l.ArtifactId == artifactId).ToListAsync();
+                                        var links = await context.DivanLinks.Where(l => l.ArtifactId == artifactId).ToListAsync();
                                         await jobProgressServiceEF.UpdateJob(job.Id, 0, "Removing Old Originals");
                                         foreach (var poemId in poemIdSet)
                                         {
-                                            var poemLinks = await context.GanjoorLinks.Where(l => l.GanjoorPostId == poemId && l.IsTextOriginalSource == true).ToListAsync();
+                                            var poemLinks = await context.DivanLinks.Where(l => l.DivanPostId == poemId && l.IsTextOriginalSource == true).ToListAsync();
                                             foreach (var poemLink in poemLinks)
                                             {
                                                 poemLink.IsTextOriginalSource = false;
@@ -52,7 +52,7 @@ namespace RMuseum.Services.Implementation
                                         await jobProgressServiceEF.UpdateJob(job.Id, 0, "Updating");
                                         foreach (var link in links)
                                         {
-                                            if(poemIdSet.Where(p => p == link.GanjoorPostId).Any())
+                                            if(poemIdSet.Where(p => p == link.DivanPostId).Any())
                                             {
                                                 link.IsTextOriginalSource = true;
                                                 context.Update(link);
@@ -78,15 +78,15 @@ namespace RMuseum.Services.Implementation
             }
         }
 
-        private async Task _EnumerateGanjoorCatPoemIdSet(RMuseumDbContext context, List<int> poemIdSet, int catId)
+        private async Task _EnumerateDivanCatPoemIdSet(RMuseumDbContext context, List<int> poemIdSet, int catId)
         {
-            var catPoemIdSets = await context.GanjoorPoems.AsNoTracking().Where(p => p.CatId == catId).Select(p => p.Id).ToListAsync();
+            var catPoemIdSets = await context.DivanPoems.AsNoTracking().Where(p => p.CatId == catId).Select(p => p.Id).ToListAsync();
             if (catPoemIdSets.Count > 0)
                 poemIdSet.AddRange(catPoemIdSets);
-            var subCatIdSet = await context.GanjoorCategories.AsNoTracking().Where(c => c.ParentId == catId).Select(c => c.Id).ToListAsync();
+            var subCatIdSet = await context.DivanCategories.AsNoTracking().Where(c => c.ParentId == catId).Select(c => c.Id).ToListAsync();
             foreach (var subCatId in subCatIdSet)
             {
-                await _EnumerateGanjoorCatPoemIdSet(context, poemIdSet, subCatId);
+                await _EnumerateDivanCatPoemIdSet(context, poemIdSet, subCatId);
             }
         }
     }
