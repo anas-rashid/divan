@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="ur-PK" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دیوان · قاری</title>
+<meta name="description" content="دیوان کا سادہ قاری: اردو کی کلاسیکی شاعری اور نثر، براہِ راست divan-data سے۔">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400..700&family=Noto+Naskh+Arabic:wght@400..700&display=swap" rel="stylesheet">
+<style>
+  /* Divan static reader: no server, reads the divan-data static API (ganjoor-data layout). */
+  :root {
+    --bg: #faf7f0; --card: #ffffff; --ink: #2b2620; --muted: #7a6f60; --line: #e6dfd2; --accent: #8a5a19;
+    --font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --lh: 2.5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #17140f; --card: #211d17; --ink: #ece4d6; --muted: #a89c88; --line: #3a3328; --accent: #d9a55a; }
+  }
+  html.naskh { --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --lh: 2; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: var(--lh); }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  header { display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--card); position: sticky; top: 0; z-index: 1; }
+  header h1 { margin: 0; font-size: 1.8rem; font-weight: 700; }
+  header .grow { flex: 1; }
+  button { font: inherit; background: none; color: var(--ink); border: 1px solid var(--line); border-radius: 20px; padding: 0 14px; cursor: pointer; }
+  main { max-width: 860px; margin: 0 auto; padding: 16px; }
+  .crumbs { color: var(--muted); font-size: .95rem; }
+  .crumbs a + a::before, .crumbs a + span::before { content: " « "; color: var(--muted); }
+  input[type=search] { width: 100%; font: inherit; padding: 4px 14px; border: 1px solid var(--line); border-radius: 22px; background: var(--card); color: var(--ink); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 16px; }
+  .grid a, .list a { display: block; background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 4px 14px; }
+  .list { display: grid; gap: 6px; margin-top: 12px; }
+  .years { color: var(--muted); font-size: .85rem; }
+  .intro { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 8px 16px; white-space: pre-line; }
+  .poem { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-top: 12px; }
+  .b { display: grid; grid-template-columns: 1fr 1fr; gap: 0 32px; margin: 4px 0 12px; }
+  .b p { margin: 0; }
+  .b p:last-child { text-align: left; }
+  .s { text-align: center; margin: 0; }
+  .para { text-align: justify; margin: 0 0 12px; }
+  .source { color: var(--muted); font-size: .85rem; margin-top: 16px; }
+  @media (max-width: 600px) { .b { grid-template-columns: 1fr; } .b p:last-child { text-align: right; padding-right: 32px; } }
+  .msg { color: var(--muted); text-align: center; padding: 32px; }
+</style>
+<script>try { if (localStorage.getItem('divan-font') === 'naskh') document.documentElement.classList.add('naskh'); } catch (e) {}</script>
+</head>
+<body>
+<header>
+  <h1><a href="#/">دیوان</a></h1>
+  <span class="grow"></span>
+  <button id="font" type="button" title="خط بدلیں">نستعلیق</button>
+</header>
+<main id="app"><p class="msg">لوڈ ہو رہا ہے…</p></main>
+<script>
+// Data source: ?data=<base url> (e.g. ?data=data/ when served next to a divan-data checkout), else the public CDN.
+var DATA = new URLSearchParams(location.search).get('data') || 'https://cdn.jsdelivr.net/gh/anas-rashid/divan-data@main/';
+var app = document.getElementById('app');
+var cache = {};
+
+function get(path) {
+  if (!cache[path]) cache[path] = fetch(DATA + path).then(function (r) { if (!r.ok) throw new Error(r.status + ' ' + path); return r.json(); });
+  return cache[path];
+}
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+function ud(n) { return String(n).replace(/[0-9]/g, function (d) { return '۰۱۲۳۴۵۶۷۸۹'[d]; }); }
+function years(p) {
+  var b = p.ValidBirthDate ? ud(p.BirthYearInLHijri) : '', d = p.ValidDeathDate ? ud(p.DeathYearInLHijri) : '';
+  return b || d ? (b || '؟') + ' – ' + (d || '؟') + ' ھ' : '';
+}
+function link(url, text) { return '<a href="#' + esc(url) + '">' + esc(text) + '</a>'; }
+
+function crumbs(fullTitle, fullUrl) {
+  // FullTitle "poet » cat » ... » poem" lines up with FullUrl segments "/p1/cat/.../sh9"
+  var titles = fullTitle.split(' » '), segs = fullUrl.split('/').filter(Boolean), out = [link('/', 'سرورق')];
+  titles.forEach(function (t, i) {
+    var u = '/' + segs.slice(0, i + 1).join('/');
+    out.push(i < titles.length - 1 ? link(u, t) : '<span>' + esc(t) + '</span>');
+  });
+  return '<div class="crumbs">' + out.join('') + '</div>';
+}
+
+function home() {
+  return get('manifest.json').then(function (m) {
+    app.innerHTML = '<input type="search" id="q" placeholder="شاعر تلاش کریں (' + ud(m.PoetsCount) + ' شعرا، ' + ud(m.PoemsCount) + ' تخلیقات)">' +
+      '<div class="grid" id="poets"></div>';
+    var box = document.getElementById('poets');
+    function render(q) {
+      box.innerHTML = m.Poets.filter(function (p) { return !q || p.Nickname.indexOf(q) >= 0; })
+        .map(function (p) { return link(p.FullUrl, p.Nickname); }).join('');
+    }
+    render('');
+    document.getElementById('q').oninput = function (e) { render(e.target.value.trim()); };
+  });
+}
+
+function category(url) {
+  var slug = url.split('/')[1];
+  return Promise.all([get('poets' + url + '/_cat.json'), get('poets/' + slug + '/poet.json')]).then(function (r) {
+    var c = r[0], poet = r[1], isRoot = c.ParentId == null;
+    var html = isRoot
+      ? '<div class="crumbs">' + link('/', 'سرورق') + '<span>' + esc(poet.Nickname) + '</span></div><h2>' + esc(poet.Name) + ' <span class="years">' + years(poet) + '</span></h2>' +
+        (poet.Description ? '<div class="intro">' + esc(poet.Description) + '</div>' : '')
+      : '<h2>' + esc(c.Title) + '</h2>';
+    if (!isRoot) {
+      // breadcrumb for a sub-category: walk up via FullUrl
+      var segs = url.split('/').filter(Boolean);
+      html = '<div class="crumbs">' + link('/', 'سرورق') + link('/' + segs[0], poet.Nickname) +
+        segs.slice(1).map(function (s, i) { return i < segs.length - 2 ? link('/' + segs.slice(0, i + 2).join('/'), '…') : '<span>' + esc(c.Title) + '</span>'; }).join('') + '</div>' + html;
+    }
+    html += '<div class="list">' + c.ChildCats.map(function (x) { return link(x.FullUrl, '📚 ' + x.Title); }).join('') +
+      c.Poems.map(function (x) { return link(x.FullUrl, x.Title); }).join('') + '</div>';
+    app.innerHTML = html;
+  });
+}
+
+function poem(url) {
+  return get('poets' + url + '.json').then(function (p) {
+    var html = crumbs(p.FullTitle, p.FullUrl) + '<h2>' + esc(p.Title) + '</h2><div class="poem">', pair = [];
+    p.Verses.forEach(function (v) {
+      if (v.Position === 'Right') pair = [v.Text];
+      else if (v.Position === 'Left') { html += '<div class="b"><p>' + esc(pair[0] || '') + '</p><p>' + esc(v.Text) + '</p></div>'; pair = []; }
+      else if (v.Position === 'Paragraph') html += '<p class="para">' + esc(v.Text) + '</p>';
+      else html += '<p class="s">' + esc(v.Text) + '</p>';
+    });
+    html += '</div>';
+    if (p.SourceUrl) html += '<div class="source">ماخذ: <a href="' + esc(p.SourceUrl) + '" target="_blank" rel="noopener">' + esc(p.SourceName || 'ویکی ماخذ') + '</a></div>';
+    app.innerHTML = html;
+  });
+}
+
+function route() {
+  var url = decodeURIComponent(location.hash.replace(/^#/, '')) || '/';
+  var view = url === '/' ? home() : /\/sh\d+$/.test(url) ? poem(url) : category(url);
+  view.then(function () { window.scrollTo(0, 0); }).catch(function (e) { app.innerHTML = '<p class="msg">نہیں مل سکا: ' + esc(e.message) + '</p>'; });
+}
+window.addEventListener('hashchange', route);
+route();
+
+var fontBtn = document.getElementById('font');
+fontBtn.textContent = document.documentElement.classList.contains('naskh') ? 'نسخ' : 'نستعلیق';
+fontBtn.onclick = function () {
+  var naskh = document.documentElement.classList.toggle('naskh');
+  try { localStorage.setItem('divan-font', naskh ? 'naskh' : 'nastaliq'); } catch (e) {}
+  fontBtn.textContent = naskh ? 'نسخ' : 'نستعلیق';
+};
+</script>
+</body>
+</html>

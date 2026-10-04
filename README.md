@@ -16,6 +16,17 @@ Divan is a standalone project built on a fork of [GanjoorService](https://github
 - **Links:** `ganjoor.net` links to the site's own pages are now relative. Links to Divan's other services (blog, audio, etc.) are left as they are.
 - **Locale:** `ur-PK`.
 
+## Static reader (no server)
+
+`reader/index.html` is a single-file reader: poets, intros, books and poems, with Nastaliq/Naskh switching. It reads the [divan-data](https://github.com/anas-rashid/divan-data) static API directly in the browser, so it needs no API, database or build step.
+
+```sh
+# against the public CDN: just open reader/index.html in a browser, or host it anywhere (e.g. GitHub Pages)
+# against a local divan-data checkout:
+mkdir -p www && ln -s "$PWD/reader/index.html" www/ && ln -s /path/to/divan-data www/data
+python3 -m http.server 5300 -d www     # open http://localhost:5300/?data=data/
+```
+
 ## Deploy (Ubuntu/Debian x86-64, e.g. Vultr)
 
 ```sh
