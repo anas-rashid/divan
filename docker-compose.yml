@@ -20,7 +20,7 @@ services:
     build: { context: ., args: { PROJECT: RMuseum } }
     depends_on: { db: { condition: service_healthy } }
     environment:
-      ConnectionStrings__DefaultConnection: "Server=db;Database=museum;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true"
+      ConnectionStrings__DefaultConnection: "Server=db;Database=divan;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;MultipleActiveResultSets=true"
       Security__Secret: ${JWT_SECRET:?set in .env}
       RSecurityBackend__ApplicationName: Divan
       RSecurityBackend__FirstUserEmail: ${ADMIN_EMAIL:?set in .env}
