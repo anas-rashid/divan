@@ -15,6 +15,7 @@ Divan is a standalone project built on a fork of [GanjoorService](https://github
 - **Config fixes so env vars work:** the four places that read `appsettings.json` directly now also read environment variables. The JWT issuer follows `RSecurityBackend:ApplicationName` instead of the hard-coded "Divan". `deploy/entrypoint.sh` copies the settings that RSecurityBackend reads only from `appsettings.json` (connection string, secret, app name, admin email) into the file at container start.
 - **Links:** `ganjoor.net` links to the site's own pages are now relative. Links to Divan's other services (blog, audio, etc.) are left as they are.
 - **Locale:** `ur-PK`.
+- **Search without full-text:** the SQL Server Linux image has no full-text search, so poem, similar-poem and comment search use `LIKE` patterns (`LanguageUtils.SearchLikePatterns`). The normaliser handles Urdu letter variants (Arabic ي/ك/ه → ی/ک/ہ, ۂ/ۓ), the Urdu full stop and Urdu diacritics. After changing normalisation rules, rebuild stored search text with `POST /api/divan/regenplaintext/0` (admin).
 
 ## Static reader (no server)
 

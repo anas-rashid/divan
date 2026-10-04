@@ -73,7 +73,36 @@ namespace RMuseum.Services.Implementation
                        .Replace("«", "")
                        .Replace("»", "")
                        .Replace("ْ", "")//sokoon
+                       // divan: Urdu normalisation (same rules apply to stored text and search terms)
+                       .Replace("\u064A", "\u06CC")//arabic yeh -> farsi/urdu yeh
+                       .Replace("\u0649", "\u06CC")//alef maksura -> yeh
+                       .Replace("\u0643", "\u06A9")//arabic kaf -> keheh
+                       .Replace("\u06C2", "\u06C1")//heh goal with hamza -> heh goal
+                       .Replace("\u0647", "\u06C1")//arabic heh -> heh goal (do-chashmi heh U+06BE stays distinct)
+                       .Replace("\u06D3", "\u06D2")//yeh barree with hamza -> yeh barree
+                       .Replace("\u0623", "\u0627").Replace("\u0625", "\u0627")//alef with hamza -> alef
+                       .Replace("\u06D4", "")//urdu full stop
+                       .Replace("\u0670", "").Replace("\u0657", "").Replace("\u0658", "").Replace("\u0615", "")//urdu diacritics
+                       .Replace("\u200D", "").Replace("\u200F", "").Replace("\u200E", "")//zwj, rtl/ltr marks
                        ;
+        }
+
+        /// <summary>
+        /// divan: SQL LIKE patterns for a search term (replaces SQL Server full-text CONTAINS, which the
+        /// Linux SQL Server image does not ship). "quoted phrase" -> one pattern; otherwise one pattern per
+        /// word, all of which must match. Terms are normalised like stored PlainText.
+        /// </summary>
+        public static string[] SearchLikePatterns(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+                return Array.Empty<string>();
+            term = term.Trim();
+            bool phrase = term.Length > 1 && term.StartsWith("\"") && term.EndsWith("\"");
+            string normalised = MakeTextSearchable(term.ApplyCorrectYeKe().Replace("\"", "").Replace("'", ""));
+            string[] parts = phrase ? new[] { normalised.Trim() } : normalised.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Where(p => p.Length > 0)
+                        .Select(p => "%" + p.Replace("[", "[[]").Replace("%", "[%]").Replace("_", "[_]") + "%")
+                        .ToArray();
         }
 
         public static string CleanTextForTransileration(string text)

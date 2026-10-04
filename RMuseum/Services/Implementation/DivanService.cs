@@ -1469,48 +1469,19 @@ namespace RMuseum.Services.Implementation
         /// <returns></returns>
         public async Task<RServiceResult<(PaginationMetadata PagingMeta, DivanCommentFullViewModel[] Items)>> GetRecentComments(PagingParameterModel paging, Guid filterUserId, bool onlyPublished, bool onlyAwaiting = false, string term = null)
         {
-            string searchConditions = null;
-            if (!string.IsNullOrEmpty(term))
-            {
-                /* You need to run this scripts manually on the database before using this method:
-                 CREATE FULLTEXT CATALOG [DivanHtmlCommentTextCatalog] WITH ACCENT_SENSITIVITY = OFF AS DEFAULT
-                 
-                 CREATE FULLTEXT INDEX ON [dbo].[DivanComments](
-                 [HtmlComment] LANGUAGE 'English')
-                 KEY INDEX [PK_DivanComments]ON ([DivanHtmlCommentTextCatalog], FILEGROUP [PRIMARY])
-                 WITH (CHANGE_TRACKING = AUTO, STOPLIST = SYSTEM)
-                */
-                term = term.Replace("‌", " ");//replace zwnj with space
+            string[] searchPatterns = LanguageUtils.SearchLikePatterns(term); // divan: LIKE instead of full-text; empty term -> no filter
 
-                if (term.IndexOf('"') == 0 && term.LastIndexOf('"') == (term.Length - 1))
-                {
-                    searchConditions = term.Replace("\"", "").Replace("'", "");
-                    searchConditions = $"\"{searchConditions}\"";
-                }
-                else
-                {
-                    string[] words = term.Replace("\"", "").Replace("'", "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-                    searchConditions = "";
-                    string emptyOrAnd = "";
-                    foreach (string word in words)
-                    {
-                        searchConditions += $" {emptyOrAnd} \"*{word}*\" ";
-                        emptyOrAnd = " AND ";
-                    }
-                }
-            }
-
+            var comments = _context.DivanComments.AsQueryable();
+            foreach (var pattern in searchPatterns)
+                comments = comments.Where(c => EF.Functions.Like(c.HtmlComment, pattern));
             var source =
-                 from comment in _context.DivanComments.Include(c => c.Poem).Include(c => c.User).Include(c => c.InReplyTo).ThenInclude(r => r.User)
+                 from comment in comments.Include(c => c.Poem).Include(c => c.User).Include(c => c.InReplyTo).ThenInclude(r => r.User)
                  where
                   ((comment.Status == PublishStatus.Published) || !onlyPublished)
                   &&
                   ((comment.Status == PublishStatus.Awaiting) || !onlyAwaiting)
                  &&
                  ((filterUserId == Guid.Empty) || (filterUserId != Guid.Empty && comment.UserId == filterUserId))
-                 &&
-                 (string.IsNullOrEmpty(searchConditions) || (!string.IsNullOrEmpty(searchConditions) && EF.Functions.Contains(comment.HtmlComment, searchConditions)))
                  orderby comment.CommentDate descending
                  select new DivanCommentFullViewModel()
                  {
@@ -2673,30 +2644,12 @@ namespace RMuseum.Services.Implementation
                 catIdList.Add((int)catId);
                 await _populateCategoryChildren(_context, (int)catId, catIdList);
             }
-            string searchConditions = "";
-            if (!string.IsNullOrEmpty(term))
-            {
-                term = term.Replace("‌", " ");//replace zwnj with space
-                if (term.IndexOf('"') == 0 && term.LastIndexOf('"') == (term.Length - 1))
-                {
-                    searchConditions = term.Replace("\"", "").Replace("'", "");
-                    searchConditions = $"\"{searchConditions}\"";
-                }
-                else
-                {
-                    string[] words = term.Replace("\"", "").Replace("'", "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-                    searchConditions = "";
-                    string emptyOrAnd = "";
-                    foreach (string word in words)
-                    {
-                        searchConditions += $" {emptyOrAnd} \"*{word}*\" ";
-                        emptyOrAnd = " AND ";
-                    }
-                }
-            }
+            string[] searchPatterns = LanguageUtils.SearchLikePatterns(term); // divan: LIKE instead of full-text; empty term -> no filter
+            var sections = _context.DivanPoemSections.AsQueryable();
+            foreach (var pattern in searchPatterns)
+                sections = sections.Where(s => EF.Functions.Like(s.Poem.PlainText, pattern));
             var source =
-                _context.DivanPoemSections.Include(s => s.Poem).Include(s => s.Poet).Include(s => s.DivanMetre)
+                sections.Include(s => s.Poem).Include(s => s.Poet).Include(s => s.DivanMetre)
                 .Where(s =>
                         (poetId == null || s.PoetId == poetId)
                         &&
@@ -2715,8 +2668,6 @@ namespace RMuseum.Services.Implementation
                         (s.CoupletsCount >= coupletCountsFrom)
                         &&
                         (coupletCountsTo == 0 || s.CoupletsCount <= coupletCountsTo)
-                        &&
-                        (searchConditions == "" || (searchConditions != "" && EF.Functions.Contains(s.Poem.PlainText, searchConditions)))
                         )
                 .OrderBy(p => p.Poet.BirthYearInLHijri).ThenBy(p => p.Poet.Nickname).ThenBy(p => p.SectionType).ThenBy(p => p.Poem.Id)
                 .Select
@@ -2894,24 +2845,7 @@ namespace RMuseum.Services.Implementation
             term = term.Replace("‌", " ");//replace zwnj with space
 
 
-            string searchConditions;
-            if (term.IndexOf('"') == 0 && term.LastIndexOf('"') == (term.Length - 1))
-            {
-                searchConditions = term.Replace("\"", "").Replace("'", "");
-                searchConditions = $"\"{searchConditions}\"";
-            }
-            else
-            {
-                string[] words = term.Replace("\"", "").Replace("'", "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
-
-                searchConditions = "";
-                string emptyOrAnd = "";
-                foreach (string word in words)
-                {
-                    searchConditions += $" {emptyOrAnd} \"*{word}*\" ";
-                    emptyOrAnd = " AND ";
-                }
-            }
+            string[] searchPatterns = LanguageUtils.SearchLikePatterns(term); // divan: LIKE instead of full-text
             if (poetId == null)
             {
                 catId = null;
@@ -2938,14 +2872,15 @@ namespace RMuseum.Services.Implementation
                 await _populateCategoryChildren(_context, (int)catId, catIdList);
             }
 
+            var poems = _context.DivanPoems.AsQueryable();
+            foreach (var pattern in searchPatterns)
+                poems = poems.Where(p => EF.Functions.Like(p.PlainText, pattern));
             var source =
-                _context.DivanPoems
+                poems
                 .Where(p =>
                         (catId == null || catIdList.Contains(p.CatId))
                         &&
                         (exceptPoetId.Length == 0 || !exceptPoetId.Contains(p.Cat.PoetId))
-                        &&
-                       EF.Functions.Contains(p.PlainText, searchConditions)
                         )
                 .Include(p => p.Cat).ThenInclude(c => c.Poet)
                 .OrderBy(p => p.Cat.Poet.BirthYearInLHijri).ThenBy(p => p.Cat.Poet.Nickname).ThenBy(p => p.Id)
