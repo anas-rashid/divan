@@ -53,7 +53,6 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
       <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
       <button type="button" data-act="share" title="اس عبارت کا لنک">شیئر</button>
-      <button type="button" data-act="quran" title="قرآن میں تلاش (tanzil.net)">قرآن</button>
       <button type="button" data-act="google" title="گوگل میں تلاش">گوگل</button>
     </div>
     <aside id="dict" class="dict" hidden aria-live="polite">
@@ -300,7 +299,6 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         switch (b.dataset.act) {
           case 'meaning': showWord(oneWord(selText)); break;
           case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
-          case 'quran': open(`https://tanzil.net/#search/quran/${enc}`, '_blank', 'noopener'); break;
           case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;
           case 'copy':
             try { await navigator.clipboard.writeText(cite()); flash(b, 'کاپی ہو گیا'); } catch (err) { flash(b, 'ناکام'); }
