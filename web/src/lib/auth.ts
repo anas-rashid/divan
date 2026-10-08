@@ -3,7 +3,7 @@ import type { AstroCookies } from 'astro';
 
 const API = process.env.API_URL ?? 'http://127.0.0.1:4100';
 export const COOKIE = 'divan_session';
-export type User = { id: number; email: string; role: string; created_at: string };
+export type User = { id: number; email: string; role: string; created_at: string; full_name: string; bio: string };
 
 // call an /api/auth endpoint as the reader (their token, their IP for rate limits)
 export async function auth(path: string, opts: { token?: string; body?: object; ip?: string } = {}) {

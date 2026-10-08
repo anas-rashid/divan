@@ -15,6 +15,10 @@ if (Astro.request.method === 'POST') {
     Astro.cookies.delete(COOKIE, { path: '/' });
     return Astro.redirect('/');
   }
+  if (act === 'profile') {
+    const r = await auth('profile', { token, body: { full_name: form.get('full_name'), bio: form.get('bio') } });
+    r.ok ? ((done = 'پروفائل محفوظ ہو گیا'), Object.assign(user, r.data.user)) : (error = r.data.error);
+  }
   if (act === 'password') {
     if (form.get('next') !== form.get('next2')) error = 'نئے پاس ورڈ ایک جیسے نہیں';
     else {
@@ -34,10 +38,19 @@ if (Astro.request.method === 'POST') {
 const since = new Date(user.created_at);
 ---
 <Base title="میرا اکاؤنٹ">
-  <h1>میرا اکاؤنٹ</h1>
+  <h1>{user.full_name || 'میرا اکاؤنٹ'}</h1>
   <p class="muted center"><bdi dir="ltr">{user.email}</bdi> · رکنیت: {ud(since.getFullYear())}</p>
+  {user.bio && <p class="profile-bio">{user.bio}</p>}
   {error && <p class="form-error" role="alert">{error}</p>}
   {done && <p class="form-done" role="status">{done}</p>}
+
+  <form method="post" class="account-form">
+    <h2>پروفائل</h2>
+    <input type="hidden" name="act" value="profile" />
+    <label>پورا نام<input name="full_name" value={user.full_name} maxlength="100" dir="auto" autocomplete="name" /></label>
+    <label>تعارف<textarea name="bio" maxlength="1000" rows="4" dir="auto">{user.bio}</textarea></label>
+    <button type="submit">محفوظ کریں</button>
+  </form>
 
   <form method="post" class="account-form">
     <input type="hidden" name="act" value="signout" />

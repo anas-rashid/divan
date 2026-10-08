@@ -48,6 +48,14 @@ test('HTTP flow: sign up, sign in, wrong password, change password, delete', asy
   assert.equal((await call('GET', '/api/auth/me', undefined, t1)).statusCode, 401, 'other sessions signed out');
   assert.equal((await call('GET', '/api/auth/me', undefined, t2)).statusCode, 200, 'this session kept');
 
+  // profile: Urdu name and bio, trimmed, control characters dropped, length-limited
+  const prof = (await call('POST', '/api/auth/profile', { full_name: '  مرزا   اسد اللہ\u0007 خان ', bio: 'شاعر۔ '.repeat(300) }, t2)).json().user;
+  assert.equal(prof.full_name, 'مرزا اسد اللہ خان');
+  assert.equal(prof.bio.length, 1000);
+  assert.equal((await call('GET', '/api/auth/me', undefined, t2)).json().user.full_name, 'مرزا اسد اللہ خان');
+  assert.equal((await call('POST', '/api/auth/profile', { full_name: '', bio: '' }, t2)).json().user.full_name, '', 'cleared');
+  assert.equal((await call('POST', '/api/auth/profile', { full_name: 'x' })).statusCode, 401);
+
   await call('POST', '/api/auth/signout', undefined, t2);
   assert.equal((await call('GET', '/api/auth/me', undefined, t2)).statusCode, 401);
 

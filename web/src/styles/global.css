@@ -174,7 +174,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .account-form h2 { font-size: 1.1rem; margin: 6px 0 0; }
 .account-form label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
 .account-form input { font: inherit; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); }
-.account-form input:focus { outline: none; border-color: var(--gold); }
+.account-form textarea { font: inherit; line-height: 1.9; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); resize: vertical; }
+.account-form input:focus, .account-form textarea:focus { outline: none; border-color: var(--gold); }
+.profile-bio { max-width: 520px; margin: 0 auto 12px; text-align: center; white-space: pre-line; }
 .account-form button { font: inherit; padding: 6px 14px; border: 1.5px solid var(--gold); border-radius: 10px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .account-form button:hover { border-color: var(--brand); color: var(--brand); }
 .account-form.danger button { border-color: var(--brand); color: var(--brand); }
