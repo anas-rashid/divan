@@ -57,3 +57,10 @@ CREATE TABLE IF NOT EXISTS verses (
     text     text NOT NULL,
     PRIMARY KEY (poem_id, vorder)
 );
+
+-- Wiktionary lookups for the reading sidebar (api/src/dictionary.ts), refreshed after 30 days
+CREATE TABLE IF NOT EXISTS dictionary (
+    word       text PRIMARY KEY,
+    data       jsonb NOT NULL,
+    fetched_at timestamptz NOT NULL DEFAULT now()
+);

@@ -51,6 +51,7 @@ Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DI
 | `GET /api/poets` | all poets |
 | `GET /api/page?url=/p238/...` | the poet, category or poem at a site URL (breadcrumbs, children, verses, prev/next) |
 | `GET /api/search?q=&poet=&page=` | poems containing all words (or a `"quoted phrase"`), Urdu-normalised; exact phrase first; each with the best-matching couplet or paragraph (`snippet`) |
+| `GET /api/word?w=` | one word's meanings and pronunciation from Wiktionary (Urdu, Persian, Arabic in that order; English meanings; Urdu equivalents via English when Urdu Wiktionary has none), cached 30 days |
 | `GET /health` | database check |
 
 Search normalises both stored text and queries: Arabic ي/ك/ه → Urdu ی/ک/ہ, ۂ/ۓ, diacritics and the Urdu full stop removed; do-chashmi ھ stays distinct.

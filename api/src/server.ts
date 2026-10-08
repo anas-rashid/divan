@@ -2,10 +2,12 @@
 //   GET /api/poets              all poets
 //   GET /api/page?url=/p238/... poet, category or poem at that URL
 //   GET /api/search?q=&poet=&page=
+//   GET /api/word?w=            Wiktionary meanings and pronunciation (sidebar)
 //   GET /health
 import Fastify from 'fastify';
 import { pool } from './db.ts';
 import { likePatterns, normalise, terms } from './urdu.ts';
+import { lookup } from './dictionary.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -122,6 +124,13 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
     return { ...r, snippet: lines, prose: best?.position === 'Paragraph' };
   });
   return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results };
+});
+
+// one word in Arabic script (Urdu, Persian, Arabic), as selected by a reader
+app.get<{ Querystring: { w?: string } }>('/api/word', async (req, reply) => {
+  const w = (req.query.w ?? '').trim();
+  if (!/^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w)) return reply.code(400).send({ error: 'one Urdu, Persian or Arabic word' });
+  return lookup(w);
 });
 
 const port = Number(process.env.PORT ?? 4100);
