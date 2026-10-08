@@ -166,3 +166,17 @@ h1 + .muted { text-align: center; margin-top: 0; }
 @media (max-width: 700px) {
   .dict { top: auto; right: 0; width: auto; max-height: 60vh; border-right: 0; border-top: 1.5px solid var(--border); border-radius: 14px 14px 0 0; }
 }
+
+/* accounts */
+.center { text-align: center; }
+.account-link { font: inherit; font-size: .9rem; padding: 2px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--inner); color: var(--ink); text-decoration: none; }
+.account-form { max-width: 420px; margin: 18px auto; display: flex; flex-direction: column; gap: 10px; }
+.account-form h2 { font-size: 1.1rem; margin: 6px 0 0; }
+.account-form label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+.account-form input { font: inherit; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); }
+.account-form input:focus { outline: none; border-color: var(--gold); }
+.account-form button { font: inherit; padding: 6px 14px; border: 1.5px solid var(--gold); border-radius: 10px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.account-form button:hover { border-color: var(--brand); color: var(--brand); }
+.account-form.danger button { border-color: var(--brand); color: var(--brand); }
+.form-error { color: var(--brand); text-align: center; }
+.form-done { color: var(--gold); text-align: center; }

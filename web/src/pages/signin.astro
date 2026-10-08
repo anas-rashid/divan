@@ -1,0 +1,31 @@
+---
+import Base from '../layouts/Base.astro';
+import { auth, setSession } from '../lib/auth';
+
+// back to where the reader was (same-site paths only)
+const next = (Astro.url.searchParams.get('next') ?? '').startsWith('/') && !(Astro.url.searchParams.get('next') ?? '').startsWith('//')
+  ? Astro.url.searchParams.get('next')! : '/account';
+if (Astro.locals.user) return Astro.redirect(next);
+let error = '', email = '';
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  email = String(form.get('email') ?? '');
+  const r = await auth('signin', { body: { email, password: String(form.get('password') ?? '') }, ip: Astro.clientAddress });
+  if (r.ok) {
+    setSession(Astro.cookies, r.data.token, Astro.url.protocol === 'https:');
+    return Astro.redirect(next);
+  }
+  error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+---
+<Base title="لاگ ان">
+  <h1>لاگ ان</h1>
+  <form method="post" class="account-form">
+    {error && <p class="form-error" role="alert">{error}</p>}
+    <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>
+    <label>پاس ورڈ<input type="password" name="password" required autocomplete="current-password" dir="ltr" /></label>
+    <button type="submit">لاگ ان کریں</button>
+    <p class="muted">اکاؤنٹ نہیں ہے؟ <a href="/signup">نیا اکاؤنٹ بنائیں</a></p>
+    <p class="muted note">پاس ورڈ بھول گئے؟ ایڈمن سے رابطہ کریں۔</p>
+  </form>
+</Base>

@@ -3,11 +3,13 @@
 //   GET /api/page?url=/p238/... poet, category or poem at that URL
 //   GET /api/search?q=&poet=&page=
 //   GET /api/word?w=            Wiktionary meanings and pronunciation (sidebar)
+//   /api/auth/*                  accounts (see auth.ts)
 //   GET /health
 import Fastify from 'fastify';
 import { pool } from './db.ts';
 import { likePatterns, normalise, terms } from './urdu.ts';
 import { lookup, PUNCT } from './dictionary.ts';
+import { authRoutes } from './auth.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -132,6 +134,8 @@ app.get<{ Querystring: { w?: string } }>('/api/word', async (req, reply) => {
   if (!/^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w)) return reply.code(400).send({ error: 'one Urdu, Persian or Arabic word' });
   return lookup(w);
 });
+
+authRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });
