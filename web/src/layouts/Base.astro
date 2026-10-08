@@ -63,38 +63,47 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         try { localStorage.setItem('divan-font', root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh'); } catch (e) {}
         label();
       };
-      // Urdu keyboard: on-screen keys + phonetic typing (Latin keys -> Urdu) while open
-      const PHONETIC = {
-        q:'ق', w:'و', e:'ع', r:'ر', t:'ت', y:'ے', u:'ء', i:'ی', o:'ہ', p:'پ',
-        a:'ا', s:'س', d:'د', f:'ف', g:'گ', h:'ح', j:'ج', k:'ک', l:'ل',
-        z:'ز', x:'ش', c:'چ', v:'ط', b:'ب', n:'ن', m:'م',
-        A:'آ', T:'ٹ', D:'ڈ', R:'ڑ', N:'ں', Z:'ذ', S:'ص', G:'غ', H:'ھ', K:'خ', C:'ث', V:'ظ', X:'ژ', J:'ض', I:'ئ', O:'ۂ', Y:'ؤ',
-        ',':'،', '.':'۔', '?':'؟', ';':'؛',
-      };
-      const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'ATDRNZSGH', 'KCVXJIOY', ',.?;'];
+      // Urdu keyboard, Gboard/Windows Urdu layout: on-screen keys, and physical keys by position while open
+      const BASE = [[...'طصھدٹپتبجح'], [...'مورنلہاکی'], [...'قفےسشغع']];
+      const SHIFT = [['ظ','ض','ذ','ڈ','ث','ّ','ۃ','ـ','چ','خ'], ['ژ','ز','ڑ','ں','ۂ','ء','آ','گ',''], ['','','ۓ','','ؤ','ئ','']];
+      const KEYS = {}; // KeyQ -> [base, shift]
+      ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].forEach((r, i) => [...r].forEach((c, j) => (KEYS['Key' + c] = [BASE[i][j], SHIFT[i][j]])));
+      const PUNCT = { Comma: '،', Period: '۔', Semicolon: '؛', Slash: '؟' };
       const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle');
+      let shift = false;
+      const key = (ch, cls = '') => ch ? `<button type="button" data-ch="${ch}"${cls}>${ch}</button>` : '';
+      const render = () => {
+        const L = shift ? SHIFT : BASE;
+        kb.innerHTML = `<div>${L[0].map((c) => key(c)).join('')}</div><div>${L[1].map((c) => key(c)).join('')}</div>` +
+          `<div><button type="button" data-act="shift" class="fn${shift ? ' on' : ''}" aria-label="شفٹ">⇧</button>${L[2].map((c) => key(c)).join('')}` +
+          '<button type="button" data-act="bs" class="fn" aria-label="مٹائیں">⌫</button></div>' +
+          `<div>${key('،')}<button type="button" data-ch=" " class="wide">فاصلہ</button>${key('۔')}${key('؟')}</div>`;
+      };
+      render();
       const insert = (text) => {
         const s = q.selectionStart ?? q.value.length, e = q.selectionEnd ?? q.value.length;
         q.setRangeText(text, s, e, 'end'); q.focus();
       };
-      kb.innerHTML = ROWS.map((r) => '<div>' + [...r].map((k) =>
-        `<button type="button" data-ch="${PHONETIC[k]}" title="${k}">${PHONETIC[k]}</button>`).join('') + '</div>').join('') +
-        '<div><button type="button" data-ch=" " class="wide">فاصلہ</button><button type="button" data-act="bs">⌫</button></div>';
       kb.onmousedown = (ev) => ev.preventDefault(); // keep focus/caret in the search box
       kb.onclick = (ev) => {
         const b = ev.target.closest('button'); if (!b) return;
+        if (b.dataset.act === 'shift') { shift = !shift; render(); return; }
         if (b.dataset.act === 'bs') {
           const s = q.selectionStart, e = q.selectionEnd;
           q.setRangeText('', s === e ? Math.max(0, s - 1) : s, e, 'end'); q.focus();
-        } else insert(b.dataset.ch);
+          return;
+        }
+        insert(b.dataset.ch);
+        if (shift) { shift = false; render(); } // one-shot shift, as on Gboard
       };
       kbBtn.onclick = () => {
         kb.hidden = !kb.hidden; kbBtn.setAttribute('aria-pressed', String(!kb.hidden)); q.focus();
       };
       q.addEventListener('keydown', (ev) => {
         if (kb.hidden || ev.ctrlKey || ev.metaKey || ev.altKey) return;
-        const ch = PHONETIC[ev.key];
-        if (ch) { ev.preventDefault(); insert(ch); }
+        const k = KEYS[ev.code], ch = k ? k[ev.shiftKey ? 1 : 0] : PUNCT[ev.code];
+        if (k || ch) ev.preventDefault();
+        if (ch) insert(ch);
       });
 
       document.getElementById('theme-toggle').onclick = () => {

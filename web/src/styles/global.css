@@ -119,3 +119,5 @@ h1 + .muted { text-align: center; margin-top: 0; }
 }
 .kb button:hover { border-color: var(--brand); }
 .kb .wide { min-width: 12em; }
+.kb .fn { min-width: 3.4em; background: var(--inner); }
+.kb .fn.on { border-color: var(--brand); color: var(--brand); }
