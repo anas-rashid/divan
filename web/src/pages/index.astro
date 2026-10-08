@@ -2,7 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { api } from '../lib/api';
 import { asUser, COOKIE } from '../lib/auth';
-import { centuryOf, centuryName, years, ud } from '../lib/urdu';
+import { centuryOf, centuryName, yearLines, ud } from '../lib/urdu';
 
 type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null; pin_order: number | null };
 const poets = (await api<Poet[]>('/api/poets')) ?? [];
@@ -34,7 +34,7 @@ const card = (p: Poet) => `poet-card${marked.includes(p.id) ? ' mark-bm' : ''}`;
       <h2>مقبول شعرا</h2>
       <div class="poets">
         {pinned.map((p) => (
-          <a class={card(p)} href={p.url}>{p.nickname}<small>{years(p)}</small></a>
+          <a class={card(p)} href={p.url}>{p.nickname}{yearLines(p).map((y) => <small>{y}</small>)}</a>
         ))}
       </div>
     </section>
@@ -47,7 +47,7 @@ const card = (p: Poet) => `poet-card${marked.includes(p.id) ? ' mark-bm' : ''}`;
         {list.map((p) => (
           <a class={card(p)} href={p.url}>
             {p.nickname}
-            <small>{years(p)}</small>
+            {yearLines(p).map((y) => <small>{y}</small>)}
           </a>
         ))}
       </div>
