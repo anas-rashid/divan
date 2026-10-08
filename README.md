@@ -1,127 +1,53 @@
-# دیوان · Divan site
+# دیوان · Divan
 
-Divan is a standalone project built on a fork of [GanjoorService](https://github.com/ganjoor/GanjoorService) (GPL-3.0), the software behind ganjoor.net, adapted to serve **classical Urdu poetry and prose** from [divan-data](https://github.com/anas-rashid/divan-data).
+An open-source site for reading and searching **classical Urdu poetry and prose**, in Urdu script (`ur-PK`). Content comes from [divan-data](https://github.com/anas-rashid/divan-data): public-domain texts from Urdu Wikisource, with short poet introductions from Urdu Wikipedia.
 
-## Changes from upstream
+Divan follows the features of [GanjoorService](https://github.com/ganjoor/GanjoorService) (the software behind ganjoor.net), rebuilt in Node.js, TypeScript and PostgreSQL with its own UI. The first version was a fork of GanjoorService (.NET + SQL Server); that code is kept at the tag [`dotnet-final`](https://github.com/anas-rashid/divan/tree/dotnet-final).
 
-- **Renamed Ganjoor → Divan throughout:** projects (`DivanRazor`, `DivanService.sln`), files, folders, classes, settings (`Divan:` section), API routes (`/api/divan/...`) and database tables (`Divan*`). Real external addresses (ganjoor.net, github.com/ganjoor) are unchanged. Because table names changed, Divan needs a fresh database; it can't reuse a Ganjoor one.
-- **Removed Ganjoor/Persian-specific features:** music (Spotify, Golha, Beeptunes, music index, song suggestions; DB models kept for a future Urdu version), Ganjoor's visit analytics, Turkish/Kurdish page options, abjad, Persian dictionary links. Random verse now picks from Divan's own data.
-- **Tajik removed:** the TajikGanjoor site, Tajik API endpoints, services, export and transliteration are gone. Migration `DivanRemoveTajik` drops their tables.
-- **Branding:** "گنجور" becomes "دیوان" throughout the site. Upstream is credited in the footer.
-- **Urdu basics:** pages are `lang="ur-PK"`. The home page, footer and century groups (Hijri centuries, e.g. "تیرہویں صدی ہجری") are in Urdu. Deeper pages, such as admin and account pages, are still Persian.
-- **Fonts:** Noto Nastaliq Urdu by default, with a **نستعلیق / نسخ** switch (Noto Naskh Arabic) at the bottom left. The choice is remembered per browser.
-- **Footer:** links to Divan-only services (Hafez divination, music index, etc.) are removed. Links to the Wikisource source, the data and the code are added.
-- **Linux/Docker:** `Dockerfile` + `docker-compose.yml` (SQL Server 2022, API, site, Caddy for HTTPS).
-- **Config fixes so env vars work:** the four places that read `appsettings.json` directly now also read environment variables. The JWT issuer follows `RSecurityBackend:ApplicationName` instead of the hard-coded "Divan". `deploy/entrypoint.sh` copies the settings that RSecurityBackend reads only from `appsettings.json` (connection string, secret, app name, admin email) into the file at container start.
-- **Links:** `ganjoor.net` links to the site's own pages are now relative. Links to Divan's other services (blog, audio, etc.) are left as they are.
-- **Locale:** `ur-PK`.
-- **Search without full-text:** the SQL Server Linux image has no full-text search, so poem, similar-poem and comment search use `LIKE` patterns (`LanguageUtils.SearchLikePatterns`). The normaliser handles Urdu letter variants (Arabic ي/ك/ه → ی/ک/ہ, ۂ/ۓ), the Urdu full stop and Urdu diacritics. After changing normalisation rules, rebuild stored search text with `POST /api/divan/regenplaintext/0` (admin).
+## Layout
 
-## Divan v2 (Node.js + PostgreSQL + Astro), in progress
+| Path | What |
+|---|---|
+| `db/schema.sql` | PostgreSQL schema: poets, categories, poems, verses; trigram index for Urdu substring search |
+| `api/` | Node.js API (Fastify + pg). TypeScript runs natively on Node 24+, no build step |
+| `web/` | The site (Astro, server-rendered). Naskh by default with a Nastaliq option, light/dark, RTL, mobile-first |
+| `reader/index.html` | A single-file static reader over the divan-data CDN (no server) |
 
-The next version replaces the .NET/SQL Server stack with a lighter one. It lives next to the current code until it reaches parity.
-
-- `db/schema.sql`: PostgreSQL schema (poets, categories, poems, verses; trigram index for Urdu substring search)
-- `api/`: Node.js API (Fastify + pg, TypeScript run natively by Node 24+, no build step)
-- `web/`: the new site (Astro, server-rendered, Divan's own design; Naskh default, Nastaliq option, light/dark)
+## Run locally
 
 ```sh
+# PostgreSQL 17 (any Postgres 14+ works; port 5433 avoids clashing with a local one)
 docker run -d --name divan-pg -e POSTGRES_USER=divan -e POSTGRES_PASSWORD=divan_local -e POSTGRES_DB=divan \
   -p 5433:5432 -v divan-pg:/var/lib/postgresql/data postgres:17-alpine
-cd api && npm install && npm run import -- ../../divan-data   # or the CDN URL; ~40 s for 11k poems
-npm start                                                     # API on :4100 (DATABASE_URL to override)
-cd ../web && npm install && npm run build && npm start        # site on :4200 (API_URL to override)
-npm test --prefix ../api                                      # Urdu normaliser tests
+
+cd api && npm install
+npm run import -- ../../divan-data      # a local divan-data checkout, or the CDN:
+# npm run import -- https://cdn.jsdelivr.net/gh/anas-rashid/divan-data@main/
+npm start                               # API on http://127.0.0.1:4100
+npm test                                # Urdu normaliser tests
+
+cd ../web && npm install && npm run build && npm start   # site on http://127.0.0.1:4200
 ```
 
-## Static reader (no server)
+Settings: `DATABASE_URL` (API, default `postgres://divan:divan_local@localhost:5433/divan`), `PORT`/`HOST`; `API_URL` (web, default `http://127.0.0.1:4100`).
 
-`reader/index.html` is a single-file reader: poets, intros, books and poems, with Nastaliq/Naskh switching. It reads the [divan-data](https://github.com/anas-rashid/divan-data) static API directly in the browser, so it needs no API, database or build step.
+The import upserts, so re-running it after a divan-data sync applies the changes.
 
-```sh
-# against the public CDN: just open reader/index.html in a browser, or host it anywhere (e.g. GitHub Pages)
-# against a local divan-data checkout:
-mkdir -p www && ln -s "$PWD/reader/index.html" www/ && ln -s /path/to/divan-data www/data
-python3 -m http.server 5300 -d www     # open http://localhost:5300/?data=data/
-```
+## API
 
-## Deploy (Ubuntu/Debian x86-64, e.g. Vultr)
+| Endpoint | Returns |
+|---|---|
+| `GET /api/poets` | all poets |
+| `GET /api/page?url=/p238/...` | the poet, category or poem at a site URL (breadcrumbs, children, verses, prev/next) |
+| `GET /api/search?q=&poet=&page=` | poems containing all words (or a `"quoted phrase"`), Urdu-normalised |
+| `GET /health` | database check |
 
-```sh
-# 1. Docker
-curl -fsSL https://get.docker.com | sh
+Search normalises both stored text and queries: Arabic ي/ك/ه → Urdu ی/ک/ہ, ۂ/ۓ, diacritics and the Urdu full stop removed; do-chashmi ھ stays distinct.
 
-# 2. Code + config
-git clone https://github.com/anas-rashid/divan.git && cd divan
-cp .env.example .env && nano .env      # domains, passwords, admin email
+## Roadmap
 
-# 3. DNS: point SITE_DOMAIN and API_DOMAIN (A records) at the server, then:
-docker compose up -d --build           # first build takes a few minutes
-docker compose logs -f api             # wait for "Application started"
-```
-
-SQL Server needs about 2 GB of RAM. Use a plan with at least 4 GB in total.
-
-Security defaults: the API refuses to start outside Development without `JWT_SECRET`; browsers may call the API only from `https://SITE_DOMAIN` (`Cors:AllowedOrigins`); public sign-up is off (`SIGNUP_ENABLED=False`) until SMTP (`SmptConfig__*`) is configured.
-
-### Load the data
-
-1. Open `https://SITE_DOMAIN/login` and sign in with `ADMIN_EMAIL` and the password **`Test!123`**. The first login creates the admin account with that fixed password (RSecurityBackend's default; upstream's guide is wrong about this). **Change it right away** in the user panel.
-2. On the import page that opens (or **Admin → مالی و سایت → درون‌ریزی دادهٔ عمومی**), choose **Internet URL** and enter:
-   ```
-   https://cdn.jsdelivr.net/gh/anas-rashid/divan-data@main/
-   ```
-3. The import runs in the background (about 11k poems). Century groups are rebuilt automatically when it finishes.
-
-Re-running the import adds new poems and leaves existing ones untouched, so it can be repeated after divan-data's daily sync.
-
-### Update
-
-```sh
-deploy/backup.sh                        # always back up first
-git pull && docker compose up -d --build
-```
-
-Database migrations run automatically when the API starts.
-
-### Backups
-
-```sh
-deploy/backup.sh                        # -> backups/divan-<UTC stamp>.bak (copy it off the server)
-TARGET_DB=divan_restoretest deploy/restore.sh backups/divan-<stamp>.bak   # test a backup side by side
-```
-
-Schedule `deploy/backup.sh` with cron (e.g. daily) and copy `backups/` off the server. A backup counts only once a test restore succeeds.
-
-### Rollback
-
-1. `docker compose stop api site`
-2. `git checkout <previous commit or tag>`
-3. If the failed version applied database migrations: `deploy/restore.sh backups/<backup taken before the update>.bak`
-4. `docker compose up -d --build`
-
-Restoring replaces the `divan` database, so anything written after that backup (comments, edits) is lost.
-
-## Run locally (macOS/Linux)
-
-```sh
-./run-local.sh import   # SQL Server container + API + site, then imports divan-data (~1 h, background)
-./run-local.sh          # later runs: rebuild + start
-./run-local.sh stop
-```
-
-Site: http://localhost:5200 · API: http://localhost:5100/swagger · admin `admin@divan.local` / `Test!123`. On Apple Silicon, start Docker via `colima start --vm-type vz --vz-rosetta --memory 6` first (SQL Server is x86-64 only).
-
-## Build locally (macOS/Linux)
-
-```sh
-cd RMuseum   # its global.json pins SDK 10.0.302; newer SDKs fail on some upstream Razor views
-dotnet build RMuseum.csproj -p:EnableWindowsTargeting=true
-dotnet build ../DivanRazor/DivanRazor.csproj -p:EnableWindowsTargeting=true
-```
-
-Running it needs SQL Server, so use the Docker setup above. SQL Server's image is x86-64 only.
+v2 is reaching parity with Ganjoor's features in phases: reading, accounts, community (comments, bookmarks), editorial tools, recitations, then operations and deployment.
 
 ## License
 
-GPL-3.0, same as upstream (see `LICENSE`). Data: see [divan-data](https://github.com/anas-rashid/divan-data).
+GPL-3.0 (see `LICENSE`). Texts are public domain; the divan-data compilation is CC BY-SA 4.0 (Urdu Wikisource and Wikipedia contributors).
