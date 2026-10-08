@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import { api } from '../lib/api';
+import { ud } from '../lib/urdu';
+
+const q = Astro.url.searchParams.get('q')?.trim() ?? '';
+const pageNo = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
+const res = q ? await api(`/api/search?q=${encodeURIComponent(q)}&page=${pageNo}`) : null;
+const pages = res ? Math.ceil(res.total / res.pageSize) : 0;
+const link = (n: number) => `/search?q=${encodeURIComponent(q)}&page=${n}`;
+---
+<Base title={q ? `تلاش: ${q}` : 'تلاش'} q={q}>
+  {!q && <p class="muted">اوپر کے خانے میں شعر، لفظ یا عبارت لکھیں۔ پوری عبارت کے لیے اسے "…" میں لکھیں۔</p>}
+  {res && (
+    <>
+      <h1>تلاش: {q}</h1>
+      <p class="muted">{res.total ? `${ud(res.total)} نتائج` : 'کوئی نتیجہ نہیں ملا۔ کم الفاظ یا کلیدی لفظ آزمائیں۔'}</p>
+      {res.results.map((r: any) => (
+        <div class="result">
+          <a href={r.url}>{r.title}</a> · <a class="muted" href={r.poet_url}>{r.poet}</a>
+          {r.first_line && <div class="first-line">{r.first_line}</div>}
+        </div>
+      ))}
+      {pages > 1 && (
+        <nav class="pager">
+          {pageNo > 1 && <a href={link(pageNo - 1)}>‹ پچھلا</a>}
+          <span class="muted">صفحہ {ud(pageNo)} از {ud(pages)}</span>
+          {pageNo < pages && <a href={link(pageNo + 1)}>اگلا ›</a>}
+        </nav>
+      )}
+    </>
+  )}
+</Base>

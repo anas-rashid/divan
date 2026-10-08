@@ -1,0 +1,73 @@
+---
+// Poet (/p238), category (/p238/shaeri/c641) and poem (/p238/shaeri/c641/sh6556) pages
+import Base from '../layouts/Base.astro';
+import { api } from '../lib/api';
+import { ud, years } from '../lib/urdu';
+
+const url = '/' + (Astro.params.path ?? '');
+const page = await api(`/api/page?url=${encodeURIComponent(url)}`);
+if (!page) return new Response(null, { status: 404, statusText: 'Not found' });
+
+// group verses into couplets / single lines / paragraphs for rendering
+type Verse = { position: string; couplet: number; text: string };
+const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[] }[] = [];
+if (page.type === 'poem') {
+  for (const v of page.verses as Verse[]) {
+    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text] });
+    else if (v.position === 'Left' && blocks.at(-1)?.kind === 'couplet' && blocks.at(-1)!.lines.length === 1) blocks.at(-1)!.lines.push(v.text);
+    else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text] });
+    else blocks.push({ kind: 'single', lines: [v.text] });
+  }
+}
+const crumbs = page.breadcrumbs ?? [];
+const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
+---
+<Base title={page.type === 'poem' ? `${page.poem.title} · ${page.poet.nickname}` : title} description={page.type === 'poet' ? page.poet.description?.slice(0, 160) : undefined}>
+  {page.type !== 'poet' && (
+    <nav class="crumbs">
+      {crumbs.map((c: any, i: number) => (
+        i < crumbs.length - 1 || page.type === 'poem' ? <span><a href={c.url}>{c.title}</a></span> : <span>{c.title}</span>
+      ))}
+    </nav>
+  )}
+
+  {page.type === 'poet' && (
+    <>
+      <h1>{page.poet.name}</h1>
+      <p class="muted">{years(page.poet.birth_year_ah, page.poet.death_year_ah)}</p>
+      {page.poet.description && <div class="intro">{page.poet.description}</div>}
+    </>
+  )}
+  {page.type === 'category' && <h1>{page.category.title}</h1>}
+
+  {page.type !== 'poem' && page.children.length > 0 && (
+    <div class="cards">
+      {page.children.map((c: any) => (
+        <a class="card" href={c.url}>{c.title}{c.poems > 0 && <small>{ud(c.poems)}</small>}</a>
+      ))}
+    </div>
+  )}
+  {page.type !== 'poem' && page.poems.length > 0 && (
+    <ol class="toc">{page.poems.map((p: any) => <li><a href={p.url}>{p.title}</a></li>)}</ol>
+  )}
+
+  {page.type === 'poem' && (
+    <>
+      <h1>{page.poem.title}</h1>
+      <article class="poem">
+        {blocks.map((b) =>
+          b.kind === 'couplet' ? <div class="couplet">{b.lines.map((l) => <p>{l}</p>)}</div>
+          : b.kind === 'para' ? <p class="para">{b.lines[0]}</p>
+          : <p class="single">{b.lines[0]}</p>
+        )}
+      </article>
+      <nav class="poem-nav">
+        {page.next ? <a href={page.next}>اگلا ›</a> : <span />}
+        {page.prev ? <a href={page.prev}>‹ پچھلا</a> : <span />}
+      </nav>
+      {page.poem.source_url && (
+        <p class="source">ماخذ: <a href={page.poem.source_url}>ویکی ماخذ</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
+      )}
+    </>
+  )}
+</Base>

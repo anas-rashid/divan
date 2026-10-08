@@ -1,0 +1,64 @@
+---
+import '../styles/global.css';
+interface Props { title?: string; description?: string; q?: string }
+const { title, description = 'اردو کی کلاسیکی شاعری اور نثر', q = '' } = Astro.props;
+const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو کی کلاسیکی شاعری اور نثر';
+---
+<!doctype html>
+<html lang="ur-PK" dir="rtl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400..700&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet" />
+    <script is:inline>
+      // font + theme choice applied before paint (Naskh and system theme by default)
+      try {
+        if (localStorage.getItem('divan-font') === 'nastaliq') document.documentElement.classList.add('nastaliq');
+        const t = localStorage.getItem('divan-theme');
+        if (t) document.documentElement.dataset.theme = t;
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="wrap">
+        <a class="wordmark" href="/">دیوان</a>
+        <form class="search-form" action="/search" method="get" role="search">
+          <input type="search" name="q" value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" />
+        </form>
+        <div class="toggles">
+          <button type="button" id="font-toggle" aria-label="خط بدلیں">نسخ</button>
+          <button type="button" id="theme-toggle" aria-label="روشن یا تاریک">◐</button>
+        </div>
+      </div>
+    </header>
+    <main class="wrap"><slot /></main>
+    <footer class="site-footer">
+      <div class="wrap">
+        متن: <a href="https://ur.wikisource.org">ویکی ماخذ</a> (عوامی ملکیت) · تعارف: <a href="https://ur.wikipedia.org">ویکیپیڈیا</a> ·
+        <a href="https://github.com/anas-rashid/divan-data">ڈیٹا</a> · <a href="https://github.com/anas-rashid/divan">کوڈ</a>
+      </div>
+    </footer>
+    <script is:inline>
+      const root = document.documentElement;
+      const fontBtn = document.getElementById('font-toggle');
+      const label = () => (fontBtn.textContent = root.classList.contains('nastaliq') ? 'نستعلیق' : 'نسخ');
+      label();
+      fontBtn.onclick = () => {
+        root.classList.toggle('nastaliq');
+        try { localStorage.setItem('divan-font', root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh'); } catch (e) {}
+        label();
+      };
+      document.getElementById('theme-toggle').onclick = () => {
+        const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+        root.dataset.theme = dark ? 'light' : 'dark';
+        try { localStorage.setItem('divan-theme', root.dataset.theme); } catch (e) {}
+      };
+    </script>
+  </body>
+</html>

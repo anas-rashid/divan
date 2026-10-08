@@ -17,6 +17,23 @@ Divan is a standalone project built on a fork of [GanjoorService](https://github
 - **Locale:** `ur-PK`.
 - **Search without full-text:** the SQL Server Linux image has no full-text search, so poem, similar-poem and comment search use `LIKE` patterns (`LanguageUtils.SearchLikePatterns`). The normaliser handles Urdu letter variants (Arabic ي/ك/ه → ی/ک/ہ, ۂ/ۓ), the Urdu full stop and Urdu diacritics. After changing normalisation rules, rebuild stored search text with `POST /api/divan/regenplaintext/0` (admin).
 
+## Divan v2 (Node.js + PostgreSQL + Astro), in progress
+
+The next version replaces the .NET/SQL Server stack with a lighter one. It lives next to the current code until it reaches parity.
+
+- `db/schema.sql`: PostgreSQL schema (poets, categories, poems, verses; trigram index for Urdu substring search)
+- `api/`: Node.js API (Fastify + pg, TypeScript run natively by Node 24+, no build step)
+- `web/`: the new site (Astro, server-rendered, Divan's own design; Naskh default, Nastaliq option, light/dark)
+
+```sh
+docker run -d --name divan-pg -e POSTGRES_USER=divan -e POSTGRES_PASSWORD=divan_local -e POSTGRES_DB=divan \
+  -p 5433:5432 -v divan-pg:/var/lib/postgresql/data postgres:17-alpine
+cd api && npm install && npm run import -- ../../divan-data   # or the CDN URL; ~40 s for 11k poems
+npm start                                                     # API on :4100 (DATABASE_URL to override)
+cd ../web && npm install && npm run build && npm start        # site on :4200 (API_URL to override)
+npm test --prefix ../api                                      # Urdu normaliser tests
+```
+
 ## Static reader (no server)
 
 `reader/index.html` is a single-file reader: poets, intros, books and poems, with Nastaliq/Naskh switching. It reads the [divan-data](https://github.com/anas-rashid/divan-data) static API directly in the browser, so it needs no API, database or build step.

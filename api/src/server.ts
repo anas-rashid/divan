@@ -59,9 +59,15 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
     const [poet, crumbs, children, poems] = await Promise.all([
       pool.query('SELECT * FROM poets WHERE id = $1', [cat.poet_id]),
       ancestors(cat.id),
+      // child categories with the number of poems in them and all their sub-categories
       pool.query(
-        `SELECT c.url, c.title, (SELECT count(*) FROM poems p WHERE p.category_id = c.id)::int AS poems
-         FROM categories c WHERE c.parent_id = $1 ORDER BY c.position, c.id`,
+        `WITH RECURSIVE tree AS (
+           SELECT id AS root, id FROM categories WHERE parent_id = $1
+           UNION ALL
+           SELECT tree.root, c.id FROM categories c JOIN tree ON c.parent_id = tree.id)
+         SELECT c.url, c.title, count(p.id)::int AS poems
+         FROM categories c JOIN tree ON tree.root = c.id LEFT JOIN poems p ON p.category_id = tree.id
+         GROUP BY c.id ORDER BY c.position, c.id`,
         [cat.id],
       ),
       pool.query('SELECT url, title FROM poems WHERE category_id = $1 ORDER BY position, id', [cat.id]),
