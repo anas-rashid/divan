@@ -47,13 +47,13 @@ for (const p of page.poems ?? []) {
   groups.at(-1)!.poems.push(p);
 }
 const crumbs = page.breadcrumbs ?? [];
-// what the signed-in reader has bookmarked on this page (🔖 poet, book/chapter, poem, couplets, phrases)
+// what the signed-in reader has bookmarked on this page (poet, book/chapter, poem, couplets, phrases)
 const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
 const poetId = page.poet?.id, poemId = page.type === 'poem' ? page.poem.id : undefined;
 const categoryId = page.type === 'category' ? page.category.id : undefined;
 const saved = token ? (await asUser(token, `/api/library/state?poet=${poetId ?? ''}&category=${categoryId ?? ''}&poem=${poemId ?? ''}`)).data
   : { poet: false, category: false, poem: false, couplets: [], phrases: [] };
-// on contents pages: which works are bookmarked or hold bookmarks (🔖), and which books/chapters do
+// on contents pages: which works are bookmarked or hold bookmarks, and which books/chapters do
 const marks = token && page.type !== 'poem' ? (await asUser(token, '/api/library/marks')).data : { poems: {}, categories: [] };
 const glyph = (poemId: number) => (marks.poems[poemId]?.fav ? ' mark-fav' : '') + (marks.poems[poemId]?.bm ? ' mark-bm' : '');
 // the marked part of each line of a block, for its bookmarked phrases

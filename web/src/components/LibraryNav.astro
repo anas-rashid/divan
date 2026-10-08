@@ -3,7 +3,7 @@
 const { current } = Astro.props as { current: 'bookmarks' | 'words' };
 ---
 <nav class="admin-nav">
-  <a href="/library" aria-current={current === 'bookmarks' ? 'page' : undefined}>🔖 نشانات</a>
+  <a href="/library" aria-current={current === 'bookmarks' ? 'page' : undefined}><span class="bm-icon on" aria-hidden="true"></span> نشانات</a>
   <a href="/words" aria-current={current === 'words' ? 'page' : undefined}>ذخیرۂ الفاظ</a>
   <a href="/account">پروفائل</a>
 </nav>
