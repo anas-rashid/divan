@@ -52,7 +52,6 @@
         <div class="poemtablinks"><a href="#quoteds">مشقِ سخن</a></div>
         <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
         <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-        <div class="poemtablinks"><a href="#photos">تصاویر</a></div>
         <div class="poemtablinks"><a href="#papersources">مطبوعہ مآخذ</a></div>
         <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
@@ -69,7 +68,6 @@
         <div class="poemtablinks active"><a href="#quoteds">مشقِ سخن</a></div>
         <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
         <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-        <div class="poemtablinks"><a href="#photos">تصاویر</a></div>
         <div class="poemtablinks"><a href="#papersources">مطبوعہ مآخذ</a></div>
         <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
@@ -84,7 +82,6 @@
         <div class="poemtablinks"><a href="#quoteds">مشقِ سخن</a></div>
         <div class="poemtablinks active"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
         <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-        <div class="poemtablinks"><a href="#photos">تصاویر</a></div>
         <div class="poemtablinks"><a href="#papersources">مطبوعہ مآخذ</a></div>
         <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
@@ -107,7 +104,6 @@
         <div class="poemtablinks"><a href="#quoteds">مشقِ سخن</a></div>
         <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
         <div class="poemtablinks active"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-        <div class="poemtablinks"><a href="#photos">تصاویر</a></div>
         <div class="poemtablinks"><a href="#papersources">مطبوعہ مآخذ</a></div>
         <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>
@@ -125,39 +121,6 @@
         }
     </div>
 
-    @* Photos Section *@
-    <div class="poempretab" id="photos"></div>
-    <div class="poemtab">
-        <div class="poemtablinks"><a href="#pretab">اعداد و شمار</a></div>
-        <div class="poemtablinks"><a href="#quoteds">مشقِ سخن</a></div>
-        <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
-        <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-        <div class="poemtablinks active"><a href="#photos">تصاویر</a></div>
-        <div class="poemtablinks"><a href="#papersources">مطبوعہ مآخذ</a></div>
-        <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
-    </div>
-    <div class="poemtabcontent">
-        <div class="related-images-frame">
-            @if (Model.Photo != null)
-            {
-                <div class="century">
-                    @Model.Photo.Title
-                    @if (Model.Photo.ChosenOne)
-                    {
-                        <i class="notranslate noindent-info-button done-icon"></i>
-                    }
-                </div>
-                <div class="clear-both">
-                    <img src="@Html.Raw(Model.Photo.ExternalNormalSizeImageUrl.Replace("/norm/", "/orig/"))" alt="@Model.Photo.Title" class="max-width-100per">
-                </div>
-                <div class="comments-like-div">
-                    @Html.Raw(Model.Photo.Description)
-                </div>
-            }
-            <a href="/photos?p=@Model.DivanPage.PoetOrCat.Cat.UrlSlug" role="button" class="pagebutton comments-link">تصاویر دیکھیں اور تجویز کریں: @Model.DivanPage.PoetOrCat.Poet.Nickname</a>
-        </div>
-    </div>
-
     @* Paper Sources Section *@
     @if (Model.DivanPage.SecondPoet == null)
     {
@@ -167,7 +130,6 @@
             <div class="poemtablinks"><a href="#quoteds">مشقِ سخن</a></div>
             <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
             <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-            <div class="poemtablinks"><a href="#photos">تصاویر</a></div>
             <div class="poemtablinks active"><a href="#papersources">مطبوعہ مآخذ</a></div>
             <div class="poemtablinks"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
         </div>
@@ -208,7 +170,6 @@
         <div class="poemtablinks"><a href="#quoteds">مشقِ سخن</a></div>
         <div class="poemtablinks"><a href="#words" onclick="javascript:loadWordCounts(@Model.DivanPage.PoetOrCat.Cat.Id, @Model.DivanPage.PoetOrCat.Poet.Id, false)">الفاظ</a></div>
         <div class="poemtablinks"><a href="#recitations" onclick="javascript:loadCatRecitations(@Model.DivanPage.PoetOrCat.Cat.Id)">قرأتیں</a></div>
-        <div class="poemtablinks"><a href="#photos">تصاویر</a></div>
         <div class="poemtablinks"><a href="#papersources">مطبوعہ مآخذ</a></div>
         <div class="poemtablinks active"><a href="#persongraph" onclick="javascript:loadPersonGraph(@Model.DivanPage.PoetOrCat.Cat.Id)">شخصیات</a></div>
     </div>

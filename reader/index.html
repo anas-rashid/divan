@@ -12,12 +12,12 @@
   /* Divan static reader: no server, reads the divan-data static API (ganjoor-data layout). */
   :root {
     --bg: #faf7f0; --card: #ffffff; --ink: #2b2620; --muted: #7a6f60; --line: #e6dfd2; --accent: #8a5a19;
-    --font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --lh: 2.5;
+    --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --lh: 2;
   }
   @media (prefers-color-scheme: dark) {
     :root { --bg: #17140f; --card: #211d17; --ink: #ece4d6; --muted: #a89c88; --line: #3a3328; --accent: #d9a55a; }
   }
-  html.naskh { --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --lh: 2; }
+  html.nastaliq { --font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --lh: 2.5; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: var(--lh); }
   a { color: var(--accent); text-decoration: none; }
@@ -45,13 +45,13 @@
   @media (max-width: 600px) { .b { grid-template-columns: 1fr; } .b p:last-child { text-align: right; padding-right: 32px; } }
   .msg { color: var(--muted); text-align: center; padding: 32px; }
 </style>
-<script>try { if (localStorage.getItem('divan-font') === 'naskh') document.documentElement.classList.add('naskh'); } catch (e) {}</script>
+<script>try { if (localStorage.getItem('divan-font') === 'nastaliq') document.documentElement.classList.add('nastaliq'); } catch (e) {}</script>
 </head>
 <body>
 <header>
   <h1><a href="#/">دیوان</a></h1>
   <span class="grow"></span>
-  <button id="font" type="button" title="خط بدلیں">نستعلیق</button>
+  <button id="font" type="button" title="خط بدلیں">نسخ</button>
 </header>
 <main id="app"><p class="msg">لوڈ ہو رہا ہے…</p></main>
 <script>
@@ -140,11 +140,11 @@ window.addEventListener('hashchange', route);
 route();
 
 var fontBtn = document.getElementById('font');
-fontBtn.textContent = document.documentElement.classList.contains('naskh') ? 'نسخ' : 'نستعلیق';
+fontBtn.textContent = document.documentElement.classList.contains('nastaliq') ? 'نستعلیق' : 'نسخ';
 fontBtn.onclick = function () {
-  var naskh = document.documentElement.classList.toggle('naskh');
-  try { localStorage.setItem('divan-font', naskh ? 'naskh' : 'nastaliq'); } catch (e) {}
-  fontBtn.textContent = naskh ? 'نسخ' : 'نستعلیق';
+  var nastaliq = document.documentElement.classList.toggle('nastaliq');
+  try { localStorage.setItem('divan-font', nastaliq ? 'nastaliq' : 'naskh'); } catch (e) {}
+  fontBtn.textContent = nastaliq ? 'نستعلیق' : 'نسخ';
 };
 </script>
 </body>

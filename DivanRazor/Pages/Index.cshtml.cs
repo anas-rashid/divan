@@ -165,11 +165,9 @@ namespace DivanRazor.Pages
             // empty database instead of rendering something useful. Steer the visitor toward
             // fixing that instead of letting them hit an unhandled exception: log in first if
             // needed, then straight to the admin page that can seed real content.
-            if (IsDatabaseEffectivelyEmpty())
-            {
-                const string targetUrl = "/Admin/PublicDataImport";
-                return LoggedIn ? Redirect(targetUrl) : Redirect($"/login?redirect={targetUrl}");
-            }
+            // divan: the home page is public. No poets yet -> public "being prepared" notice (admins get an
+            // import link in the view); poets but no century groups yet (e.g. mid-import) -> one flat group.
+            NoContentYet = IsDatabaseEffectivelyEmpty();
 
             ViewData["Title"] = "دیوان";
 
@@ -177,14 +175,17 @@ namespace DivanRazor.Pages
         }
 
         /// <summary>
-        /// true if there's nothing meaningful to show on the home page yet — no poets at all, or
-        /// no century grouping (the "popular poets" group with Id == 0 that the view relies on).
+        /// true if there are no poets to show yet
         /// </summary>
         private bool IsDatabaseEffectivelyEmpty()
         {
-            return Poets == null || Poets.Count == 0
-                || PoetGroups == null || !PoetGroups.Any(g => g.Id == 0);
+            return Poets == null || Poets.Count == 0 || PoetGroups == null;
         }
+
+        /// <summary>
+        /// true when there is nothing to list yet (fresh install or import not started)
+        /// </summary>
+        public bool NoContentYet { get; set; }
 
         public async Task<IActionResult> OnGetPoetInformationAsync(int id)
         {

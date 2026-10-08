@@ -65,7 +65,7 @@ else
                 <select name="author" id="author">
                     <option value="0" selected>تمام شعرا کے کلام میں</option>
                     @{
-                        foreach (RMuseum.Models.Divan.ViewModels.DivanPoetViewModel poet in Model.Poets)
+                        foreach (RMuseum.Models.Divan.ViewModels.DivanPoetViewModel poet in Model.Poets ?? new())
                         {
                             <option value="@poet.Id">@poet.Nickname</option>
                         }
@@ -83,6 +83,8 @@ else
             <div id="main">
                 <div id="guides">
 
+                    @if (Model.PoetGroups != null && Model.PoetGroups.Any(g => g.Id == 0))
+                    {
                     <div id="home-popular-poets-row">
                         <div class="century">
                             مقبول شعرا
@@ -112,8 +114,35 @@ else
                             </div>
                         }
                     </div>
+                    }
 
-                    @{
+                    @if (Model.NoContentYet)
+                    {
+                        <div class="notice">
+                            <p>دیوان کا مواد تیار کیا جا رہا ہے۔ براہِ کرم کچھ دیر بعد دوبارہ تشریف لائیں۔</p>
+                            @if (Model.LoggedIn)
+                            {
+                                <p><a href="/Admin/PublicDataImport">مواد درآمد کریں</a></p>
+                            }
+                        </div>
+                    }
+                    else if (!Model.PoetGroups.Any(g => g.Id != 0))
+                    {
+                        @* century groups are rebuilt when an import finishes; until then list all poets *@
+                        <div class="century">شعرا</div>
+                        <div class="spacer">
+                            @foreach (var poet in Model.Poets)
+                            {
+                                <div class="poet" data-value="@poet.Nickname">
+                                    <div class="caption">
+                                        <a href="@poet.FullUrl">@poet.Nickname</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
                         <div class="century" id="cl">
                             صدیوں کے لحاظ سے
                         </div>

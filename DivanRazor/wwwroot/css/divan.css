@@ -1,12 +1,19 @@
-/* Divan overrides on top of Divan's p8.css: Urdu fonts (Nastaliq default, Naskh option) + wordmark. */
+/* Divan overrides on top of upstream's p8.css: Urdu fonts (Naskh default, Nastaliq option), wordmark,
+   no poet/writer photos for now. */
 :root {
+    --divan-font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif;
+    --divan-line-height: 2;
+}
+
+html.font-nastaliq {
     --divan-font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif;
     --divan-line-height: 2.6;
 }
 
-html.font-naskh {
-    --divan-font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif;
-    --divan-line-height: 2;
+/* poet/writer photos are not shown for now (every portrait is served from the API's /poet/image/ endpoint) */
+img[src*="/poet/image/"],
+a:has(> img[src*="/poet/image/"]) {   /* also the oval portrait frame around it on poet tiles */
+    display: none !important;
 }
 
 /* poem lines, prose paragraphs, titles */
