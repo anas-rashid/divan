@@ -136,18 +136,18 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         dictBody.replaceChildren(el('h2', null, w), el('p', 'muted', 'تلاش جاری ہے…'));
         let d = null;
         // v: bump when the response format changes (responses are browser-cached for a day)
-        try { const r = await fetch('/api/word?v=5&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
+        try { const r = await fetch('/api/word?v=6&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
         if (w !== current) return; // a newer selection won
-        const words = (title, items, into) => { // clickable word buttons
-          if (!items.length) return;
+        const buttons = (items) => { // clickable words
           const box = el('div', 'similar');
           for (const s of items) {
             const b = el('button', null, s.title, { type: 'button', title: s.langs.map((c) => LANG[c]).join('، ') });
             b.onclick = () => showWord(s.title);
             box.append(b);
           }
-          into.push(el('h3', null, title), box);
+          return box;
         };
+        const words = (title, items, into) => { if (items.length) into.push(el('h3', null, title), buttons(items)); };
         const list = (items, cls, attrs) => { const ol = el('ol', cls, null, attrs); items.forEach((x) => ol.append(el('li', null, x))); return ol; };
         const out = [el('h2', null, w)];
         if (!d || !d.found) {
@@ -161,18 +161,49 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         for (const l of d.langs) {
           const sec = el('section', 'dict-lang');
           sec.append(el('h3', null, LANG[l.code]));
-          // a pronunciation line: vowelled form, transliteration, IPA, audio
+          // collapsible extra (more meanings, examples, long etymologies, word lists)
+          const more = (label, ...children) => {
+            const d = el('details', 'more');
+            d.append(el('summary', null, label), ...children);
+            return d;
+          };
+          const tagged = (tags) => (tags?.length ? ` (${tags.join(', ')})` : '');
+          // a pronunciation line: vowelled form, transliteration, every IPA (with dialect labels), every recording
           const pron = (r) => {
             const pr = el('p', 'pron');
             if (r.form) pr.append(el('span', 'form', r.form), ' ');
             if (r.tr) pr.append(el('bdi', 'en', r.tr));
-            r.ipa.forEach((i) => pr.append(' ', el('bdi', 'ipa', i)));
-            if (r.audio && r.audio.startsWith('https://upload.wikimedia.org/')) {
-              const b = el('button', 'play', '🔊', { type: 'button', 'aria-label': 'تلفظ سنیں' });
-              b.onclick = () => new Audio(r.audio).play();
+            r.ipa.forEach((i) => pr.append(' ', el('bdi', 'ipa', i.ipa + tagged(i.tags), { title: i.tags.join(', ') })));
+            r.audio.forEach((a) => {
+              if (!a.url.startsWith('https://upload.wikimedia.org/')) return;
+              const b = el('button', 'play', '🔊', { type: 'button', 'aria-label': 'تلفظ سنیں', title: a.tags.join(', ') });
+              b.onclick = () => new Audio(a.url).play();
               pr.append(' ', b);
-            }
+            });
             return pr;
+          };
+          // one meaning: gloss with labels; usage examples (text, romanisation, translation) folded
+          const sense = (x) => {
+            const li = el('li', null, x.gloss + tagged(x.tags));
+            if (x.examples.length) {
+              const ex = x.examples.map((e) => {
+                const p = el('p', 'example');
+                p.append(el('span', 'ex-text', e.text, { dir: 'auto' }));
+                if (e.roman) p.append(el('br'), el('i', null, e.roman));
+                if (e.english) p.append(el('br'), e.english);
+                return p;
+              });
+              li.append(more(`مثالیں (${x.examples.length})`, ...ex));
+            }
+            return li;
+          };
+          const senses = (defs) => {
+            const ol = el('ol', 'en', null, { dir: 'ltr', lang: 'en' });
+            defs.slice(0, 4).forEach((x) => ol.append(sense(x)));
+            if (defs.length <= 4) return [ol];
+            const rest = el('ol', 'en', null, { dir: 'ltr', lang: 'en', start: '5' });
+            defs.slice(4).forEach((x) => rest.append(sense(x)));
+            return [ol, more(`مزید معانی (${defs.length - 4})`, rest)];
           };
           const urdu = () => {
             if (!l.urdu?.length) return;
@@ -189,7 +220,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
             for (const r of l.readings) {
               const box = el('div', l.readings.length > 1 ? 'reading' : null);
               box.append(pron(r));
-              for (const s of r.senses) box.append(el('p', 'pos', `انگریزی میں · ${POS[s.pos.charAt(0).toUpperCase() + s.pos.slice(1)] ?? s.pos}`), list(s.defs, 'en', { dir: 'ltr', lang: 'en' }));
+              for (const s of r.senses) box.append(el('p', 'pos', `انگریزی میں · ${POS[s.pos.charAt(0).toUpperCase() + s.pos.slice(1)] ?? s.pos}`), ...senses(s.defs));
               sec.append(box);
             }
             if (l.translation.length) sec.append(el('p', 'pos', POS.Translation), list(l.translation, 'en', { dir: 'ltr', lang: 'en' }));
@@ -199,11 +230,20 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
             const label = el('p', 'pos');
             label.append(`معانی: ${LANG[l.code]} ویکی لغت` + (l.origin ? ` · اصل: ${l.origin}` : '') + ' · ');
             if (l.source) label.append(el('a', null, 'ماخذ', { href: l.source, target: '_blank', rel: 'noopener' }));
-            sec.append(label, list(l.meanings, null, { lang: l.code }));
+            const own = list(l.meanings.slice(0, 6), null, { lang: l.code });
+            sec.append(label, own);
+            if (l.meanings.length > 6) sec.append(more(`مزید معانی (${l.meanings.length - 6})`, list(l.meanings.slice(6), null, { lang: l.code, start: '7' })));
           }
           if (l.code === 'ur') { english(); urdu(); }
-          if (l.synonyms.length) sec.append(el('p', 'pos', 'مترادفات'), el('p', null, l.synonyms.join('، ')));
-          if (l.ety) sec.append(el('p', 'pos', 'اشتقاق'), el('p', 'en ety', l.ety, { dir: 'ltr', lang: 'en' }));
+          for (const [label, items] of [['مترادفات', l.synonyms], ['مشتقات', l.derived], ['متعلقہ الفاظ', l.related]]) {
+            if (!items.length) continue;
+            const box = buttons(items.map((t) => ({ title: t, langs: [l.code] })));
+            sec.append(...(items.length > 8 ? [more(`${label} (${items.length})`, box)] : [el('p', 'pos', label), box]));
+          }
+          for (const ety of l.etymologies) {
+            const text = el('p', 'en ety', ety, { dir: 'ltr', lang: 'en' });
+            sec.append(...(ety.length > 220 ? [more('اشتقاق', text)] : [el('p', 'pos', 'اشتقاق'), text]));
+          }
           if (l.en) {
             const p = el('p', 'pos');
             p.append(el('a', null, 'انگریزی ویکی لغت', { href: l.en, target: '_blank', rel: 'noopener' }));

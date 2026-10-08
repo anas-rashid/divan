@@ -146,6 +146,10 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .dict .pos { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
 .dict .note { font-size: .8rem; margin: 0; }
 .dict .via { margin: 2px 0; }
+.dict details.more { margin: 4px 0; }
+.dict details.more summary { cursor: pointer; font-size: .8rem; color: var(--brand); }
+.dict .example { font-size: .8rem; color: var(--muted); margin: 4px 0; border-left: 2px solid var(--gold-light); padding-left: 8px; }
+.dict .example .ex-text { font-family: 'Noto Naskh Arabic', serif; font-size: .95rem; color: var(--ink); }
 .dict .reading { border-inline-start: 2px solid var(--gold-light); padding-inline-start: 10px; margin: 8px 0; }
 .dict .form { font-size: 1.15rem; color: var(--lapis); }
 .dict .via .en { font-size: .78rem; }

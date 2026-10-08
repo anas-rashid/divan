@@ -1,5 +1,7 @@
 // Word dictionary for the reading sidebar: the full Wiktionary data for Urdu, Persian and Arabic, in PostgreSQL.
-//   source 'en':  en.wiktionary entries (English meanings, IPA, transliteration, audio, etymology, synonyms),
+//   source 'en':  en.wiktionary entries in full (all senses with usage examples, every IPA with dialect labels, every
+//                 recording, transliteration, vowelled form, etymology, synonyms, derived and related words;
+//                 not inflection tables),
 //                 from the kaikki.org Wiktextract extracts (weekly)
 //   source 'own': each language's own Wiktionary (ur., fa., ar.wiktionary): meanings in that language,
 //                 from the Wikimedia dumps (twice a month) plus recent changes (daily)
@@ -37,24 +39,32 @@ const upload = (u?: string) => (u && u.startsWith('https://upload.wikimedia.org/
 export function kaikkiEntry(d: any) {
   const senses = (d.senses ?? []).filter((s: any) => s.glosses?.length);
   const sounds = d.sounds ?? [];
+  const words = (list: any[] | undefined) => [...new Set((list ?? []).map((x: any) => x.word).filter(Boolean))] as string[];
+  const ipa = new Map<string, string[]>();
+  for (const s of sounds) if (s.ipa && !ipa.has(s.ipa)) ipa.set(s.ipa, s.tags ?? []);
   return {
     pos: d.pos as string,
-    glosses: senses.map((s: any) => s.glosses.join('; ')).slice(0, 6) as string[],
     formOf: senses.length > 0 && senses.every((s: any) => s.form_of || s.tags?.includes('form-of')),
-    ipa: [...new Set(sounds.map((s: any) => s.ipa).filter(Boolean))].slice(0, 2) as string[],
-    audio: sounds.map((s: any) => upload(s.mp3_url) ?? upload(s.ogg_url)).find(Boolean) ?? null,
     tr: d.forms?.find((f: any) => f.tags?.includes('romanization'))?.form ?? null,
     form: d.forms?.find((f: any) => f.tags?.includes('canonical'))?.form ?? null, // with short vowels: مُلْک
+    // every sense, with its labels (archaic, figurative …) and usage examples
+    senses: senses.map((s: any) => ({
+      gloss: s.glosses.join('; ') as string,
+      tags: (s.tags ?? []).filter((t: string) => t !== 'form-of') as string[],
+      examples: (s.examples ?? []).filter((e: any) => e.text).map((e: any) => ({ text: e.text, roman: e.roman ?? null, english: e.english ?? e.translation ?? null })),
+    })),
+    // every pronunciation with its dialect labels (Iran, Classical Persian …) and every recording
+    ipa: [...ipa].map(([v, tags]) => ({ ipa: v, tags })),
+    audio: sounds.map((s: any) => ({ url: upload(s.mp3_url) ?? upload(s.ogg_url), tags: s.tags ?? [] })).filter((a: any) => a.url),
     ety: d.etymology_text ? etymology(String(d.etymology_text)) : null,
-    synonyms: (d.synonyms ?? []).map((s: any) => s.word).filter(Boolean).slice(0, 8) as string[],
+    synonyms: words(d.synonyms), derived: words(d.derived), related: words(d.related),
   };
 }
 
-// etymology text without Wiktionary's "Etymology tree …" diagram summary; cut at 300 characters, never
-// leaving half a surrogate pair
+// etymology text without Wiktionary's "Etymology tree …" diagram summary (no half surrogate pairs)
 const etymology = (t: string) =>
   (t.startsWith('Etymology tree') ? t.slice(Math.max(0, t.search(/\b(Borrowed|Inherited|From|Learned|Derived|Semi-learned|Calque|Compound)\b/))) : t)
-    .slice(0, 300).toWellFormed();
+    .toWellFormed();
 
 // English glosses of an Urdu entry as pivot keys: "fate, destiny" -> fate, destiny (short, lowercase)
 export const glossKeys = (glosses: string[]) => [...new Set(glosses.flatMap((g) => g.replace(/\([^)]*\)/g, '').split(/[,;]/))
@@ -73,7 +83,7 @@ export function urduEntry(wt: string) {
   }
   const origin = unlink(wt.match(/\((\[\[[^\]]+\]\])\)/)?.[1] ?? '') || null;
   const english = wt.match(/^\s*انگریزی\s*:\s*([A-Za-z].+)$/m)?.[1].trim() ?? null; // "== تراجم ==" pages
-  return { defs: defs.slice(0, 6), origin, links: [] as string[], ...(english && { english }) };
+  return { defs: defs.slice(0, 20), origin, links: [] as string[], ...(english && { english }) };
 }
 
 // ur.wiktionary English entries ("north": "# [[شمالی]]۔"): the Urdu words, for the pivot through English
@@ -105,7 +115,7 @@ export function definitions(wt: string, code: string) {
     const t = unlink(stripTemplates(m[1])).replace(/^[\s.،:-]+|\s+$/g, '');
     if (t.length >= 3 && !/^-+$/.test(t)) defs.push(t);
   }
-  return { defs: defs.slice(0, 6), origin: null as string | null, links: links.slice(0, 5) };
+  return { defs: defs.slice(0, 20), origin: null as string | null, links: links.slice(0, 5) };
 }
 
 export const ownEntry = (code: string, wt: string) => (code === 'ur' ? urduEntry(wt) : definitions(wt, code));
@@ -174,9 +184,9 @@ async function importKaikki(lang: string) {
     for await (const line of createInterface({ input: Readable.fromWeb(res.body as any), crlfDelay: Infinity })) {
       if (!line) continue;
       const d = JSON.parse(line), e = kaikkiEntry(d);
-      if (!e.glosses.length && !e.ipa.length) continue;
+      if (!e.senses.length && !e.ipa.length) continue;
       await add(d.word, e);
-      if (lang === 'ur' && !e.formOf) for (const g of glossKeys(e.glosses.slice(0, 3))) glossRows.push([g, d.word]);
+      if (lang === 'ur' && !e.formOf) for (const g of glossKeys(e.senses.slice(0, 3).map((s) => s.gloss))) glossRows.push([g, d.word]);
     }
     await insertGlosses(client, 'en', glossRows);
   });
@@ -291,16 +301,18 @@ export async function lookup(word: string) {
     for (const r of use) {
       const id = r.data.tr ?? r.data.form ?? r.title;
       let g = readings.find((x) => x.id === id);
-      if (!g) readings.push((g = { id, form: r.data.form ?? r.title, tr: r.data.tr, ipa: r.data.ipa, audio: r.data.audio, senses: [] }));
-      if (!g.ipa.length) g.ipa = r.data.ipa;
-      g.audio ??= r.data.audio;
-      if (r.data.glosses.length && g.senses.length < 3) g.senses.push({ pos: r.data.pos, defs: r.data.glosses.slice(0, 4) });
+      if (!g) readings.push((g = { id, form: r.data.form ?? r.title, tr: r.data.tr, ipa: [], audio: [], senses: [] }));
+      for (const x of r.data.ipa) if (!g.ipa.some((y: any) => y.ipa === x.ipa)) g.ipa.push(x);
+      for (const x of r.data.audio) if (!g.audio.some((y: any) => y.url === x.url)) g.audio.push(x);
+      if (r.data.senses.length) g.senses.push({ pos: r.data.pos, defs: r.data.senses });
     }
     return {
-      code, readings: readings.slice(0, 5).map(({ id, ...x }) => x),
-      ety: use.map((r) => r.data.ety).find(Boolean) ?? null,
-      synonyms: [...new Set(use.flatMap((r) => r.data.synonyms))].slice(0, 8),
-      meanings: own.flatMap((r) => r.data.defs).slice(0, 6), origin: own.find((r) => r.data.origin)?.data.origin ?? null,
+      code, readings: readings.map(({ id, ...x }) => x),
+      etymologies: [...new Set(use.map((r) => r.data.ety).filter(Boolean))],
+      synonyms: [...new Set(use.flatMap((r) => r.data.synonyms))],
+      derived: [...new Set(use.flatMap((r) => r.data.derived))],
+      related: [...new Set(use.flatMap((r) => r.data.related))],
+      meanings: own.flatMap((r) => r.data.defs), origin: own.find((r) => r.data.origin)?.data.origin ?? null,
       source: own[0] ? page(code, 'own', own[0].title) : null,
       // ur.wiktionary's English translation lines ("انگریزی : …")
       translation: rows.filter((r) => r.lang === code && r.source === 'own' && r.data.english).map((r) => r.data.english),
@@ -311,7 +323,7 @@ export async function lookup(word: string) {
   // has no Urdu-language meaning, and for the Persian and Arabic entries when the word is not in Urdu at all
   const inUrdu = langs.some((l) => l.code === 'ur');
   await Promise.all(langs.map(async (l: any) => {
-    l.urdu = (l.code === 'ur' ? !l.meanings.length : !inUrdu) ? await viaEnglish(l.readings[0]?.senses[0]?.defs.slice(0, 2) ?? [], k) : [];
+    l.urdu = (l.code === 'ur' ? !l.meanings.length : !inUrdu) ? await viaEnglish(l.readings[0]?.senses[0]?.defs.slice(0, 2).map((d: any) => d.gloss) ?? [], k) : [];
   }));
   const found = langs.length > 0;
   // always: the same consonants with other long vowels (دل: دال، دول، دیل); not found: also stems and near spellings

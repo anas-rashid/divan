@@ -13,15 +13,25 @@ test('lookup key: spelling variants across Urdu, Persian and Arabic meet', () =>
   assert.notEqual(key('دیوانے'), key('دیوانی'), 'bari ye stays distinct');
 });
 
-test('kaikki entry: glosses, IPA, audio, romanisation, form-of', () => {
+test('kaikki entry kept in full: senses with labels and examples, every IPA and recording, form-of', () => {
   const e = kaikkiEntry({
     word: 'قسمت', pos: 'noun', etymology_text: 'From Arabic',
-    senses: [{ glosses: ['fate, destiny'] }, { glosses: ['division'] }, { links: [] }],
-    sounds: [{ ipa: '/qɪs.mət̪/' }, { audio: 'x.wav', mp3_url: 'https://upload.wikimedia.org/x.mp3' }, { mp3_url: 'https://evil.example/x.mp3' }],
+    senses: [{ glosses: ['fate, destiny'], examples: [{ text: 'قسمت کا لکھا', roman: 'qismat kā likhā', english: 'what fate wrote' }] },
+      { glosses: ['division'], tags: ['archaic'] }, { links: [] }],
+    sounds: [{ ipa: '/qɪs.mət̪/', tags: ['Standard'] }, { ipa: '[qɪs.mət̪]' }, { ipa: '/qɪs.mət̪/' },
+      { audio: 'x.wav', mp3_url: 'https://upload.wikimedia.org/x.mp3', tags: ['Iran'] }, { ogg_url: 'https://upload.wikimedia.org/y.ogg' },
+      { mp3_url: 'https://evil.example/x.mp3' }],
     forms: [{ form: 'قِسْمَت', tags: ['canonical'] }, { form: 'qismat', tags: ['romanization'] }],
+    synonyms: [{ word: 'تقدیر' }], derived: [{ word: 'قسمت والا' }, { word: 'قسمت والا' }],
   });
-  assert.deepEqual(e, { pos: 'noun', glosses: ['fate, destiny', 'division'], formOf: false, ipa: ['/qɪs.mət̪/'],
-    audio: 'https://upload.wikimedia.org/x.mp3', tr: 'qismat', form: 'قِسْمَت', ety: 'From Arabic', synonyms: [] });
+  assert.deepEqual(e, {
+    pos: 'noun', formOf: false, tr: 'qismat', form: 'قِسْمَت',
+    senses: [{ gloss: 'fate, destiny', tags: [], examples: [{ text: 'قسمت کا لکھا', roman: 'qismat kā likhā', english: 'what fate wrote' }] },
+      { gloss: 'division', tags: ['archaic'], examples: [] }],
+    ipa: [{ ipa: '/qɪs.mət̪/', tags: ['Standard'] }, { ipa: '[qɪs.mət̪]', tags: [] }],
+    audio: [{ url: 'https://upload.wikimedia.org/x.mp3', tags: ['Iran'] }, { url: 'https://upload.wikimedia.org/y.ogg', tags: [] }],
+    ety: 'From Arabic', synonyms: ['تقدیر'], derived: ['قسمت والا'], related: [],
+  });
   assert.equal(kaikkiEntry({ word: 'x', pos: 'noun', senses: [{ glosses: ['plural of y'], tags: ['form-of'] }] }).formOf, true);
 });
 
@@ -49,9 +59,9 @@ test('dump pages: articles only, entities decoded, redirects skipped', () => {
   assert.deepEqual([...dumpPages(xml)], [{ title: 'عشق', text: 'a & b <x>' }]);
 });
 
-test('etymology cut never leaves half a surrogate pair', () => {
-  const ety = kaikkiEntry({ word: 'x', pos: 'noun', senses: [], etymology_text: 'a'.repeat(299) + '𑀭𑀭' }).ety!;
-  assert.ok(ety.isWellFormed());
+test('etymology kept in full and well formed', () => {
+  const ety = kaikkiEntry({ word: 'x', pos: 'noun', senses: [], etymology_text: 'a'.repeat(400) + '𑀭\ud804' }).ety!;
+  assert.ok(ety.isWellFormed() && ety.length > 400);
 });
 
 test('ur.wiktionary: English entries give Urdu words; Urdu entries fall back to # lines or prose', async () => {
