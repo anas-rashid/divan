@@ -31,6 +31,9 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   assert.equal((await call('GET', '/api/library')).statusCode, 401, 'signed out');
   assert.deepEqual((await toggle({ kind: 'poet', poetId: 266 })).json().saved, true);
   assert.deepEqual((await toggle({ kind: 'poem', poemId: poem })).json().saved, true);
+  const ghazals = (await pool.query(`SELECT id FROM categories WHERE url = '/p266/ghazal'`)).rows[0].id;
+  assert.deepEqual((await toggle({ kind: 'category', categoryId: ghazals })).json().saved, true, 'a book/chapter');
+  assert.equal((await toggle({ kind: 'category', categoryId: 999999 })).statusCode, 404);
   assert.deepEqual((await toggle({ kind: 'couplet', poemId: poem, couplet: 0 })).json().saved, true);
   assert.deepEqual((await toggle({ kind: 'couplet', poemId: poem, couplet: 2 })).json().saved, true);
   assert.deepEqual((await toggle({ kind: 'word', word: 'وصال،', poemId: poem, couplet: 0 })).json().saved, true);
@@ -50,7 +53,7 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   const book = (await pool.query(`SELECT id FROM categories WHERE url = '/p266/ghazal'`)).rows[0].id;
   assert.ok(marks.categories.includes(book) && marks.poets.includes(266));
   // state for a page
-  assert.deepEqual((await call('GET', `/api/library/state?poet=266&poem=${poem}`, undefined, t)).json(), { poet: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }] });
+  assert.deepEqual((await call('GET', `/api/library/state?poet=266&category=${ghazals}&poem=${poem}`, undefined, t)).json(), { poet: true, category: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }] });
 
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('وصال'), undefined, t)).json(), { word: true });
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('ہجر'), undefined, t)).json(), { word: false });
@@ -60,6 +63,7 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   const lib = (await call('GET', '/api/library', undefined, t)).json();
   assert.equal(lib.poets[0].poet.url, '/p266');
   assert.deepEqual(lib.poems[0].poem.path.map((c: any) => c.url), ['/p266', '/p266/ghazal'], 'poet » book path');
+  assert.deepEqual(lib.categories[0].path.map((c: any) => c.url), ['/p266', '/p266/ghazal']);
   assert.equal(lib.couplets.length, 1);
   assert.equal(lib.phrases.length, 2);
   assert.deepEqual(lib.phrases[0].poem.path.map((c: any) => c.url), ['/p266', '/p266/ghazal']);

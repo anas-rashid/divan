@@ -1,4 +1,4 @@
-// Browser -> API for the save buttons (♡, 🔖, word): the reader's session cookie becomes the Bearer token.
+// Browser -> API for the 🔖 bookmark buttons and the word book: the reader's session cookie becomes the Bearer token.
 // JSON posts from other sites are refused: the Origin must be this site (and SameSite cookies are not sent).
 import type { APIRoute } from 'astro';
 import { asUser, COOKIE } from '../../lib/auth';

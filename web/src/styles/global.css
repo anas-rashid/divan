@@ -214,11 +214,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .grant-form legend { font-size: .85rem; padding: 0 6px; }
 .grant-form label.check { flex-direction: row; align-items: center; gap: 6px; }
 
-/* personal library: ♡ save buttons, 🔖 couplet bookmarks */
+/* bookmarks (🔖): poets, books/chapters, poems, couplets; the word book is separate (+) */
 .save { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
-.save::before { content: '♡ '; color: var(--brand); }
+.save::before { content: '🔖 '; filter: grayscale(1); opacity: .6; }
 .save[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
-.save[aria-pressed='true']::before { content: '♥ '; }
+.save[aria-pressed='true']::before { filter: none; opacity: 1; }
 /* word book (ذخیرۂ الفاظ): + to add, ✓ when added (hearts are for poets and works) */
 .wordbook { font: inherit; font-size: .85rem; padding: 1px 14px; margin-bottom: 6px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .wordbook::before { content: '+ '; font-weight: 700; color: var(--gold); }
@@ -251,10 +251,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .lib-remove { position: absolute; left: 8px; top: 8px; margin: 0; }
 .lib-remove button { color: var(--brand); }
 
-/* bookmarked phrases, and glyphs where the reader's favourites (♥) and bookmarks (🔖) are */
+/* bookmarked phrases, and 🔖 where the reader's bookmarks are */
 .bmk { text-decoration: underline dotted var(--brand) 2px; text-underline-offset: 6px; cursor: pointer; background: var(--gold-subtle); border-radius: 4px; }
 .bmk::after { content: '🔖'; font-size: .55em; vertical-align: super; margin-inline-start: 1px; user-select: none; }
 .mark-fav::after, .mark-bm::after { font-size: .65em; margin-inline-start: 6px; vertical-align: middle; user-select: none; }
-.mark-fav::after { content: '♥'; color: var(--brand); }
-.mark-bm::after { content: '🔖'; }
-.mark-fav.mark-bm::after { content: '♥ 🔖'; }
+.mark-fav::after, .mark-bm::after { content: '🔖'; }

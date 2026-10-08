@@ -1,0 +1,9 @@
+---
+// tabs between the reader's bookmarks and their word book (kept separate)
+const { current } = Astro.props as { current: 'bookmarks' | 'words' };
+---
+<nav class="admin-nav">
+  <a href="/library" aria-current={current === 'bookmarks' ? 'page' : undefined}>🔖 نشانات</a>
+  <a href="/words" aria-current={current === 'words' ? 'page' : undefined}>ذخیرۂ الفاظ</a>
+  <a href="/account">پروفائل</a>
+</nav>

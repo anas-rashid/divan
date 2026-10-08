@@ -130,8 +130,9 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS bio text;         -- up to 1,000 char
 CREATE TABLE IF NOT EXISTS library (
     id         bigserial PRIMARY KEY,
     user_id    bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    kind       text NOT NULL,                    -- poet | poem | couplet | phrase | word
+    kind       text NOT NULL,                    -- poet | category | poem | couplet | phrase | word
     poet_id    integer,                          -- poet
+    category_id integer,                         -- category: a book or chapter/section
     poem_id    integer,                          -- poem, couplet, phrase, or a word's source work
     couplet    integer,                          -- couplet, or a word's source couplet
     word       text,                             -- word
@@ -141,8 +142,10 @@ CREATE TABLE IF NOT EXISTS library (
 );
 ALTER TABLE library ADD COLUMN IF NOT EXISTS phrase text;
 ALTER TABLE library DROP CONSTRAINT IF EXISTS library_kind_check;
-ALTER TABLE library ADD CONSTRAINT library_kind_check CHECK (kind IN ('poet', 'poem', 'couplet', 'phrase', 'word'));
+ALTER TABLE library ADD COLUMN IF NOT EXISTS category_id integer;
+ALTER TABLE library ADD CONSTRAINT library_kind_check CHECK (kind IN ('poet', 'category', 'poem', 'couplet', 'phrase', 'word'));
 DROP INDEX IF EXISTS library_items;
-CREATE UNIQUE INDEX IF NOT EXISTS library_places ON library (user_id, kind, coalesce(poet_id, 0), coalesce(poem_id, 0), coalesce(couplet, -1)) WHERE kind IN ('poet', 'poem', 'couplet');
+DROP INDEX IF EXISTS library_places;
+CREATE UNIQUE INDEX IF NOT EXISTS library_bookmarks ON library (user_id, kind, coalesce(poet_id, 0), coalesce(category_id, 0), coalesce(poem_id, 0), coalesce(couplet, -1)) WHERE kind IN ('poet', 'category', 'poem', 'couplet');
 CREATE UNIQUE INDEX IF NOT EXISTS library_phrases ON library (user_id, poem_id, couplet, phrase) WHERE kind = 'phrase';
 CREATE UNIQUE INDEX IF NOT EXISTS library_words ON library (user_id, word) WHERE kind = 'word';
