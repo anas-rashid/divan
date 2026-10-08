@@ -110,3 +110,16 @@ CREATE TABLE IF NOT EXISTS audit_log (
     detail      jsonb
 );
 CREATE INDEX IF NOT EXISTS audit_log_at ON audit_log(at DESC);
+-- moderators' permissions (api/src/permissions.ts); users.role: reader | mod-l2 | mod-l1 | admin
+CREATE TABLE IF NOT EXISTS grants (
+    id         bigserial PRIMARY KEY,
+    user_id    bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    scope      text NOT NULL CHECK (scope IN ('all', 'poet', 'category', 'poem')),
+    scope_id   integer,                          -- poets.id / categories.id / poems.id; NULL for 'all'
+    content    text[] NOT NULL,                  -- poets, books, works, dictionary
+    actions    text[] NOT NULL,                  -- create, edit, delete, arrange
+    granted_by bigint REFERENCES users(id) ON DELETE SET NULL,
+    created_at timestamptz NOT NULL DEFAULT now(),
+    CHECK ((scope = 'all') = (scope_id IS NULL))
+);
+CREATE INDEX IF NOT EXISTS grants_user ON grants(user_id);

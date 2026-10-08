@@ -33,7 +33,7 @@ Settings: `DATABASE_URL` (API, default `postgres://divan:divan_local@localhost:5
 
 The import upserts, so re-running it after a divan-data sync applies the changes.
 
-**Accounts and admin.** Readers sign up with an email address and password (no email is sent). The first admin is made on the server: sign up on the site, then `npm run make-admin -- you@example.com` in `api/`. Admins manage users at `/admin` (search, password reset on a reader's request, disable, roles, delete) and see every admin action at `/admin/audit`.
+**Accounts and admin.** Readers sign up with an email address and password (no email is sent). The first admin is made on the server: sign up on the site, then `npm run make-admin -- you@example.com` in `api/`. Admins manage users at `/admin` (search, password reset on a reader's request, disable, roles, delete) and see every admin action at `/admin/audit`. Moderators (L2 junior, L1 senior) get scoped permissions from admins: a scope (all poets, a poet, a book with everything in it, or one work), content types (poets, books, works, dictionary) and actions (create, edit, delete, arrange); `can()` in `api/src/permissions.ts` is the one check for moderation.
 
 ## Daily content sync (server)
 

@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { ud } from '../../lib/urdu';
+import { ROLE, CONTENT, ACTION as DO } from '../../lib/roles';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/admin/audit');
@@ -13,8 +14,8 @@ const log = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/audit?pa
 const pages = Math.ceil(log.total / log.pageSize);
 const ACTION: Record<string, string> = {
   'password-reset': 'پاس ورڈ ری سیٹ', disable: 'معطل', enable: 'بحال', role: 'کردار', delete: 'حذف', promote: 'ایڈمن (سرور سے)',
+  grant: 'اجازت دی', revoke: 'اجازت واپس لی',
 };
-const ROLE: Record<string, string> = { admin: 'ایڈمن', reader: 'قاری' };
 const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T', ' '));
 ---
 <Base title="ایڈمن: ریکارڈ">
@@ -29,7 +30,8 @@ const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T
           <td><bdi dir="ltr">{e.actor_email}</bdi></td>
           <td>{ACTION[e.action] ?? e.action}</td>
           <td><bdi dir="ltr">{e.target_email ?? '—'}</bdi></td>
-          <td>{e.detail?.to ? `${ROLE[e.detail.from] ?? '—'} ← ${ROLE[e.detail.to] ?? e.detail.to}`.replace('— ← ', '') : ''}</td>
+          <td>{e.detail?.to ? `${ROLE[e.detail.from] ?? '—'} ← ${ROLE[e.detail.to] ?? e.detail.to}`.replace('— ← ', '')
+            : e.detail?.content ? `${e.detail.target ?? ''} · ${e.detail.content.map((c: string) => CONTENT[c]).join('، ')} · ${e.detail.actions.map((a: string) => DO[a]).join('، ')}` : ''}</td>
         </tr>
       ))}
     </tbody>
