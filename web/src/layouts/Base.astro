@@ -42,7 +42,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         </form>
         <div class="toggles">
           {Astro.locals.user?.role === 'admin' && <a class="account-link" href="/admin">ایڈمن</a>}
-          {Astro.locals.user && <a class="account-link" href="/library">لائبریری</a>}
+          {Astro.locals.user && <a class="account-link" href="/library">نشانات</a>}
+          {Astro.locals.user && <a class="account-link" href="/words">ذخیرۂ الفاظ</a>}
           {Astro.locals.user
             ? <a class="account-link" href="/account" title={Astro.locals.user.email}>{Astro.locals.user.full_name.split(' ')[0] || 'اکاؤنٹ'}</a>
             : <a class="account-link" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`}>لاگ ان</a>}
@@ -55,7 +56,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <main class="wrap"><slot /></main>
     <div id="selmenu" class="selmenu" role="toolbar" aria-label="منتخب عبارت" hidden>
       <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
-      <button type="button" data-act="saveword" class="plus" title="ذخیرۂ الفاظ میں شامل کریں">لفظ</button>
+      <button type="button" data-act="saveword" class="plus" title="ذخیرۂ الفاظ میں ڈالیں">ذخیرۂ الفاظ</button>
       <button type="button" data-act="bookmark" title="اس عبارت پر نشان لگائیں">نشان</button>
       <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
       <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
@@ -144,7 +145,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         return e;
       };
       let current = '';
-      // personal library: ♡ poets and works, 🔖 couplets, saved words (signed-out readers go to sign-in)
+      // reader's library: 🔖 bookmarks (poets, books/chapters, poems, couplets, phrases) and the word book (+);
+      // signed-out readers go to sign-in
       let source = {}; // the couplet the selected word came from
       async function save(item) {
         if (!document.body.dataset.user) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return null; }
@@ -161,9 +163,11 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         else if (d) b.setAttribute('aria-pressed', String(d.saved));
       });
       const wordSave = (w) => { // sidebar button, with the word's saved state
-        const b = el('button', 'wordbook', 'ذخیرۂ الفاظ میں', { type: 'button', 'aria-pressed': 'false', title: 'اپنے ذخیرۂ الفاظ میں شامل کریں' });
-        b.onclick = async () => { const d = await save({ kind: 'word', word: w, ...source }); if (d) b.setAttribute('aria-pressed', String(d.saved)); };
-        if (document.body.dataset.user) fetch('/api/library?word=' + encodeURIComponent(w)).then((r) => r.ok && r.json()).then((d) => d && b.setAttribute('aria-pressed', String(d.word)));
+        const b = el('button', 'wordbook', null, { type: 'button' });
+        const set = (on) => { b.setAttribute('aria-pressed', String(on)); b.textContent = on ? 'ذخیرۂ الفاظ میں ہے' : 'ذخیرۂ الفاظ میں ڈالیں'; };
+        set(false);
+        b.onclick = async () => { const d = await save({ kind: 'word', word: w, ...source }); if (d) set(d.saved); };
+        if (document.body.dataset.user) fetch('/api/library?word=' + encodeURIComponent(w)).then((r) => r.ok && r.json()).then((d) => d && set(d.word));
         return b;
       };
       async function showWord(w) {
@@ -333,7 +337,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           case 'meaning': showWord(oneWord(selText)); break;
           case 'bookmark': save({ kind: 'phrase', poemId: source.poemId, couplet: source.couplet, phrase: selText })
             .then((d) => d && (d.saved ? location.reload() : flash(b, 'نشان پہلے سے تھا، ہٹا دیا'))); break;
-          case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? '✓ شامل' : 'ہٹا دیا')); break;
+          case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? 'ذخیرۂ الفاظ میں ڈال دیا' : 'ذخیرۂ الفاظ سے نکال دیا')); break;
           case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
           case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;
           case 'copy':

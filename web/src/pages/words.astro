@@ -1,0 +1,53 @@
+---
+// ذخیرۂ الفاظ: the reader's word book, kept apart from their bookmarks (/library). Each word shows the couplet
+// it was added from, with its full path; clicking a word opens its meanings in the word sidebar.
+import Base from '../layouts/Base.astro';
+import LibraryNav from '../components/LibraryNav.astro';
+import { asUser, COOKIE } from '../lib/auth';
+import { ud } from '../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/words');
+const token = Astro.cookies.get(COOKIE)!.value;
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData(), id = Number(f.get('id')) || 0;
+  if (f.get('act') === 'delete') await asUser(token, `/api/library/${id}/delete`, {});
+  if (f.get('act') === 'note') await asUser(token, `/api/library/${id}/note`, { note: f.get('note') });
+  return Astro.redirect(`/words#i${id}`, 303);
+}
+const lib = (await asUser(token, '/api/library')).data;
+const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != null ? `#c${item.poem.couplet}` : ''}` : '#');
+---
+<Base title="ذخیرۂ الفاظ">
+  <h1>ذخیرۂ الفاظ</h1>
+  <LibraryNav current="words" />
+  <p class="muted center">{ud(lib.words.length)} الفاظ</p>
+  {lib.words.length === 0 && (
+    <p class="muted center">ابھی کوئی لفظ نہیں۔ کسی لفظ کو منتخب کریں اور لغت میں "ذخیرۂ الفاظ میں ڈالیں" دبائیں۔</p>
+  )}
+  {lib.words.length > 0 && (
+    <section class="lib-section">
+      <ul class="lib-list">
+        {lib.words.map((w: any) => (
+          <li id={`i${w.id}`}>
+            <button type="button" class="lib-word" data-word={w.word} title="معنی اور تلفظ">{w.word}</button>
+            {w.source && <>
+              <nav class="crumbs">{[...w.source.path, { title: w.source.title, url: w.source.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
+              {w.source.lines.length > 0 && <a class="lib-couplet small" href={at({ poem: w.source })}>{w.source.lines.map((l: string) => <p>{l}</p>)}</a>}
+            </>}
+            <form method="post" class="lib-note">
+              <input type="hidden" name="id" value={w.id} />
+              <input name="note" value={w.note ?? ''} placeholder="نوٹ" maxlength="1000" dir="auto" />
+              <button name="act" value="note">محفوظ</button>
+            </form>
+            <form method="post" class="lib-remove"><input type="hidden" name="id" value={w.id} /><button name="act" value="delete" aria-label="ہٹائیں">✕</button></form>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+  <script is:inline>
+    // a word opens the word sidebar (showWord lives in the layout)
+    document.querySelectorAll('.lib-word').forEach((b) => (b.onclick = () => showWord(b.dataset.word)));
+  </script>
+</Base>
