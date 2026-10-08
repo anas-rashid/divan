@@ -33,6 +33,17 @@ Settings: `DATABASE_URL` (API, default `postgres://divan:divan_local@localhost:5
 
 The import upserts, so re-running it after a divan-data sync applies the changes.
 
+## Daily content sync (server)
+
+`deploy/sync.sh` keeps a server current: it updates a divan-data checkout, fetches new and edited works from Wikisource (incremental, about a minute), rebuilds the export and upserts it into PostgreSQL. The site shows new content immediately. Runs are locked so they never overlap.
+
+```sh
+# crontab -e   (daily at 03:15; DATABASE_URL as for the API)
+15 3 * * * DATABASE_URL=postgres://divan:...@localhost:5432/divan /opt/divan/deploy/sync.sh >> /var/log/divan-sync.log 2>&1
+```
+
+Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DIVAN_APP_DIR` (default: this repo), `DIVAN_DATA_PUSH=1` to also commit and push data changes (needs git push access). Needs git, python3 and Node 24+.
+
 ## API
 
 | Endpoint | Returns |

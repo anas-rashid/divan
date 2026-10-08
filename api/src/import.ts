@@ -80,7 +80,7 @@ for (const entry of manifest.Poets) {
   } finally {
     client.release();
   }
-  process.stdout.write(`\r${poems} poems`);
+  if (process.stdout.isTTY) process.stdout.write(`\r${poems} poems`); // progress only when interactive (cron logs stay clean)
 }
 await pool.query(await readFile(new URL('../../db/featured.sql', import.meta.url), 'utf8'));
 console.log(`\nimported ${manifest.Poets.length} poets, ${poems} poems`);
