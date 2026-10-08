@@ -34,7 +34,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       <div class="wrap">
         <a class="wordmark" href="/">دیوان</a>
         <form class="search-form" action="/search" method="get" role="search">
-          <input type="search" name="q" id="q" value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
+          <input type="search" name="q" id="q" data-urdu value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
           <button type="button" id="rom-toggle" class="in-box" aria-label="رومن حروف سے اردو" aria-pressed="false" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
           <button type="button" id="kb-toggle" class="in-box" aria-label="اردو کی بورڈ" aria-pressed="false" title="اردو کی بورڈ">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>
@@ -105,27 +105,40 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           `<div>${key('،')}<button type="button" data-ch=" " class="wide">فاصلہ</button>${key('۔')}${key('؟')}</div>`;
       };
       render();
+      // the Urdu keyboard and Roman typing work on the search box and on any input marked data-urdu
+      // (e.g. the author filter): whichever was focused last
+      let target = q;
+      document.addEventListener('focusin', (e) => { if (e.target.matches?.('[data-urdu]')) target = e.target; });
+      const typed = () => target.dispatchEvent(new Event('input', { bubbles: true })); // so suggestions update
       const insert = (text) => {
-        const s = q.selectionStart ?? q.value.length, e = q.selectionEnd ?? q.value.length;
-        q.setRangeText(text, s, e, 'end'); q.focus();
+        const s = target.selectionStart ?? target.value.length, e = target.selectionEnd ?? target.value.length;
+        target.setRangeText(text, s, e, 'end'); target.focus(); typed();
       };
       kb.onmousedown = (ev) => ev.preventDefault(); // keep focus/caret in the search box
       kb.onclick = (ev) => {
         const b = ev.target.closest('button'); if (!b) return;
         if (b.dataset.act === 'shift') { shift = !shift; render(); return; }
         if (b.dataset.act === 'bs') {
-          const s = q.selectionStart, e = q.selectionEnd;
-          q.setRangeText('', s === e ? Math.max(0, s - 1) : s, e, 'end'); q.focus();
+          const s = target.selectionStart, e = target.selectionEnd;
+          target.setRangeText('', s === e ? Math.max(0, s - 1) : s, e, 'end'); target.focus(); typed();
           return;
         }
         insert(b.dataset.ch);
         if (shift) { shift = false; render(); } // one-shot shift, as on Gboard
       };
       kbBtn.onclick = () => {
-        kb.hidden = !kb.hidden; kbBtn.setAttribute('aria-pressed', String(!kb.hidden)); q.focus();
+        kb.hidden = !kb.hidden; kbBtn.setAttribute('aria-pressed', String(!kb.hidden)); target.focus();
       };
-      romBtn.onclick = () => { romBtn.setAttribute('aria-pressed', String(romBtn.getAttribute('aria-pressed') !== 'true')); q.focus(); };
-      q.addEventListener('keydown', (ev) => {
+      romBtn.onclick = () => { romBtn.setAttribute('aria-pressed', String(romBtn.getAttribute('aria-pressed') !== 'true')); target.focus(); };
+      // other inputs can open the same keyboard / Roman typing with their own buttons
+      document.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-urdu-kb], [data-urdu-rom]'); if (!b) return;
+        target = document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom);
+        (b.dataset.urduKb ? kbBtn : romBtn).click();
+        b.setAttribute('aria-pressed', (b.dataset.urduKb ? kbBtn : romBtn).getAttribute('aria-pressed'));
+      });
+      document.addEventListener('keydown', (ev) => {
+        if (!ev.target.matches?.('[data-urdu]')) return;
         if (romBtn.getAttribute('aria-pressed') !== 'true' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
         const ch = PHONETIC[ev.key];
         if (ch) { ev.preventDefault(); insert(ch); }
