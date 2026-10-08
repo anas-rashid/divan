@@ -64,10 +64,10 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .poets { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .poet-card {
   min-width: 120px; text-align: center; background: var(--paper); border: 1.5px solid var(--border);
-  border-radius: 999px; padding: 6px 26px 8px; color: var(--ink); transition: transform .25s; position: relative;
+  border-radius: 999px; padding: 6px 36px 8px; color: var(--ink); transition: transform .25s; position: relative;
 }
-/* the bookmark sits in the card's top-left corner, so a saved poet's card keeps its size */
-.poet-card.mark-bm::after { position: absolute; top: 12px; left: 18px; margin: 0; }
+/* the bookmark sits in the top-left corner, inside the side padding (36px), so it never covers the name and a saved card keeps its size */
+.poet-card.mark-bm::after { position: absolute; top: 12px; left: 16px; margin: 0; }
 .poet-card:hover { transform: translateY(-3px); border-color: var(--brand); color: var(--ink); }
 .poet-card small { display: block; color: var(--muted); font-size: .75rem; line-height: 1.5; white-space: nowrap; }
 .hero { text-align: center; }
