@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import { api } from '../lib/api';
 import { centuryOf, centuryName, years, ud } from '../lib/urdu';
 
-type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null };
+type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null; pin_order: number | null };
 const poets = (await api<Poet[]>('/api/poets')) ?? [];
 
 // group by Hijri century of birth (poets without a known year last)
@@ -14,6 +14,7 @@ for (const p of poets) {
   groups.get(c)!.push(p);
 }
 const ordered = [...groups.entries()].sort(([a], [b]) => (a ?? 99) - (b ?? 99));
+const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.pin_order!);
 ---
 <Base>
   <section class="hero">
@@ -22,6 +23,17 @@ const ordered = [...groups.entries()].sort(([a], [b]) => (a ?? 99) - (b ?? 99));
   </section>
 
   {poets.length === 0 && <p class="muted">مواد تیار کیا جا رہا ہے۔ براہِ کرم کچھ دیر بعد دوبارہ تشریف لائیں۔</p>}
+
+  {pinned.length > 0 && (
+    <section class="century">
+      <h2>مقبول شعرا</h2>
+      <div class="poets">
+        {pinned.map((p) => (
+          <a class="poet-card" href={p.url}>{p.nickname}<small>{years(p.birth_year_ah, p.death_year_ah)}</small></a>
+        ))}
+      </div>
+    </section>
+  )}
 
   {ordered.map(([century, list]) => (
     <section class="century">

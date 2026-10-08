@@ -11,8 +11,10 @@ CREATE TABLE IF NOT EXISTS poets (
     nickname      text NOT NULL,
     description   text,                          -- short intro (Urdu Wikipedia lead)
     birth_year_ah integer,                       -- Hijri, approximate
-    death_year_ah integer
+    death_year_ah integer,
+    pin_order     integer                        -- featured on the home page (db/featured.sql)
 );
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS pin_order integer;
 
 CREATE TABLE IF NOT EXISTS categories (
     id        integer PRIMARY KEY,
