@@ -180,3 +180,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .account-form.danger button { border-color: var(--brand); color: var(--brand); }
 .form-error { color: var(--brand); text-align: center; }
 .form-done { color: var(--gold); text-align: center; }
+/* selection menu (Ganjoor's, by the selected text) */
+.selmenu { position: absolute; z-index: 30; display: flex; gap: 2px; padding: 4px; border-radius: 10px;
+  background: rgb(14 17 17 / .92); box-shadow: 0 4px 14px rgb(0 0 0 / .25); }
+.selmenu[hidden] { display: none; }
+.selmenu button { font: inherit; font-size: .85rem; color: #f3ead8; background: none; border: 0; border-radius: 7px; padding: 2px 10px; cursor: pointer; }
+.selmenu button:hover, .selmenu button:focus-visible { background: rgb(201 160 80 / .25); outline: none; }
