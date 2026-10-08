@@ -72,7 +72,8 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .poet-card.mark-bm::after { position: absolute; top: 12px; left: 16px; margin: 0; }
 .poet-card:hover { transform: translateY(-3px); border-color: var(--brand); color: var(--ink); }
 .poet-card .name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.poet-card small { display: block; color: var(--muted); font-size: .75rem; line-height: 1.5; white-space: nowrap; }
+/* years in Naskh: compact lines whatever the reading font (Nastaliq's tall line boxes made cards grow in some browsers) */
+.poet-card small { display: block; color: var(--muted); font-family: 'Noto Naskh Arabic', serif; font-size: .75rem; line-height: 1.6; white-space: nowrap; }
 .hero { text-align: center; }
 .hero p { margin: 0; }
 
