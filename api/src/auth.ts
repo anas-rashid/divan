@@ -13,6 +13,7 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 
 const SESSION_DAYS = 30;
+export { sha };
 const KDF = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
 const derive = (password: string, salt: Buffer) =>
@@ -55,8 +56,10 @@ export function limiter(max: number, windowMs: number) {
 }
 const signinByIp = limiter(20, 15 * 60_000), signinByEmail = limiter(8, 15 * 60_000), signupByIp = limiter(5, 60 * 60_000);
 
-const sha = (t: string) => createHash('sha256').update(t).digest('hex');
-const publicUser = (u: any) => ({ id: Number(u.id), email: u.email, created_at: u.created_at });
+function sha(t: string) {
+  return createHash('sha256').update(t).digest('hex');
+}
+export const publicUser = (u: any) => ({ id: Number(u.id), email: u.email, role: u.role as string, created_at: u.created_at });
 
 async function newSession(userId: number) {
   const token = randomBytes(32).toString('base64url');
@@ -70,7 +73,7 @@ export async function sessionUser(req: FastifyRequest) {
   if (!token) return null;
   const { rows } = await pool.query(
     `SELECT u.*, s.id AS sid, s.expires_at < now() + interval '${SESSION_DAYS / 2} days' AS renew
-     FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = $1 AND s.expires_at > now()`, [sha(token)]);
+     FROM sessions s JOIN users u ON u.id = s.user_id WHERE s.id = $1 AND s.expires_at > now() AND u.disabled_at IS NULL`, [sha(token)]);
   const u = rows[0];
   if (u?.renew) await pool.query(`UPDATE sessions SET expires_at = now() + interval '${SESSION_DAYS} days' WHERE id = $1`, [u.sid]);
   return u ?? null;
@@ -96,6 +99,7 @@ export function authRoutes(app: FastifyInstance) {
     const u = (await pool.query('SELECT * FROM users WHERE email = $1', [email])).rows[0];
     const ok = await verifyPassword(password, u?.password_hash ?? DUMMY);
     if (!u || !ok) return reply.code(401).send({ error: 'ای میل یا پاس ورڈ درست نہیں' });
+    if (u.disabled_at) return reply.code(403).send({ error: 'یہ اکاؤنٹ معطل ہے۔ ایڈمن سے رابطہ کریں۔' });
     return { token: await newSession(u.id), user: publicUser(u) };
   });
 

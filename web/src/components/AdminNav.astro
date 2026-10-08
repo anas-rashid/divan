@@ -1,0 +1,7 @@
+---
+const { current } = Astro.props as { current: 'users' | 'audit' };
+---
+<nav class="admin-nav">
+  <a href="/admin" aria-current={current === 'users' ? 'page' : undefined}>صارفین</a>
+  <a href="/admin/audit" aria-current={current === 'audit' ? 'page' : undefined}>ریکارڈ</a>
+</nav>

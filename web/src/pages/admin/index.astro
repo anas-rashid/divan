@@ -1,0 +1,97 @@
+---
+// Admin: users. Password resets happen here on a reader's request (no email server yet).
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/admin');
+if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value;
+
+let error = '', done = '', tempPassword = '', tempFor = '';
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const id = String(f.get('id')), email = String(f.get('email') ?? '');
+  const act = String(f.get('act'));
+  const r = act === 'reset' ? await asUser(token, `/api/admin/users/${id}/password`, {})
+    : act === 'disable' || act === 'enable' ? await asUser(token, `/api/admin/users/${id}/disable`, { disabled: act === 'disable' })
+    : act === 'role' ? await asUser(token, `/api/admin/users/${id}/role`, { role: f.get('role') })
+    : act === 'delete' ? await asUser(token, `/api/admin/users/${id}/delete`, {})
+    : { ok: false, data: { error: 'نامعلوم عمل' } };
+  if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
+  else if (act === 'reset') [tempPassword, tempFor] = [r.data.password, email];
+  else done = { disable: 'اکاؤنٹ معطل کر دیا گیا', enable: 'اکاؤنٹ بحال کر دیا گیا', role: 'کردار بدل دیا گیا', delete: 'اکاؤنٹ حذف کر دیا گیا' }[act] + ` (${email})`;
+}
+
+const q = Astro.url.searchParams.get('q') ?? '', page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
+const list = (await asUser(token, `/api/admin/users?q=${encodeURIComponent(q)}&page=${page}`)).data;
+const pages = Math.ceil(list.total / list.pageSize);
+const date = (d: string | null) => (d ? ud(new Date(d).toISOString().slice(0, 10)) : '—');
+const link = (n: number) => `/admin?q=${encodeURIComponent(q)}&page=${n}`;
+---
+<Base title="ایڈمن: صارفین">
+  <h1>ایڈمن</h1>
+  <AdminNav current="users" />
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {done && <p class="form-done" role="status">{done}</p>}
+  {tempPassword && (
+    <div class="temp-password" role="status">
+      <p><bdi dir="ltr">{tempFor}</bdi> کا عارضی پاس ورڈ (صرف ایک بار دکھایا جا رہا ہے):</p>
+      <p><code dir="ltr">{tempPassword}</code></p>
+      <p class="muted">یہ پاس ورڈ صارف کو دیں؛ وہ لاگ ان کر کے اپنے اکاؤنٹ کے صفحے سے اسے بدل لیں۔</p>
+    </div>
+  )}
+
+  <form method="get" class="admin-search">
+    <input type="search" name="q" value={q} placeholder="ای میل سے تلاش" dir="ltr" />
+    <button type="submit">تلاش</button>
+  </form>
+  <p class="muted center">{ud(list.total)} صارفین</p>
+
+  <table class="admin-table">
+    <thead><tr><th>ای میل</th><th>کردار</th><th>شمولیت</th><th>آخری لاگ ان</th><th>حالت</th><th>اقدامات</th></tr></thead>
+    <tbody>
+      {list.users.map((u: any) => (
+        <tr class={u.disabled_at ? 'disabled' : ''}>
+          <td><bdi dir="ltr">{u.email}</bdi>{u.id === me.id && <small> (آپ)</small>}</td>
+          <td>{u.role === 'admin' ? 'ایڈمن' : 'قاری'}</td>
+          <td>{date(u.created_at)}</td>
+          <td>{date(u.last_sign_in)}</td>
+          <td>{u.disabled_at ? 'معطل' : 'فعال'}</td>
+          <td class="actions">
+            <form method="post" onsubmit="return confirm('اس صارف کا پاس ورڈ ری سیٹ کریں؟')">
+              <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
+              <button name="act" value="reset">پاس ورڈ ری سیٹ</button>
+            </form>
+            {u.id !== me.id && (
+              <>
+                <form method="post">
+                  <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
+                  <button name="act" value={u.disabled_at ? 'enable' : 'disable'}>{u.disabled_at ? 'بحال کریں' : 'معطل کریں'}</button>
+                </form>
+                <form method="post">
+                  <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
+                  <input type="hidden" name="role" value={u.role === 'admin' ? 'reader' : 'admin'} />
+                  <button name="act" value="role">{u.role === 'admin' ? 'قاری بنائیں' : 'ایڈمن بنائیں'}</button>
+                </form>
+                <form method="post" onsubmit="return confirm('یہ اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔ جاری رکھیں؟')">
+                  <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
+                  <button name="act" value="delete" class="danger">حذف</button>
+                </form>
+              </>
+            )}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {pages > 1 && (
+    <nav class="pager">
+      {page > 1 && <a href={link(page - 1)}>‹ پچھلا</a>}
+      <span class="muted">صفحہ {ud(page)} از {ud(pages)}</span>
+      {page < pages && <a href={link(page + 1)}>اگلا ›</a>}
+    </nav>
+  )}
+</Base>
