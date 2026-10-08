@@ -10,14 +10,26 @@ if (!page) return new Response(null, { status: 404, statusText: 'Not found' });
 
 // group verses into couplets / single lines / paragraphs for rendering
 type Verse = { position: string; couplet: number; text: string };
-const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[] }[] = [];
+const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[]; mark?: string }[] = [];
 if (page.type === 'poem') {
+  const { matla, maqta } = page.poem;
   for (const v of page.verses as Verse[]) {
-    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text] });
+    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text],
+      mark: v.couplet === matla ? 'مطلع' : v.couplet === maqta ? 'مقطع' : undefined });
     else if (v.position === 'Left' && blocks.at(-1)?.kind === 'couplet' && blocks.at(-1)!.lines.length === 1) blocks.at(-1)!.lines.push(v.text);
     else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text] });
     else blocks.push({ kind: 'single', lines: [v.text] });
   }
+}
+// pen name (marked ؔ in the text) set apart; split() with a capture group puts matches at odd indexes
+const verse = (line: string) => line.split(/(\S*\u0614\S*)/);
+// contents of a divan grouped by radif letter ("ردیف الف … ی"); ے is filed under ی as in printed divans
+const LETTER = (l: string) => (l === 'ا' ? 'الف' : l === 'ے' ? 'ی' : l);
+const groups: { letter: string | null; poems: any[] }[] = [];
+for (const p of page.poems ?? []) {
+  const l = p.radif_letter ? LETTER(p.radif_letter) : null;
+  if (groups.at(-1)?.letter !== l || !groups.length) groups.push({ letter: l, poems: [] });
+  groups.at(-1)!.poems.push(p);
 }
 const crumbs = page.breadcrumbs ?? [];
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
@@ -47,16 +59,20 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
       ))}
     </div>
   )}
-  {page.type !== 'poem' && page.poems.length > 0 && (
-    <ol class="toc">{page.poems.map((p: any) => <li><a href={p.url}>{p.title}</a></li>)}</ol>
-  )}
+  {page.type !== 'poem' && groups.map((g) => (
+    <>
+      {g.letter && <h2 class="radif-head">ردیف {g.letter}</h2>}
+      <ol class="toc">{g.poems.map((p: any) => <li><a href={p.url}>{p.title}</a></li>)}</ol>
+    </>
+  ))}
 
   {page.type === 'poem' && (
     <>
       <h1>{page.poem.title}</h1>
+      {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <article class="poem">
         {blocks.map((b) =>
-          b.kind === 'couplet' ? <div class="couplet">{b.lines.map((l) => <p>{l}</p>)}</div>
+          b.kind === 'couplet' ? <div class="couplet" data-mark={b.mark}>{b.lines.map((l) => <p>{verse(l).map((s, i) => i % 2 ? <span class="takhallus">{s}</span> : s)}</p>)}</div>
           : b.kind === 'para' ? <p class="para">{b.lines[0]}</p>
           : <p class="single">{b.lines[0]}</p>
         )}

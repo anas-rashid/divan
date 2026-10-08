@@ -86,6 +86,10 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .couplet { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10%; margin: 0 0 6px; border-radius: 6px; font-size: 1.1rem; line-height: var(--verse-lh); }
 .couplet:hover { background: linear-gradient(90deg, transparent, var(--gold-subtle) 15%, var(--gold-subtle) 85%, transparent); }
 .couplet p { margin: 0; text-align: left; }
+.couplet[data-mark]::before { content: attr(data-mark); grid-column: 1 / -1; justify-self: center; font-size: .72rem; line-height: 1.6; color: var(--brand); border: 1px solid var(--gold-light); border-radius: 999px; padding: 0 10px; margin-bottom: 2px; }
+.takhallus { color: var(--brand); }
+.radif { text-align: center; margin-top: -6px; }
+.radif-head { text-align: center; font-size: 1.05rem; color: var(--brand); margin: 22px 0 4px; }
 .couplet p + p { text-align: right; }
 .couplet::after { content: '✤'; grid-column: 1 / -1; text-align: center; color: var(--brand); font-size: .72rem; opacity: .75; line-height: 1.2; }
 .single { text-align: center; margin: 0 0 6px; font-size: 1.1rem; line-height: var(--verse-lh); }

@@ -40,6 +40,12 @@ CREATE TABLE IF NOT EXISTS poems (
     position    integer NOT NULL DEFAULT 0,
     search_text text NOT NULL DEFAULT ''         -- normalised title + verses
 );
+-- ghazal marks (divan-data extension): radif ('' = rhyme only), matla/maqta couplet numbers, and the
+-- radif letter that groups a divan's contents ("ردیف الف … ی"; NULL outside radif-ordered lists)
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS radif text;
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS matla integer;
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS maqta integer;
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS radif_letter text;
 CREATE INDEX IF NOT EXISTS poems_category ON poems(category_id);
 CREATE INDEX IF NOT EXISTS poems_search ON poems USING gin (search_text gin_trgm_ops);
 
