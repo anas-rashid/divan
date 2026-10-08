@@ -1,4 +1,9 @@
 ---
+// fonts are self-hosted (no Google Fonts request; works with Brave Shields and offline)
+import '@fontsource/noto-naskh-arabic/400.css';
+import '@fontsource/noto-naskh-arabic/700.css';
+import '@fontsource/noto-nastaliq-urdu/400.css';
+import '@fontsource/noto-nastaliq-urdu/700.css';
 import '../styles/global.css';
 interface Props { title?: string; description?: string; q?: string }
 const { title, description = 'اردو کی کلاسیکی شاعری اور نثر', q = '' } = Astro.props;
@@ -12,12 +17,12 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400..700&family=Noto+Nastaliq+Urdu:wght@400..700&display=swap" rel="stylesheet" />
     <script is:inline>
       // font + theme choice applied before paint (Naskh and system theme by default)
       try {
+        // ?font=nastaliq|naskh in the URL sets the choice (shareable links)
+        const f = new URLSearchParams(location.search).get('font');
+        if (f === 'nastaliq' || f === 'naskh') localStorage.setItem('divan-font', f);
         if (localStorage.getItem('divan-font') === 'nastaliq') document.documentElement.classList.add('nastaliq');
         const t = localStorage.getItem('divan-theme');
         if (t) document.documentElement.dataset.theme = t;
