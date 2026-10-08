@@ -1,8 +1,9 @@
 ---
 // Poet (/p238), category (/p238/shaeri/c641) and poem (/p238/shaeri/c641/sh6556) pages
 import Base from '../layouts/Base.astro';
+import Seg from '../components/Seg.astro';
 import { api } from '../lib/api';
-import { ud, years } from '../lib/urdu';
+import { ud, years, highlighter, parts } from '../lib/urdu';
 
 const url = '/' + (Astro.params.path ?? '');
 const page = await api(`/api/page?url=${encodeURIComponent(url)}`);
@@ -22,7 +23,11 @@ if (page.type === 'poem') {
   }
 }
 // pen name (marked ؔ in the text) set apart; split() with a capture group puts matches at odd indexes
-const verse = (line: string) => line.split(/(\S*\u0614\S*)/);
+// ?hl= (from search results) marks the searched words on the page; segments: [text, 'mark' | 'pen' | '']
+const hlq = Astro.url.searchParams.get('hl') ?? '';
+const re = highlighter(hlq);
+const show = (line: string) => parts(line, re).flatMap((s, i): [string, string][] =>
+  i % 2 ? [[s, 'mark']] : s.split(/(\S*\u0614\S*)/).map((t, j) => [t, j % 2 ? 'pen' : '']));
 // contents of a divan grouped by radif letter ("ردیف الف … ی"); ے is filed under ی as in printed divans
 const LETTER = (l: string) => (l === 'ا' ? 'الف' : l === 'ے' ? 'ی' : l);
 const groups: { letter: string | null; poems: any[] }[] = [];
@@ -68,13 +73,18 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
 
   {page.type === 'poem' && (
     <>
-      <h1>{page.poem.title}</h1>
+      <h1><Seg s={show(page.poem.title)} /></h1>
+      {re && (
+        <p class="hl-note muted">
+          «{hlq}» نمایاں · <a href={`/search?q=${encodeURIComponent(hlq)}`}>تلاش کے نتائج</a> · <a href={url}>نشان ہٹائیں</a>
+        </p>
+      )}
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <article class="poem">
         {blocks.map((b) =>
-          b.kind === 'couplet' ? <div class="couplet" data-mark={b.mark}>{b.lines.map((l) => <p>{verse(l).map((s, i) => i % 2 ? <span class="takhallus">{s}</span> : s)}</p>)}</div>
-          : b.kind === 'para' ? <p class="para">{b.lines[0]}</p>
-          : <p class="single">{b.lines[0]}</p>
+          b.kind === 'couplet' ? <div class="couplet" data-mark={b.mark}>{b.lines.map((l) => <p><Seg s={show(l)} /></p>)}</div>
+          : b.kind === 'para' ? <p class="para"><Seg s={show(b.lines[0])} /></p>
+          : <p class="single"><Seg s={show(b.lines[0])} /></p>
         )}
       </article>
       <nav class="poem-nav">
@@ -86,4 +96,5 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
       )}
     </>
   )}
+  {re && <script is:inline>document.querySelector('.poem mark')?.scrollIntoView({ block: 'center' });</script>}
 </Base>

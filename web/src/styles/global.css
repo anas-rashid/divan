@@ -105,7 +105,10 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 
 /* search */
 .result { border-bottom: 1px dashed var(--gold-light); padding: 8px 0; }
-.result .first-line { color: var(--muted); }
+.result .snippet { display: block; color: var(--ink); margin-top: 4px; padding: 4px 12px; border-inline-start: 2px solid var(--gold-light); }
+.result .snippet p { margin: 0; }
+mark { background: var(--gold-subtle); color: inherit; border-radius: 3px; padding: 0 2px; box-shadow: inset 0 -2px var(--gold); }
+.hl-note { text-align: center; font-size: .85rem; }
 .pager { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
 
 .site-footer { border-top: 1.5px solid var(--border); padding: 16px 0; font-size: .85rem; color: var(--muted); text-align: center; }

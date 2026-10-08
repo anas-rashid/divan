@@ -33,12 +33,29 @@ export function normalise(text: string): string {
     .trim();
 }
 
-// ILIKE patterns for a search term: "quoted phrase" -> one pattern, otherwise one per word (all must match).
-export function likePatterns(term: string): string[] {
+// Normalised search terms: "quoted phrase" -> one term, otherwise one per word (all must match).
+export function terms(term: string): string[] {
   const t = (term ?? '').trim();
   if (!t) return [];
   const phrase = t.length > 1 && t.startsWith('"') && t.endsWith('"');
   const n = normalise(t);
-  const parts = phrase ? [n] : n.split(' ');
-  return parts.filter(Boolean).map((p) => '%' + p.replace(/[\\%_]/g, (c) => '\\' + c) + '%');
+  return (phrase ? [n] : n.split(' ')).filter(Boolean);
+}
+
+// ILIKE patterns, one per term.
+export const likePatterns = (term: string) => terms(term).map((p) => '%' + p.replace(/[\\%_]/g, (c) => '\\' + c) + '%');
+
+// A regex that finds the terms in original (unnormalised) text, with one capture group so
+// text.split(re) puts the matches at odd indexes. Each letter also matches its variants, with
+// diacritics allowed between letters; a space matches spaces and punctuation.
+const VARIANTS: Record<string, string> = {};
+for (const [from, to] of Object.entries(LETTERS)) VARIANTS[to] = (VARIANTS[to] ?? to) + from;
+const SKIP = '[\u064B-\u0652\u0654\u0670\u0657\u0658\u0615\u200D\u200E\u200F]*';
+export function highlighter(term: string): RegExp | null {
+  const ts = terms(term);
+  if (!ts.length) return null;
+  const one = (t: string) => [...t].map((c) =>
+    c === ' ' ? '[\\s\u200C.\u060C!\u061F:\u061B;*()"\'\u00AB\u00BB\u06D4]+'
+    : VARIANTS[c] ? `[${VARIANTS[c]}]` : c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join(SKIP) + SKIP;
+  return new RegExp(`(${ts.sort((a, b) => b.length - a.length).map(one).join('|')})`, 'iu');
 }

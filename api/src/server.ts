@@ -5,7 +5,7 @@
 //   GET /health
 import Fastify from 'fastify';
 import { pool } from './db.ts';
-import { likePatterns } from './urdu.ts';
+import { likePatterns, normalise, terms } from './urdu.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -91,16 +91,37 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
     where.push(`p.poet_id = $${params.length}`);
   }
   const sql = `FROM poems p JOIN poets t ON t.id = p.poet_id WHERE ${where.join(' AND ')}`;
+  // several words: poems with them together as a phrase come first
+  const phrase = likePatterns(`"${req.query.q}"`)[0];
   const [count, rows] = await Promise.all([
     pool.query(`SELECT count(*)::int AS n ${sql}`, params),
     pool.query(
-      `SELECT p.url, p.title, t.nickname AS poet, t.url AS poet_url,
-              (SELECT v.text FROM verses v WHERE v.poem_id = p.id ORDER BY v.vorder LIMIT 1) AS first_line
-       ${sql} ORDER BY t.birth_year_ah NULLS LAST, p.id LIMIT ${PAGE_SIZE} OFFSET ${(page - 1) * PAGE_SIZE}`,
-      params,
+      `SELECT p.id, p.url, p.title, t.nickname AS poet, t.url AS poet_url
+       ${sql} ORDER BY p.search_text ILIKE $${params.length + 1} DESC, t.birth_year_ah NULLS LAST, p.id
+       LIMIT ${PAGE_SIZE} OFFSET ${(page - 1) * PAGE_SIZE}`,
+      [...params, phrase],
     ),
   ]);
-  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results: rows.rows };
+  // snippet: the verse holding most of the terms, best the whole phrase (with its couplet partner), else the first line
+  const ts = terms(req.query.q ?? ''), whole = ts.join(' '), top = ts.length + (ts.length > 1 ? 1 : 0);
+  const verses = await pool.query(
+    'SELECT poem_id, position, couplet, text FROM verses WHERE poem_id = ANY($1) ORDER BY poem_id, vorder',
+    [rows.rows.map((r) => r.id)],
+  );
+  const byPoem = Map.groupBy(verses.rows, (v) => v.poem_id);
+  const results = rows.rows.map(({ id, ...r }) => {
+    const vs = byPoem.get(id) ?? [];
+    let best = vs[0], score = 0;
+    for (const v of vs) {
+      const n = normalise(v.text), k = ts.filter((t) => n.includes(t)).length + (ts.length > 1 && n.includes(whole) ? 1 : 0);
+      if (k > score) [best, score] = [v, k];
+      if (score === top) break;
+    }
+    const lines = !best ? [] : best.position === 'Paragraph' || best.position === 'Single' ? [best.text]
+      : vs.filter((v) => v.couplet === best.couplet && (v.position === 'Right' || v.position === 'Left')).map((v) => v.text);
+    return { ...r, snippet: lines, prose: best?.position === 'Paragraph' };
+  });
+  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results };
 });
 
 const port = Number(process.env.PORT ?? 4100);

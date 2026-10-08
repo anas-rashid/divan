@@ -1,0 +1,5 @@
+---
+// renders text segments: [text, 'mark' (search hit) | 'pen' (takhallus) | '']
+const { s } = Astro.props as { s: [string, string][] };
+---
+{s.map(([t, k]) => (k === 'mark' ? <mark>{t}</mark> : k === 'pen' ? <span class="takhallus">{t}</span> : t))}

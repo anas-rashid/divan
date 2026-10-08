@@ -1,12 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
+import Seg from '../components/Seg.astro';
 import { api } from '../lib/api';
-import { ud } from '../lib/urdu';
+import { ud, highlighter, parts, excerpt } from '../lib/urdu';
 
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
 const pageNo = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
 const res = q ? await api(`/api/search?q=${encodeURIComponent(q)}&page=${pageNo}`) : null;
 const pages = res ? Math.ceil(res.total / res.pageSize) : 0;
+const re = highlighter(q);
+const hl = (t: string) => parts(t, re).map((s, i): [string, string] => [s, i % 2 ? 'mark' : '']);
+const open = (url: string) => `${url}?hl=${encodeURIComponent(q)}`;
 const link = (n: number) => `/search?q=${encodeURIComponent(q)}&page=${n}`;
 ---
 <Base title={q ? `تلاش: ${q}` : 'تلاش'} q={q}>
@@ -17,8 +21,12 @@ const link = (n: number) => `/search?q=${encodeURIComponent(q)}&page=${n}`;
       <p class="muted">{res.total ? `${ud(res.total)} نتائج` : 'کوئی نتیجہ نہیں ملا۔ کم الفاظ یا کلیدی لفظ آزمائیں۔'}</p>
       {res.results.map((r: any) => (
         <div class="result">
-          <a href={r.url}>{r.title}</a> · <a class="muted" href={r.poet_url}>{r.poet}</a>
-          {r.first_line && <div class="first-line">{r.first_line}</div>}
+          <a href={open(r.url)}><Seg s={hl(r.title)} /></a> · <a class="muted" href={r.poet_url}>{r.poet}</a>
+          {r.snippet.length > 0 && (
+            <a class="snippet" href={open(r.url)}>
+              {r.prose ? <p><Seg s={hl(excerpt(r.snippet[0], re))} /></p> : r.snippet.map((l: string) => <p><Seg s={hl(l)} /></p>)}
+            </a>
+          )}
         </div>
       ))}
       {pages > 1 && (
