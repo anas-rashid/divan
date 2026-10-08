@@ -1,0 +1,18 @@
+{
+  "name": "divan-api",
+  "private": true,
+  "type": "module",
+  "description": "Divan API: Node.js + PostgreSQL",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/server.ts",
+    "import": "node src/import.ts",
+    "test": "node --test src/*.test.ts"
+  },
+  "dependencies": {
+    "fastify": "^5.12.5",
+    "pg": "^8.23.1"
+  }
+}
