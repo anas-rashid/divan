@@ -34,13 +34,15 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       <div class="wrap">
         <a class="wordmark" href="/">دیوان</a>
         <form class="search-form" action="/search" method="get" role="search">
-          <input type="search" name="q" value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" />
+          <input type="search" name="q" id="q" value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
+          <button type="button" id="kb-toggle" aria-label="اردو کی بورڈ" aria-pressed="false" title="اردو کی بورڈ (فونیٹک ٹائپنگ)">ا ب</button>
         </form>
         <div class="toggles">
           <button type="button" id="font-toggle" aria-label="خط بدلیں">نسخ</button>
           <button type="button" id="theme-toggle" aria-label="روشن یا تاریک">◐</button>
         </div>
       </div>
+      <div id="kb" class="wrap kb" hidden></div>
     </header>
     <main class="wrap"><slot /></main>
     <footer class="site-footer">
@@ -59,6 +61,40 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         try { localStorage.setItem('divan-font', root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh'); } catch (e) {}
         label();
       };
+      // Urdu keyboard: on-screen keys + phonetic typing (Latin keys -> Urdu) while open
+      const PHONETIC = {
+        q:'ق', w:'و', e:'ع', r:'ر', t:'ت', y:'ے', u:'ء', i:'ی', o:'ہ', p:'پ',
+        a:'ا', s:'س', d:'د', f:'ف', g:'گ', h:'ح', j:'ج', k:'ک', l:'ل',
+        z:'ز', x:'ش', c:'چ', v:'ط', b:'ب', n:'ن', m:'م',
+        A:'آ', T:'ٹ', D:'ڈ', R:'ڑ', N:'ں', Z:'ذ', S:'ص', G:'غ', H:'ھ', K:'خ', C:'ث', V:'ظ', X:'ژ', J:'ض', I:'ئ', O:'ۂ', Y:'ؤ',
+        ',':'،', '.':'۔', '?':'؟', ';':'؛',
+      };
+      const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'ATDRNZSGHKCVXJIOY', ',.?;'];
+      const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle');
+      const insert = (text) => {
+        const s = q.selectionStart ?? q.value.length, e = q.selectionEnd ?? q.value.length;
+        q.setRangeText(text, s, e, 'end'); q.focus();
+      };
+      kb.innerHTML = ROWS.map((r) => '<div>' + [...r].map((k) =>
+        `<button type="button" data-ch="${PHONETIC[k]}" title="${k}">${PHONETIC[k]}</button>`).join('') + '</div>').join('') +
+        '<div><button type="button" data-ch=" " class="wide">فاصلہ</button><button type="button" data-act="bs">⌫</button></div>';
+      kb.onmousedown = (ev) => ev.preventDefault(); // keep focus/caret in the search box
+      kb.onclick = (ev) => {
+        const b = ev.target.closest('button'); if (!b) return;
+        if (b.dataset.act === 'bs') {
+          const s = q.selectionStart, e = q.selectionEnd;
+          q.setRangeText('', s === e ? Math.max(0, s - 1) : s, e, 'end'); q.focus();
+        } else insert(b.dataset.ch);
+      };
+      kbBtn.onclick = () => {
+        kb.hidden = !kb.hidden; kbBtn.setAttribute('aria-pressed', String(!kb.hidden)); q.focus();
+      };
+      q.addEventListener('keydown', (ev) => {
+        if (kb.hidden || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+        const ch = PHONETIC[ev.key];
+        if (ch) { ev.preventDefault(); insert(ch); }
+      });
+
       document.getElementById('theme-toggle').onclick = () => {
         const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
         root.dataset.theme = dark ? 'light' : 'dark';

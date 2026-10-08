@@ -106,3 +106,15 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .site-footer { border-top: 1.5px solid var(--border); padding: 16px 0; font-size: .85rem; color: var(--muted); text-align: center; }
 
 h1 + .muted { text-align: center; margin-top: 0; }
+
+/* Urdu keyboard */
+#kb-toggle { font: inherit; border: 1.5px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 10px; margin-inline-start: 6px; padding: 0 12px; cursor: pointer; }
+#kb-toggle[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
+.kb { padding-bottom: 10px; }
+.kb div { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 4px; }
+.kb button {
+  font-family: 'Noto Naskh Arabic', serif; font-size: 1.1rem; min-width: 2.4em; padding: 2px 6px; cursor: pointer;
+  border: 1.5px solid var(--border); background: var(--paper); color: var(--ink); border-radius: 8px;
+}
+.kb button:hover { border-color: var(--brand); }
+.kb .wide { min-width: 12em; }
