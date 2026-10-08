@@ -8,5 +8,8 @@ const ORDINALS = ['', 'پہلی', 'دوسری', 'تیسری', 'چوتھی', 'پ�
 export const centuryOf = (yearAh: number | null) => (yearAh ? Math.floor(yearAh / 100) + 1 : null);
 export const centuryName = (c: number | null) => (c ? `${ORDINALS[c] ?? ud(c)} صدی ہجری` : 'دیگر شعرا');
 
-export const years = (birth: number | null, death: number | null) =>
-  birth || death ? `${birth ? ud(birth) : '؟'} – ${death ? ud(death) : '؟'} ھ` : '';
+const span = (a: number | null, b: number | null, mark: string) =>
+  a || b ? `${a ? ud(a) : '؟'} – ${b ? ud(b) : '؟'} ${mark}` : '';
+// Hijri and Gregorian (عیسوی): "۱۲۹۴ – ۱۳۵۷ ھ · ۱۸۷۷ – ۱۹۳۸ ء"
+export const years = (p: { birth_year_ah: number | null; death_year_ah: number | null; birth_year_ce?: number | null; death_year_ce?: number | null }) =>
+  [span(p.birth_year_ah, p.death_year_ah, 'ھ'), span(p.birth_year_ce ?? null, p.death_year_ce ?? null, 'ء')].filter(Boolean).join(' · ');

@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS poets (
     pin_order     integer                        -- featured on the home page (db/featured.sql)
 );
 ALTER TABLE poets ADD COLUMN IF NOT EXISTS pin_order integer;
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS birth_year_ce integer;  -- Gregorian (عیسوی)
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS death_year_ce integer;
 
 CREATE TABLE IF NOT EXISTS categories (
     id        integer PRIMARY KEY,

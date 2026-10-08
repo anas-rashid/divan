@@ -29,7 +29,7 @@ const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.
       <h2>مقبول شعرا</h2>
       <div class="poets">
         {pinned.map((p) => (
-          <a class="poet-card" href={p.url}>{p.nickname}<small>{years(p.birth_year_ah, p.death_year_ah)}</small></a>
+          <a class="poet-card" href={p.url}>{p.nickname}<small>{years(p)}</small></a>
         ))}
       </div>
     </section>
@@ -42,7 +42,7 @@ const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.
         {list.map((p) => (
           <a class="poet-card" href={p.url}>
             {p.nickname}
-            <small>{years(p.birth_year_ah, p.death_year_ah)}</small>
+            <small>{years(p)}</small>
           </a>
         ))}
       </div>

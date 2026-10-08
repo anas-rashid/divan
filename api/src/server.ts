@@ -17,7 +17,7 @@ app.get('/health', async () => {
 
 app.get('/api/poets', async () => {
   const { rows } = await pool.query(
-    'SELECT id, url, name, nickname, birth_year_ah, death_year_ah, pin_order FROM poets ORDER BY birth_year_ah NULLS LAST, nickname',
+    'SELECT id, url, name, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, pin_order FROM poets ORDER BY birth_year_ah NULLS LAST, nickname',
   );
   return rows;
 });

@@ -34,7 +34,7 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
   {page.type === 'poet' && (
     <>
       <h1>{page.poet.name}</h1>
-      <p class="muted">{years(page.poet.birth_year_ah, page.poet.death_year_ah)}</p>
+      <p class="muted">{years(page.poet)}</p>
       {page.poet.description && <div class="intro">{page.poet.description}</div>}
     </>
   )}
