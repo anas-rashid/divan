@@ -295,3 +295,30 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .author-suggest button:hover { border-color: var(--brand); color: var(--brand); }
 .filter-actions { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 10px !important; }
 .filter-actions button { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--gold); border-radius: 10px; background: var(--inner); color: var(--ink); cursor: pointer; }
+
+/* moderation */
+.status { display: inline-block; font-size: .78rem; padding: 0 10px; border-radius: 999px; border: 1px solid var(--border); margin-inline-start: 6px; }
+.s-submitted { border-color: var(--gold); color: var(--gold); }
+.s-approved { border-color: var(--lapis); color: var(--lapis); }
+.s-published { border-color: #3d8b4f; color: #3d8b4f; }
+.s-returned, .s-rejected { border-color: var(--brand); color: var(--brand); }
+.small-line { font-size: .8rem; margin: 2px 0 0; }
+.mod-edit { max-width: 900px; margin: 12px auto; display: flex; flex-direction: column; gap: 8px; }
+.mod-edit label { display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+.mod-edit input, .mod-edit textarea { font: inherit; padding: 6px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); }
+.mod-edit textarea { font-size: 1.05rem; line-height: 2; min-height: 26em; resize: vertical; }
+.mod-edit textarea:focus, .mod-edit input:focus { outline: none; border-color: var(--gold); }
+.mod-actions { max-width: 700px; }
+.mod-actions .act-publish { border-color: #3d8b4f; color: #3d8b4f; }
+.mod-actions .act-reject, .mod-actions .act-return { border-color: var(--brand); color: var(--brand); }
+.diff { max-width: 900px; margin: 0 auto; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.diff div { padding: 2px 12px; white-space: pre-wrap; line-height: 1.9; }
+.diff div span { display: inline-block; width: 1.2em; font-weight: 700; }
+.diff .add { background: rgb(61 139 79 / .14); }
+.diff .del { background: rgb(191 63 42 / .12); text-decoration: line-through; text-decoration-color: rgb(191 63 42 / .5); }
+.timeline { max-width: 760px; margin: 0 auto; padding-inline-start: 20px; font-size: .88rem; }
+.timeline li { margin: 4px 0; }
+.mod-h { text-align: center; color: var(--brand); }
+.inline-form { display: inline; }
+.mod-edit-btn, .save-like { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--gold); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.mod-history { font-size: .85rem; margin-inline-start: 6px; }

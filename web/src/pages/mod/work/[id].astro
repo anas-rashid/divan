@@ -1,0 +1,42 @@
+---
+// A work's versions: published versions and drafts, with who, when, summary and status
+import Base from '../../../layouts/Base.astro';
+import ModNav from '../../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../../lib/auth';
+import { STATUS, when } from '../../../lib/mod';
+import { ud } from '../../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
+const token = Astro.cookies.get(COOKIE)!.value, id = Number(Astro.params.id) || 0;
+if (Astro.request.method === 'POST') {
+  const r = await asUser(token, `/api/mod/work/${id}/draft`, {});
+  if (r.ok) return Astro.redirect(`/mod/rev/${r.data.id}`);
+}
+const res = await asUser(token, `/api/mod/work/${id}`);
+if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
+const { work, version, history, may } = res.data;
+---
+<Base title={`تاریخچہ: ${work.title}`}>
+  <h1>{work.title}</h1>
+  <ModNav />
+  <p class="center"><a href={work.url}>کلام</a> · {version ? `موجودہ ورژن ${ud(version)}` : 'ویکی ماخذ کا متن (ابھی دیوان کا کوئی ورژن نہیں)'}</p>
+  {may.edit && <form method="post" class="center"><button class="save-like">ترمیم کریں</button></form>}
+  <table class="admin-table">
+    <thead><tr><th>ورژن</th><th>حالت</th><th>خلاصہ</th><th>لکھنے والے</th><th>جائزہ</th><th>اشاعت</th><th>تاریخ</th></tr></thead>
+    <tbody>
+      {history.map((h: any) => (
+        <tr>
+          <td><a href={`/mod/rev/${h.id}`}>{h.version ? ud(h.version) : '—'}</a></td>
+          <td><span class={`status s-${h.status}`}>{STATUS[h.status]}</span></td>
+          <td>{h.summary}</td>
+          <td><bdi dir="ltr">{h.author_email}</bdi></td>
+          <td><bdi dir="ltr">{h.reviewer_email ?? ''}</bdi></td>
+          <td><bdi dir="ltr">{h.publisher_email ?? ''}</bdi></td>
+          <td><bdi dir="ltr">{when(h.published_at ?? h.created_at)}</bdi></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {history.length === 0 && <p class="muted center">ابھی کوئی ترمیم نہیں۔</p>}
+</Base>

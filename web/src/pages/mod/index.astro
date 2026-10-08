@@ -1,0 +1,56 @@
+---
+// Moderation: my drafts, drafts to review (L1, within grants), drafts to publish (admin); or the activity log
+import Base from '../../layouts/Base.astro';
+import ModNav from '../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { STATUS, EVENT, when } from '../../lib/mod';
+import { ud } from '../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/mod');
+if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صرف موڈریٹرز کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value, showLog = Astro.url.searchParams.has('log');
+const queue = showLog ? null : (await asUser(token, '/api/mod/queue')).data;
+const log = showLog ? (await asUser(token, '/api/mod/log')).data : null;
+const groups = queue ? [
+  ['میرے مسودے', queue.mine, 'ابھی کوئی مسودہ نہیں۔ کسی کلام کے صفحے پر "ترمیم کریں" سے شروع کریں۔'],
+  ...(me.role !== 'mod-l2' ? [['جائزے کے منتظر', queue.review, 'جائزے کے لیے کچھ نہیں۔']] : []),
+  ...(me.role === 'admin' ? [['اشاعت کے منتظر', queue.publish, 'اشاعت کے لیے کچھ نہیں۔']] : []),
+] as [string, any[], string][] : [];
+---
+<Base title="موڈریشن">
+  <h1>موڈریشن</h1>
+  <ModNav current={showLog ? 'log' : 'queue'} />
+  {groups.map(([title, items, empty]) => (
+    <section class="lib-section">
+      <h2>{title} <small class="muted">{ud(items.length)}</small></h2>
+      {items.length === 0 ? <p class="muted center">{empty}</p> : (
+        <ul class="lib-list">
+          {items.map((r) => (
+            <li>
+              <a class="lib-title" href={`/mod/rev/${r.id}`}>{r.title}</a>
+              <span class={`status s-${r.status}`}>{STATUS[r.status]}</span>
+              <p class="muted small-line">{r.summary || 'بغیر خلاصہ'} · <bdi dir="ltr">{r.author_email}</bdi> · <bdi dir="ltr">{when(r.updated_at)}</bdi></p>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  ))}
+  {log && (
+    <table class="admin-table">
+      <thead><tr><th>وقت (UTC)</th><th>کس نے</th><th>کیا</th><th>کلام</th><th>تبصرہ</th></tr></thead>
+      <tbody>
+        {log.entries.map((e: any) => (
+          <tr>
+            <td><bdi dir="ltr">{when(e.at)}</bdi></td>
+            <td><bdi dir="ltr">{e.actor_email}</bdi></td>
+            <td>{EVENT[e.action] ?? e.action}{e.version && e.action === 'published' ? ` (ورژن ${ud(e.version)})` : ''}</td>
+            <td><a href={`/mod/rev/${e.revision}`}>{e.title}</a></td>
+            <td>{e.comment}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+</Base>

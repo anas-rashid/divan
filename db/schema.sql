@@ -149,3 +149,38 @@ DROP INDEX IF EXISTS library_places;
 CREATE UNIQUE INDEX IF NOT EXISTS library_bookmarks ON library (user_id, kind, coalesce(poet_id, 0), coalesce(category_id, 0), coalesce(poem_id, 0), coalesce(couplet, -1)) WHERE kind IN ('poet', 'category', 'poem', 'couplet');
 CREATE UNIQUE INDEX IF NOT EXISTS library_phrases ON library (user_id, poem_id, couplet, phrase) WHERE kind = 'phrase';
 CREATE UNIQUE INDEX IF NOT EXISTS library_words ON library (user_id, word) WHERE kind = 'word';
+
+-- content moderation (api/src/moderation.ts): versions of content, and every step taken on them (#31, #51)
+CREATE TABLE IF NOT EXISTS revisions (
+    id           bigserial PRIMARY KEY,
+    entity       text NOT NULL,                  -- 'work' (later: poet, intro, book, chapter, dictionary, tag)
+    entity_id    integer NOT NULL,               -- poems.id for works
+    version      integer,                        -- the published version number (NULL until published)
+    base_version integer NOT NULL DEFAULT 0,     -- the published version the draft started from (0 = Wikisource text)
+    base_content text NOT NULL DEFAULT '',       -- the text the draft started from (for an exact diff)
+    content      text NOT NULL,                  -- Divan text
+    summary      text,                           -- the edit summary
+    status       text NOT NULL CHECK (status IN ('draft', 'submitted', 'approved', 'published', 'returned', 'rejected')),
+    author_id    bigint REFERENCES users(id) ON DELETE SET NULL,
+    author_email text NOT NULL,                  -- kept when accounts are deleted
+    reviewer_email  text,                        -- the L1 moderator who approved
+    publisher_email text,
+    created_at   timestamptz NOT NULL DEFAULT now(),
+    updated_at   timestamptz NOT NULL DEFAULT now(),
+    published_at timestamptz
+);
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS base_content text NOT NULL DEFAULT '';
+CREATE INDEX IF NOT EXISTS revisions_entity ON revisions(entity, entity_id);
+CREATE INDEX IF NOT EXISTS revisions_status ON revisions(status);
+CREATE UNIQUE INDEX IF NOT EXISTS revisions_version ON revisions(entity, entity_id, version) WHERE version IS NOT NULL;
+CREATE TABLE IF NOT EXISTS revision_events (       -- who did what: created, saved, submitted, approved, returned,
+    id          bigserial PRIMARY KEY,             -- rejected, published, commented
+    revision_id bigint NOT NULL REFERENCES revisions(id) ON DELETE CASCADE,
+    actor_id    bigint REFERENCES users(id) ON DELETE SET NULL,
+    actor_email text NOT NULL,
+    action      text NOT NULL,
+    comment     text,
+    at          timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS revision_events_revision ON revision_events(revision_id);
+CREATE INDEX IF NOT EXISTS revision_events_at ON revision_events(at DESC);

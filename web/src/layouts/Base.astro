@@ -42,6 +42,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         </form>
         <div class="toggles">
           {Astro.locals.user?.role === 'admin' && <a class="account-link" href="/admin">ایڈمن</a>}
+          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="account-link" href="/mod">موڈریشن</a>}
           {Astro.locals.user && <a class="account-link" href="/library">نشانات</a>}
           {Astro.locals.user && <a class="account-link" href="/words">ذخیرۂ الفاظ</a>}
           {Astro.locals.user

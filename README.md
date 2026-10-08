@@ -35,6 +35,8 @@ The import upserts, so re-running it after a divan-data sync applies the changes
 
 **Accounts and admin.** Readers sign up with an email address and password (no email is sent). The first admin is made on the server: sign up on the site, then `npm run make-admin -- you@example.com` in `api/`. Admins manage users at `/admin` (search, password reset on a reader's request, disable, roles, delete) and see every admin action at `/admin/audit`. Moderators (L2 junior, L1 senior) get scoped permissions from admins: a scope (all poets, a poet, a book with everything in it, or one work), content types (poets, books, works, dictionary) and actions (create, edit, delete, arrange); `can()` in `api/src/permissions.ts` is the one check for moderation.
 
+**Moderation.** Moderators open **ترمیم کریں** on a work they may edit, change its Divan text (see `docs/content-model.md`) with an edit summary and submit it. An L1 moderator covering that work approves, returns (with a reason) or rejects it; an admin publishes. L1 drafts go straight to the admin and an admin's own edits publish directly. Every step is recorded (`/mod`, the activity log, each work's history at `/mod/work/<id>`). Publishing numbers the version, writes it to divan-data's `divan/` folder (`DIVAN_DATA_DIR`, default `../divan-data`) and shows it on the site at once; a draft started before a newer version was published cannot be published.
+
 ## Daily content sync (server)
 
 `deploy/sync.sh` keeps a server current: it updates a divan-data checkout, fetches new and edited works from Wikisource (incremental, about a minute), rebuilds the export and upserts it into PostgreSQL. The site shows new content immediately. Runs are locked so they never overlap.
@@ -57,6 +59,7 @@ Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DI
 | `GET /api/search?q=&poet=1,2&page=` | poems containing all words (or a `"quoted phrase"`), Urdu-normalised; exact phrase first; each with the best-matching couplet or paragraph (`snippet`); optionally only some poets/writers; plus `authors` (who the results come from, with counts), and on page 1 `poets` (by name) and `books` (books/chapters by title) |
 | `GET /api/word?w=` | one word's meanings and pronunciation from the local Wiktionary data (Urdu, Persian, Arabic in that order; English meanings; Urdu equivalents via English when Urdu Wiktionary has none) |
 | `/api/auth/*` | accounts: sign-up, sign-in (returns a Bearer token), profile, password, delete |
+| `/api/mod/*` | moderation: what a moderator may do, queue, drafts, save/submit/approve/return/reject/publish, a work's history, activity log |
 | `/api/library/*` | the signed-in reader's library: toggle poets, works, couplets and words; list with full paths; notes |
 | `GET /health` | database check |
 
