@@ -115,6 +115,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       document.addEventListener('focusin', (e) => { if (e.target.matches?.('[data-urdu]')) target = e.target; });
       const typed = () => target.dispatchEvent(new Event('input', { bubbles: true })); // so suggestions update
       const insert = (text) => {
+        // rich editors (the content editor) take typed text through the browser's own editing command
+        if (target.isContentEditable) { target.focus(); document.execCommand('insertText', false, text); return; }
         const s = target.selectionStart ?? target.value.length, e = target.selectionEnd ?? target.value.length;
         target.setRangeText(text, s, e, 'end'); target.focus(); typed();
       };
@@ -123,6 +125,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         const b = ev.target.closest('button'); if (!b) return;
         if (b.dataset.act === 'shift') { shift = !shift; render(); return; }
         if (b.dataset.act === 'bs') {
+          if (target.isContentEditable) { target.focus(); document.execCommand('delete'); return; }
           const s = target.selectionStart, e = target.selectionEnd;
           target.setRangeText('', s === e ? Math.max(0, s - 1) : s, e, 'end'); target.focus(); typed();
           return;
@@ -137,7 +140,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       // other inputs can open the same keyboard / Roman typing with their own buttons
       document.addEventListener('click', (e) => {
         const b = e.target.closest('[data-urdu-kb], [data-urdu-rom]'); if (!b) return;
-        target = document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom);
+        target = document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom)?.querySelector('[contenteditable]') ?? document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom);
         (b.dataset.urduKb ? kbBtn : romBtn).click();
         b.setAttribute('aria-pressed', (b.dataset.urduKb ? kbBtn : romBtn).getAttribute('aria-pressed'));
       });
@@ -327,7 +330,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         clearTimeout(selTimer);
         selTimer = setTimeout(() => {
           const sel = getSelection();
-          const inText = sel && !sel.isCollapsed && main.contains(sel.anchorNode) && !sel.anchorNode.parentElement?.closest('form, input, textarea');
+          const inText = sel && !sel.isCollapsed && main.contains(sel.anchorNode) && !sel.anchorNode.parentElement?.closest('form, input, textarea, [contenteditable]'); // not while editing
           selText = inText ? sel.toString().replace(/\u0614/g, '').trim() : '';
           if (!selText) return hideMenu();
           const w = oneWord(selText);

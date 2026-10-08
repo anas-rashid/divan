@@ -346,3 +346,33 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .preview sup { color: var(--brand); font-size: .7em; }
 .preview-notes { font-size: .85rem; border-top: 1px dashed var(--gold-light); margin-top: 8px; padding-top: 6px; }
 @media (max-width: 760px) { .example { grid-template-columns: 1fr; } }
+
+/* the structured content editor (Tiptap) */
+.editor-tabs button { font: inherit; padding: 2px 14px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.editor-tabs button[aria-selected='true'] { border-color: var(--brand); color: var(--brand); }
+.meta-fields { border: 1px dashed var(--gold-light); border-radius: 10px; padding: 6px 12px; }
+.meta-fields legend { font-size: .85rem; padding: 0 6px; }
+.meta-row { display: grid; grid-template-columns: 9em 1fr auto; gap: 6px; margin: 4px 0; }
+.meta-row input { font: inherit; font-size: .9rem; padding: 2px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper); color: var(--ink); }
+.toolbar { position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; background: var(--paper); border: 1px solid var(--border); border-radius: 10px; }
+.toolbar .sep { width: 1px; background: var(--gold-light); margin: 0 4px; }
+.tool { font: inherit; font-size: .85rem; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.tool:hover, .tool[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
+.dv-editor { min-height: 20em; outline: none; margin: 8px 0; }
+/* Tiptap's own CSS turns ligatures off, which breaks Nastaliq (and Naskh's لا); keep the font's shaping */
+.ProseMirror.dv-editor { font-variant-ligatures: normal; font-feature-settings: normal; }
+.dv-editor:focus-within { border-color: var(--gold); }
+.dv-editor .unit { position: relative; margin: 0 0 10px; padding: 4px 8px; border-radius: 8px; border: 1px dashed transparent; }
+.dv-editor .unit:hover { border-color: var(--gold-light); }
+.dv-editor .unit:has(> .misra:nth-child(2):last-child) { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10%; }
+.dv-editor .unit .misra { margin: 0; text-align: center; min-height: 1.8em; }
+.dv-editor .unit:has(> .misra:nth-child(2):last-child) .misra:first-child { text-align: left; }
+.dv-editor .unit:has(> .misra:nth-child(2):last-child) .misra:last-child { text-align: right; }
+.dv-editor .unit:has(> .misra:nth-child(3)) { border-inline-start: 2px solid var(--gold-light); }
+.dv-editor .unit[data-mark]::before { content: attr(data-mark); grid-column: 1 / -1; justify-self: center; font-size: .72rem; color: var(--brand); border: 1px solid var(--gold-light); border-radius: 999px; padding: 0 10px; }
+.dv-editor .para { min-height: 1.8em; }
+.dv-editor .dv-dict { text-decoration: underline dotted var(--lapis) 2px; text-underline-offset: 5px; }
+.dv-editor sup.note { color: var(--brand); cursor: pointer; padding: 0 2px; }
+.dv-editor .variant { border-bottom: 2px dashed var(--gold); cursor: pointer; }
+.dv-editor .is-empty::before { content: attr(data-placeholder); color: var(--muted); opacity: .6; pointer-events: none; float: inline-start; height: 0; }
+@media (max-width: 700px) { .dv-editor .unit:has(> .misra:nth-child(2):last-child) { grid-template-columns: 1fr; } .dv-editor .unit .misra { text-align: center !important; } .meta-row { grid-template-columns: 1fr; } }

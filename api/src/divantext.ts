@@ -15,7 +15,10 @@
 // Words: split on spaces; a zero-width non-joiner keeps a compound one word (بے‌ثبوت); punctuation ، ۔ ؟ ! is
 // not part of a word; the izafat kasra stays on its word.
 
-export type Inline = { text: string; words: { shown: string; lemma: string }[]; notes: string[]; variants: { shown: string; others: string[]; source?: string }[] };
+export type Variant = { shown: string; others: string[]; source?: string };
+// a line in order: plain text, a word linked to the dictionary, a footnote, a variant reading (for editors)
+export type Segment = { text: string } | { text: string; lemma: string } | { note: string } | { variant: Variant };
+export type Inline = { text: string; words: { shown: string; lemma: string }[]; notes: string[]; variants: Variant[]; segments: Segment[] };
 export type Block =
   | { type: 'heading'; text: string; level: number } // == chapter == is level 2, === sub-heading === level 3, …
   | { type: 'para'; line: Inline }
@@ -44,21 +47,58 @@ function template(src: string) {
 }
 
 // one line of text: links, notes and variants out, plain text in
+const TOKEN = /<ref>([\s\S]*?)<\/ref>|(\{\{نسخہ\|[^{}]*\}\})|\[\[(?:لغت:)?([^\]|]+)(?:\|([^\]]+))?\]\]/g;
+
 export function inline(src: string): Inline {
-  const words: Inline['words'] = [], notes: string[] = [], variants: Inline['variants'] = [];
-  let text = src
-    .replace(/<ref>([\s\S]*?)<\/ref>/g, (_, n) => { notes.push(n.trim()); return ''; })
-    .replace(/\{\{نسخہ\|[^{}]*\}\}/g, (t) => {
-      const { fields } = template(t), others = Object.keys(fields).filter((k) => /^\d+$/.test(k) && k !== '1').map((k) => fields[k]);
-      variants.push({ shown: fields['1'] ?? '', others, source: fields['ماخذ'] });
-      return fields['1'] ?? '';
-    })
-    .replace(/\[\[(?:لغت:)?([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, lemma, shown) => {
-      words.push({ lemma: lemma.trim(), shown: (shown ?? lemma).trim() });
-      return (shown ?? lemma).trim();
-    });
-  text = text.replace(/[ \t]+/g, ' ').trim();
-  return { text, words, notes, variants };
+  const segments: Segment[] = [];
+  let at = 0;
+  const plain = (t: string) => { if (t) segments.push({ text: t.replace(/[ \t]+/g, ' ') }); };
+  for (const m of src.matchAll(TOKEN)) {
+    plain(src.slice(at, m.index));
+    at = m.index! + m[0].length;
+    if (m[1] !== undefined) segments.push({ note: m[1].trim() });
+    else if (m[2]) {
+      const { fields } = template(m[2]);
+      segments.push({ variant: { shown: fields['1'] ?? '', others: Object.keys(fields).filter((k) => /^\d+$/.test(k) && k !== '1').map((k) => fields[k]),
+        ...(fields['ماخذ'] && { source: fields['ماخذ'] }) } });
+    } else segments.push({ lemma: m[3].trim(), text: (m[4] ?? m[3]).trim() });
+  }
+  plain(src.slice(at));
+  // trim the line's outer spaces (in its first and last text)
+  const texts = segments.filter((x): x is { text: string } => 'text' in x && !('lemma' in x));
+  if (texts[0] && segments[0] === texts[0]) texts[0].text = texts[0].text.trimStart();
+  if (texts.at(-1) && segments.at(-1) === texts.at(-1)) texts.at(-1)!.text = texts.at(-1)!.text.trimEnd();
+  const shown = segments.map((x) => ('text' in x ? x.text : 'variant' in x ? x.variant.shown : '')).join('');
+  return {
+    text: shown.replace(/[ \t]+/g, ' ').trim(),
+    words: segments.filter((x): x is { text: string; lemma: string } => 'lemma' in x).map((x) => ({ shown: x.text, lemma: x.lemma })),
+    notes: segments.filter((x): x is { note: string } => 'note' in x).map((x) => x.note),
+    variants: segments.filter((x): x is { variant: Variant } => 'variant' in x).map((x) => x.variant),
+    segments: segments.filter((x) => !('text' in x && !('lemma' in x) && x.text === '')),
+  };
+}
+
+// ---- writing Divan text back (editors build a Doc; this is its text) ----
+
+export const segmentsText = (segs: Segment[]) => segs.map((x) =>
+  'note' in x ? `<ref>${x.note}</ref>`
+  : 'variant' in x ? `{{نسخہ|${[x.variant.shown, ...x.variant.others].join('|')}${x.variant.source ? `|ماخذ=${x.variant.source}` : ''}}}`
+  : 'lemma' in x ? (x.lemma === x.text ? `[[${x.text}]]` : `[[لغت:${x.lemma}|${x.text}]]`)
+  : x.text).join('');
+
+export function toText(doc: Doc) {
+  const out: string[] = [];
+  const meta = Object.entries(doc.meta).filter(([, v]) => v !== undefined);
+  if (meta.length) out.push(`{{دیوان\n${meta.map(([k, v]) => `| ${k} = ${v}`).join('\n')}\n}}`);
+  let verse: string[] = [];
+  const flush = () => { if (verse.length) out.push(`<poem>\n${verse.join('\n\n')}\n</poem>`); verse = []; };
+  for (const b of doc.blocks) {
+    if (b.type === 'heading') { flush(); const eq = '='.repeat(b.level); out.push(`${eq} ${b.text} ${eq}`); }
+    else if (b.type === 'para') { flush(); out.push(segmentsText(b.line.segments)); }
+    else verse.push(b.lines.map((l, i) => (i === 0 && b.label ? `{{${b.label}}} ` : '') + segmentsText(l.segments)).join('\n'));
+  }
+  flush();
+  return out.join('\n\n') + '\n';
 }
 
 export function parse(src: string): Doc {

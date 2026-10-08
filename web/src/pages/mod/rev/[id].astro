@@ -39,13 +39,39 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
   {may.save ? (
     <form method="post" class="mod-edit">
       <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu placeholder="مثلاً: دوسرے شعر کا مصرع درست کیا" /></label>
-      <label class="mod-text">متن (دیوان متن)
+      <nav class="admin-nav editor-tabs" role="tablist">
+        <button type="button" role="tab" data-tab="editor" aria-selected="true">ایڈیٹر</button>
+        <button type="button" role="tab" data-tab="source" aria-selected="false">سورس (دیوان متن)</button>
+      </nav>
+      <div id="editor-pane">
+        <fieldset class="meta-fields"><legend>کلام کا خاکہ</legend><div id="meta-rows"></div>
+          <button type="button" id="meta-add" class="tool">+ معلومات</button></fieldset>
+        <div class="toolbar" role="toolbar" aria-label="ایڈیٹر">
+          <button type="button" class="tool" data-cmd="couplet" title="نیا شعر (دو مصرعے)">شعر</button>
+          <button type="button" class="tool" data-cmd="para" title="نثر کا نیا پیراگراف">پیراگراف</button>
+          <button type="button" class="tool" data-cmd="h2" title="باب کا عنوان">باب کا عنوان</button>
+          <button type="button" class="tool" data-cmd="h3" title="ذیلی عنوان">ذیلی عنوان</button>
+          <span class="sep"></span>
+          <button type="button" class="tool" data-cmd="label" data-label="مطلع">مطلع</button>
+          <button type="button" class="tool" data-cmd="label" data-label="حسن مطلع">حسن مطلع</button>
+          <button type="button" class="tool" data-cmd="label" data-label="مقطع">مقطع</button>
+          <span class="sep"></span>
+          <button type="button" class="tool" data-cmd="dict" title="منتخب لفظ کو لغت سے جوڑیں">لغت کا ربط</button>
+          <button type="button" class="tool" data-cmd="note" title="حاشیہ لگائیں">حاشیہ</button>
+          <button type="button" class="tool" data-cmd="variant" title="نسخوں کا فرق">نسخہ</button>
+          <span class="sep"></span>
+          <button type="button" class="tool" data-cmd="undo" title="پچھلی تبدیلی واپس">واپس</button>
+          <button type="button" class="tool" data-cmd="redo" title="تبدیلی دوبارہ">دوبارہ</button>
+          <button type="button" class="tool" data-urdu-rom="dv-editor-host" title="رومن حروف سے اردو">اب</button>
+          <button type="button" class="tool" data-urdu-kb="dv-editor-host" title="اردو کی بورڈ">کی بورڈ</button>
+        </div>
+        <div id="dv-editor-host"></div>
+        <p class="muted note">Enter: اسی شعر یا بند میں نیا مصرع · خالی مصرع پر Enter: نیا شعر · <a href="/mod/guide" target="_blank">لکھنے کا مکمل طریقہ</a></p>
+      </div>
+      <label class="mod-text" id="source-pane" hidden>متن (دیوان متن)
         <textarea name="content" id="mod-content" data-urdu rows="22" dir="rtl" spellcheck="false">{rev.content}</textarea>
       </label>
-      <p class="muted note">شعر کے دو مصرعے الگ سطروں پر، اشعار کے درمیان خالی سطر۔ <code>== باب ==</code> عنوان، <code>[[لفظ]]</code> لغت کا ربط، <code>&lt;ref&gt;…&lt;/ref&gt;</code> حاشیہ۔ <a href="/mod/guide" target="_blank">لکھنے کا مکمل طریقہ</a></p>
       <div class="filter-actions">
-        <button type="button" class="in-box-btn" data-urdu-rom="mod-content" title="رومن حروف سے اردو">اب</button>
-        <button type="button" class="in-box-btn" data-urdu-kb="mod-content" title="اردو کی بورڈ">کی بورڈ</button>
         <button name="act" value="save">محفوظ کریں</button>
         <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
       </div>
@@ -81,4 +107,56 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
       ))}
     </ol>
   </section>
+  <script>
+    // the structured editor (Tiptap) and the source view edit the same Divan text; saving always sends the text
+    import { createEditor, fromEditor, toEditor, actions } from '../../../lib/editor';
+    import { parse } from '../../../../../api/src/divantext.ts';
+    const host = document.getElementById('dv-editor-host');
+    const source = document.getElementById('mod-content') as HTMLTextAreaElement | null;
+    if (host && source) {
+      const { editor, meta } = createEditor(host, source.value);
+      const rows = document.getElementById('meta-rows')!;
+      const KNOWN = ['عنوان', 'شاعر', 'مصنف', 'صنف', 'ردیف', 'قافیہ', 'بحر', 'ماخذ', 'ماخذ_ربط'];
+      const row = (k = '', v = '') => {
+        const r = document.createElement('div'); r.className = 'meta-row';
+        r.innerHTML = '<input class="meta-k" list="meta-keys" aria-label="معلومات کا نام"><input class="meta-v" data-urdu aria-label="قدر"><button type="button" class="tool" aria-label="ہٹائیں">✕</button>';
+        (r.children[0] as HTMLInputElement).value = k; (r.children[1] as HTMLInputElement).value = v;
+        (r.children[2] as HTMLButtonElement).onclick = () => r.remove();
+        rows.append(r);
+      };
+      const fillMeta = (m: Record<string, string>) => { rows.replaceChildren(); Object.entries(m).forEach(([k, v]) => row(k, v)); if (!rows.children.length) row('عنوان', ''); };
+      const readMeta = () => Object.fromEntries([...rows.querySelectorAll('.meta-row')].map((r) => [(r.children[0] as HTMLInputElement).value.trim(), (r.children[1] as HTMLInputElement).value.trim()]).filter(([k, v]) => k && v));
+      const keys = document.createElement('datalist'); keys.id = 'meta-keys'; keys.innerHTML = KNOWN.map((k) => `<option value="${k}">`).join(''); document.body.append(keys);
+      fillMeta(meta);
+      document.getElementById('meta-add')!.onclick = () => row();
+      const sync = () => { source.value = fromEditor(editor.getJSON(), readMeta()); };
+      let tab = 'editor';
+      document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) => (b.onclick = () => {
+        if (b.dataset.tab === tab) return;
+        if (tab === 'editor') sync();
+        else { const doc = parse(source.value); editor.commands.setContent(toEditor(doc)); fillMeta(doc.meta); }
+        tab = b.dataset.tab!;
+        document.getElementById('editor-pane')!.hidden = tab !== 'editor';
+        document.getElementById('source-pane')!.hidden = tab !== 'source';
+        document.querySelectorAll('[data-tab]').forEach((t) => t.setAttribute('aria-selected', String(t === b)));
+      }));
+      source.form!.addEventListener('submit', () => { if (tab === 'editor') sync(); });
+      // toolbar buttons must not take the focus (and the selected word) away from the editor
+      document.querySelector('.toolbar')!.addEventListener('mousedown', (e) => e.preventDefault());
+      document.querySelector('.toolbar')!.addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cmd]'); if (!b) return;
+        const c = b.dataset.cmd!;
+        if (c === 'undo') editor.chain().focus().undo().run();
+        else if (c === 'redo') editor.chain().focus().redo().run();
+        else if (c === 'h2' || c === 'h3') actions.heading(editor, c === 'h2' ? 2 : 3);
+        else if (c === 'label') actions.label(editor, b.dataset.label!);
+        else (actions as any)[c](editor);
+      });
+      // a note or variant shows its text when clicked
+      host.addEventListener('click', (e) => {
+        const n = (e.target as HTMLElement).closest('sup.note, span.variant');
+        if (n) alert(n.getAttribute('title'));
+      });
+    }
+  </script>
 </Base>

@@ -62,3 +62,16 @@ test('TEI export is well-formed XML with couplets as <lg type="sher"> of two <l>
   if (!lint.error) assert.equal(lint.status, 0, String(lint.stderr));
   if (!lint.error) assert.equal(spawnSync('xmllint', ['--noout', '-'], { input: toTEI(prose) }).status, 0);
 });
+
+test('writing back: parse(toText(doc)) is the same doc; segments keep links, notes and variants in place', async () => {
+  const { toText, segmentsText } = await import('./divantext.ts');
+  for (const d of [ghazal, prose, parse('<poem>\n{{مقطع}} [[لغت:دیوانہ|دیوانے]] ہیں<ref>حاشیہ</ref> {{نسخہ|الف|ب|ماخذ=س}}\nدوسرا\n</poem>')]) {
+    const again = parse(toText(d));
+    assert.deepEqual(again.meta, d.meta);
+    assert.deepEqual(again.blocks, d.blocks);
+  }
+  const l = inline('کوئی [[لغت:دیوانہ|دیوانے]] ہیں<ref>نوٹ</ref> اور {{نسخہ|الف|ب|ماخذ=س}}');
+  assert.deepEqual(l.segments, [{ text: 'کوئی ' }, { lemma: 'دیوانہ', text: 'دیوانے' }, { text: ' ہیں' }, { note: 'نوٹ' }, { text: ' اور ' },
+    { variant: { shown: 'الف', others: ['ب'], source: 'س' } }]);
+  assert.equal(segmentsText(l.segments), 'کوئی [[لغت:دیوانہ|دیوانے]] ہیں<ref>نوٹ</ref> اور {{نسخہ|الف|ب|ماخذ=س}}');
+});
