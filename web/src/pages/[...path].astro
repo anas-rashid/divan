@@ -65,6 +65,7 @@ const lineMarks = (c: number, lines: string[]) => {
   }
   return out;
 };
+const label = (on: unknown) => (on ? 'محفوظ شدہ' : 'محفوظ کریں'); // bookmark buttons
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
 ---
@@ -80,7 +81,7 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
   {page.type === 'poet' && (
     <>
       <h1>{page.poet.name}</h1>
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="اس شاعر پر نشان لگائیں">نشان</button></p>
+      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="یہ شاعر محفوظ کریں">{label(saved.poet)}</button></p>
       <p class="muted">{years(page.poet)}</p>
       {page.poet.description && <div class="intro">{page.poet.description}</div>}
     </>
@@ -88,7 +89,7 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
   {page.type === 'category' && (
     <>
       <h1>{page.category.title}</h1>
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'category', categoryId: page.category.id })} aria-pressed={String(!!saved.category)} title="اس کتاب یا باب پر نشان لگائیں">نشان</button></p>
+      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'category', categoryId: page.category.id })} aria-pressed={String(!!saved.category)} title="یہ کتاب یا باب محفوظ کریں">{label(saved.category)}</button></p>
     </>
   )}
 
@@ -114,11 +115,11 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
           «{hlq}» نمایاں · <a href={`/search?q=${encodeURIComponent(hlq)}`}>تلاش کے نتائج</a> · <a href={url}>نشان ہٹائیں</a>
         </p>
       )}
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="اس کلام پر نشان لگائیں">نشان</button></p>
+      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="یہ کلام محفوظ کریں">{label(saved.poem)}</button></p>
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {
-          const bm = <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="نشان لگائیں" />;
+          const bm = <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں" />;
           const lm = lineMarks(b.c, b.lines);
           return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}</div>
             : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>

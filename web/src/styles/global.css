@@ -225,7 +225,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
   background-color: var(--brand); -webkit-mask-image: var(--bm-filled); mask-image: var(--bm-filled); }
 .save { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .save::before { margin-inline-end: 4px; }
-.save[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
+.save[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); font-weight: 700;
+  background: color-mix(in srgb, var(--brand) 12%, var(--inner)); } /* محفوظ شدہ: accent tint, filled glyph */
 /* word book (ذخیرۂ الفاظ): + to add, ✓ when added (hearts are for poets and works) */
 .wordbook { font: inherit; font-size: .85rem; padding: 1px 14px; margin-bottom: 6px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .wordbook::before { content: '+ '; font-weight: 700; color: var(--gold); }
