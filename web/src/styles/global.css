@@ -105,7 +105,7 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
   .couplet p, .couplet p + p { text-align: center; }
   .couplet::after { display: none; }
 }
-.poem-nav { display: flex; justify-content: space-between; }
+.poem-nav { display: flex; justify-content: center; gap: 12px; } /* RTL: پچھلا on the right, اگلا on the left */
 .poem-nav a { border: 1.5px solid var(--border); background: var(--inner); border-radius: 10px; padding: 0 14px; }
 .source { text-align: center; font-size: .85rem; color: var(--muted); }
 

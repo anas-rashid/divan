@@ -133,8 +133,8 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
       </article>
       <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے۔</p>
       <nav class="poem-nav">
-        {page.next ? <a href={page.next}>اگلا ›</a> : <span />}
-        {page.prev ? <a href={page.prev}>‹ پچھلا</a> : <span />}
+        {page.prev && <a href={page.prev} rel="prev">‹ پچھلا</a>}
+        {page.next && <a href={page.next} rel="next">اگلا ›</a>}
       </nav>
       {page.divan && (
         <p class="source divan-edit">
