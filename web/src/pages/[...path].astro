@@ -3,6 +3,7 @@
 import Base from '../layouts/Base.astro';
 import Seg from '../components/Seg.astro';
 import { api } from '../lib/api';
+import { asUser, COOKIE } from '../lib/auth';
 import { ud, years, highlighter, parts } from '../lib/urdu';
 
 const url = '/' + (Astro.params.path ?? '');
@@ -11,15 +12,15 @@ if (!page) return new Response(null, { status: 404, statusText: 'Not found' });
 
 // group verses into couplets / single lines / paragraphs for rendering
 type Verse = { position: string; couplet: number; text: string };
-const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[]; mark?: string }[] = [];
+const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[]; c: number; mark?: string }[] = [];
 if (page.type === 'poem') {
   const { matla, maqta } = page.poem;
   for (const v of page.verses as Verse[]) {
-    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text],
+    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text], c: v.couplet,
       mark: v.couplet === matla ? 'مطلع' : v.couplet === maqta ? 'مقطع' : undefined });
     else if (v.position === 'Left' && blocks.at(-1)?.kind === 'couplet' && blocks.at(-1)!.lines.length === 1) blocks.at(-1)!.lines.push(v.text);
-    else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text] });
-    else blocks.push({ kind: 'single', lines: [v.text] });
+    else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text], c: v.couplet });
+    else blocks.push({ kind: 'single', lines: [v.text], c: v.couplet });
   }
 }
 // pen name (marked ؔ in the text) set apart; split() with a capture group puts matches at odd indexes
@@ -37,6 +38,11 @@ for (const p of page.poems ?? []) {
   groups.at(-1)!.poems.push(p);
 }
 const crumbs = page.breadcrumbs ?? [];
+// what the signed-in reader has saved on this page (♡ poet/work, 🔖 couplets)
+const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
+const poetId = page.poet?.id, poemId = page.type === 'poem' ? page.poem.id : undefined;
+const saved = token ? (await asUser(token, `/api/library/state?poet=${poetId ?? ''}&poem=${poemId ?? ''}`)).data : { poet: false, poem: false, couplets: [] };
+const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
 ---
 <Base title={page.type === 'poem' ? `${page.poem.title} · ${page.poet.nickname}` : title} description={page.type === 'poet' ? page.poet.description?.slice(0, 160) : undefined}>
@@ -51,6 +57,7 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
   {page.type === 'poet' && (
     <>
       <h1>{page.poet.name}</h1>
+      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)}>پسندیدہ شاعر</button></p>
       <p class="muted">{years(page.poet)}</p>
       {page.poet.description && <div class="intro">{page.poet.description}</div>}
     </>
@@ -79,13 +86,15 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
           «{hlq}» نمایاں · <a href={`/search?q=${encodeURIComponent(hlq)}`}>تلاش کے نتائج</a> · <a href={url}>نشان ہٹائیں</a>
         </p>
       )}
+      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)}>پسندیدہ کلام</button></p>
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
-      <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`}>
-        {blocks.map((b) =>
-          b.kind === 'couplet' ? <div class="couplet" data-mark={b.mark}>{b.lines.map((l) => <p><Seg s={show(l)} /></p>)}</div>
-          : b.kind === 'para' ? <p class="para"><Seg s={show(b.lines[0])} /></p>
-          : <p class="single"><Seg s={show(b.lines[0])} /></p>
-        )}
+      <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
+        {blocks.map((b) => {
+          const bm = <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="نشان لگائیں" />;
+          return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l) => <p><Seg s={show(l)} /></p>)}</div>
+            : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0])} /></p>
+            : <p class="single" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0])} /></p>;
+        })}
       </article>
       <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے۔</p>
       <nav class="poem-nav">

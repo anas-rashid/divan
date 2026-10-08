@@ -29,7 +29,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       } catch (e) {}
     </script>
   </head>
-  <body>
+  <body data-user={Astro.locals.user ? '1' : undefined}>
     <header class="site-header">
       <div class="wrap">
         <a class="wordmark" href="/">دیوان</a>
@@ -42,6 +42,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         </form>
         <div class="toggles">
           {Astro.locals.user?.role === 'admin' && <a class="account-link" href="/admin">ایڈمن</a>}
+          {Astro.locals.user && <a class="account-link" href="/library">لائبریری</a>}
           {Astro.locals.user
             ? <a class="account-link" href="/account" title={Astro.locals.user.email}>{Astro.locals.user.full_name.split(' ')[0] || 'اکاؤنٹ'}</a>
             : <a class="account-link" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`}>لاگ ان</a>}
@@ -54,6 +55,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <main class="wrap"><slot /></main>
     <div id="selmenu" class="selmenu" role="toolbar" aria-label="منتخب عبارت" hidden>
       <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
+      <button type="button" data-act="saveword" title="میری لائبریری میں محفوظ کریں">محفوظ</button>
       <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
       <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
       <button type="button" data-act="share" title="اس عبارت کا لنک">شیئر</button>
@@ -141,6 +143,25 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         return e;
       };
       let current = '';
+      // personal library: ♡ poets and works, 🔖 couplets, saved words (signed-out readers go to sign-in)
+      let source = {}; // the couplet the selected word came from
+      async function save(item) {
+        if (!document.body.dataset.user) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return null; }
+        const r = await fetch('/api/library', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(item) });
+        if (r.status === 401) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return null; }
+        return r.ok ? r.json() : null;
+      }
+      document.addEventListener('click', async (e) => {
+        const b = e.target.closest('[data-save]'); if (!b) return;
+        const d = await save(JSON.parse(b.dataset.save));
+        if (d) b.setAttribute('aria-pressed', String(d.saved));
+      });
+      const wordSave = (w) => { // sidebar button, with the word's saved state
+        const b = el('button', 'save', 'لفظ محفوظ کریں', { type: 'button', 'aria-pressed': 'false' });
+        b.onclick = async () => { const d = await save({ kind: 'word', word: w, ...source }); if (d) b.setAttribute('aria-pressed', String(d.saved)); };
+        if (document.body.dataset.user) fetch('/api/library?word=' + encodeURIComponent(w)).then((r) => r.ok && r.json()).then((d) => d && b.setAttribute('aria-pressed', String(d.word)));
+        return b;
+      };
       async function showWord(w) {
         if (w === current && !dict.hidden) return;
         current = w; dict.hidden = false; document.body.classList.add('dict-open');
@@ -160,7 +181,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         };
         const words = (title, items, into) => { if (items.length) into.push(el('h3', null, title), buttons(items)); };
         const list = (items, cls, attrs) => { const ol = el('ol', cls, null, attrs); items.forEach((x) => ol.append(el('li', null, x))); return ol; };
-        const out = [el('h2', null, w)];
+        const out = [el('h2', null, w), wordSave(w)];
         if (!d || !d.found) {
           out.push(el('p', 'muted', 'ویکی لغت میں یہ لفظ نہیں ملا۔'));
           words('ملتے جلتے الفاظ', [...(d?.similar ?? []), ...(d?.variants ?? [])], out);
@@ -282,6 +303,9 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           selText = inText ? sel.toString().replace(/\u0614/g, '').trim() : '';
           if (!selText) return hideMenu();
           const w = oneWord(selText);
+          const block = sel.anchorNode.parentElement?.closest('[data-c]');
+          source = block ? { poemId: Number(block.closest('[data-poem]')?.dataset.poem) || undefined, couplet: Number(block.dataset.c) } : {};
+          menu.querySelector('[data-act=saveword]').hidden = !w;
           menu.querySelector('[data-act=meaning]').hidden = !w;
           menu.hidden = false;
           // below the selection, centred, kept inside the viewport (absolute: moves with the page)
@@ -302,6 +326,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         const q = /\s/.test(selText) ? `"${selText}"` : selText, enc = encodeURIComponent(selText);
         switch (b.dataset.act) {
           case 'meaning': showWord(oneWord(selText)); break;
+          case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? 'محفوظ ہو گیا' : 'ہٹا دیا گیا')); break;
           case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
           case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;
           case 'copy':

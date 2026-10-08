@@ -126,3 +126,17 @@ CREATE INDEX IF NOT EXISTS grants_user ON grants(user_id);
 -- profile (owner request): full name and bio, usually in Urdu
 ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name text;   -- up to 100 characters
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bio text;         -- up to 1,000 characters
+-- personal library (api/src/library.ts): saved poets and works, bookmarked couplets, saved words
+CREATE TABLE IF NOT EXISTS library (
+    id         bigserial PRIMARY KEY,
+    user_id    bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind       text NOT NULL CHECK (kind IN ('poet', 'poem', 'couplet', 'word')),
+    poet_id    integer,                          -- poet
+    poem_id    integer,                          -- poem, couplet, or a word's source work
+    couplet    integer,                          -- couplet, or a word's source couplet
+    word       text,                             -- word
+    note       text,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS library_items ON library (user_id, kind, coalesce(poet_id, 0), coalesce(poem_id, 0), coalesce(couplet, -1)) WHERE kind <> 'word';
+CREATE UNIQUE INDEX IF NOT EXISTS library_words ON library (user_id, word) WHERE kind = 'word';
