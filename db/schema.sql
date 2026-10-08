@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS wiktionary (
 );
 CREATE INDEX IF NOT EXISTS wiktionary_key ON wiktionary(key);
 CREATE INDEX IF NOT EXISTS wiktionary_title ON wiktionary(lang, source, title);
+CREATE INDEX IF NOT EXISTS wiktionary_key_trgm ON wiktionary USING gin (key gin_trgm_ops);  -- similar words (regex, %)
 CREATE TABLE IF NOT EXISTS ur_glosses (          -- English gloss -> Urdu word, for the pivot through English
     gloss text NOT NULL,
     word  text NOT NULL

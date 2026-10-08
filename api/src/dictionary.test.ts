@@ -21,12 +21,13 @@ test('kaikki entry: glosses, IPA, audio, romanisation, form-of', () => {
     forms: [{ form: 'قِسْمَت', tags: ['canonical'] }, { form: 'qismat', tags: ['romanization'] }],
   });
   assert.deepEqual(e, { pos: 'noun', glosses: ['fate, destiny', 'division'], formOf: false, ipa: ['/qɪs.mət̪/'],
-    audio: 'https://upload.wikimedia.org/x.mp3', tr: 'qismat', ety: 'From Arabic', synonyms: [] });
+    audio: 'https://upload.wikimedia.org/x.mp3', tr: 'qismat', form: 'قِسْمَت', ety: 'From Arabic', synonyms: [] });
   assert.equal(kaikkiEntry({ word: 'x', pos: 'noun', senses: [{ glosses: ['plural of y'], tags: ['form-of'] }] }).formOf, true);
 });
 
 test('pivot keys from English glosses', () => {
   assert.deepEqual(glossKeys(['fate, destiny', 'to love (someone)', 'a very long description of something that is not a key']), ['fate', 'destiny', 'love']);
+  assert.deepEqual(glossKeys(['zephyr; soft breeze; especially, a morning breeze']), ['zephyr', 'soft breeze', 'morning breeze']);
 });
 
 test('ur.wiktionary entry: meanings and origin', () => {
@@ -64,4 +65,25 @@ test('ur.wiktionary: English entries give Urdu words; Urdu entries fall back to 
 test('etymology drops the "Etymology tree" summary', () => {
   const ety = kaikkiEntry({ word: 'x', pos: 'noun', senses: [], etymology_text: 'Etymology tree Arabic قَسَمَ (qasama)bor. Urdu قِسْمَت Borrowed from Classical Persian قِسْمَت (qismat).' }).ety;
   assert.equal(ety, 'Borrowed from Classical Persian قِسْمَت (qismat).');
+});
+
+test('similar words: punctuation-free keys, inflection stems, consonant skeleton regex', async () => {
+  const { stems, skeleton } = await import('./dictionary.ts');
+  assert.equal(key('بے ثبوت'), key('بےثبوت'));
+  assert.equal(key('دل،'), key('دل'));
+  assert.equal(key('دل-جان۔'), key('دلجان'));
+  assert.ok(stems(key('آنکھوں')).includes(key('آنکھ')));
+  assert.ok(stems(key('دیوانے')).includes(key('دیوانہ')));
+  assert.ok(stems(key('جاتے')).includes(key('جانا')));
+  const re = new RegExp(skeleton(key('دیوانگی'))!);
+  assert.ok(re.test(key('دیوانگی')) && re.test(key('دیونگی')) && !re.test(key('دیوار')));
+  assert.equal(skeleton(key('آ')), null);
+});
+
+test('suggestion titles are shown clean', async () => {
+  const { clean } = await import('./dictionary.ts');
+  assert.equal(clean('ج.ا'), 'جا');
+  assert.equal(clean('ـجات'), 'جات');
+  assert.equal(clean('دیوانه‌تر'), 'دیوانهتر');
+  assert.equal(clean('بے ثبوت،'), 'بےثبوت');
 });

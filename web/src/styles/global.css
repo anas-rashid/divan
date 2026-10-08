@@ -145,9 +145,16 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .dict .pron { margin: 2px 0; }
 .dict .pos { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
 .dict .note { font-size: .8rem; margin: 0; }
+.dict .via { margin: 2px 0; }
+.dict .reading { border-inline-start: 2px solid var(--gold-light); padding-inline-start: 10px; margin: 8px 0; }
+.dict .form { font-size: 1.15rem; color: var(--lapis); }
+.dict .via .en { font-size: .78rem; }
 .dict .src { font-size: .78rem; margin-top: 18px; }
 .dict .ety { text-align: left; color: var(--muted); font-size: .8rem; }
 .dict-close { position: sticky; top: 0; float: left; border: 0; background: none; color: var(--muted); font-size: 1rem; cursor: pointer; }
+.dict .similar { display: flex; flex-wrap: wrap; gap: 6px; }
+.dict .similar button { font: inherit; border: 1px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 999px; padding: 0 12px; cursor: pointer; }
+.dict .similar button:hover { border-color: var(--brand); color: var(--brand); }
 .dict .play { border: 1px solid var(--border); background: var(--inner); border-radius: 8px; cursor: pointer; padding: 0 6px; }
 /* wide screens: the page moves over instead of being covered */
 @media (min-width: 1100px) { body.dict-open { padding-left: min(340px, 92vw); } }

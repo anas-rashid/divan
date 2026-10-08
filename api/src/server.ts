@@ -7,7 +7,7 @@
 import Fastify from 'fastify';
 import { pool } from './db.ts';
 import { likePatterns, normalise, terms } from './urdu.ts';
-import { lookup } from './dictionary.ts';
+import { lookup, PUNCT } from './dictionary.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -128,7 +128,7 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
 
 // one word in Arabic script (Urdu, Persian, Arabic), as selected by a reader
 app.get<{ Querystring: { w?: string } }>('/api/word', async (req, reply) => {
-  const w = (req.query.w ?? '').trim();
+  const w = (req.query.w ?? '').replace(PUNCT, ''); // commas, dots, dashes, spaces
   if (!/^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w)) return reply.code(400).send({ error: 'one Urdu, Persian or Arabic word' });
   return lookup(w);
 });

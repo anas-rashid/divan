@@ -17,12 +17,16 @@ const KAIKKI = (l: string) => `https://kaikki.org/dictionary/${NAME[l as 'ur']}/
 const DUMP = (l: string) => `https://dumps.wikimedia.org/${l}wiktionary/latest/${l}wiktionary-latest-pages-articles.xml.bz2`;
 const MARKS = /[ؐ-ًؚ-ٰٟۖ-ۭـ‌‍‎‏]/g;
 
-// spelling-insensitive key shared by Urdu, Persian and Arabic: no diacritics/tatweel, one heh, one yeh, one kaf,
-// plain alef, noon ghunna as noon (ناداں = نادان, قسمت = قِسْمَت, نگاہ = نگاه, معنی = معنى). ے and ھ stay distinct.
+// punctuation, dashes and spaces: dropped from words (بے ثبوت = بےثبوت, دل، = دل)
+export const PUNCT = /[\s\-‐-―_.,،۔؛؟!?:;"'«»()[\]{}/\\*]+/g;
+
+// spelling-insensitive key shared by Urdu, Persian and Arabic: no diacritics/tatweel/punctuation/spaces, one heh,
+// one yeh, one kaf, plain alef, noon ghunna as noon (ناداں = نادان, قسمت = قِسْمَت, نگاہ = نگاه, معنی = معنى).
+// ے and ھ stay distinct.
 export const key = (w: string) =>
-  w.normalize('NFC').replace(MARKS, '')
+  w.normalize('NFC').replace(MARKS, '').replace(PUNCT, '')
     .replace(/[ہۂۃةه]/g, 'ه').replace(/[يىی]/g, 'ی')
-    .replace(/ك/g, 'ک').replace(/[أإٱ]/g, 'ا').replace(/ں/g, 'ن').trim();
+    .replace(/ك/g, 'ک').replace(/[أإٱ]/g, 'ا').replace(/ں/g, 'ن');
 
 const unlink = (wt: string) => wt.replace(/\[\[(?:[^\]|]*\|)?([^\]]*)\]\]/g, '$1').replace(/'''?/g, '').trim();
 const upload = (u?: string) => (u && u.startsWith('https://upload.wikimedia.org/') ? u : null);
@@ -40,6 +44,7 @@ export function kaikkiEntry(d: any) {
     ipa: [...new Set(sounds.map((s: any) => s.ipa).filter(Boolean))].slice(0, 2) as string[],
     audio: sounds.map((s: any) => upload(s.mp3_url) ?? upload(s.ogg_url)).find(Boolean) ?? null,
     tr: d.forms?.find((f: any) => f.tags?.includes('romanization'))?.form ?? null,
+    form: d.forms?.find((f: any) => f.tags?.includes('canonical'))?.form ?? null, // with short vowels: مُلْک
     ety: d.etymology_text ? etymology(String(d.etymology_text)) : null,
     synonyms: (d.synonyms ?? []).map((s: any) => s.word).filter(Boolean).slice(0, 8) as string[],
   };
@@ -53,7 +58,8 @@ const etymology = (t: string) =>
 
 // English glosses of an Urdu entry as pivot keys: "fate, destiny" -> fate, destiny (short, lowercase)
 export const glossKeys = (glosses: string[]) => [...new Set(glosses.flatMap((g) => g.replace(/\([^)]*\)/g, '').split(/[,;]/))
-  .map((s) => s.trim().toLowerCase().replace(/^(to|a|an|the) /, '')).filter((s) => /^[a-z][a-z' -]{1,30}$/.test(s) && s.split(' ').length <= 3))];
+  .map((s) => s.trim().toLowerCase().replace(/^(to|a|an|the) /, '')).filter((s) => /^[a-z][a-z' -]{1,30}$/.test(s) && s.split(' ').length <= 3 && !FILLER.has(s)))];
+const FILLER = new Set(['especially', 'usually', 'often', 'also', 'etc', 'something', 'someone', 'chiefly', 'mainly', 'figuratively', 'literally', 'rare', 'archaic', 'obsolete', 'dated', 'poetic', 'colloquial', 'informal', 'formal', 'slang', 'by extension']);
 
 // ur.wiktionary Urdu entries: numbered lines under ==معانی==, else "# " lines, else the opening prose;
 // origin from "(عربی)" on the first line
@@ -280,30 +286,98 @@ export async function lookup(word: string) {
     const en = rows.filter((r) => r.lang === code && r.source === 'en');
     const own = rows.filter((r) => r.lang === code && r.source === 'own' && r.data.defs.length);
     const lemmas = en.filter((r) => !r.data.formOf), use = lemmas.length ? lemmas : en;
-    const first = (f: string) => use.map((r) => r.data[f]).find((v) => (Array.isArray(v) ? v.length : v)) ?? null;
-    // ur.wiktionary's English translation lines ("انگریزی : …")
-    const translated = rows.filter((r) => r.lang === code && r.source === 'own' && r.data.english).map((r) => r.data.english);
+    // readings: one spelling, different (unwritten) short vowels, e.g. ملک = مُلْک mulk, مَلِک malik, مِلْک milk
+    const readings: any[] = [];
+    for (const r of use) {
+      const id = r.data.tr ?? r.data.form ?? r.title;
+      let g = readings.find((x) => x.id === id);
+      if (!g) readings.push((g = { id, form: r.data.form ?? r.title, tr: r.data.tr, ipa: r.data.ipa, audio: r.data.audio, senses: [] }));
+      if (!g.ipa.length) g.ipa = r.data.ipa;
+      g.audio ??= r.data.audio;
+      if (r.data.glosses.length && g.senses.length < 3) g.senses.push({ pos: r.data.pos, defs: r.data.glosses.slice(0, 4) });
+    }
     return {
-      code, ipa: first('ipa') ?? [], tr: first('tr'), audio: first('audio'), ety: first('ety'),
+      code, readings: readings.slice(0, 5).map(({ id, ...x }) => x),
+      ety: use.map((r) => r.data.ety).find(Boolean) ?? null,
       synonyms: [...new Set(use.flatMap((r) => r.data.synonyms))].slice(0, 8),
       meanings: own.flatMap((r) => r.data.defs).slice(0, 6), origin: own.find((r) => r.data.origin)?.data.origin ?? null,
       source: own[0] ? page(code, 'own', own[0].title) : null,
-      senses: [...use.map((r) => ({ pos: r.data.pos, defs: r.data.glosses.slice(0, 4) })).filter((s) => s.defs.length).slice(0, 3),
-        ...(translated.length ? [{ pos: 'translation', defs: translated }] : [])],
+      // ur.wiktionary's English translation lines ("انگریزی : …")
+      translation: rows.filter((r) => r.lang === code && r.source === 'own' && r.data.english).map((r) => r.data.english),
       en: en[0] ? page(code, 'en', en[0].title) : null,
     };
-  }).filter((l) => l.meanings.length || l.senses.length || l.ipa.length || l.tr);
-  // no Urdu meaning: Urdu words sharing the primary English meaning
-  let equivalents: { gloss: string; urdu: string[] }[] = [];
-  if (!langs.some((l) => l.code === 'ur' && l.meanings.length)) {
-    const glosses = glossKeys(langs.find((l) => l.senses.length)?.senses[0].defs.slice(0, 2) ?? []).slice(0, 4);
-    if (glosses.length) {
-      const { rows: eq } = await pool.query('SELECT gloss, word FROM ur_glosses WHERE gloss = ANY($1)', [glosses]);
-      const seen = new Set([k]);
-      equivalents = glosses.map((g) => ({
-        gloss: g, urdu: eq.filter((r) => r.gloss === g && !seen.has(key(r.word)) && seen.add(key(r.word))).map((r) => r.word).slice(0, 8),
-      })).filter((e) => e.urdu.length);
-    }
+  }).filter((l) => l.meanings.length || l.readings.length || l.translation.length);
+  // Urdu translations through English (the primary English meaning's Urdu words): for the Urdu entry when it
+  // has no Urdu-language meaning, and for the Persian and Arabic entries when the word is not in Urdu at all
+  const inUrdu = langs.some((l) => l.code === 'ur');
+  await Promise.all(langs.map(async (l: any) => {
+    l.urdu = (l.code === 'ur' ? !l.meanings.length : !inUrdu) ? await viaEnglish(l.readings[0]?.senses[0]?.defs.slice(0, 2) ?? [], k) : [];
+  }));
+  const found = langs.length > 0;
+  // always: the same consonants with other long vowels (دل: دال، دول، دیل); not found: also stems and near spellings
+  const [variants, near] = await Promise.all([vowelVariants(k), found ? [] : similar(k)]);
+  return { word, langs, found, variants, similar: near.filter((n) => !variants.some((v) => v.title === n.title)) };
+}
+
+async function viaEnglish(glosses: string[], k: string) {
+  const g = glossKeys(glosses).slice(0, 4);
+  if (!g.length) return [];
+  const { rows } = await pool.query('SELECT gloss, word FROM ur_glosses WHERE gloss = ANY($1)', [g]);
+  const seen = new Set([k]);
+  return g.map((gloss) => ({
+    gloss, urdu: rows.filter((r) => r.gloss === gloss && !seen.has(key(r.word)) && seen.add(key(r.word))).map((r) => r.word).slice(0, 8),
+  })).filter((e) => e.urdu.length);
+}
+
+// ---- not found: similar words ----
+
+// Urdu inflection endings (in key form) and the base forms to try: آنکھوں -> آنکھ, دیوانے -> دیوانه, جاتے -> جانا
+const ENDINGS = ['یاں', 'ئیں', 'ؤں', 'وں', 'یں', 'گی', 'گا', 'گے', 'تا', 'تے', 'تی', 'نا', 'نے', 'نی', 'ے', 'ی', 'ا', 'و', 'ه'].map(key); // in key form (ں -> ن)
+export function stems(k: string) {
+  const out = new Set<string>();
+  for (const e of ENDINGS) {
+    if (!k.endsWith(e) || k.length - e.length < 2) continue;
+    const base = k.slice(0, -e.length);
+    for (const s of [base, base + 'ه', base + 'ا', base + 'نا']) if (s !== k) out.add(s);
   }
-  return { word, langs, equivalents, found: langs.length > 0 };
+  return [...out];
+}
+
+// consonant skeleton as a regex: long vowels, heh and hamza optional (spellings add or drop them)
+const SOFT = 'اوی\u0647ےءئ';
+const esc = (c: string) => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+export function skeleton(k: string) {
+  const cs = [...k].filter((c) => !SOFT.includes(c));
+  if (cs.length < 2) return null;
+  const v = `[${SOFT}]*`;
+  return `^${v}${cs.map(esc).join(v)}${v}$`;
+}
+
+// shown titles without punctuation, dashes, spaces, tatweel or zero-width joiners
+export const clean = (t: string) => t.replace(PUNCT, '').replace(/[\u0640\u200C\u200D]/g, '');
+
+async function vowelVariants(k: string) {
+  const sk = skeleton(k);
+  if (!sk) return [];
+  const { rows } = await pool.query(
+    `SELECT key, (array_agg(title ORDER BY lang <> 'ur', lang <> 'fa', title))[1] AS title, array_agg(DISTINCT lang) AS langs
+     FROM wiktionary WHERE key ~ $1 AND key <> $2 GROUP BY key ORDER BY bool_or(lang = 'ur') DESC, similarity(key, $2) DESC LIMIT 10`, [sk, k]);
+  return rows.map((r) => ({ title: clean(r.title), langs: LANGS.filter((l) => r.langs.includes(l)) }));
+}
+
+async function similar(k: string) {
+  const st = stems(k), sk = skeleton(k), pre = [k, ...st].filter((s) => s.length >= 3).sort((a, b) => b.length - a.length)[0];
+  // one row per key: the Urdu spelling when there is one; Urdu entries first within each tier
+  const pick = `SELECT key, (array_agg(title ORDER BY lang <> 'ur', lang <> 'fa', title))[1] AS title, array_agg(DISTINCT lang) AS langs FROM wiktionary`;
+  const ur = `bool_or(lang = 'ur') DESC`;
+  const [a, b, c, d] = await Promise.all([
+    st.length ? pool.query(`${pick} WHERE key = ANY($1) GROUP BY key ORDER BY ${ur}`, [st]) : { rows: [] },
+    sk ? pool.query(`${pick} WHERE key ~ $1 AND key <> $2 GROUP BY key ORDER BY ${ur}, similarity(key, $2) DESC LIMIT 8`, [sk, k]) : { rows: [] },
+    pre ? pool.query(`${pick} WHERE key ~ $1 AND key <> $2 GROUP BY key ORDER BY ${ur}, length(key) LIMIT 8`, ['^' + [...pre].map(esc).join(''), k]) : { rows: [] },
+    pool.query(`${pick} WHERE key % $1 AND key <> $1 GROUP BY key ORDER BY ${ur}, similarity(key, $1) DESC LIMIT 8`, [k]),
+  ]);
+  const seen = new Set<string>(), out: { title: string; langs: string[] }[] = [];
+  for (const r of [...a.rows, ...b.rows, ...c.rows, ...d.rows])
+    if (!seen.has(r.key) && seen.add(r.key)) out.push({ title: clean(r.title), langs: LANGS.filter((l) => r.langs.includes(l)) });
+  return out.slice(0, 12);
 }

@@ -136,44 +136,72 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         dictBody.replaceChildren(el('h2', null, w), el('p', 'muted', 'تلاش جاری ہے…'));
         let d = null;
         // v: bump when the response format changes (responses are browser-cached for a day)
-        try { const r = await fetch('/api/word?v=2&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
+        try { const r = await fetch('/api/word?v=5&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
         if (w !== current) return; // a newer selection won
+        const words = (title, items, into) => { // clickable word buttons
+          if (!items.length) return;
+          const box = el('div', 'similar');
+          for (const s of items) {
+            const b = el('button', null, s.title, { type: 'button', title: s.langs.map((c) => LANG[c]).join('، ') });
+            b.onclick = () => showWord(s.title);
+            box.append(b);
+          }
+          into.push(el('h3', null, title), box);
+        };
+        const list = (items, cls, attrs) => { const ol = el('ol', cls, null, attrs); items.forEach((x) => ol.append(el('li', null, x))); return ol; };
         const out = [el('h2', null, w)];
         if (!d || !d.found) {
-          dictBody.replaceChildren(...out, el('p', 'muted', 'ویکی لغت میں یہ لفظ نہیں ملا۔'));
+          out.push(el('p', 'muted', 'ویکی لغت میں یہ لفظ نہیں ملا۔'));
+          words('ملتے جلتے الفاظ', [...(d?.similar ?? []), ...(d?.variants ?? [])], out);
+          dictBody.replaceChildren(...out);
           return;
         }
-        const list = (items, cls, attrs) => { const ol = el('ol', cls, null, attrs); items.forEach((x) => ol.append(el('li', null, x))); return ol; };
-        const equivalents = () => {
-          const sec = el('section', 'dict-lang');
-          sec.append(el('h3', null, 'ہم معنی اردو الفاظ'), el('p', 'muted note', 'انگریزی کے واسطے سے'));
-          for (const e of d.equivalents) {
-            const p = el('p');
-            p.append(el('bdi', 'en', e.gloss), ': ' + e.urdu.join('، '));
-            sec.append(p);
-          }
-          return sec;
-        };
-        // one section per language, in order اردو، فارسی، عربی; each says where its meanings come from
+        // one section per language, in order اردو، فارسی، عربی; each says where its meanings come from.
+        // A Persian or Arabic word is explained first by its Urdu translations, then English, then its own language.
         for (const l of d.langs) {
           const sec = el('section', 'dict-lang');
           sec.append(el('h3', null, LANG[l.code]));
-          const pr = el('p', 'pron');
-          if (l.tr) pr.append(el('bdi', 'en', l.tr));
-          l.ipa.forEach((i) => pr.append(' ', el('bdi', 'ipa', i)));
-          if (l.audio && l.audio.startsWith('https://upload.wikimedia.org/')) {
-            const b = el('button', 'play', '🔊', { type: 'button', 'aria-label': 'تلفظ سنیں' });
-            b.onclick = () => new Audio(l.audio).play();
-            pr.append(' ', b);
-          }
-          if (pr.childNodes.length) sec.append(pr);
+          // a pronunciation line: vowelled form, transliteration, IPA, audio
+          const pron = (r) => {
+            const pr = el('p', 'pron');
+            if (r.form) pr.append(el('span', 'form', r.form), ' ');
+            if (r.tr) pr.append(el('bdi', 'en', r.tr));
+            r.ipa.forEach((i) => pr.append(' ', el('bdi', 'ipa', i)));
+            if (r.audio && r.audio.startsWith('https://upload.wikimedia.org/')) {
+              const b = el('button', 'play', '🔊', { type: 'button', 'aria-label': 'تلفظ سنیں' });
+              b.onclick = () => new Audio(r.audio).play();
+              pr.append(' ', b);
+            }
+            return pr;
+          };
+          const urdu = () => {
+            if (!l.urdu?.length) return;
+            sec.append(el('p', 'pos', 'اردو میں · انگریزی ویکی لغت کے واسطے سے'));
+            for (const e of l.urdu) {
+              const p = el('p', 'via');
+              p.append(e.urdu.join('، '), ' ', el('bdi', 'en muted', `(${e.gloss})`));
+              sec.append(p);
+            }
+          };
+          // readings: the same spelling with different short vowels (ملک: مُلک، مَلِک، مِلک), each with its meanings
+          const english = () => {
+            if (l.readings.length > 1) sec.append(el('p', 'pos', `${l.readings.length} قراءتیں (حرکات کے فرق سے)`));
+            for (const r of l.readings) {
+              const box = el('div', l.readings.length > 1 ? 'reading' : null);
+              box.append(pron(r));
+              for (const s of r.senses) box.append(el('p', 'pos', `انگریزی میں · ${POS[s.pos.charAt(0).toUpperCase() + s.pos.slice(1)] ?? s.pos}`), list(s.defs, 'en', { dir: 'ltr', lang: 'en' }));
+              sec.append(box);
+            }
+            if (l.translation.length) sec.append(el('p', 'pos', POS.Translation), list(l.translation, 'en', { dir: 'ltr', lang: 'en' }));
+          };
+          if (l.code !== 'ur') { urdu(); english(); }
           if (l.meanings.length) {
             const label = el('p', 'pos');
             label.append(`معانی: ${LANG[l.code]} ویکی لغت` + (l.origin ? ` · اصل: ${l.origin}` : '') + ' · ');
             if (l.source) label.append(el('a', null, 'ماخذ', { href: l.source, target: '_blank', rel: 'noopener' }));
             sec.append(label, list(l.meanings, null, { lang: l.code }));
           }
-          for (const s of l.senses) sec.append(el('p', 'pos', `انگریزی میں · ${POS[s.pos.charAt(0).toUpperCase() + s.pos.slice(1)] ?? s.pos}`), list(s.defs, 'en', { dir: 'ltr', lang: 'en' }));
+          if (l.code === 'ur') { english(); urdu(); }
           if (l.synonyms.length) sec.append(el('p', 'pos', 'مترادفات'), el('p', null, l.synonyms.join('، ')));
           if (l.ety) sec.append(el('p', 'pos', 'اشتقاق'), el('p', 'en ety', l.ety, { dir: 'ltr', lang: 'en' }));
           if (l.en) {
@@ -182,15 +210,14 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
             sec.append(p);
           }
           out.push(sec);
-          if (l.code === 'ur' && d.equivalents.length) out.push(equivalents());
         }
-        if (d.equivalents.length && !d.langs.some((l) => l.code === 'ur')) out.splice(1, 0, equivalents());
+        words('ملتے جلتے الفاظ · دیگر حروفِ علت', d.variants ?? [], out); // same consonants, other long vowels
         const src = el('p', 'src muted');
         src.append('ویکی لغت (Wiktionary) · ');
         src.append('CC BY-SA');
         dictBody.replaceChildren(...out, src);
       }
-      const TRIM = /^[\s"'«»()\[\]،۔؟؛!:.,]+|[\s"'«»()\[\]،۔؟؛!:.,]+$/g;
+      const TRIM = /["'«»()\[\]،۔؟؛!:.,\-–—_]+|^\s+|\s+$/g; // punctuation and dashes anywhere, outer spaces
       let selTimer;
       document.addEventListener('selectionchange', () => {
         clearTimeout(selTimer);
@@ -198,6 +225,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           const sel = getSelection();
           if (!sel || sel.isCollapsed || !main.contains(sel.anchorNode)) return;
           const w = sel.toString().replace(TRIM, '').replace(/\u0614/g, ''); // drop the takhallus sign
+          if (/\s/.test(w)) return; // one word only
           if (/^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w)) showWord(w);
         }, 350);
       });
