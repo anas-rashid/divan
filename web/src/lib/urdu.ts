@@ -11,8 +11,11 @@ export const centuryName = (c: number | null) => (c ? `${ORDINALS[c] ?? ud(c)} �
 const span = (a: number | null, b: number | null, mark: string) =>
   a || b ? `${a ? ud(a) : '؟'} – ${b ? ud(b) : '؟'} ${mark}` : '';
 // Hijri and Gregorian (عیسوی): "۱۲۹۴ – ۱۳۵۷ ھ · ۱۸۷۷ – ۱۹۳۸ ء"
-export const years = (p: { birth_year_ah: number | null; death_year_ah: number | null; birth_year_ce?: number | null; death_year_ce?: number | null }) =>
-  [span(p.birth_year_ah, p.death_year_ah, 'ھ'), span(p.birth_year_ce ?? null, p.death_year_ce ?? null, 'ء')].filter(Boolean).join(' · ');
+type Years = { birth_year_ah: number | null; death_year_ah: number | null; birth_year_ce?: number | null; death_year_ce?: number | null };
+// Hijri and Gregorian spans, each on its own (poet cards show them as two lines)
+export const yearLines = (p: Years) =>
+  [span(p.birth_year_ah, p.death_year_ah, 'ھ'), span(p.birth_year_ce ?? null, p.death_year_ce ?? null, 'ء')].filter(Boolean) as string[];
+export const years = (p: Years) => yearLines(p).join(' · ');
 
 // search highlighting (same matching rules as the API's search)
 export { highlighter } from '../../../api/src/urdu.ts';
