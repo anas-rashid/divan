@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Run the full Divan app locally (macOS/Linux): SQL Server in Docker + API + site, natively with dotnet.
 #   ./run-local.sh            start everything (site http://localhost:5200, API http://localhost:5100)
-#   ./run-local.sh import     also import divan-data (from $DIVAN_DATA, default ../divan, else the public CDN)
+#   ./run-local.sh import     also import divan-data (from $DIVAN_DATA, default ../divan-data, else the public CDN)
 #   ./run-local.sh stop       stop API + site (SQL Server container keeps running)
 # Needs: docker (on Apple Silicon: colima start --vm-type vz --vz-rosetta --memory 6), .NET SDK 10.0.302, python3.
 # First admin: admin@divan.local / Test!123 (change it in the user panel).
@@ -10,7 +10,7 @@ cd "$(dirname "$0")"
 ROOT=$PWD
 RUN=${DIVAN_LOCAL:-$HOME/divan-local}
 SA_PASSWORD=${MSSQL_SA_PASSWORD:-Divan_local_2026!}
-DATA=${DIVAN_DATA:-$ROOT/../divan}
+DATA=${DIVAN_DATA:-$ROOT/../divan-data}
 export PATH=$HOME/.dotnet:$PATH DOTNET_CLI_TELEMETRY_OPTOUT=1
 mkdir -p "$RUN"/{logs,keys,museum,museum-trash,tempaudio,audio,export}
 
