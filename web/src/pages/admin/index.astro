@@ -4,6 +4,7 @@ import Base from '../../layouts/Base.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { ud } from '../../lib/urdu';
+import { ROLE } from '../../lib/roles';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/admin');
@@ -56,7 +57,7 @@ const link = (n: number) => `/admin?q=${encodeURIComponent(q)}&page=${n}`;
       {list.users.map((u: any) => (
         <tr class={u.disabled_at ? 'disabled' : ''}>
           <td><bdi dir="ltr">{u.email}</bdi>{u.id === me.id && <small> (آپ)</small>}</td>
-          <td>{u.role === 'admin' ? 'ایڈمن' : 'قاری'}</td>
+          <td>{ROLE[u.role] ?? u.role}{u.role.startsWith('mod-') && <> · <a href={`/admin/user/${u.id}`}>اجازتیں</a></>}</td>
           <td>{date(u.created_at)}</td>
           <td>{date(u.last_sign_in)}</td>
           <td>{u.disabled_at ? 'معطل' : 'فعال'}</td>
@@ -71,10 +72,12 @@ const link = (n: number) => `/admin?q=${encodeURIComponent(q)}&page=${n}`;
                   <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
                   <button name="act" value={u.disabled_at ? 'enable' : 'disable'}>{u.disabled_at ? 'بحال کریں' : 'معطل کریں'}</button>
                 </form>
-                <form method="post">
+                <form method="post" class="role-form">
                   <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
-                  <input type="hidden" name="role" value={u.role === 'admin' ? 'reader' : 'admin'} />
-                  <button name="act" value="role">{u.role === 'admin' ? 'قاری بنائیں' : 'ایڈمن بنائیں'}</button>
+                  <select name="role" aria-label="کردار">
+                    {Object.entries(ROLE).map(([k, v]) => <option value={k} selected={k === u.role}>{v}</option>)}
+                  </select>
+                  <button name="act" value="role">کردار بدلیں</button>
                 </form>
                 <form method="post" onsubmit="return confirm('یہ اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔ جاری رکھیں؟')">
                   <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />

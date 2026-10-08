@@ -204,3 +204,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .temp-password { max-width: 520px; margin: 10px auto; padding: 10px 16px; border: 1.5px solid var(--gold); border-radius: 12px; background: var(--inner); text-align: center; }
 .temp-password code { font-size: 1.2rem; letter-spacing: .08em; user-select: all; }
 @media (max-width: 700px) { .admin-table thead { display: none; } .admin-table tr { display: block; border-bottom: 1px dashed var(--gold-light); padding: 6px 0; } .admin-table td { display: inline-block; border: 0; padding: 2px 6px; } }
+
+.role-form { display: flex; gap: 4px; align-items: center; }
+.role-form select, .grant-form select { font: inherit; font-size: .85rem; padding: 2px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper); color: var(--ink); }
+.grant-form fieldset { border: 1px dashed var(--gold-light); border-radius: 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 6px 12px; }
+.grant-form legend { font-size: .85rem; padding: 0 6px; }
+.grant-form label.check { flex-direction: row; align-items: center; gap: 6px; }

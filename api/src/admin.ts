@@ -1,10 +1,10 @@
 // Admin panel API (admins only). No email server yet, so password resets are done here on a reader's
 // request: a temporary password is generated, shown to the admin once, and the reader's sessions end.
-// Every action is written to audit_log. Moderators and their grants come with IAM (#29).
+// Every action is written to audit_log. Moderators' grants: permissions.ts.
 //   GET  /api/admin/users?q=&page=           users (search by email), newest first
 //   POST /api/admin/users/:id/password       -> {password} (temporary, shown once)
 //   POST /api/admin/users/:id/disable        {disabled: boolean}
-//   POST /api/admin/users/:id/role           {role: 'reader' | 'admin'}
+//   POST /api/admin/users/:id/role           {role: 'reader' | 'mod-l2' | 'mod-l1' | 'admin'}
 //   POST /api/admin/users/:id/delete
 //   GET  /api/admin/audit?page=
 import { randomInt } from 'node:crypto';
@@ -12,7 +12,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { hashPassword, sessionUser } from './auth.ts';
 
-export const ROLES = ['reader', 'admin'] as const;
+export const ROLES = ['reader', 'mod-l2', 'mod-l1', 'admin'] as const; // moderators: see permissions.ts
 const PAGE = 50;
 
 // readable temporary password: 12 characters without look-alikes (0/O, 1/l/I)
@@ -21,7 +21,7 @@ export function temporaryPassword() {
   return Array.from({ length: 12 }, () => chars[randomInt(chars.length)]).join('');
 }
 
-async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
+export async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
   const u = await sessionUser(req);
   if (!u) return void reply.code(401).send({ error: 'دوبارہ لاگ ان کریں' });
   if (u.role !== 'admin') return void reply.code(403).send({ error: 'صرف ایڈمن کے لیے' });
@@ -81,6 +81,7 @@ export function adminRoutes(app: FastifyInstance) {
     const role = req.body?.role ?? '';
     if (!(ROLES as readonly string[]).includes(role)) return reply.code(400).send({ error: 'نامعلوم کردار' });
     await pool.query('UPDATE users SET role = $1 WHERE id = $2', [role, u.id]);
+    if (role === 'reader' || role === 'admin') await pool.query('DELETE FROM grants WHERE user_id = $1', [u.id]); // grants are for moderators
     await audit(admin, 'role', u, { from: u.role, to: role });
     return { ok: true };
   });

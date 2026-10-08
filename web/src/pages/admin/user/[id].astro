@@ -1,0 +1,78 @@
+---
+// Admin: one moderator's permissions (grants)
+import Base from '../../../layouts/Base.astro';
+import AdminNav from '../../../components/AdminNav.astro';
+import { asUser, COOKIE } from '../../../lib/auth';
+import { ROLE, SCOPE, CONTENT, ACTION } from '../../../lib/roles';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
+if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value, id = Number(Astro.params.id) || 0;
+
+let error = '', done = '';
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const r = f.get('act') === 'revoke'
+    ? await asUser(token, `/api/admin/grants/${Number(f.get('grant'))}/delete`, {})
+    : await asUser(token, `/api/admin/users/${id}/grants`, {
+        scope: f.get('scope'), target: f.get('target'), content: f.getAll('content'), actions: f.getAll('actions'),
+      });
+  r.ok ? (done = f.get('act') === 'revoke' ? 'اجازت واپس لے لی گئی' : 'اجازت دے دی گئی') : (error = r.data.error ?? 'کچھ غلط ہو گیا');
+}
+const res = await asUser(token, `/api/admin/users/${id}/grants`);
+if (res.status === 404) return new Response('صارف نہیں ملا', { status: 404 });
+const { user, grants } = res.data;
+const isMod = user.role.startsWith('mod-');
+---
+<Base title="ایڈمن: اجازتیں">
+  <h1>اجازتیں</h1>
+  <AdminNav current="users" />
+  <p class="center"><bdi dir="ltr">{user.email}</bdi> · {ROLE[user.role] ?? user.role}</p>
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {done && <p class="form-done" role="status">{done}</p>}
+  {!isMod && <p class="muted center">اجازتیں صرف موڈریٹرز کو دی جا سکتی ہیں۔ پہلے <a href="/admin">صارفین</a> میں کردار بدلیں۔</p>}
+
+  {grants.length > 0 && (
+    <table class="admin-table">
+      <thead><tr><th>دائرہ</th><th>مواد</th><th>اعمال</th><th></th></tr></thead>
+      <tbody>
+        {grants.map((g: any) => (
+          <tr>
+            <td>{SCOPE[g.scope]}{g.label && <>: {g.url ? <a href={g.url}>{g.label}</a> : g.label}</>}{g.poet && g.scope !== 'poet' && <small class="muted"> ({g.poet})</small>}</td>
+            <td>{g.content.map((c: string) => CONTENT[c]).join('، ')}</td>
+            <td>{g.actions.map((a: string) => ACTION[a]).join('، ')}</td>
+            <td>
+              <form method="post" onsubmit="return confirm('یہ اجازت واپس لیں؟')">
+                <input type="hidden" name="grant" value={g.id} />
+                <button name="act" value="revoke" class="danger">واپس لیں</button>
+              </form>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )}
+
+  {isMod && (
+    <form method="post" class="account-form grant-form">
+      <h2>نئی اجازت</h2>
+      <label>دائرہ
+        <select name="scope" required>
+          {Object.entries(SCOPE).map(([k, v]) => <option value={k}>{v}</option>)}
+        </select>
+      </label>
+      <label>شاعر، کتاب یا کلام کا لنک (دائرہ "تمام" کے لیے خالی)
+        <input name="target" dir="ltr" placeholder="/p266   /p266/ghazal   /p266/ghazal/sh7870" />
+      </label>
+      <fieldset><legend>مواد</legend>
+        {Object.entries(CONTENT).map(([k, v]) => <label class="check"><input type="checkbox" name="content" value={k} /> {v}</label>)}
+      </fieldset>
+      <fieldset><legend>اعمال</legend>
+        {Object.entries(ACTION).map(([k, v]) => <label class="check"><input type="checkbox" name="actions" value={k} /> {v}</label>)}
+      </fieldset>
+      <p class="muted note">لغت کی اجازت صرف "تمام" دائرے میں دی جا سکتی ہے۔</p>
+      <button name="act" value="grant">اجازت دیں</button>
+    </form>
+  )}
+</Base>
