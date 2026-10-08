@@ -75,11 +75,11 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
               ))}
               {chips.length > 12 && <button type="button" class="chip more" onclick="this.parentElement.classList.add('all'); this.remove()">مزید {ud(chips.length - 12)}</button>}
             </div>
-            <div class="author-find">
+            <div class="author-find in-box-field">
               <input id="author-name" data-urdu placeholder="کسی اور شاعر یا ادیب کا نام" autocomplete="off" aria-label="شاعر کا نام" />
-              <button type="button" class="in-box-btn" data-urdu-rom="author-name" title="رومن حروف سے اردو">اب</button>
-              <button type="button" class="in-box-btn" data-urdu-kb="author-name" title="اردو کی بورڈ" aria-label="اردو کی بورڈ">
-                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>
+              <button type="button" class="in-box rom" data-urdu-rom="author-name" aria-pressed="false" title="رومن حروف سے اردو">اب</button>
+              <button type="button" class="in-box" data-urdu-kb="author-name" aria-pressed="false" title="اردو کی بورڈ" aria-label="اردو کی بورڈ">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>
               </button>
               <div class="author-suggest" id="author-suggest" hidden></div>
             </div>

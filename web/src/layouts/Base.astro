@@ -35,9 +35,12 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         <a class="wordmark" href="/">دیوان</a>
         <form class="search-form" action="/search" method="get" role="search">
           <input type="search" name="q" id="q" data-urdu value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
-          <button type="button" id="rom-toggle" class="in-box" aria-label="رومن حروف سے اردو" aria-pressed="false" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
+          <button type="button" id="rom-toggle" class="in-box rom" aria-label="رومن حروف سے اردو" aria-pressed="false" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
           <button type="button" id="kb-toggle" class="in-box" aria-label="اردو کی بورڈ" aria-pressed="false" title="اردو کی بورڈ">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>
+          </button>
+          <button type="submit" class="in-box go" aria-label="تلاش کریں" title="تلاش کریں">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
           </button>
         </form>
         <div class="toggles">
