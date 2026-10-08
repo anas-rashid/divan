@@ -8,6 +8,7 @@
 //   POST   /api/auth/signout   Bearer token
 //   POST   /api/auth/password  Bearer token {current, next} -> other sessions signed out
 //   POST   /api/auth/delete    Bearer token {password}      -> account and its data deleted
+//   POST   /api/auth/profile   Bearer token {full_name, bio} (Urdu or any text; trimmed, length-limited)
 import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
@@ -59,7 +60,9 @@ const signinByIp = limiter(20, 15 * 60_000), signinByEmail = limiter(8, 15 * 60_
 function sha(t: string) {
   return createHash('sha256').update(t).digest('hex');
 }
-export const publicUser = (u: any) => ({ id: Number(u.id), email: u.email, role: u.role as string, created_at: u.created_at });
+export const publicUser = (u: any) => ({
+  id: Number(u.id), email: u.email, role: u.role as string, created_at: u.created_at, full_name: u.full_name ?? '', bio: u.bio ?? '',
+});
 
 async function newSession(userId: number) {
   const token = randomBytes(32).toString('base64url');
@@ -123,6 +126,15 @@ export function authRoutes(app: FastifyInstance) {
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [await hashPassword(req.body!.next!), u.id]);
     await pool.query('DELETE FROM sessions WHERE user_id = $1 AND id <> $2', [u.id, u.sid]); // sign out other devices
     return { ok: true };
+  });
+
+  app.post<{ Body: { full_name?: string; bio?: string } }>('/api/auth/profile', async (req, reply) => {
+    const u = await sessionUser(req);
+    if (!u) return reply.code(401).send({ error: 'دوبارہ لاگ ان کریں' });
+    const text = (v: unknown, max: number) => String(v ?? '').normalize('NFC').replace(/[\u0000-\u0008\u000B-\u001F\u007F]/g, '').trim().slice(0, max);
+    const full_name = text(req.body?.full_name, 100).replace(/\s+/g, ' '), bio = text(req.body?.bio, 1000);
+    const { rows } = await pool.query('UPDATE users SET full_name = $1, bio = $2 WHERE id = $3 RETURNING *', [full_name || null, bio || null, u.id]);
+    return { user: publicUser(rows[0]) };
   });
 
   app.post<{ Body: { password?: string } }>('/api/auth/delete', async (req, reply) => {

@@ -123,3 +123,6 @@ CREATE TABLE IF NOT EXISTS grants (
     CHECK ((scope = 'all') = (scope_id IS NULL))
 );
 CREATE INDEX IF NOT EXISTS grants_user ON grants(user_id);
+-- profile (owner request): full name and bio, usually in Urdu
+ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name text;   -- up to 100 characters
+ALTER TABLE users ADD COLUMN IF NOT EXISTS bio text;         -- up to 1,000 characters
