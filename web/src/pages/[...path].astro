@@ -66,6 +66,9 @@ const lineMarks = (c: number, lines: string[]) => {
   return out;
 };
 const label = (on: unknown) => (on ? 'محفوظ شدہ' : 'محفوظ کریں'); // bookmark buttons
+// moderators who may edit this work get edit and history links
+const modCan = token && poemId && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '')
+  ? (await asUser(token, `/api/mod/can?poem=${poemId}`)).data : { edit: false };
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
 ---
@@ -115,7 +118,9 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
           «{hlq}» نمایاں · <a href={`/search?q=${encodeURIComponent(hlq)}`}>تلاش کے نتائج</a> · <a href={url}>نشان ہٹائیں</a>
         </p>
       )}
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="یہ کلام محفوظ کریں">{label(saved.poem)}</button></p>
+      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="یہ کلام محفوظ کریں">{label(saved.poem)}</button>
+        {modCan.edit && <> <form method="post" action={`/mod/work/${poemId}`} class="inline-form"><button class="mod-edit-btn">ترمیم کریں</button></form>
+          <a class="mod-history" href={`/mod/work/${poemId}`}>تاریخچہ</a></>}</p>
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {

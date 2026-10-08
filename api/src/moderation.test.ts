@@ -1,0 +1,115 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import Fastify from 'fastify';
+import { authRoutes } from './auth.ts';
+import { adminRoutes } from './admin.ts';
+import { permissionRoutes } from './permissions.ts';
+import { moderationRoutes } from './moderation.ts';
+import { diffLines } from './diff.ts';
+import { pool } from './db.ts';
+
+after(() => pool.end());
+
+test('line diff: kept, removed and added lines', () => {
+  assert.deepEqual(diffLines('ا\nب\nج', 'ا\nد\nج'), [{ op: '=', text: 'ا' }, { op: '-', text: 'ب' }, { op: '+', text: 'د' }, { op: '=', text: 'ج' }]);
+});
+
+test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permissions, conflicts, history', async () => {
+  const data = await mkdtemp(join(tmpdir(), 'divan-data-'));
+  process.env.DIVAN_DATA_DIR = data;
+  const app = Fastify();
+  authRoutes(app); adminRoutes(app); permissionRoutes(app); moderationRoutes(app);
+  const run = Date.now();
+  const call = (method: string, url: string, body?: object, token?: string) =>
+    app.inject({ method: method as any, url, payload: body, headers: { ...(token && { authorization: `Bearer ${token}` }), 'x-client-ip': `mod-${run}` } });
+  const person = async (name: string, role: string) => {
+    const s = (await call('POST', '/api/auth/signup', { email: `${name}-${run}@divan.test`, password: 'pass-word-1' })).json();
+    await pool.query('UPDATE users SET role = $2 WHERE id = $1', [s.user.id, role]);
+    return { ...s, id: s.user.id };
+  };
+  const admin = await person('admin', 'admin'), l1 = await person('l1', 'mod-l1'), l2 = await person('l2', 'mod-l2');
+  const other = await person('l1other', 'mod-l1'), reader = await person('reader', 'reader');
+
+  // a Ghalib ghazal; the work is restored at the end
+  const poem = (await pool.query(`SELECT p.id, p.url, p.title FROM poems p JOIN categories c ON c.id = p.category_id WHERE c.url = '/p266/ghazal' ORDER BY p.position LIMIT 1`)).rows[0];
+  const before = (await pool.query('SELECT vorder, position, couplet, text FROM verses WHERE poem_id = $1 ORDER BY vorder', [poem.id])).rows;
+  const searchBefore = (await pool.query('SELECT search_text FROM poems WHERE id = $1', [poem.id])).rows[0].search_text;
+  try {
+    // grants: L2 and L1 on Ghalib's ghazals; the other L1 on Iqbal only
+    for (const [m, target] of [[l2, '/p266/ghazal'], [l1, '/p266/ghazal'], [other, '/p238']] as const)
+      await call('POST', `/api/admin/users/${m.id}/grants`, { scope: target === '/p238' ? 'poet' : 'category', target, content: ['works'], actions: ['edit'] }, admin.token);
+
+    assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, reader.token)).statusCode, 403, 'readers cannot moderate');
+    assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, other.token)).statusCode, 403, 'outside the grant');
+    assert.deepEqual((await call('GET', `/api/mod/can?poem=${poem.id}`, undefined, l2.token)).json(), { edit: true, review: false, publish: false });
+
+    // L2 drafts: the draft starts from the current text; reopening returns the same draft
+    const { id } = (await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l2.token)).json();
+    assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l2.token)).json().id, id);
+    let rev = (await call('GET', `/api/mod/revisions/${id}`, undefined, l2.token)).json();
+    assert.equal(rev.changes, 0);
+    const misra = before.find((v: any) => v.couplet === 1 && v.position === 'Left').text;
+    const edited = rev.revision.content.replace(misra, misra + ' (ترمیم)');
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/save`, { content: 'متن بغیر شعر کے {{', summary: 'x' }, l2.token)).statusCode, 200, 'prose is a paragraph');
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/save`, { content: edited, summary: 'ایک مصرع درست کیا' }, l2.token)).statusCode, 200);
+    rev = (await call('GET', `/api/mod/revisions/${id}`, undefined, l2.token)).json();
+    assert.deepEqual(rev.diff.filter((d: any) => d.op !== '=').map((d: any) => d.op), ['-', '+'], 'one line changed');
+    assert.equal(rev.may.approve, false, 'not my own draft');
+
+    // L2 submits; the out-of-scope L1 cannot see it; L1 returns it, L2 resubmits, L1 approves
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/submit`, {}, l2.token)).json().status, 'submitted');
+    assert.equal((await call('GET', `/api/mod/revisions/${id}`, undefined, other.token)).statusCode, 403);
+    assert.equal((await call('GET', '/api/mod/queue', undefined, l1.token)).json().review.some((r: any) => r.id === id), true);
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/return`, {}, l1.token)).statusCode, 400, 'a reason is required');
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/return`, { comment: 'وزن دیکھیں' }, l1.token)).json().status, 'returned');
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/publish`, {}, admin.token)).statusCode, 403, 'not yet approved');
+    await call('POST', `/api/mod/revisions/${id}/submit`, {}, l2.token);
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/approve`, {}, l2.token)).statusCode, 403, 'L2 cannot approve');
+    assert.equal((await call('POST', `/api/mod/revisions/${id}/approve`, { comment: 'درست' }, l1.token)).json().status, 'approved');
+    assert.equal((await call('GET', '/api/mod/queue', undefined, admin.token)).json().publish.some((r: any) => r.id === id), true);
+
+    // admin publishes: version 1 in divan-data and on the site
+    assert.deepEqual((await call('POST', `/api/mod/revisions/${id}/publish`, {}, admin.token)).json(), { status: 'published', version: 1 });
+    const file = JSON.parse(await readFile(join(data, 'divan', poem.url.slice(1) + '.json'), 'utf8'));
+    assert.equal(file.Edited.by, `l2-${run}@divan.test`);
+    assert.equal(file.Edited.reviewedBy, `l1-${run}@divan.test`);
+    assert.equal(file.Edited.publishedBy, `admin-${run}@divan.test`);
+    assert.ok((await readFile(join(data, 'divan', poem.url.slice(1) + '.dtx'), 'utf8')).includes(misra + ' (ترمیم)'));
+    assert.equal((await pool.query('SELECT text FROM verses WHERE poem_id = $1 AND couplet = 1 AND position = $2', [poem.id, 'Left'])).rows[0].text, misra + ' (ترمیم)');
+
+    // the full event trail, in order
+    rev = (await call('GET', `/api/mod/revisions/${id}`, undefined, admin.token)).json();
+    assert.deepEqual(rev.events.map((e: any) => e.action), ['created', 'saved', 'saved', 'submitted', 'returned', 'submitted', 'approved', 'published']);
+    assert.equal(rev.events.find((e: any) => e.action === 'returned').comment, 'وزن دیکھیں');
+
+    // conflict: an L1 draft started from version 1, but an admin publishes version 2 first
+    const d2 = (await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l1.token)).json().id;
+    const d3 = (await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, admin.token)).json().id;
+    const cur = (await call('GET', `/api/mod/work/${poem.id}`, undefined, admin.token)).json();
+    assert.equal(cur.version, 1);
+    await call('POST', `/api/mod/revisions/${d3}/save`, { content: cur.content.replace('(ترمیم)', '(ترمیم دوم)') }, admin.token);
+    assert.deepEqual((await call('POST', `/api/mod/revisions/${d3}/submit`, {}, admin.token)).json(), { status: 'published', version: 2 }, "an admin's own edit publishes");
+    await call('POST', `/api/mod/revisions/${d2}/save`, { content: cur.content.replace('(ترمیم)', '(ترمیم سوم)') }, l1.token);
+    assert.equal((await call('POST', `/api/mod/revisions/${d2}/submit`, {}, l1.token)).json().status, 'approved', "an L1's own draft goes to the admin");
+    const conflict = await call('POST', `/api/mod/revisions/${d2}/publish`, {}, admin.token);
+    assert.equal(conflict.statusCode, 409, 'a newer version was published meanwhile');
+    assert.equal((await call('POST', `/api/mod/revisions/${d2}/reject`, { comment: 'پرانا متن' }, admin.token)).json().status, 'rejected');
+
+    const hist = (await call('GET', `/api/mod/work/${poem.id}`, undefined, l1.token)).json();
+    assert.deepEqual(hist.history.filter((h: any) => h.version).map((h: any) => h.version), [2, 1]);
+    assert.ok((await call('GET', '/api/mod/log', undefined, l2.token)).json().entries.length >= 10);
+  } finally {
+    // restore the work and remove the test people and their revisions
+    await pool.query('DELETE FROM verses WHERE poem_id = $1', [poem.id]);
+    for (const v of before) await pool.query('INSERT INTO verses (poem_id, vorder, position, couplet, text) VALUES ($1, $2, $3, $4, $5)', [poem.id, v.vorder, v.position, v.couplet, v.text]);
+    await pool.query('UPDATE poems SET title = $2, search_text = $3 WHERE id = $1', [poem.id, poem.title, searchBefore]);
+    await pool.query(`DELETE FROM revisions WHERE entity = 'work' AND entity_id = $1 AND author_email LIKE $2`, [poem.id, `%-${run}@divan.test`]);
+    await pool.query('DELETE FROM users WHERE email LIKE $1', [`%-${run}@divan.test`]);
+    await pool.query('DELETE FROM audit_log WHERE actor_email LIKE $1 OR target_email LIKE $1', [`%-${run}@divan.test`]);
+    await rm(data, { recursive: true, force: true });
+    await app.close();
+  }
+});

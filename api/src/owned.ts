@@ -30,15 +30,16 @@ export function fromPoem(poem: { Title: string; Verses: Verse[]; SourceUrl?: str
 }
 
 // write a Divan-owned work (the .dtx and the generated .json); returns the paths written
-export async function writeOwned(dataDir: string, url: string, dtx: string, edited: { by: string; at?: string }) {
+export async function writeOwned(dataDir: string, url: string, dtx: string,
+  edited: { by: string; at?: string; version?: number; reviewedBy?: string | null; publishedBy?: string }) {
   const doc = parse(dtx);
   const verses = toVerses(doc);
   if (!verses.length) throw new Error('the text has no verses or paragraphs');
-  const base = join(dataDir, 'divan', url.replace(/^\/+|\/+$/g, ''));
   if (!/^[\w/-]+$/.test(url) || url.includes('..')) throw new Error(`not a work url: ${url}`);
+  const base = join(dataDir, 'divan', url.replace(/^\/+|\/+$/g, ''));
   await mkdir(dirname(base), { recursive: true });
   const json = { FullUrl: '/' + url.replace(/^\/+/, ''), Title: doc.meta['عنوان'] ?? '', Verses: verses.map(({ VOrder, ...v }) => ({ VOrder, ...v, SectionIndex1: 0 })),
-    Edited: { by: edited.by, at: edited.at ?? new Date().toISOString() } };
+    Edited: { ...edited, at: edited.at ?? new Date().toISOString() } };
   await writeFile(base + '.dtx', dtx.endsWith('\n') ? dtx : dtx + '\n');
   await writeFile(base + '.json', JSON.stringify(json, null, 1) + '\n');
   return [base + '.dtx', base + '.json'];
