@@ -256,3 +256,36 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .bmk::after { content: '🔖'; font-size: .55em; vertical-align: super; margin-inline-start: 1px; user-select: none; }
 .mark-fav::after, .mark-bm::after { font-size: .65em; margin-inline-start: 6px; vertical-align: middle; user-select: none; }
 .mark-fav::after, .mark-bm::after { content: '🔖'; }
+
+/* search: poets/writers, books/chapters, content (paged) */
+.search-group { margin: 18px 0 26px; }
+.search-group h2 { font-size: 1.1rem; text-align: center; color: var(--brand); }
+.search-group h2 small { font-size: .8rem; font-weight: 400; }
+.poet-result { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.poet-result .small { font-size: .75rem; }
+.book-results { list-style: none; padding: 0; max-width: 700px; margin: 0 auto; }
+.book-results li { padding: 5px 4px; border-bottom: 1px dashed var(--gold-light); text-align: center; }
+.pager .pages { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+.pager .pages a, .pager .pages .current { min-width: 2em; text-align: center; padding: 0 8px; border: 1px solid var(--border); border-radius: 8px; text-decoration: none; }
+.pager .pages .current { border-color: var(--brand); color: var(--brand); font-weight: 700; }
+.pager .gap { padding: 0 2px; color: var(--muted); }
+
+/* author filter on search */
+.author-filter { max-width: 760px; margin: 0 auto 14px; padding: 10px 14px; border: 1px dashed var(--gold-light); border-radius: 12px; text-align: center; }
+.author-filter p { margin: 2px 0 8px; }
+.author-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+.author-chips .chip { display: inline-flex; align-items: center; gap: 4px; padding: 1px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--inner); cursor: pointer; font: inherit; font-size: .88rem; color: var(--ink); }
+.author-chips .chip small { color: var(--muted); }
+.author-chips .chip input { accent-color: var(--brand); margin: 0; }
+.author-chips .chip:has(input:checked) { border-color: var(--brand); color: var(--brand); font-weight: 700; }
+.author-chips .chip.extra { display: none; }
+.author-chips.all .chip.extra { display: inline-flex; }
+.author-find { position: relative; display: flex; gap: 4px; max-width: 420px; margin: 10px auto 0; }
+.author-find input { flex: 1; font: inherit; padding: 3px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); }
+.in-box-btn { display: inline-flex; align-items: center; font: inherit; font-size: .85rem; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--muted); cursor: pointer; }
+.in-box-btn[aria-pressed='true'] { color: var(--brand); border-color: var(--brand); }
+.author-suggest { position: absolute; top: 100%; inset-inline: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 4px; padding: 6px; margin-top: 4px; background: var(--paper); border: 1px solid var(--border); border-radius: 10px; box-shadow: 0 4px 14px rgb(0 0 0 / .15); }
+.author-suggest button { font: inherit; font-size: .88rem; padding: 0 10px; border: 1px solid var(--gold-light); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.author-suggest button:hover { border-color: var(--brand); color: var(--brand); }
+.filter-actions { display: flex; gap: 12px; justify-content: center; align-items: center; margin-top: 10px !important; }
+.filter-actions button { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--gold); border-radius: 10px; background: var(--inner); color: var(--ink); cursor: pointer; }

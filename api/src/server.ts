@@ -1,7 +1,8 @@
 // Divan API (Fastify + PostgreSQL)
 //   GET /api/poets              all poets
 //   GET /api/page?url=/p238/... poet, category or poem at that URL
-//   GET /api/search?q=&poet=&page=
+//   GET /api/search?q=&poet=1,2&page=  content results (paged, optionally only these poets/writers), the poets/writers
+//                                    the results come from (with counts), poets by name and books/chapters by title
 //   GET /api/word?w=            Wiktionary meanings and pronunciation (sidebar)
 //   /api/auth/*                  accounts (see auth.ts)
 //   /api/admin/*                 admin panel (see admin.ts)
@@ -10,6 +11,7 @@
 import Fastify from 'fastify';
 import { pool } from './db.ts';
 import { likePatterns, normalise, terms } from './urdu.ts';
+import { nameMatches } from './search.ts';
 import { lookup, PUNCT } from './dictionary.ts';
 import { authRoutes } from './auth.ts';
 import { adminRoutes } from './admin.ts';
@@ -91,13 +93,15 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
 
 app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/search', async (req) => {
   const patterns = likePatterns(req.query.q ?? '');
-  if (!patterns.length) return { total: 0, page: 1, results: [] };
+  if (!patterns.length) return { total: 0, page: 1, pageSize: PAGE_SIZE, results: [], poets: [], books: [] };
   const page = Math.max(1, Number(req.query.page) || 1);
   const params: unknown[] = [...patterns];
   const where = patterns.map((_, i) => `p.search_text ILIKE $${i + 1}`);
-  if (req.query.poet) {
-    params.push(Number(req.query.poet));
-    where.push(`p.poet_id = $${params.length}`);
+  const textWhere = where.join(' AND ');
+  const poetIds = [...new Set(String(req.query.poet ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 50);
+  if (poetIds.length) {
+    params.push(poetIds);
+    where.push(`p.poet_id = ANY($${params.length})`);
   }
   const sql = `FROM poems p JOIN poets t ON t.id = p.poet_id WHERE ${where.join(' AND ')}`;
   // several words: poems with them together as a phrase come first
@@ -130,7 +134,15 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
       : vs.filter((v) => v.couplet === best.couplet && (v.position === 'Right' || v.position === 'Left')).map((v) => v.text);
     return { ...r, snippet: lines, prose: best?.position === 'Paragraph' };
   });
-  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results };
+  // names and titles on the first page: poets/writers whose name has every word, books/chapters likewise
+  const names = page === 1 && !poetIds.length ? await nameMatches(ts) : { poets: [], books: [] };
+  // which poets/writers the matching content comes from (whatever the poet filter), for narrowing down
+  const [authors, selected] = await Promise.all([
+    pool.query(`SELECT t.id, t.url, t.nickname, count(*)::int AS n FROM poems p JOIN poets t ON t.id = p.poet_id
+                WHERE ${textWhere} GROUP BY t.id ORDER BY n DESC, t.nickname LIMIT 40`, patterns),
+    poetIds.length ? pool.query('SELECT id, url, nickname FROM poets WHERE id = ANY($1) ORDER BY nickname', [poetIds]) : { rows: [] },
+  ]);
+  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results, ...names, authors: authors.rows, selected: selected.rows };
 });
 
 // one word in Arabic script (Urdu, Persian, Arabic), as selected by a reader
