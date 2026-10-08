@@ -1,122 +1,106 @@
-/* Divan design system: reading-first, RTL, Naskh default (Nastaliq option), light/dark. */
+/* Divan styles: Ganjoor's look (palette, gold pills, centred couplets with ✤), RTL, Naskh default. */
 :root {
-  --bg: #f8f4ea;
-  --surface: #fffdf7;
-  --ink: #2a241c;
-  --muted: #776b5a;
-  --line: #e7dfcd;
-  --accent: #8b2e1f;      /* deep vermilion, like a manuscript rubric */
-  --accent-soft: #f3e3dc;
-  --gold: #b08a3e;
-  --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif;
-  --verse-lh: 2.1;
-  --radius: 14px;
+  --bg: #fbf6ea; --paper: #fffdf7; --poem: #f6edd6; --inner: #f6efe3; --nested: #eee3d0;
+  --ink: #17130f; --muted: #635543; --lapis: #0d1d30; --gold: #b88828; --gold-light: #dfcd9f;
+  --gold-subtle: #f5edd8; --border: #b8a78c; --brand: #bf3f2a;
+  --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --verse-lh: 2.1;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #15120e; --surface: #1d1913; --ink: #ece3d2; --muted: #a39680; --line: #332c21;
-    --accent: #e08a6d; --accent-soft: #2c1d17; --gold: #d2ad62; color-scheme: dark;
+    --bg: #14120f; --paper: #181510; --poem: #1c1916; --inner: #242019; --nested: #2d2620;
+    --ink: #e7ded0; --muted: #9e9185; --lapis: #f0f6fc; --gold: #c9a050; --gold-light: #3a322b;
+    --gold-subtle: #2a2418; --border: #9b7332; --brand: #d4553a; color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #15120e; --surface: #1d1913; --ink: #ece3d2; --muted: #a39680; --line: #332c21;
-  --accent: #e08a6d; --accent-soft: #2c1d17; --gold: #d2ad62; color-scheme: dark;
+  --bg: #14120f; --paper: #181510; --poem: #1c1916; --inner: #242019; --nested: #2d2620;
+  --ink: #e7ded0; --muted: #9e9185; --lapis: #f0f6fc; --gold: #c9a050; --gold-light: #3a322b;
+  --gold-subtle: #2a2418; --border: #9b7332; --brand: #d4553a; color-scheme: dark;
 }
 :root.nastaliq { --font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --verse-lh: 2.7; }
 
 * { box-sizing: border-box; }
-html { font-size: 17px; }
-body {
-  margin: 0; background: var(--bg); color: var(--ink);
-  font-family: var(--font); line-height: 1.9;
-  -webkit-font-smoothing: antialiased;
-}
-a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; text-underline-offset: 4px; }
-.wrap { max-width: 980px; margin: 0 auto; padding: 0 16px; }
-
-/* header */
-.site-header { border-bottom: 1px solid var(--line); background: var(--surface); position: sticky; top: 0; z-index: 5; }
-.site-header .wrap { display: flex; align-items: center; gap: 16px; min-height: 64px; flex-wrap: wrap; }
-.wordmark { font-family: 'Noto Nastaliq Urdu', serif; font-size: 1.9rem; line-height: 1.4; color: var(--ink); font-weight: 700; }
-.wordmark:hover { text-decoration: none; color: var(--accent); }
-.search-form { flex: 1; min-width: 200px; display: flex; }
-.search-form input {
-  flex: 1; font: inherit; padding: 6px 16px; border-radius: 999px; border: 1px solid var(--line);
-  background: var(--bg); color: var(--ink);
-}
-.search-form input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
-.toggles { display: flex; gap: 8px; }
-.toggles button {
-  font: inherit; font-size: .85rem; border: 1px solid var(--line); background: var(--bg); color: var(--ink);
-  border-radius: 999px; padding: 2px 14px; cursor: pointer;
-}
-.toggles button:hover { border-color: var(--gold); }
-
-main { padding: 24px 0 64px; }
-h1, h2, h3 { line-height: 1.6; margin: .2em 0 .4em; font-weight: 700; }
-h1 { font-size: 1.9rem; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); line-height: 1.9; }
+a { color: var(--lapis); text-decoration: none; }
+a:hover { color: var(--brand); }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
 .muted { color: var(--muted); }
-.crumbs { font-size: .9rem; color: var(--muted); margin-bottom: 8px; }
-.crumbs a { color: var(--muted); }
-.crumbs span + span::before { content: '‹'; margin: 0 8px; color: var(--line); }
 
-/* home */
-.hero { text-align: center; padding: 24px 0 8px; }
-.hero p { color: var(--muted); margin: 0; }
-.century { margin-top: 32px; }
-.century h2 {
-  font-size: 1.15rem; color: var(--gold); display: flex; align-items: center; gap: 12px;
+/* header: logo + search + toggles in a gold-bordered bar */
+.site-header .wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; }
+.wordmark { font-family: 'Noto Nastaliq Urdu', serif; font-size: 2rem; line-height: 1.5; color: var(--brand); font-weight: 700; }
+.search-form { flex: 1; min-width: 200px; display: flex; }
+.search-form input, .toggles button {
+  font: inherit; border: 1.5px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 10px;
 }
-.century h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
-.poets { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+.search-form input { flex: 1; padding: 4px 14px; }
+.search-form input:focus { outline: none; border-color: var(--gold); }
+.toggles { display: flex; gap: 6px; }
+.toggles button { padding: 2px 12px; cursor: pointer; font-size: .85rem; }
+.toggles button:hover { border-color: var(--brand); }
+
+main { padding: 16px 0 48px; }
+h1, h2 { line-height: 1.6; margin: .2em 0 .4em; font-weight: 700; text-align: center; color: var(--lapis); }
+h1 { font-size: 1.7rem; }
+h1::after { content: ''; display: block; width: 140px; height: 2px; background: var(--brand); margin: 8px auto 0; }
+
+/* Ganjoor's gold pill headings and links (.century / .part-title-block) */
+.pill, .century h2, .card {
+  display: block; text-align: center; color: var(--lapis); background: var(--gold-subtle);
+  border: 1.5px solid var(--border); border-radius: 10px; padding: 4px 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .08); transition: transform .2s, background .2s, border-color .2s;
+}
+.card:hover { background: var(--gold-light); border-color: var(--brand); transform: translateY(-1px); color: var(--lapis); }
+.card small { color: var(--muted); margin-inline-start: 6px; }
+.century { margin-top: 28px; }
+.century h2 { font-size: 1rem; margin: 0 0 12px; }
+.century h2::after { display: none; }
+
+/* poet tiles (captions only, photos hidden for now) */
+.poets { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .poet-card {
-  display: block; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 8px 14px; color: var(--ink);
+  min-width: 120px; text-align: center; background: var(--paper); border: 1.5px solid var(--border);
+  border-radius: 999px; padding: 2px 14px; color: var(--ink); transition: transform .25s;
 }
-.poet-card:hover { border-color: var(--accent); text-decoration: none; }
-.poet-card small { display: block; color: var(--muted); font-size: .8rem; }
+.poet-card:hover { transform: translateY(-3px); border-color: var(--brand); color: var(--ink); }
+.poet-card small { display: block; color: var(--muted); font-size: .75rem; line-height: 1.4; }
+.hero { text-align: center; }
+.hero p { margin: 0; }
 
 /* poet / category */
-.intro {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 12px 20px; white-space: pre-line; text-align: justify;
-}
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin: 16px 0; }
-.card {
-  display: flex; justify-content: space-between; align-items: center; gap: 8px;
-  background: var(--accent-soft); border-radius: var(--radius); padding: 10px 16px; color: var(--ink);
-}
-.card:hover { text-decoration: none; outline: 1px solid var(--accent); }
-.card small { color: var(--muted); }
-.toc { list-style: none; padding: 0; margin: 16px 0; counter-reset: poem; }
-.toc li { counter-increment: poem; border-bottom: 1px dashed var(--line); }
-.toc li a { display: flex; gap: 12px; padding: 6px 4px; color: var(--ink); }
-.toc li a::before { content: counter(poem, arabic-indic); color: var(--gold); min-width: 2.5em; }
-.toc li a:hover { color: var(--accent); text-decoration: none; }
+.intro { background: var(--paper); border: 1.5px solid var(--border); border-radius: 12px; padding: 10px 18px; white-space: pre-line; text-align: justify; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin: 16px 0; }
+.crumbs { text-align: center; font-size: .9rem; color: var(--muted); }
+.crumbs a { color: var(--muted); }
+.crumbs span + span::before { content: '»'; margin: 0 8px; }
+.toc { list-style: none; padding: 0; margin: 16px auto; max-width: 700px; }
+.toc li { border-bottom: 1px dashed var(--gold-light); }
+.toc li a { display: block; padding: 6px 4px; text-align: center; }
 
-/* poem */
-.poem {
-  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-  padding: 24px clamp(16px, 4vw, 48px); margin: 16px 0;
+/* poem: Ganjoor couplets (half-lines meet at the centre, ✤ after each) */
+.poem { background: var(--poem); border: 1.5px solid var(--border); border-radius: 12px; padding: 20px clamp(12px, 3vw, 36px); margin: 16px 0; }
+.couplet { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10%; margin: 0 0 6px; border-radius: 6px; font-size: 1.1rem; line-height: var(--verse-lh); }
+.couplet:hover { background: linear-gradient(90deg, transparent, var(--gold-subtle) 15%, var(--gold-subtle) 85%, transparent); }
+.couplet p { margin: 0; text-align: left; }
+.couplet p + p { text-align: right; }
+.couplet::after { content: '✤'; grid-column: 1 / -1; text-align: center; color: var(--brand); font-size: .72rem; opacity: .75; line-height: 1.2; }
+.single { text-align: center; margin: 0 0 6px; font-size: 1.1rem; line-height: var(--verse-lh); }
+.para { text-align: justify; margin: 0 0 12px; line-height: var(--verse-lh); }
+@media (max-width: 760px) {
+  .couplet { grid-template-columns: 1fr; padding: 6px 0; border-bottom: 1px dashed var(--gold-light); }
+  .couplet p, .couplet p + p { text-align: center; }
+  .couplet::after { display: none; }
 }
-.couplet { display: grid; grid-template-columns: 1fr 1fr; gap: 0 48px; margin: 0 0 14px; line-height: var(--verse-lh); font-size: 1.12rem; }
-.couplet p { margin: 0; }
-.couplet p:last-child { text-align: left; }
-.single { text-align: center; margin: 0 0 6px; line-height: var(--verse-lh); font-size: 1.12rem; }
-.para { text-align: justify; margin: 0 0 14px; line-height: var(--verse-lh); }
-@media (max-width: 640px) {
-  .couplet { grid-template-columns: 1fr; }
-  .couplet p:last-child { text-align: right; padding-right: 2em; }
-}
-.poem-nav { display: flex; justify-content: space-between; gap: 8px; }
-.poem-nav a { border: 1px solid var(--line); border-radius: 999px; padding: 2px 16px; }
-.source { font-size: .85rem; color: var(--muted); }
+.poem-nav { display: flex; justify-content: space-between; }
+.poem-nav a { border: 1.5px solid var(--border); background: var(--inner); border-radius: 10px; padding: 0 14px; }
+.source { text-align: center; font-size: .85rem; color: var(--muted); }
 
 /* search */
-.result { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.result { border-bottom: 1px dashed var(--gold-light); padding: 8px 0; }
 .result .first-line { color: var(--muted); }
-.pager { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+.pager { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
 
-.site-footer { border-top: 1px solid var(--line); padding: 20px 0; font-size: .85rem; color: var(--muted); text-align: center; }
+.site-footer { border-top: 1.5px solid var(--border); padding: 16px 0; font-size: .85rem; color: var(--muted); text-align: center; }
+
+h1 + .muted { text-align: center; margin-top: 0; }
