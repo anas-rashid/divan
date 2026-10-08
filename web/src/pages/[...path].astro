@@ -80,7 +80,7 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
         </p>
       )}
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
-      <article class="poem">
+      <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`}>
         {blocks.map((b) =>
           b.kind === 'couplet' ? <div class="couplet" data-mark={b.mark}>{b.lines.map((l) => <p><Seg s={show(l)} /></p>)}</div>
           : b.kind === 'para' ? <p class="para"><Seg s={show(b.lines[0])} /></p>
