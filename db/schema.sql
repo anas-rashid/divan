@@ -96,3 +96,17 @@ CREATE TABLE IF NOT EXISTS sessions (
     expires_at timestamptz NOT NULL
 );
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
+-- admin panel (api/src/admin.ts): roles, disabled accounts, audit log of admin actions
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT 'reader';   -- reader | admin (moderators: #29)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS disabled_at timestamptz;               -- set: cannot sign in
+CREATE TABLE IF NOT EXISTS audit_log (
+    id          bigserial PRIMARY KEY,
+    at          timestamptz NOT NULL DEFAULT now(),
+    actor_id    bigint REFERENCES users(id) ON DELETE SET NULL,
+    actor_email text NOT NULL,                   -- kept when the actor's account is deleted
+    action      text NOT NULL,                   -- password-reset | disable | enable | role | delete | promote
+    target_id   bigint,                          -- the user acted on (no FK: deleted users stay in the log)
+    target_email text,
+    detail      jsonb
+);
+CREATE INDEX IF NOT EXISTS audit_log_at ON audit_log(at DESC);

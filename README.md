@@ -33,6 +33,8 @@ Settings: `DATABASE_URL` (API, default `postgres://divan:divan_local@localhost:5
 
 The import upserts, so re-running it after a divan-data sync applies the changes.
 
+**Accounts and admin.** Readers sign up with an email address and password (no email is sent). The first admin is made on the server: sign up on the site, then `npm run make-admin -- you@example.com` in `api/`. Admins manage users at `/admin` (search, password reset on a reader's request, disable, roles, delete) and see every admin action at `/admin/audit`.
+
 ## Daily content sync (server)
 
 `deploy/sync.sh` keeps a server current: it updates a divan-data checkout, fetches new and edited works from Wikisource (incremental, about a minute), rebuilds the export and upserts it into PostgreSQL. The site shows new content immediately. Runs are locked so they never overlap.

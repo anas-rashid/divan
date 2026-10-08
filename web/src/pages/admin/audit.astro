@@ -1,0 +1,44 @@
+---
+// Admin: audit log of admin actions
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/admin/audit');
+if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
+const page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
+const log = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/audit?page=${page}`)).data;
+const pages = Math.ceil(log.total / log.pageSize);
+const ACTION: Record<string, string> = {
+  'password-reset': 'پاس ورڈ ری سیٹ', disable: 'معطل', enable: 'بحال', role: 'کردار', delete: 'حذف', promote: 'ایڈمن (سرور سے)',
+};
+const ROLE: Record<string, string> = { admin: 'ایڈمن', reader: 'قاری' };
+const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T', ' '));
+---
+<Base title="ایڈمن: ریکارڈ">
+  <h1>ایڈمن</h1>
+  <AdminNav current="audit" />
+  <table class="admin-table">
+    <thead><tr><th>وقت (UTC)</th><th>ایڈمن</th><th>عمل</th><th>صارف</th><th>تفصیل</th></tr></thead>
+    <tbody>
+      {log.entries.map((e: any) => (
+        <tr>
+          <td>{when(e.at)}</td>
+          <td><bdi dir="ltr">{e.actor_email}</bdi></td>
+          <td>{ACTION[e.action] ?? e.action}</td>
+          <td><bdi dir="ltr">{e.target_email ?? '—'}</bdi></td>
+          <td>{e.detail?.to ? `${ROLE[e.detail.from] ?? '—'} ← ${ROLE[e.detail.to] ?? e.detail.to}`.replace('— ← ', '') : ''}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+  {pages > 1 && (
+    <nav class="pager">
+      {page > 1 && <a href={`/admin/audit?page=${page - 1}`}>‹ پچھلا</a>}
+      <span class="muted">صفحہ {ud(page)} از {ud(pages)}</span>
+      {page < pages && <a href={`/admin/audit?page=${page + 1}`}>اگلا ›</a>}
+    </nav>
+  )}
+</Base>

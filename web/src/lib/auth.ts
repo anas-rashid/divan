@@ -3,7 +3,7 @@ import type { AstroCookies } from 'astro';
 
 const API = process.env.API_URL ?? 'http://127.0.0.1:4100';
 export const COOKIE = 'divan_session';
-export type User = { id: number; email: string; created_at: string };
+export type User = { id: number; email: string; role: string; created_at: string };
 
 // call an /api/auth endpoint as the reader (their token, their IP for rate limits)
 export async function auth(path: string, opts: { token?: string; body?: object; ip?: string } = {}) {
@@ -21,3 +21,13 @@ export async function auth(path: string, opts: { token?: string; body?: object; 
 
 export const setSession = (cookies: AstroCookies, token: string, secure: boolean) =>
   cookies.set(COOKIE, token, { path: '/', httpOnly: true, sameSite: 'lax', secure, maxAge: 30 * 86400 });
+
+// call any API endpoint as the signed-in reader (admin pages)
+export async function asUser(token: string, path: string, body?: object) {
+  const res = await fetch(`${API}${path}`, {
+    method: body ? 'POST' : 'GET',
+    headers: { authorization: `Bearer ${token}`, ...(body && { 'content-type': 'application/json' }) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  return { ok: res.ok, status: res.status, data: await res.json().catch(() => ({})) };
+}

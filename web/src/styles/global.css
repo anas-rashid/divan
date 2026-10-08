@@ -186,3 +186,21 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .selmenu[hidden] { display: none; }
 .selmenu button { font: inherit; font-size: .85rem; color: #f3ead8; background: none; border: 0; border-radius: 7px; padding: 2px 10px; cursor: pointer; }
 .selmenu button:hover, .selmenu button:focus-visible { background: rgb(201 160 80 / .25); outline: none; }
+
+/* admin panel */
+.admin-nav { display: flex; justify-content: center; gap: 8px; margin: 0 0 16px; }
+.admin-nav a { padding: 2px 14px; border: 1.5px solid var(--border); border-radius: 999px; text-decoration: none; color: var(--ink); }
+.admin-nav a[aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.admin-search { display: flex; gap: 6px; max-width: 420px; margin: 0 auto 8px; }
+.admin-search input { flex: 1; font: inherit; padding: 4px 12px; border: 1.5px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); }
+.admin-search button, .admin-table button { font: inherit; font-size: .8rem; padding: 1px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.admin-table button:hover { border-color: var(--brand); color: var(--brand); }
+.admin-table button.danger { color: var(--brand); }
+.admin-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 8px 0; }
+.admin-table th, .admin-table td { padding: 6px 8px; border-bottom: 1px dashed var(--gold-light); text-align: start; vertical-align: middle; }
+.admin-table tr.disabled td { opacity: .55; }
+.admin-table .actions { display: flex; flex-wrap: wrap; gap: 4px; }
+.admin-table .actions form { margin: 0; }
+.temp-password { max-width: 520px; margin: 10px auto; padding: 10px 16px; border: 1.5px solid var(--gold); border-radius: 12px; background: var(--inner); text-align: center; }
+.temp-password code { font-size: 1.2rem; letter-spacing: .08em; user-select: all; }
+@media (max-width: 700px) { .admin-table thead { display: none; } .admin-table tr { display: block; border-bottom: 1px dashed var(--gold-light); padding: 6px 0; } .admin-table td { display: inline-block; border: 0; padding: 2px 6px; } }
