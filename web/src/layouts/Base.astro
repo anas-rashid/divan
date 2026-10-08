@@ -55,7 +55,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <main class="wrap"><slot /></main>
     <div id="selmenu" class="selmenu" role="toolbar" aria-label="منتخب عبارت" hidden>
       <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
-      <button type="button" data-act="saveword" title="لفظ لغت کے ساتھ محفوظ کریں">محفوظ</button>
+      <button type="button" data-act="saveword" class="plus" title="ذخیرۂ الفاظ میں شامل کریں">لفظ</button>
       <button type="button" data-act="bookmark" title="اس عبارت پر نشان لگائیں">نشان</button>
       <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
       <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
@@ -161,7 +161,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         else if (d) b.setAttribute('aria-pressed', String(d.saved));
       });
       const wordSave = (w) => { // sidebar button, with the word's saved state
-        const b = el('button', 'save', 'لفظ محفوظ کریں', { type: 'button', 'aria-pressed': 'false' });
+        const b = el('button', 'wordbook', 'ذخیرۂ الفاظ میں', { type: 'button', 'aria-pressed': 'false', title: 'اپنے ذخیرۂ الفاظ میں شامل کریں' });
         b.onclick = async () => { const d = await save({ kind: 'word', word: w, ...source }); if (d) b.setAttribute('aria-pressed', String(d.saved)); };
         if (document.body.dataset.user) fetch('/api/library?word=' + encodeURIComponent(w)).then((r) => r.ok && r.json()).then((d) => d && b.setAttribute('aria-pressed', String(d.word)));
         return b;
@@ -333,7 +333,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           case 'meaning': showWord(oneWord(selText)); break;
           case 'bookmark': save({ kind: 'phrase', poemId: source.poemId, couplet: source.couplet, phrase: selText })
             .then((d) => d && (d.saved ? location.reload() : flash(b, 'نشان پہلے سے تھا، ہٹا دیا'))); break;
-          case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? 'محفوظ ہو گیا' : 'ہٹا دیا گیا')); break;
+          case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? '✓ شامل' : 'ہٹا دیا')); break;
           case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
           case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;
           case 'copy':

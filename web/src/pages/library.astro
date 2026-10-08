@@ -31,7 +31,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
   <p class="muted center">میری لائبریری · {ud(total)} اندراجات · <a href="/account">پروفائل</a></p>
 
   {total === 0 && (
-    <p class="muted center">ابھی کچھ محفوظ نہیں۔ کسی شاعر یا کلام پر "پسندیدہ" دبائیں، کسی شعر کے ساتھ 🔖 لگائیں، کوئی عبارت منتخب کر کے "نشان" لگائیں، یا لفظ منتخب کر کے "محفوظ" کریں۔</p>
+    <p class="muted center">ابھی کچھ محفوظ نہیں۔ کسی شاعر یا کلام پر "پسندیدہ" دبائیں، کسی شعر کے ساتھ 🔖 لگائیں، کوئی عبارت منتخب کر کے "نشان" لگائیں، یا لفظ منتخب کر کے "+ لفظ" سے ذخیرۂ الفاظ میں شامل کریں۔</p>
   )}
 
   {lib.poets.length > 0 && (
@@ -106,7 +106,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
 
   {lib.words.length > 0 && (
     <section class="lib-section">
-      <h2>محفوظ الفاظ</h2>
+      <h2>ذخیرۂ الفاظ</h2>
       <ul class="lib-list">
         {lib.words.map((w: any) => (
           <li id={`i${w.id}`}>
