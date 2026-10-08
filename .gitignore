@@ -263,3 +263,4 @@ __pycache__/
 /Museum/src/dist
 .env
 backups/
+RMuseum/RMuseum.xml

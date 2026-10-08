@@ -31,7 +31,6 @@ until docker exec divan-mssql /opt/mssql-tools18/bin/sqlcmd -C -S localhost -U s
 stop
 (cd RMuseum && dotnet publish RMuseum.csproj -c Release -o "$RUN/api" -p:EnableWindowsTargeting=true -v q \
   && dotnet publish ../DivanRazor/DivanRazor.csproj -c Release -o "$RUN/site" -p:EnableWindowsTargeting=true -v q)
-git checkout -- RMuseum/RMuseum.xml 2>/dev/null || true  # build regenerates this tracked doc file
 
 # 3. API (settings that RSecurityBackend only reads from appsettings.json are written into the published copy)
 export ConnectionStrings__DefaultConnection="Server=localhost,1433;Database=divan;User Id=sa;Password=$SA_PASSWORD;TrustServerCertificate=True;MultipleActiveResultSets=true"
