@@ -38,6 +38,8 @@ a:hover { color: var(--brand); }
 .search-form input:focus { outline: none; border-color: var(--gold); }
 .toggles { display: flex; gap: 6px; }
 .toggles button { padding: 2px 12px; cursor: pointer; font-size: .85rem; }
+/* controls keep Naskh at normal height whatever reading font is chosen */
+.search-form input, .toggles button { font-family: 'Noto Naskh Arabic', serif; line-height: 1.8; }
 .toggles button:hover { border-color: var(--brand); }
 
 main { padding: 16px 0 48px; }
