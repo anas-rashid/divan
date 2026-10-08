@@ -1,7 +1,8 @@
 ---
-const { current } = Astro.props as { current?: 'queue' | 'log' };
+const { current } = Astro.props as { current?: 'queue' | 'log' | 'guide' };
 ---
 <nav class="admin-nav">
   <a href="/mod" aria-current={current === 'queue' ? 'page' : undefined}>موڈریشن</a>
   <a href="/mod?log=1" aria-current={current === 'log' ? 'page' : undefined}>سرگرمی</a>
+  <a href="/mod/guide" aria-current={current === 'guide' ? 'page' : undefined}>رہنمائی</a>
 </nav>

@@ -327,3 +327,22 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .inline-form { display: inline; }
 .mod-edit-btn, .save-like { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--gold); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .mod-history { font-size: .85rem; margin-inline-start: 6px; }
+
+/* moderators' guide */
+.guide { max-width: 900px; margin: 0 auto; line-height: 2; }
+.guide h2 { font-size: 1.15rem; color: var(--brand); text-align: start; margin-top: 28px; }
+.guide code { font-family: inherit; background: var(--inner); border: 1px solid var(--gold-light); border-radius: 6px; padding: 0 6px; unicode-bidi: plaintext; display: inline-block; } /* Latin tags read left to right, Urdu right to left */
+.guide-table td:first-child { white-space: nowrap; }
+.example { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; margin: 10px 0; }
+.example pre { unicode-bidi: plaintext; margin: 0; padding: 12px 14px; background: var(--inner); border: 1px solid var(--border); border-radius: 10px; white-space: pre-wrap;
+  font-family: 'Noto Naskh Arabic', serif; font-size: .95rem; line-height: 1.9; }
+.example:has(> pre:only-child) { grid-template-columns: 1fr; }
+.preview { margin: 0; padding: 12px 16px; }
+.preview .couplet { font-size: 1rem; grid-template-columns: 1fr; }
+.preview .couplet p, .preview .couplet p + p { text-align: center; }
+.preview .stanza { margin: 6px 0 12px; }
+.preview .stanza p, .preview .single { text-align: center; margin: 0; }
+.preview .mod-h.sub { font-size: 1rem; text-align: center; color: var(--lapis); }
+.preview sup { color: var(--brand); font-size: .7em; }
+.preview-notes { font-size: .85rem; border-top: 1px dashed var(--gold-light); margin-top: 8px; padding-top: 6px; }
+@media (max-width: 760px) { .example { grid-template-columns: 1fr; } }
