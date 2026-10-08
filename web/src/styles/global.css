@@ -214,11 +214,19 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .grant-form legend { font-size: .85rem; padding: 0 6px; }
 .grant-form label.check { flex-direction: row; align-items: center; gap: 6px; }
 
-/* bookmarks (🔖): poets, books/chapters, poems, couplets; the word book is separate (+) */
+/* bookmarks: our own rounded bookmark icon (soft corners and notch, like common app icon packs), a grey outline
+   when not set and filled in the brand colour when set; drawn as a mask so it follows the theme. The word book is
+   separate (+). */
+:root { --bm-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.5 3h9A2.5 2.5 0 0 1 19 5.5v14.6a1 1 0 0 1-1.55.83L12 17.3l-5.45 3.63A1 1 0 0 1 5 20.1V5.5A2.5 2.5 0 0 1 7.5 3z' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); --bm-filled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.5 3h9A2.5 2.5 0 0 1 19 5.5v14.6a1 1 0 0 1-1.55.83L12 17.3l-5.45 3.63A1 1 0 0 1 5 20.1V5.5A2.5 2.5 0 0 1 7.5 3z' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.bm-icon, .save::before, .bm::before, .bmk::after, .mark-fav::after, .mark-bm::after {
+  content: ''; display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -.18em; background-color: var(--muted);
+  -webkit-mask: var(--bm-outline) center / contain no-repeat; mask: var(--bm-outline) center / contain no-repeat; user-select: none; }
+.save[aria-pressed='true']::before, .bm[aria-pressed='true']::before, .bmk::after, .mark-fav::after, .mark-bm::after, .bm-icon.on {
+  background-color: var(--brand); -webkit-mask-image: var(--bm-filled); mask-image: var(--bm-filled); }
 .save { font: inherit; font-size: .85rem; padding: 1px 14px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
-.save::before { content: '🔖 '; filter: grayscale(1); opacity: .6; }
-.save[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
-.save[aria-pressed='true']::before { filter: none; opacity: 1; }
+.save::before { margin-inline-end: 4px; }
+.save[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); font-weight: 700;
+  background: color-mix(in srgb, var(--brand) 12%, var(--inner)); } /* محفوظ شدہ: accent tint, filled glyph */
 /* word book (ذخیرۂ الفاظ): + to add, ✓ when added (hearts are for poets and works) */
 .wordbook { font: inherit; font-size: .85rem; padding: 1px 14px; margin-bottom: 6px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .wordbook::before { content: '+ '; font-weight: 700; color: var(--gold); }
@@ -227,9 +235,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .couplet, .poem .para, .poem .single { position: relative; }
 .bm { position: absolute; inset-inline-end: -26px; top: .5em; width: 20px; height: 22px; padding: 0; border: 0; background: none; cursor: pointer;
   opacity: 0; transition: opacity .15s; user-select: none; }
-.bm::before { content: '🔖'; font-size: .85rem; filter: grayscale(1); opacity: .6; }
+.bm::before { width: 18px; height: 18px; }
 .bm[aria-pressed='true'] { opacity: 1; }
-.bm[aria-pressed='true']::before { filter: none; opacity: 1; }
 .couplet:hover .bm, .poem .para:hover .bm, .poem .single:hover .bm, .bm:focus-visible { opacity: 1; }
 @media (hover: none) { .bm { opacity: 1; } }
 @media (max-width: 700px) { .bm { inset-inline-end: -4px; top: 0; } }
@@ -251,11 +258,10 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .lib-remove { position: absolute; left: 8px; top: 8px; margin: 0; }
 .lib-remove button { color: var(--brand); }
 
-/* bookmarked phrases, and 🔖 where the reader's bookmarks are */
+/* bookmarked phrases, and the bookmark icon where the reader's bookmarks are */
 .bmk { text-decoration: underline dotted var(--brand) 2px; text-underline-offset: 6px; cursor: pointer; background: var(--gold-subtle); border-radius: 4px; }
-.bmk::after { content: '🔖'; font-size: .55em; vertical-align: super; margin-inline-start: 1px; user-select: none; }
-.mark-fav::after, .mark-bm::after { font-size: .65em; margin-inline-start: 6px; vertical-align: middle; user-select: none; }
-.mark-fav::after, .mark-bm::after { content: '🔖'; }
+.bmk::after { width: .7em; height: .7em; vertical-align: super; margin-inline-start: 2px; }
+.mark-fav::after, .mark-bm::after { width: .85em; height: .85em; margin-inline-start: 6px; vertical-align: -.1em; }
 
 /* search: poets/writers, books/chapters, content (paged) */
 .search-group { margin: 18px 0 26px; }
