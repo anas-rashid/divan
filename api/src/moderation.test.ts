@@ -50,6 +50,13 @@ test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permi
     assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, other.token)).statusCode, 403, 'outside the grant');
     assert.deepEqual((await call('GET', `/api/mod/can?poem=${poem.id}`, undefined, l2.token)).json(), { edit: true, review: false, publish: false });
 
+    // opening the editor is not a change: an unchanged draft is not listed, and saving it unchanged drops it
+    const blank = (await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l2.token)).json().id;
+    assert.equal((await call('GET', '/api/mod/queue', undefined, l2.token)).json().mine.some((r: any) => r.id === blank), false, 'unchanged draft not listed');
+    const text = (await call('GET', `/api/mod/work/${poem.id}`, undefined, l2.token)).json().content;
+    assert.deepEqual((await call('POST', `/api/mod/revisions/${blank}/save`, { content: text.replace('}}\n', '}}\n\n') }, l2.token)).json(), { discarded: true }, 'layout-only difference is no change');
+    assert.equal((await call('GET', `/api/mod/revisions/${blank}`, undefined, l2.token)).statusCode, 404, 'dropped');
+
     // L2 drafts: the draft starts from the current text; reopening returns the same draft
     const { id } = (await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l2.token)).json();
     assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l2.token)).json().id, id);
@@ -59,6 +66,7 @@ test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permi
     const edited = rev.revision.content.replace(misra, misra + ' (ترمیم)');
     assert.equal((await call('POST', `/api/mod/revisions/${id}/save`, { content: 'متن بغیر شعر کے {{', summary: 'x' }, l2.token)).statusCode, 200, 'prose is a paragraph');
     assert.equal((await call('POST', `/api/mod/revisions/${id}/save`, { content: edited, summary: 'ایک مصرع درست کیا' }, l2.token)).statusCode, 200);
+    assert.equal((await call('GET', '/api/mod/queue', undefined, l2.token)).json().mine.some((r: any) => r.id === id), true, 'changed draft listed');
     rev = (await call('GET', `/api/mod/revisions/${id}`, undefined, l2.token)).json();
     assert.deepEqual(rev.diff.filter((d: any) => d.op !== '=').map((d: any) => d.op), ['-', '+'], 'one line changed');
     assert.equal(rev.may.approve, false, 'not my own draft');

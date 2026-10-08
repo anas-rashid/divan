@@ -365,6 +365,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .tool { font: inherit; font-size: .85rem; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .tool:hover, .tool[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
 .dv-editor { min-height: 20em; outline: none; margin: 8px 0; }
+/* کوڈ: Divan text beside the editor (stacked on phones) */
+.editor-split.with-code { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+@media (max-width: 800px) { .editor-split.with-code { grid-template-columns: minmax(0, 1fr); } }
+.live-code { position: sticky; top: 56px; max-height: 80vh; overflow: auto; margin: 8px 0; padding: 10px; white-space: pre-wrap; word-break: break-word;
+  font-family: 'Noto Naskh Arabic', ui-monospace, monospace; font-size: .9rem; line-height: 1.9; background: var(--inner); border: 1px solid var(--border); border-radius: 10px; unicode-bidi: plaintext; }
 /* Tiptap's own CSS turns ligatures off, which breaks Nastaliq (and Naskh's لا); keep the font's shaping */
 .ProseMirror.dv-editor { font-variant-ligatures: normal; font-feature-settings: normal; }
 .dv-editor:focus-within { border-color: var(--gold); }

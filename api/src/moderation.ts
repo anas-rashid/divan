@@ -22,7 +22,7 @@ import { pool } from './db.ts';
 import { sessionUser } from './auth.ts';
 import { can } from './permissions.ts';
 import { fromPoem, writeOwned } from './owned.ts';
-import { parse, toVerses } from './divantext.ts';
+import { parse, toVerses, toText } from './divantext.ts';
 import { normalise } from './urdu.ts';
 import { diffLines, changed } from './diff.ts';
 import { commit, identity } from './git.ts';
@@ -33,6 +33,8 @@ const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
 const mayEdit = (u: any, poemId: number) => can(u, 'edit', 'works', { poemId });
 const mayReview = async (u: any, poemId: number) => ['mod-l1', 'admin'].includes(u?.role) && (await mayEdit(u, poemId));
 const OPEN = ['draft', 'returned'];
+// a draft whose text is still the text it started from is not shown anywhere (opening the editor is not a change)
+const CHANGED = `(r.status <> 'draft' OR r.content <> r.base_content)`;
 
 async function moderator(req: FastifyRequest, reply: FastifyReply) {
   const u = await sessionUser(req);
@@ -131,7 +133,7 @@ export function moderationRoutes(app: FastifyInstance) {
     const { rows } = await pool.query(
       `SELECT r.id, r.entity_id, r.status, r.summary, r.author_id, r.author_email, r.reviewer_email, r.updated_at, p.title, p.url
        FROM revisions r JOIN poems p ON p.id = r.entity_id
-       WHERE r.entity = 'work' AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned')))
+       WHERE r.entity = 'work' AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned') AND ${CHANGED}))
        ORDER BY r.updated_at DESC LIMIT 300`, [u.id]);
     const strip = ({ author_id, ...r }: any) => ({ ...r, id: Number(r.id) });
     const review = [];
@@ -149,7 +151,7 @@ export function moderationRoutes(app: FastifyInstance) {
     if (!cur) return reply.code(404).send({ error: 'کلام نہیں ملا' });
     const { rows } = await pool.query(
       `SELECT id, version, base_version, status, summary, author_email, reviewer_email, publisher_email, created_at, published_at
-       FROM revisions WHERE entity = 'work' AND entity_id = $1 ORDER BY coalesce(published_at, created_at) DESC`, [cur.poem.id]);
+       FROM revisions r WHERE entity = 'work' AND entity_id = $1 AND ${CHANGED} ORDER BY coalesce(published_at, created_at) DESC`, [cur.poem.id]);
     return { work: cur.poem, version: cur.version, content: cur.content, history: rows.map((r) => ({ ...r, id: Number(r.id) })),
       may: { edit: await mayEdit(u, cur.poem.id) } };
   });
@@ -192,6 +194,14 @@ export function moderationRoutes(app: FastifyInstance) {
     const content = String(req.body?.content ?? '').replace(/\r\n?/g, '\n');
     if (!toVerses(parse(content)).length) return reply.code(400).send({ error: 'متن میں کوئی شعر یا پیراگراف نہیں' });
     if (content.length > 500_000) return reply.code(400).send({ error: 'متن بہت لمبا ہے' });
+    // no change from the text it started from (compared as Divan text, so layout-only differences don't count):
+    // a plain draft is dropped rather than kept
+    const same = toText(parse(content)) === toText(parse(r.base_content));
+    if (same && r.status === 'draft') {
+      await pool.query('DELETE FROM revisions WHERE id = $1', [r.id]);
+      return { discarded: true };
+    }
+    if (same) return reply.code(400).send({ error: 'متن میں کوئی تبدیلی نہیں' });
     const summary = String(req.body?.summary ?? '').trim().slice(0, 500) || null;
     await pool.query('UPDATE revisions SET content = $2, summary = $3, updated_at = now() WHERE id = $1', [r.id, content, summary]);
     await event(r.id, u, 'saved');
@@ -238,6 +248,7 @@ export function moderationRoutes(app: FastifyInstance) {
     const { rows } = await pool.query(
       `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.version, p.title, p.url
        FROM revision_events e JOIN revisions r ON r.id = e.revision_id JOIN poems p ON p.id = r.entity_id
+       WHERE ${CHANGED}
        ORDER BY e.at DESC, e.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`);
     return { page, entries: rows.map((r) => ({ ...r, revision: Number(r.revision) })) };
   });
