@@ -1,41 +1,144 @@
 ---
+// Search: poets/writers by name and books/chapters by title (first page), then the content results, paged
 import Base from '../layouts/Base.astro';
 import Seg from '../components/Seg.astro';
 import { api } from '../lib/api';
-import { ud, highlighter, parts, excerpt } from '../lib/urdu';
+import { ud, years, highlighter, parts, excerpt } from '../lib/urdu';
 
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
+// one or more poets/writers to search within (?poet=1&poet=2, or ?poet=1,2)
+const poetIds = [...new Set(Astro.url.searchParams.getAll('poet').flatMap((v) => v.split(',')).map(Number).filter((n) => n > 0))];
 const pageNo = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
-const res = q ? await api(`/api/search?q=${encodeURIComponent(q)}&page=${pageNo}`) : null;
+const res = q ? await api(`/api/search?q=${encodeURIComponent(q)}&page=${pageNo}${poetIds.length ? `&poet=${poetIds.join(',')}` : ''}`) : null;
+// every poet/writer for the name box (382; filtered in the browser)
+const allPoets = res ? ((await api('/api/poets')) ?? []).map((p: any) => ({ id: p.id, name: p.nickname })) : [];
 const pages = res ? Math.ceil(res.total / res.pageSize) : 0;
 const re = highlighter(q);
 const hl = (t: string) => parts(t, re).map((s, i): [string, string] => [s, i % 2 ? 'mark' : '']);
 const open = (url: string) => `${url}?hl=${encodeURIComponent(q)}`;
-const link = (n: number) => `/search?q=${encodeURIComponent(q)}&page=${n}`;
+const link = (n: number, poets: number[] = poetIds) => `/search?q=${encodeURIComponent(q)}${poets.length ? `&poet=${poets.join(',')}` : ''}${n > 1 ? `&page=${n}` : ''}`;
+// author chips: the selected ones first, then the authors the results come from
+const chips = res ? [...res.selected.map((p: any) => ({ ...p, n: res.authors.find((a: any) => a.id === p.id)?.n ?? 0 })),
+  ...res.authors.filter((a: any) => !poetIds.includes(a.id))] : [];
+// numbered pages: first, last, and two either side of the current one; gaps shown as …
+const numbers = (() => {
+  const keep = new Set([1, pages, pageNo - 2, pageNo - 1, pageNo, pageNo + 1, pageNo + 2].filter((n) => n >= 1 && n <= pages));
+  const sorted = [...keep].sort((a, b) => a - b), out: (number | null)[] = [];
+  sorted.forEach((n, i) => { if (i && n - sorted[i - 1] > 1) out.push(null); out.push(n); });
+  return out;
+})();
+const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.total, pageNo * res.pageSize) : 0;
 ---
 <Base title={q ? `تلاش: ${q}` : 'تلاش'} q={q}>
-  {!q && <p class="muted">اوپر کے خانے میں شعر، لفظ یا عبارت لکھیں۔ پوری عبارت کے لیے اسے "…" میں لکھیں۔</p>}
+  {!q && <p class="muted">اوپر کے خانے میں شاعر کا نام، شعر، لفظ یا عبارت لکھیں۔ پوری عبارت کے لیے اسے "…" میں لکھیں۔</p>}
   {res && (
     <>
       <h1>تلاش: {q}</h1>
-      <p class="muted">{res.total ? `${ud(res.total)} نتائج` : 'کوئی نتیجہ نہیں ملا۔ کم الفاظ یا کلیدی لفظ آزمائیں۔'}</p>
-      {res.results.map((r: any) => (
-        <div class="result">
-          <a href={open(r.url)}><Seg s={hl(r.title)} /></a> · <a class="muted" href={r.poet_url}>{r.poet}</a>
-          {r.snippet.length > 0 && (
-            <a class="snippet" href={open(r.url)}>
-              {r.prose ? <p><Seg s={hl(excerpt(r.snippet[0], re))} /></p> : r.snippet.map((l: string) => <p><Seg s={hl(l)} /></p>)}
-            </a>
-          )}
-        </div>
-      ))}
-      {pages > 1 && (
-        <nav class="pager">
-          {pageNo > 1 && <a href={link(pageNo - 1)}>‹ پچھلا</a>}
-          <span class="muted">صفحہ {ud(pageNo)} از {ud(pages)}</span>
-          {pageNo < pages && <a href={link(pageNo + 1)}>اگلا ›</a>}
-        </nav>
+
+      {res.poets.length > 0 && (
+        <section class="search-group">
+          <h2>شعرا و ادبا <small class="muted">{ud(res.poets.length)}</small></h2>
+          <div class="poets">
+            {res.poets.map((p: any) => (
+              <div class="poet-result">
+                <a class="poet-card" href={p.url}><Seg s={hl(p.nickname)} /><small>{years(p)}</small></a>
+                <a class="muted small" href={link(1, [p.id])}>{ud(p.works)} کلام میں «{q}»</a>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
+
+      {res.books.length > 0 && (
+        <section class="search-group">
+          <h2>کتابیں اور ابواب <small class="muted">{ud(res.books.length)}</small></h2>
+          <ul class="book-results">
+            {res.books.map((b: any) => (
+              <li><a href={b.url}><Seg s={hl(b.title)} /></a> · <a class="muted" href={b.poet_url}>{b.poet}</a> <small class="muted">({ud(b.works)})</small></li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <section class="search-group">
+        <h2>کلام <small class="muted">{ud(res.total)}</small></h2>
+        {chips.length > 0 && (
+          <form method="get" action="/search" class="author-filter" id="author-filter">
+            <input type="hidden" name="q" value={q} />
+            <p class="muted">شاعر یا ادیب کے لحاظ سے محدود کریں:</p>
+            <div class="author-chips">
+              {chips.map((a: any, i: number) => (
+                <label class={`chip${i >= 12 && !poetIds.includes(a.id) ? ' extra' : ''}`}>
+                  <input type="checkbox" name="poet" value={a.id} checked={poetIds.includes(a.id)} />
+                  {a.nickname} <small>{ud(a.n)}</small>
+                </label>
+              ))}
+              {chips.length > 12 && <button type="button" class="chip more" onclick="this.parentElement.classList.add('all'); this.remove()">مزید {ud(chips.length - 12)}</button>}
+            </div>
+            <div class="author-find">
+              <input id="author-name" data-urdu placeholder="کسی اور شاعر یا ادیب کا نام" autocomplete="off" aria-label="شاعر کا نام" />
+              <button type="button" class="in-box-btn" data-urdu-rom="author-name" title="رومن حروف سے اردو">اب</button>
+              <button type="button" class="in-box-btn" data-urdu-kb="author-name" title="اردو کی بورڈ" aria-label="اردو کی بورڈ">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>
+              </button>
+              <div class="author-suggest" id="author-suggest" hidden></div>
+            </div>
+            <p class="filter-actions">
+              <button type="submit">نتائج محدود کریں</button>
+              {poetIds.length > 0 && <a href={link(1, [])}>سب شعرا میں تلاش</a>}
+            </p>
+            <script type="application/json" id="all-poets" set:html={JSON.stringify(allPoets)} />
+          </form>
+        )}
+        <p class="muted center">
+          {res.total ? (pages > 1 ? `نتائج ${ud(from)}–${ud(to)} از ${ud(res.total)}` : `${ud(res.total)} نتائج`)
+            : 'کلام میں کوئی نتیجہ نہیں ملا۔ کم الفاظ یا کلیدی لفظ آزمائیں۔'}
+        </p>
+        {res.results.map((r: any) => (
+          <div class="result">
+            <a href={open(r.url)}><Seg s={hl(r.title)} /></a> · <a class="muted" href={r.poet_url}>{r.poet}</a>
+            {r.snippet.length > 0 && (
+              <a class="snippet" href={open(r.url)}>
+                {r.prose ? <p><Seg s={hl(excerpt(r.snippet[0], re))} /></p> : r.snippet.map((l: string) => <p><Seg s={hl(l)} /></p>)}
+              </a>
+            )}
+          </div>
+        ))}
+        {pages > 1 && (
+          <nav class="pager" aria-label="صفحات">
+            {pageNo > 1 ? <a href={link(pageNo - 1)} rel="prev">‹ پچھلا</a> : <span />}
+            <span class="pages">
+              {numbers.map((n) => n === null ? <span class="gap">…</span>
+                : n === pageNo ? <span class="current" aria-current="page">{ud(n)}</span>
+                : <a href={link(n)}>{ud(n)}</a>)}
+            </span>
+            {pageNo < pages ? <a href={link(pageNo + 1)} rel="next">اگلا ›</a> : <span />}
+          </nav>
+        )}
+      </section>
     </>
   )}
+  <script is:inline>
+    // author filter: ticking a chip applies it; the name box suggests any poet/writer (Urdu-normalised)
+    (() => {
+      const form = document.getElementById('author-filter'); if (!form) return;
+      form.addEventListener('change', (e) => { if (e.target.name === 'poet') form.submit(); });
+      const poets = JSON.parse(document.getElementById('all-poets').textContent);
+      const norm = (s) => s.normalize('NFC').replace(/[\u064B-\u0652\u0654\u0670\u0614]/g, '').replace(/[يىئ]/g, 'ی').replace(/ك/g, 'ک').replace(/[هۂ]/g, 'ہ').replace(/[أإ]/g, 'ا');
+      const box = document.getElementById('author-name'), list = document.getElementById('author-suggest');
+      const add = (p) => {
+        const i = document.createElement('input'); i.type = 'hidden'; i.name = 'poet'; i.value = p.id;
+        form.append(i); form.submit();
+      };
+      box.addEventListener('input', () => {
+        const t = norm(box.value.trim());
+        const hits = t ? poets.filter((p) => norm(p.name).includes(t)).slice(0, 12) : [];
+        list.replaceChildren(...hits.map((p) => {
+          const b = document.createElement('button'); b.type = 'button'; b.textContent = p.name; b.onclick = () => add(p); return b;
+        }));
+        list.hidden = !hits.length;
+      });
+      box.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); list.querySelector('button')?.click(); } });
+    })();
+  </script>
 </Base>

@@ -54,7 +54,7 @@ Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DI
 |---|---|
 | `GET /api/poets` | all poets |
 | `GET /api/page?url=/p238/...` | the poet, category or poem at a site URL (breadcrumbs, children, verses, prev/next) |
-| `GET /api/search?q=&poet=&page=` | poems containing all words (or a `"quoted phrase"`), Urdu-normalised; exact phrase first; each with the best-matching couplet or paragraph (`snippet`) |
+| `GET /api/search?q=&poet=1,2&page=` | poems containing all words (or a `"quoted phrase"`), Urdu-normalised; exact phrase first; each with the best-matching couplet or paragraph (`snippet`); optionally only some poets/writers; plus `authors` (who the results come from, with counts), and on page 1 `poets` (by name) and `books` (books/chapters by title) |
 | `GET /api/word?w=` | one word's meanings and pronunciation from the local Wiktionary data (Urdu, Persian, Arabic in that order; English meanings; Urdu equivalents via English when Urdu Wiktionary has none) |
 | `/api/auth/*` | accounts: sign-up, sign-in (returns a Bearer token), profile, password, delete |
 | `/api/library/*` | the signed-in reader's library: toggle poets, works, couplets and words; list with full paths; notes |
