@@ -12,6 +12,11 @@
     "@astrojs/node": "^11.1.7",
     "@fontsource/noto-naskh-arabic": "^5.3.0",
     "@fontsource/noto-nastaliq-urdu": "^5.3.0",
+    "@tiptap/core": "^3.31.4",
+    "@tiptap/extension-document": "^3.31.4",
+    "@tiptap/extension-text": "^3.31.4",
+    "@tiptap/extensions": "^3.31.4",
+    "@tiptap/pm": "^3.31.4",
     "astro": "^7.3.8"
   }
 }
