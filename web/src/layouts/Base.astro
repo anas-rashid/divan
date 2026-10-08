@@ -35,7 +35,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         <a class="wordmark" href="/">دیوان</a>
         <form class="search-form" action="/search" method="get" role="search">
           <input type="search" name="q" id="q" value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
-          <button type="button" id="kb-toggle" aria-label="اردو کی بورڈ" aria-pressed="false" title="اردو کی بورڈ (فونیٹک ٹائپنگ)">
+          <button type="button" id="rom-toggle" class="in-box" aria-label="رومن حروف سے اردو" aria-pressed="false" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
+          <button type="button" id="kb-toggle" class="in-box" aria-label="اردو کی بورڈ" aria-pressed="false" title="اردو کی بورڈ">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>
           </button>
         </form>
@@ -63,15 +64,20 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         try { localStorage.setItem('divan-font', root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh'); } catch (e) {}
         label();
       };
-      // Urdu keyboard, Gboard/Windows Urdu layout: on-screen keys, and physical keys by position while open
+      // Urdu on-screen keyboard, Gboard/Windows Urdu layout
       const BASE = [[...'طصھدٹپتبجح'], [...'مورنلہاکی'], [...'قفےسشغع']];
       const SHIFT = [['ظ','ض','ذ','ڈ','ث','ّ','ۃ','ـ','چ','خ'], ['ژ','ز','ڑ','ں','ۂ','ء','آ','گ',''], ['','','ۓ','','ؤ','ئ','']];
-      const KEYS = {}; // KeyQ -> [base, shift]
-      ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'].forEach((r, i) => [...r].forEach((c, j) => (KEYS['Key' + c] = [BASE[i][j], SHIFT[i][j]])));
-      const PUNCT = { Comma: '،', Period: '۔', Semicolon: '؛', Slash: '؟' };
-      const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle');
+      // Roman -> Urdu (phonetic) typing, its own toggle
+      const PHONETIC = {
+        q:'ق', w:'و', e:'ع', r:'ر', t:'ت', y:'ے', u:'ء', i:'ی', o:'ہ', p:'پ',
+        a:'ا', s:'س', d:'د', f:'ف', g:'گ', h:'ح', j:'ج', k:'ک', l:'ل',
+        z:'ز', x:'ش', c:'چ', v:'ط', b:'ب', n:'ن', m:'م',
+        A:'آ', T:'ٹ', D:'ڈ', R:'ڑ', N:'ں', Z:'ذ', S:'ص', G:'غ', H:'ھ', K:'خ', C:'ث', V:'ظ', X:'ژ', J:'ض', I:'ئ', O:'ۂ', Y:'ؤ',
+        ',':'،', '.':'۔', '?':'؟', ';':'؛',
+      };
+      const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle'), romBtn = document.getElementById('rom-toggle');
       let shift = false;
-      const key = (ch, cls = '') => ch ? `<button type="button" data-ch="${ch}"${cls}>${ch}</button>` : '';
+      const key = (ch) => ch ? `<button type="button" data-ch="${ch}">${ch}</button>` : '';
       const render = () => {
         const L = shift ? SHIFT : BASE;
         kb.innerHTML = `<div>${L[0].map((c) => key(c)).join('')}</div><div>${L[1].map((c) => key(c)).join('')}</div>` +
@@ -99,11 +105,11 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       kbBtn.onclick = () => {
         kb.hidden = !kb.hidden; kbBtn.setAttribute('aria-pressed', String(!kb.hidden)); q.focus();
       };
+      romBtn.onclick = () => { romBtn.setAttribute('aria-pressed', String(romBtn.getAttribute('aria-pressed') !== 'true')); q.focus(); };
       q.addEventListener('keydown', (ev) => {
-        if (kb.hidden || ev.ctrlKey || ev.metaKey || ev.altKey) return;
-        const k = KEYS[ev.code], ch = k ? k[ev.shiftKey ? 1 : 0] : PUNCT[ev.code];
-        if (k || ch) ev.preventDefault();
-        if (ch) insert(ch);
+        if (romBtn.getAttribute('aria-pressed') !== 'true' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
+        const ch = PHONETIC[ev.key];
+        if (ch) { ev.preventDefault(); insert(ch); }
       });
 
       document.getElementById('theme-toggle').onclick = () => {

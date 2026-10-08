@@ -1,4 +1,5 @@
 /* Divan styles: Ganjoor's look (palette, gold pills, centred couplets with ✤), RTL, Naskh default. */
+[hidden] { display: none !important; } /* layout rules (e.g. .site-header .wrap flex) must not unhide */
 :root {
   --bg: #fbf6ea; --paper: #fffdf7; --poem: #f6edd6; --inner: #f6efe3; --nested: #eee3d0;
   --ink: #17130f; --muted: #635543; --lapis: #0d1d30; --gold: #b88828; --gold-light: #dfcd9f;
@@ -34,7 +35,7 @@ a:hover { color: var(--brand); }
 .search-form input, .toggles button {
   font: inherit; border: 1.5px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 10px;
 }
-.search-form input { flex: 1; padding: 4px 14px; padding-inline-end: 40px; }
+.search-form input { flex: 1; padding: 4px 14px; padding-inline-end: 76px; }
 .search-form input:focus { outline: none; border-color: var(--gold); }
 .toggles { display: flex; gap: 6px; }
 .toggles button { padding: 2px 12px; cursor: pointer; font-size: .85rem; }
@@ -108,9 +109,10 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 h1 + .muted { text-align: center; margin-top: 0; }
 
 /* Urdu keyboard */
-#kb-toggle { position: absolute; inset-inline-end: 8px; top: 50%; transform: translateY(-50%); display: flex; padding: 4px; border: 0; background: none; color: var(--muted, currentColor); opacity: .7; cursor: pointer; border-radius: 6px; }
-#kb-toggle:hover { opacity: 1; }
-#kb-toggle[aria-pressed='true'] { color: var(--brand); opacity: 1; }
+.in-box { position: absolute; inset-inline-end: 8px; top: 50%; transform: translateY(-50%); display: flex; padding: 4px; border: 0; background: none; color: var(--muted, currentColor); opacity: .7; cursor: pointer; border-radius: 6px; }
+#rom-toggle { inset-inline-end: 38px; font: 600 .95rem/1 'Noto Naskh Arabic', serif; }
+.in-box:hover { opacity: 1; }
+.in-box[aria-pressed='true'] { color: var(--brand); opacity: 1; }
 .site-header .kb:not([hidden]) { display: block; padding-bottom: 10px; } /* not the header's flex row */
 .kb div { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 4px; }
 .kb button {
