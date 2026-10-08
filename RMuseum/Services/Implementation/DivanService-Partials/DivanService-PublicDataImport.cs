@@ -45,7 +45,7 @@ namespace RMuseum.Services.Implementation
         /// <param name="useHttp">true: fetch over HTTP (location is a base URL). false: read from a local folder (location is a path).</param>
         /// <param name="location">base URL or local folder path of the exported data tree</param>
         /// <param name="poetId">0 imports every poet in the export's manifest; a specific id imports only that poet — useful on a slow connection, or when a developer only needs one poet's data for local testing</param>
-        public RServiceResult<bool> StartImportFromPublicDataRepo(bool useHttp, string location, int poetId = 0)
+        public RServiceResult<bool> StartImportFromPublicDataRepo(bool useHttp, string location, int poetId = 0, Guid userId = default)
         {
             try
             {
@@ -102,6 +102,12 @@ namespace RMuseum.Services.Implementation
                                 await jobProgressServiceEF.UpdateJob(job.Id, 99, "Regenerating century groupings");
                                 await _RegenerateHalfCenturies(context);
                                 _memoryCache.Remove("divan/centuries"); // same cache key GetCenturiesAsync/the "periods" endpoint use
+
+                                // divan: poet/category pages are imported with empty HtmlText (upstream fills it
+                                // with a separate admin TOC job); generate the tables of contents now so poet
+                                // and category pages list their works. Needs a real user for the page edit records.
+                                if (userId != Guid.Empty)
+                                    await _RegenerateTOCsAsync(userId, context, jobProgressServiceEF);
 
                                 await jobProgressServiceEF.UpdateJob(job.Id, 100, "", true);
                             }

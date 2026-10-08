@@ -2269,7 +2269,8 @@ namespace RMuseum.Controllers
         {
             try
             {
-                var res = _divanService.StartImportFromPublicDataRepo(request.UseHttp, request.Location, request.PoetId);
+                Guid userId = new Guid(User.Claims.FirstOrDefault(c => c.Type == "UserId").Value);
+                var res = _divanService.StartImportFromPublicDataRepo(request.UseHttp, request.Location, request.PoetId, userId);
                 if (!string.IsNullOrEmpty(res.ExceptionString))
                     return BadRequest(res.ExceptionString);
                 return Ok();
