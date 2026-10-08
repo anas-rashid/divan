@@ -5,6 +5,7 @@
 //   GET /api/word?w=            Wiktionary meanings and pronunciation (sidebar)
 //   /api/auth/*                  accounts (see auth.ts)
 //   /api/admin/*                 admin panel (see admin.ts)
+//   /api/library/*               a reader's saved poets, works, couplets and words (see library.ts)
 //   GET /health
 import Fastify from 'fastify';
 import { pool } from './db.ts';
@@ -13,6 +14,7 @@ import { lookup, PUNCT } from './dictionary.ts';
 import { authRoutes } from './auth.ts';
 import { adminRoutes } from './admin.ts';
 import { permissionRoutes } from './permissions.ts';
+import { libraryRoutes } from './library.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -72,12 +74,12 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
            SELECT id AS root, id FROM categories WHERE parent_id = $1
            UNION ALL
            SELECT tree.root, c.id FROM categories c JOIN tree ON c.parent_id = tree.id)
-         SELECT c.url, c.title, count(p.id)::int AS poems
+         SELECT c.id, c.url, c.title, count(p.id)::int AS poems
          FROM categories c JOIN tree ON tree.root = c.id LEFT JOIN poems p ON p.category_id = tree.id
          GROUP BY c.id ORDER BY c.position, c.id`,
         [cat.id],
       ),
-      pool.query('SELECT url, title, radif_letter FROM poems WHERE category_id = $1 ORDER BY position, id', [cat.id]),
+      pool.query('SELECT id, url, title, radif_letter FROM poems WHERE category_id = $1 ORDER BY position, id', [cat.id]),
     ]);
     return {
       type: cat.parent_id === null ? 'poet' : 'category',
@@ -141,6 +143,7 @@ app.get<{ Querystring: { w?: string } }>('/api/word', async (req, reply) => {
 authRoutes(app);
 adminRoutes(app);
 permissionRoutes(app);
+libraryRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });

@@ -1,0 +1,133 @@
+---
+// میری لائبریری: the reader's saved poets and works, bookmarked couplets and saved words,
+// each with its full path in the site (poet » book » section » work) and a link to the couplet
+import Base from '../layouts/Base.astro';
+import { asUser, COOKIE } from '../lib/auth';
+import { ud } from '../lib/urdu';
+import { phraseParts, phraseRe } from '../lib/phrases';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/library');
+const token = Astro.cookies.get(COOKIE)!.value;
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData(), id = Number(f.get('id')) || 0;
+  if (f.get('act') === 'delete') await asUser(token, `/api/library/${id}/delete`, {});
+  if (f.get('act') === 'note') await asUser(token, `/api/library/${id}/note`, { note: f.get('note') });
+  return Astro.redirect(`/library#i${id}`, 303);
+}
+const lib = (await asUser(token, '/api/library')).data;
+const total = lib.poets.length + lib.poems.length + lib.couplets.length + lib.phrases.length + lib.words.length;
+// a bookmarked phrase shown inside its couplet: [before, phrase, after] per line
+const marked = (lines: string[], phrase: string) => phraseParts(lines, phrase).map((part, i) => {
+  if (!part) return [lines[i], '', ''];
+  const m = lines[i].match(phraseRe(part))!;
+  return [lines[i].slice(0, m.index), m[0], lines[i].slice(m.index! + m[0].length)];
+});
+const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != null ? `#c${item.poem.couplet}` : ''}` : '#');
+---
+<Base title="میری لائبریری">
+  <h1>{me.full_name || 'میری لائبریری'}</h1>
+  {me.bio && <p class="profile-bio">{me.bio}</p>}
+  <p class="muted center">میری لائبریری · {ud(total)} اندراجات · <a href="/account">پروفائل</a></p>
+
+  {total === 0 && (
+    <p class="muted center">ابھی کچھ محفوظ نہیں۔ کسی شاعر یا کلام پر "پسندیدہ" دبائیں، کسی شعر کے ساتھ 🔖 لگائیں، کوئی عبارت منتخب کر کے "نشان" لگائیں، یا لفظ منتخب کر کے "محفوظ" کریں۔</p>
+  )}
+
+  {lib.poets.length > 0 && (
+    <section class="lib-section">
+      <h2>پسندیدہ شعرا</h2>
+      <div class="poets">
+        {lib.poets.map((p: any) => p.poet && <a class="poet-card" id={`i${p.id}`} href={p.poet.url}>{p.poet.name}</a>)}
+      </div>
+    </section>
+  )}
+
+  {lib.poems.length > 0 && (
+    <section class="lib-section">
+      <h2>پسندیدہ کلام</h2>
+      <ul class="lib-list">
+        {lib.poems.map((p: any) => (
+          <li id={`i${p.id}`}>
+            {p.poem ? <>
+              <nav class="crumbs">{p.poem.path.map((c: any) => <span><a href={c.url}>{c.title}</a></span>)}</nav>
+              <a class="lib-title" href={p.poem.url}>{p.poem.title}</a>
+            </> : <span class="muted">یہ کلام اب دستیاب نہیں</span>}
+            <form method="post" class="lib-remove"><input type="hidden" name="id" value={p.id} /><button name="act" value="delete" aria-label="ہٹائیں">✕</button></form>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {lib.couplets.length > 0 && (
+    <section class="lib-section">
+      <h2>نشان زدہ اشعار</h2>
+      <ul class="lib-list">
+        {lib.couplets.map((c: any) => (
+          <li id={`i${c.id}`}>
+            {c.poem ? <>
+              <nav class="crumbs">{[...c.poem.path, { title: c.poem.title, url: c.poem.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
+              <a class="lib-couplet" href={at(c)}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
+            </> : <span class="muted">یہ شعر اب دستیاب نہیں</span>}
+            <form method="post" class="lib-note">
+              <input type="hidden" name="id" value={c.id} />
+              <input name="note" value={c.note ?? ''} placeholder="نوٹ" maxlength="1000" dir="auto" />
+              <button name="act" value="note">محفوظ</button>
+            </form>
+            <form method="post" class="lib-remove"><input type="hidden" name="id" value={c.id} /><button name="act" value="delete" aria-label="ہٹائیں">✕</button></form>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {lib.phrases.length > 0 && (
+    <section class="lib-section">
+      <h2>نشان زدہ عبارتیں</h2>
+      <ul class="lib-list">
+        {lib.phrases.map((p: any) => (
+          <li id={`i${p.id}`}>
+            {p.poem ? <>
+              <nav class="crumbs">{[...p.poem.path, { title: p.poem.title, url: p.poem.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
+              <a class="lib-couplet" href={at(p)}>{marked(p.lines, p.phrase).map(([a, m, z]) => <p>{a}{m && <span class="bmk">{m}</span>}{z}</p>)}</a>
+            </> : <span class="muted">یہ عبارت اب دستیاب نہیں</span>}
+            <form method="post" class="lib-note">
+              <input type="hidden" name="id" value={p.id} />
+              <input name="note" value={p.note ?? ''} placeholder="نوٹ" maxlength="1000" dir="auto" />
+              <button name="act" value="note">محفوظ</button>
+            </form>
+            <form method="post" class="lib-remove"><input type="hidden" name="id" value={p.id} /><button name="act" value="delete" aria-label="ہٹائیں">✕</button></form>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {lib.words.length > 0 && (
+    <section class="lib-section">
+      <h2>محفوظ الفاظ</h2>
+      <ul class="lib-list">
+        {lib.words.map((w: any) => (
+          <li id={`i${w.id}`}>
+            <button type="button" class="lib-word" data-word={w.word} title="معنی اور تلفظ">{w.word}</button>
+            {w.source && <>
+              <nav class="crumbs">{[...w.source.path, { title: w.source.title, url: w.source.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
+              {w.source.lines.length > 0 && <a class="lib-couplet small" href={at({ poem: w.source })}>{w.source.lines.map((l: string) => <p>{l}</p>)}</a>}
+            </>}
+            <form method="post" class="lib-note">
+              <input type="hidden" name="id" value={w.id} />
+              <input name="note" value={w.note ?? ''} placeholder="نوٹ" maxlength="1000" dir="auto" />
+              <button name="act" value="note">محفوظ</button>
+            </form>
+            <form method="post" class="lib-remove"><input type="hidden" name="id" value={w.id} /><button name="act" value="delete" aria-label="ہٹائیں">✕</button></form>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+  <script is:inline>
+    // a saved word opens the word sidebar (showWord lives in the layout)
+    document.querySelectorAll('.lib-word').forEach((b) => (b.onclick = () => showWord(b.dataset.word)));
+  </script>
+</Base>

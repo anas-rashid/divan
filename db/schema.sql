@@ -126,3 +126,23 @@ CREATE INDEX IF NOT EXISTS grants_user ON grants(user_id);
 -- profile (owner request): full name and bio, usually in Urdu
 ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name text;   -- up to 100 characters
 ALTER TABLE users ADD COLUMN IF NOT EXISTS bio text;         -- up to 1,000 characters
+-- personal library (api/src/library.ts): saved poets and works, bookmarked couplets and phrases, saved words
+CREATE TABLE IF NOT EXISTS library (
+    id         bigserial PRIMARY KEY,
+    user_id    bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    kind       text NOT NULL,                    -- poet | poem | couplet | phrase | word
+    poet_id    integer,                          -- poet
+    poem_id    integer,                          -- poem, couplet, phrase, or a word's source work
+    couplet    integer,                          -- couplet, or a word's source couplet
+    word       text,                             -- word
+    phrase     text,                             -- phrase: the bookmarked part of a couplet or paragraph
+    note       text,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+ALTER TABLE library ADD COLUMN IF NOT EXISTS phrase text;
+ALTER TABLE library DROP CONSTRAINT IF EXISTS library_kind_check;
+ALTER TABLE library ADD CONSTRAINT library_kind_check CHECK (kind IN ('poet', 'poem', 'couplet', 'phrase', 'word'));
+DROP INDEX IF EXISTS library_items;
+CREATE UNIQUE INDEX IF NOT EXISTS library_places ON library (user_id, kind, coalesce(poet_id, 0), coalesce(poem_id, 0), coalesce(couplet, -1)) WHERE kind IN ('poet', 'poem', 'couplet');
+CREATE UNIQUE INDEX IF NOT EXISTS library_phrases ON library (user_id, poem_id, couplet, phrase) WHERE kind = 'phrase';
+CREATE UNIQUE INDEX IF NOT EXISTS library_words ON library (user_id, word) WHERE kind = 'word';
