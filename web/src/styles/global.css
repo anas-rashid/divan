@@ -187,6 +187,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
   background: rgb(14 17 17 / .92); box-shadow: 0 4px 14px rgb(0 0 0 / .25); }
 .selmenu[hidden] { display: none; }
 .selmenu button { font: inherit; font-size: .85rem; color: #f3ead8; background: none; border: 0; border-radius: 7px; padding: 2px 10px; cursor: pointer; }
+.selmenu .plus::before { content: '+ '; font-weight: 700; color: #c9a050; }
 .selmenu button:hover, .selmenu button:focus-visible { background: rgb(201 160 80 / .25); outline: none; }
 
 /* admin panel */
@@ -218,7 +219,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .save::before { content: '♡ '; color: var(--brand); }
 .save[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
 .save[aria-pressed='true']::before { content: '♥ '; }
-.dict .save { margin-bottom: 6px; }
+/* word book (ذخیرۂ الفاظ): + to add, ✓ when added (hearts are for poets and works) */
+.wordbook { font: inherit; font-size: .85rem; padding: 1px 14px; margin-bottom: 6px; border: 1.5px solid var(--border); border-radius: 999px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.wordbook::before { content: '+ '; font-weight: 700; color: var(--gold); }
+.wordbook[aria-pressed='true'] { border-color: var(--gold); color: var(--gold); }
+.wordbook[aria-pressed='true']::before { content: '✓ '; }
 .couplet, .poem .para, .poem .single { position: relative; }
 .bm { position: absolute; inset-inline-end: -26px; top: .5em; width: 20px; height: 22px; padding: 0; border: 0; background: none; cursor: pointer;
   opacity: 0; transition: opacity .15s; user-select: none; }
