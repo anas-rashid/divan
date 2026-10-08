@@ -21,6 +21,7 @@ const groups = queue ? [
 <Base title="موڈریشن">
   <h1>موڈریشن</h1>
   <ModNav current={showLog ? 'log' : 'queue'} />
+  {Astro.url.searchParams.has('unchanged') && <p class="form-done" role="status">متن میں کوئی تبدیلی نہیں تھی، اس لیے مسودہ نہیں رکھا گیا۔</p>}
   {groups.map(([title, items, empty]) => (
     <section class="lib-section">
       <h2>{title} <small class="muted">{ud(items.length)}</small></h2>

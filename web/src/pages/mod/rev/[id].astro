@@ -15,6 +15,7 @@ if (Astro.request.method === 'POST') {
   const f = await Astro.request.formData(), act = String(f.get('act'));
   let r: any = { ok: true, data: {} };
   if (act === 'save' || act === 'submit') r = await asUser(token, `/api/mod/revisions/${id}/save`, { content: f.get('content'), summary: f.get('summary') });
+  if (r.ok && r.data.discarded) return Astro.redirect('/mod?unchanged=1'); // nothing changed: no draft kept
   if (r.ok && act !== 'save') r = await asUser(token, `/api/mod/revisions/${id}/${act}`, { comment: f.get('comment') ?? '' });
   if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
   else done = act === 'save' ? 'محفوظ ہو گیا' : `${STATUS[r.data.status] ?? r.data.status}${r.data.version ? ` · ورژن ${ud(r.data.version)}` : ''}`;
@@ -64,8 +65,13 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
           <button type="button" class="tool" data-cmd="redo" title="تبدیلی دوبارہ">دوبارہ</button>
           <button type="button" class="tool" data-urdu-rom="dv-editor-host" title="رومن حروف سے اردو">اب</button>
           <button type="button" class="tool" data-urdu-kb="dv-editor-host" title="اردو کی بورڈ">کی بورڈ</button>
+          <span class="sep"></span>
+          <button type="button" class="tool" data-cmd="code" aria-pressed="false" title="ساتھ ساتھ دیوان متن (کوڈ) دیکھیں">کوڈ</button>
         </div>
-        <div id="dv-editor-host"></div>
+        <div class="editor-split">
+          <div id="dv-editor-host"></div>
+          <pre id="live-code" class="live-code" dir="rtl" hidden aria-label="دیوان متن"></pre>
+        </div>
         <p class="muted note">Enter: اسی شعر یا بند میں نیا مصرع · خالی مصرع پر Enter: نیا شعر · <a href="/mod/guide" target="_blank">لکھنے کا مکمل طریقہ</a></p>
       </div>
       <label class="mod-text" id="source-pane" hidden>متن (دیوان متن)
@@ -130,6 +136,11 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
       fillMeta(meta);
       document.getElementById('meta-add')!.onclick = () => row();
       const sync = () => { source.value = fromEditor(editor.getJSON(), readMeta()); };
+      // the code beside the editor (read-only; the سورس tab edits it), updated as you type
+      const code = document.getElementById('live-code')!;
+      const showCode = () => { if (!code.hidden) code.textContent = fromEditor(editor.getJSON(), readMeta()); };
+      editor.on('update', showCode);
+      rows.addEventListener('input', showCode);
       let tab = 'editor';
       document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((b) => (b.onclick = () => {
         if (b.dataset.tab === tab) return;
@@ -146,7 +157,8 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
       document.querySelector('.toolbar')!.addEventListener('click', (e) => {
         const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cmd]'); if (!b) return;
         const c = b.dataset.cmd!;
-        if (c === 'undo') editor.chain().focus().undo().run();
+        if (c === 'code') { code.hidden = !code.hidden; b.setAttribute('aria-pressed', String(!code.hidden)); code.parentElement!.classList.toggle('with-code', !code.hidden); showCode(); }
+        else if (c === 'undo') editor.chain().focus().undo().run();
         else if (c === 'redo') editor.chain().focus().redo().run();
         else if (c === 'h2' || c === 'h3') actions.heading(editor, c === 'h2' ? 2 : 3);
         else if (c === 'label') actions.label(editor, b.dataset.label!);
