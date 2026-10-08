@@ -30,11 +30,11 @@ a:hover { color: var(--brand); }
 /* header: logo + search + toggles in a gold-bordered bar */
 .site-header .wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; }
 .wordmark { font-family: 'Noto Nastaliq Urdu', serif; font-size: 2rem; line-height: 1.5; color: var(--brand); font-weight: 700; }
-.search-form { flex: 1; min-width: 200px; display: flex; }
+.search-form { flex: 1; min-width: 200px; display: flex; position: relative; }
 .search-form input, .toggles button {
   font: inherit; border: 1.5px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 10px;
 }
-.search-form input { flex: 1; padding: 4px 14px; }
+.search-form input { flex: 1; padding: 4px 14px; padding-inline-end: 40px; }
 .search-form input:focus { outline: none; border-color: var(--gold); }
 .toggles { display: flex; gap: 6px; }
 .toggles button { padding: 2px 12px; cursor: pointer; font-size: .85rem; }
@@ -108,8 +108,9 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 h1 + .muted { text-align: center; margin-top: 0; }
 
 /* Urdu keyboard */
-#kb-toggle { font: inherit; border: 1.5px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 10px; margin-inline-start: 6px; padding: 0 12px; cursor: pointer; }
-#kb-toggle[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
+#kb-toggle { position: absolute; inset-inline-end: 8px; top: 50%; transform: translateY(-50%); display: flex; padding: 4px; border: 0; background: none; color: var(--muted, currentColor); opacity: .7; cursor: pointer; border-radius: 6px; }
+#kb-toggle:hover { opacity: 1; }
+#kb-toggle[aria-pressed='true'] { color: var(--brand); opacity: 1; }
 .kb { padding-bottom: 10px; }
 .kb div { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 4px; }
 .kb button {
