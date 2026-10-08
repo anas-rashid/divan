@@ -60,6 +60,9 @@ const signinByIp = limiter(20, 15 * 60_000), signinByEmail = limiter(8, 15 * 60_
 function sha(t: string) {
   return createHash('sha256').update(t).digest('hex');
 }
+// a person's public name (shown on published content and in divan-data's git history): never their email
+export const publicName = (u: { id: unknown; full_name?: string | null }) => u.full_name?.trim() || `موڈریٹر ${u.id}`;
+
 export const publicUser = (u: any) => ({
   id: Number(u.id), email: u.email, role: u.role as string, created_at: u.created_at, full_name: u.full_name ?? '', bio: u.bio ?? '',
 });

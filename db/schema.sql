@@ -170,6 +170,9 @@ CREATE TABLE IF NOT EXISTS revisions (
     published_at timestamptz
 );
 ALTER TABLE revisions ADD COLUMN IF NOT EXISTS base_content text NOT NULL DEFAULT '';
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS reviewer_id bigint REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS commit text;     -- divan-data commit of a published version
+ALTER TABLE revisions ADD COLUMN IF NOT EXISTS credits jsonb;   -- public names at publishing: by, reviewedBy, publishedBy
 CREATE INDEX IF NOT EXISTS revisions_entity ON revisions(entity, entity_id);
 CREATE INDEX IF NOT EXISTS revisions_status ON revisions(status);
 CREATE UNIQUE INDEX IF NOT EXISTS revisions_version ON revisions(entity, entity_id, version) WHERE version IS NOT NULL;

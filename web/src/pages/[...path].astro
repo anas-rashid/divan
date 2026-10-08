@@ -136,6 +136,13 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
         {page.next ? <a href={page.next}>اگلا ›</a> : <span />}
         {page.prev ? <a href={page.prev}>‹ پچھلا</a> : <span />}
       </nav>
+      {page.divan && (
+        <p class="source divan-edit">
+          دیوان کا ورژن {ud(page.divan.version)} · ترمیم: {page.divan.by}{page.divan.reviewedBy && <> · جائزہ: {page.divan.reviewedBy}</>} · اشاعت: {page.divan.publishedBy}
+          · <bdi dir="ltr">{new Date(page.divan.at).toISOString().slice(0, 10)}</bdi>
+          {page.divan.commit_url && <> · <a href={page.divan.commit_url}>تبدیلی دیکھیں</a></>}
+        </p>
+      )}
       {page.poem.source_url && (
         <p class="source">ماخذ: <a href={page.poem.source_url}>ویکی ماخذ</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
       )}

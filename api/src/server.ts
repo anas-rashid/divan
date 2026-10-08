@@ -53,7 +53,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
 
   const poem = (await pool.query('SELECT * FROM poems WHERE url = $1', [url])).rows[0];
   if (poem) {
-    const [verses, poet, crumbs, siblings] = await Promise.all([
+    const [verses, poet, crumbs, siblings, edited] = await Promise.all([
       pool.query('SELECT vorder, position, couplet, text FROM verses WHERE poem_id = $1 ORDER BY vorder', [poem.id]),
       pool.query('SELECT id, url, nickname FROM poets WHERE id = $1', [poem.poet_id]),
       ancestors(poem.category_id),
@@ -62,9 +62,15 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
                 (SELECT url FROM poems WHERE category_id = $1 AND position > $2 ORDER BY position LIMIT 1) AS next`,
         [poem.category_id, poem.position],
       ),
+      // the latest Divan version (public names only) and its divan-data commit
+      pool.query(`SELECT version, published_at, credits, commit FROM revisions WHERE entity = 'work' AND entity_id = $1 AND status = 'published'
+                  ORDER BY version DESC LIMIT 1`, [poem.id]),
     ]);
+    const e = edited.rows[0];
+    const divan = e && { version: e.version, at: e.published_at, ...e.credits,
+      commit_url: e.commit ? (process.env.DIVAN_DATA_COMMIT_URL ?? 'https://git.anasrashid.net/anas/divan-data/commit/{sha}').replace('{sha}', e.commit) : null };
     const { search_text, ...rest } = poem;
-    return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0] };
+    return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan };
   }
 
   const cat = (await pool.query('SELECT * FROM categories WHERE url = $1', [url])).rows[0];
