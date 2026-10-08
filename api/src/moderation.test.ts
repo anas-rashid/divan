@@ -9,6 +9,7 @@ import { adminRoutes } from './admin.ts';
 import { permissionRoutes } from './permissions.ts';
 import { moderationRoutes } from './moderation.ts';
 import { diffLines } from './diff.ts';
+import { execFileSync } from 'node:child_process';
 import { pool } from './db.ts';
 
 after(() => pool.end());
@@ -20,6 +21,8 @@ test('line diff: kept, removed and added lines', () => {
 test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permissions, conflicts, history', async () => {
   const data = await mkdtemp(join(tmpdir(), 'divan-data-'));
   process.env.DIVAN_DATA_DIR = data;
+  const git = (...a: string[]) => execFileSync('git', ['-C', data, ...a], { encoding: 'utf8' });
+  git('init', '-q'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'start');
   const app = Fastify();
   authRoutes(app); adminRoutes(app); permissionRoutes(app); moderationRoutes(app);
   const run = Date.now();
@@ -31,6 +34,7 @@ test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permi
     return { ...s, id: s.user.id };
   };
   const admin = await person('admin', 'admin'), l1 = await person('l1', 'mod-l1'), l2 = await person('l2', 'mod-l2');
+  await call('POST', '/api/auth/profile', { full_name: 'نیا موڈریٹر' }, l2.token); // a public name; the L1 has none
   const other = await person('l1other', 'mod-l1'), reader = await person('reader', 'reader');
 
   // a Ghalib ghazal; the work is restored at the end
@@ -74,9 +78,20 @@ test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permi
     // admin publishes: version 1 in divan-data and on the site
     assert.deepEqual((await call('POST', `/api/mod/revisions/${id}/publish`, {}, admin.token)).json(), { status: 'published', version: 1 });
     const file = JSON.parse(await readFile(join(data, 'divan', poem.url.slice(1) + '.json'), 'utf8'));
-    assert.equal(file.Edited.by, `l2-${run}@divan.test`);
-    assert.equal(file.Edited.reviewedBy, `l1-${run}@divan.test`);
-    assert.equal(file.Edited.publishedBy, `admin-${run}@divan.test`);
+    // public names only in divan-data (it is public); a commit with the moderator as author and review trailers
+    assert.equal(file.Edited.by, 'نیا موڈریٹر');
+    assert.equal(file.Edited.reviewedBy, `موڈریٹر ${l1.id}`);
+    assert.equal(file.Edited.publishedBy, `موڈریٹر ${admin.id}`);
+    assert.ok(!JSON.stringify(file).includes('@'), 'no email addresses');
+    const log = git('log', '-1', '--format=%an <%ae>%n%B');
+    assert.match(log, new RegExp(`^نیا موڈریٹر <moderator-${l2.id}@users\\.noreply\\.divan>`));
+    assert.match(log, /\(ورژن 1\)/);
+    assert.match(log, new RegExp(`Reviewed-by: موڈریٹر ${l1.id} <moderator-${l1.id}@`));
+    assert.match(log, new RegExp(`Approved-by: موڈریٹر ${admin.id} <moderator-${admin.id}@`));
+    assert.ok(!log.includes('divan.test'), 'no real emails in git');
+    assert.deepEqual(git('show', '--name-only', '--format=', 'HEAD').trim().split('\n').sort(), [`divan${poem.url}.dtx`, `divan${poem.url}.json`]);
+    const committed = (await pool.query(`SELECT commit FROM revisions WHERE id = $1`, [id])).rows[0].commit;
+    assert.equal(committed, git('rev-parse', 'HEAD').trim(), 'the commit is recorded with the version');
     assert.ok((await readFile(join(data, 'divan', poem.url.slice(1) + '.dtx'), 'utf8')).includes(misra + ' (ترمیم)'));
     assert.equal((await pool.query('SELECT text FROM verses WHERE poem_id = $1 AND couplet = 1 AND position = $2', [poem.id, 'Left'])).rows[0].text, misra + ' (ترمیم)');
 

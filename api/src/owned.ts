@@ -31,7 +31,7 @@ export function fromPoem(poem: { Title: string; Verses: Verse[]; SourceUrl?: str
 
 // write a Divan-owned work (the .dtx and the generated .json); returns the paths written
 export async function writeOwned(dataDir: string, url: string, dtx: string,
-  edited: { by: string; at?: string; version?: number; reviewedBy?: string | null; publishedBy?: string }) {
+  edited: { by: string; at?: string; version?: number; revision?: number; reviewedBy?: string | null; publishedBy?: string }) {
   const doc = parse(dtx);
   const verses = toVerses(doc);
   if (!verses.length) throw new Error('the text has no verses or paragraphs');

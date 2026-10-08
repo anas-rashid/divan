@@ -5,7 +5,9 @@
 //   L1 moderator (grant covering the work): approves, returns (with a comment) or rejects; an L1's own draft
 //                goes straight to the admin step  -> approved
 //   admin: publishes (an admin's own draft publishes directly), returns or rejects
-// Publishing numbers the version, writes it to divan-data as Divan-owned content (owned.ts) and updates the site.
+// Admins are super moderators: they can edit, review and publish any work without grants.
+// Publishing numbers the version, writes it to divan-data as Divan-owned content (owned.ts), commits it there (git.ts)
+// and updates the site.
 // If another version was published after the draft started, publishing is refused until the draft is redone.
 //   GET  /api/mod/can?poem=                  what the reader may do on a work
 //   GET  /api/mod/queue                      my drafts, drafts to review, drafts to publish
@@ -23,6 +25,8 @@ import { fromPoem, writeOwned } from './owned.ts';
 import { parse, toVerses } from './divantext.ts';
 import { normalise } from './urdu.ts';
 import { diffLines, changed } from './diff.ts';
+import { commit, identity } from './git.ts';
+import { publicName } from './auth.ts';
 
 const dataDir = () => process.env.DIVAN_DATA_DIR ?? new URL('../../../divan-data', import.meta.url).pathname;
 const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
@@ -79,13 +83,22 @@ async function publish(r: any, u: any, comment?: string) {
     throw Object.assign(new Error('اس دوران اس کلام کا نیا ورژن شائع ہو چکا ہے۔ مسودہ واپس بھیج کر تازہ متن پر دوبارہ بنوائیں۔'), { code: 409 });
   const doc = parse(r.content), verses = toVerses(doc);
   const title = doc.meta['عنوان'] || cur.poem.title, version = cur.version + 1, at = new Date().toISOString();
-  // divan-data first (the published record), then the site's database
-  await writeOwned(dataDir(), cur.poem.url, r.content, { by: r.author_email, at, version, reviewedBy: r.reviewer_email, publishedBy: u.email });
+  // who did it, by public name (divan-data is public: never email addresses)
+  const people = async (id: unknown) => id ? (await pool.query('SELECT id, full_name FROM users WHERE id = $1', [id])).rows[0] ?? null : null;
+  const [author, reviewer] = await Promise.all([people(r.author_id), people(r.reviewer_id)]);
+  const who = (p: any) => p && { id: Number(p.id), name: publicName(p) };
+  const credits = { by: who(author)?.name ?? 'موڈریٹر', reviewedBy: who(reviewer)?.name ?? null, publishedBy: publicName(u) };
+  // divan-data first (the published record, committed to git), then the site's database
+  const files = await writeOwned(dataDir(), cur.poem.url, r.content, { ...credits, at, version, revision: Number(r.id) });
+  const trailers = [`Divan-Revision: ${r.id}`, `Divan-Version: ${version}`,
+    ...(reviewer ? [`Reviewed-by: ${identityOf(reviewer)}`] : []), `Approved-by: ${identityOf(u)}`];
+  const sha = await commit(dataDir(), files.map((f) => f.slice(dataDir().replace(/\/$/, '').length + 1)),
+    who(author) ?? { id: 0, name: 'موڈریٹر' }, `${title}: ${r.summary || 'ترمیم'} (ورژن ${version})\n\n${trailers.join('\n')}`);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await client.query(`UPDATE revisions SET status = 'published', version = $2, publisher_email = $3, published_at = $4, updated_at = now() WHERE id = $1`,
-      [r.id, version, u.email, at]);
+    await client.query(`UPDATE revisions SET status = 'published', version = $2, publisher_email = $3, published_at = $4, commit = $5, credits = $6, updated_at = now()
+                        WHERE id = $1`, [r.id, version, u.email, at, sha, credits]);
     await client.query('UPDATE poems SET title = $2, search_text = $3 WHERE id = $1',
       [r.entity_id, title, normalise([title, ...verses.map((v) => v.Text)].join(' '))]);
     await client.query('DELETE FROM verses WHERE poem_id = $1', [r.entity_id]);
@@ -103,6 +116,8 @@ async function publish(r: any, u: any, comment?: string) {
   await event(r.id, u, 'published', comment);
   return version;
 }
+
+const identityOf = (p: any) => identity({ id: Number(p.id), name: publicName(p) });
 
 export function moderationRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { poem?: string } }>('/api/mod/can', async (req) => {
@@ -202,7 +217,7 @@ export function moderationRoutes(app: FastifyInstance) {
         return { status: u.role === 'mod-l1' ? 'approved' : 'submitted' };
       }
       if (action === 'approve') {
-        await pool.query(`UPDATE revisions SET status = 'approved', reviewer_email = $2, updated_at = now() WHERE id = $1`, [r.id, u.email]);
+        await pool.query(`UPDATE revisions SET status = 'approved', reviewer_id = $3, reviewer_email = $2, updated_at = now() WHERE id = $1`, [r.id, u.email, u.id]);
         await event(r.id, u, 'approved', comment);
         return { status: 'approved' };
       }

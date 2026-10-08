@@ -26,7 +26,7 @@ if command -v flock >/dev/null && ! flock -n 9; then echo "$(date -u +%FT%TZ) sy
 echo "== $(date -u +%FT%TZ) divan sync"
 [ -d "$DATA_DIR/.git" ] || git clone -q https://github.com/anas-rashid/divan-data.git "$DATA_DIR"
 cd "$DATA_DIR"
-git pull -q --ff-only
+git pull -q --rebase   # keep commits made by publishing in the Divan app (git.ts)
 
 if [ "${DIVAN_DATA_PUSH:-0}" = 1 ]; then
   ./update.sh                                   # fetch + rebuild, commit and push if the data changed
