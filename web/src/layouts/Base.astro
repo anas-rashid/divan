@@ -41,6 +41,9 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           </button>
         </form>
         <div class="toggles">
+          {Astro.locals.user
+            ? <a class="account-link" href="/account" title={Astro.locals.user.email}>اکاؤنٹ</a>
+            : <a class="account-link" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`}>لاگ ان</a>}
           <button type="button" id="font-toggle" aria-label="خط بدلیں">نسخ</button>
           <button type="button" id="theme-toggle" aria-label="روشن یا تاریک">◐</button>
         </div>

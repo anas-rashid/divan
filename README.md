@@ -29,7 +29,7 @@ npm test                                # Urdu normaliser tests
 cd ../web && npm install && npm run build && npm start   # site on http://127.0.0.1:4200
 ```
 
-Settings: `DATABASE_URL` (API, default `postgres://divan:divan_local@localhost:5433/divan`), `PORT`/`HOST`; `API_URL` (web, default `http://127.0.0.1:4100`).
+Settings: `DATABASE_URL` (API, default `postgres://divan:divan_local@localhost:5433/divan`), `PORT`/`HOST`; `API_URL` (web, default `http://127.0.0.1:4100`); `SITE_HOSTS` (web, at build time: the site's hostnames, comma-separated, default `127.0.0.1,localhost`; form posts from other origins are refused).
 
 The import upserts, so re-running it after a divan-data sync applies the changes.
 

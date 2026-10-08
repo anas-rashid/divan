@@ -1,0 +1,63 @@
+---
+import Base from '../layouts/Base.astro';
+import { auth, COOKIE } from '../lib/auth';
+import { ud } from '../lib/urdu';
+
+const user = Astro.locals.user;
+if (!user) return Astro.redirect('/signin?next=/account');
+const token = Astro.cookies.get(COOKIE)!.value;
+let error = '', done = '';
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  const act = form.get('act');
+  if (act === 'signout') {
+    await auth('signout', { token });
+    Astro.cookies.delete(COOKIE, { path: '/' });
+    return Astro.redirect('/');
+  }
+  if (act === 'password') {
+    if (form.get('next') !== form.get('next2')) error = 'نئے پاس ورڈ ایک جیسے نہیں';
+    else {
+      const r = await auth('password', { token, body: { current: form.get('current'), next: form.get('next') } });
+      r.ok ? (done = 'پاس ورڈ بدل گیا۔ دوسرے آلات سے لاگ آؤٹ کر دیا گیا۔') : (error = r.data.error);
+    }
+  }
+  if (act === 'delete') {
+    const r = await auth('delete', { token, body: { password: form.get('password') } });
+    if (r.ok) {
+      Astro.cookies.delete(COOKIE, { path: '/' });
+      return Astro.redirect('/');
+    }
+    error = r.data.error;
+  }
+}
+const since = new Date(user.created_at);
+---
+<Base title="میرا اکاؤنٹ">
+  <h1>میرا اکاؤنٹ</h1>
+  <p class="muted center"><bdi dir="ltr">{user.email}</bdi> · رکنیت: {ud(since.getFullYear())}</p>
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {done && <p class="form-done" role="status">{done}</p>}
+
+  <form method="post" class="account-form">
+    <input type="hidden" name="act" value="signout" />
+    <button type="submit">لاگ آؤٹ</button>
+  </form>
+
+  <form method="post" class="account-form">
+    <h2>پاس ورڈ بدلیں</h2>
+    <input type="hidden" name="act" value="password" />
+    <label>موجودہ پاس ورڈ<input type="password" name="current" required autocomplete="current-password" dir="ltr" /></label>
+    <label>نیا پاس ورڈ<input type="password" name="next" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
+    <label>نیا پاس ورڈ دوبارہ<input type="password" name="next2" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
+    <button type="submit">پاس ورڈ بدلیں</button>
+  </form>
+
+  <form method="post" class="account-form danger">
+    <h2>اکاؤنٹ ختم کریں</h2>
+    <p class="muted">اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔</p>
+    <input type="hidden" name="act" value="delete" />
+    <label>پاس ورڈ<input type="password" name="password" required autocomplete="current-password" dir="ltr" /></label>
+    <button type="submit">اکاؤنٹ مستقل طور پر ختم کریں</button>
+  </form>
+</Base>

@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import { auth, setSession } from '../lib/auth';
+
+if (Astro.locals.user) return Astro.redirect('/account');
+let error = '', email = '';
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  email = String(form.get('email') ?? '');
+  const password = String(form.get('password') ?? '');
+  if (password !== form.get('password2')) error = 'دونوں پاس ورڈ ایک جیسے نہیں';
+  else {
+    const r = await auth('signup', { body: { email, password }, ip: Astro.clientAddress });
+    if (r.ok) {
+      setSession(Astro.cookies, r.data.token, Astro.url.protocol === 'https:');
+      return Astro.redirect('/account');
+    }
+    error = r.data.error ?? 'کچھ غلط ہو گیا';
+  }
+}
+---
+<Base title="نیا اکاؤنٹ">
+  <h1>نیا اکاؤنٹ</h1>
+  <form method="post" class="account-form">
+    {error && <p class="form-error" role="alert">{error}</p>}
+    <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>
+    <label>پاس ورڈ (کم از کم ۸ حروف)<input type="password" name="password" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
+    <label>پاس ورڈ دوبارہ<input type="password" name="password2" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
+    <button type="submit">اکاؤنٹ بنائیں</button>
+    <p class="muted">پہلے سے اکاؤنٹ ہے؟ <a href="/signin">لاگ ان کریں</a></p>
+  </form>
+</Base>
