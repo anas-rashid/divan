@@ -359,6 +359,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .tool { font: inherit; font-size: .85rem; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .tool:hover, .tool[aria-pressed='true'] { border-color: var(--brand); color: var(--brand); }
 .dv-editor { min-height: 20em; outline: none; margin: 8px 0; }
+/* Tiptap's own CSS turns ligatures off, which breaks Nastaliq (and Naskh's لا); keep the font's shaping */
+.ProseMirror.dv-editor { font-variant-ligatures: normal; font-feature-settings: normal; }
 .dv-editor:focus-within { border-color: var(--gold); }
 .dv-editor .unit { position: relative; margin: 0 0 10px; padding: 4px 8px; border-radius: 8px; border: 1px dashed transparent; }
 .dv-editor .unit:hover { border-color: var(--gold-light); }
