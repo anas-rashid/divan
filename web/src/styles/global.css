@@ -214,9 +214,10 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .grant-form legend { font-size: .85rem; padding: 0 6px; }
 .grant-form label.check { flex-direction: row; align-items: center; gap: 6px; }
 
-/* bookmarks: an Android-style bookmark icon (Material Design 'bookmark', Apache-2.0), grey outline when not set,
-   filled in the brand colour when set; drawn as a mask so it follows the theme. The word book is separate (+). */
-:root { --bm-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15-5-2.18L7 18V5h10v13z'/%3E%3C/svg%3E"); --bm-filled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z'/%3E%3C/svg%3E"); }
+/* bookmarks: our own rounded bookmark icon (soft corners and notch, like common app icon packs), a grey outline
+   when not set and filled in the brand colour when set; drawn as a mask so it follows the theme. The word book is
+   separate (+). */
+:root { --bm-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.5 3h9A2.5 2.5 0 0 1 19 5.5v14.6a1 1 0 0 1-1.55.83L12 17.3l-5.45 3.63A1 1 0 0 1 5 20.1V5.5A2.5 2.5 0 0 1 7.5 3z' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); --bm-filled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7.5 3h9A2.5 2.5 0 0 1 19 5.5v14.6a1 1 0 0 1-1.55.83L12 17.3l-5.45 3.63A1 1 0 0 1 5 20.1V5.5A2.5 2.5 0 0 1 7.5 3z' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 .bm-icon, .save::before, .bm::before, .bmk::after, .mark-fav::after, .mark-bm::after {
   content: ''; display: inline-block; width: 1.05em; height: 1.05em; vertical-align: -.18em; background-color: var(--muted);
   -webkit-mask: var(--bm-outline) center / contain no-repeat; mask: var(--bm-outline) center / contain no-repeat; user-select: none; }
