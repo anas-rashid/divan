@@ -48,6 +48,14 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       <div id="kb" class="wrap kb" hidden></div>
     </header>
     <main class="wrap"><slot /></main>
+    <div id="selmenu" class="selmenu" role="toolbar" aria-label="منتخب عبارت" hidden>
+      <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
+      <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
+      <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
+      <button type="button" data-act="share" title="اس عبارت کا لنک">شیئر</button>
+      <button type="button" data-act="quran" title="قرآن میں تلاش (tanzil.net)">قرآن</button>
+      <button type="button" data-act="google" title="گوگل میں تلاش">گوگل</button>
+    </div>
     <aside id="dict" class="dict" hidden aria-live="polite">
       <button type="button" class="dict-close" aria-label="بند کریں">✕</button>
       <div class="dict-body"></div>
@@ -258,20 +266,58 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         dictBody.replaceChildren(...out, src);
       }
       const TRIM = /["'«»()\[\]،۔؟؛!:.,\-–—_]+|^\s+|\s+$/g; // punctuation and dashes anywhere, outer spaces
-      let selTimer;
+      // selection in the reading text: Ganjoor-style menu by the selection; a single word also opens the sidebar
+      const menu = document.getElementById('selmenu');
+      const oneWord = (t) => { const w = t.replace(TRIM, '').replace(/\u0614/g, ''); return /^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w) ? w : null; };
+      let selText = '', selTimer;
+      const hideMenu = () => { menu.hidden = true; };
       document.addEventListener('selectionchange', () => {
         clearTimeout(selTimer);
         selTimer = setTimeout(() => {
           const sel = getSelection();
-          if (!sel || sel.isCollapsed || !main.contains(sel.anchorNode)) return;
-          const w = sel.toString().replace(TRIM, '').replace(/\u0614/g, ''); // drop the takhallus sign
-          if (/\s/.test(w)) return; // one word only
-          if (/^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w)) showWord(w);
+          const inText = sel && !sel.isCollapsed && main.contains(sel.anchorNode) && !sel.anchorNode.parentElement?.closest('form, input, textarea');
+          selText = inText ? sel.toString().replace(/\u0614/g, '').trim() : '';
+          if (!selText) return hideMenu();
+          const w = oneWord(selText);
+          menu.querySelector('[data-act=meaning]').hidden = !w;
+          menu.hidden = false;
+          // below the selection, centred, kept inside the viewport (absolute: moves with the page)
+          const r = sel.getRangeAt(0).getBoundingClientRect(), m = menu.getBoundingClientRect();
+          menu.style.top = `${r.bottom + scrollY + 8}px`;
+          menu.style.left = `${Math.max(8, Math.min(innerWidth - m.width - 8, r.left + r.width / 2 - m.width / 2)) + scrollX}px`;
+          if (w) showWord(w);
         }, 350);
       });
+      menu.onmousedown = (e) => e.preventDefault(); // keep the selection
+      const cite = () => { // "text\n— poet، title\nlink" for copying
+        const art = document.querySelector('[data-cite]');
+        return `${selText}\n— ${art?.dataset.cite ?? document.title}\n${location.origin}${location.pathname}`;
+      };
+      const flash = (b, msg) => { const t = b.textContent; b.textContent = msg; setTimeout(() => (b.textContent = t), 1200); };
+      menu.onclick = async (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        const q = /\s/.test(selText) ? `"${selText}"` : selText, enc = encodeURIComponent(selText);
+        switch (b.dataset.act) {
+          case 'meaning': showWord(oneWord(selText)); break;
+          case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
+          case 'quran': open(`https://tanzil.net/#search/quran/${enc}`, '_blank', 'noopener'); break;
+          case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;
+          case 'copy':
+            try { await navigator.clipboard.writeText(cite()); flash(b, 'کاپی ہو گیا'); } catch (err) { flash(b, 'ناکام'); }
+            break;
+          case 'share': { // this page with the selection highlighted (?hl=), as search results link
+            const url = `${location.origin}${location.pathname}?hl=${encodeURIComponent(q)}`;
+            if (navigator.share) navigator.share({ title: document.title, text: selText, url }).catch(() => {});
+            else try { await navigator.clipboard.writeText(url); flash(b, 'لنک کاپی ہو گیا'); } catch (err) { flash(b, 'ناکام'); }
+          }
+        }
+      };
       const closeDict = () => { dict.hidden = true; current = ''; document.body.classList.remove('dict-open'); };
       dict.querySelector('.dict-close').onclick = closeDict;
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !dict.hidden) closeDict(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key !== 'Escape') return;
+        if (!menu.hidden) hideMenu(); else if (!dict.hidden) closeDict();
+      });
 
       document.getElementById('theme-toggle').onclick = () => {
         const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
