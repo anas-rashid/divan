@@ -55,7 +55,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <main class="wrap"><slot /></main>
     <div id="selmenu" class="selmenu" role="toolbar" aria-label="منتخب عبارت" hidden>
       <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
-      <button type="button" data-act="saveword" title="میری لائبریری میں محفوظ کریں">محفوظ</button>
+      <button type="button" data-act="saveword" title="لفظ لغت کے ساتھ محفوظ کریں">محفوظ</button>
+      <button type="button" data-act="bookmark" title="اس عبارت پر نشان لگائیں">نشان</button>
       <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
       <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
       <button type="button" data-act="share" title="اس عبارت کا لنک">شیئر</button>
@@ -153,8 +154,11 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       }
       document.addEventListener('click', async (e) => {
         const b = e.target.closest('[data-save]'); if (!b) return;
-        const d = await save(JSON.parse(b.dataset.save));
-        if (d) b.setAttribute('aria-pressed', String(d.saved));
+        if (getSelection()?.toString().trim()) return; // selecting text, not pressing
+        if (b.dataset.confirm && !confirm(b.dataset.confirm)) return;
+        const item = JSON.parse(b.dataset.save), d = await save(item);
+        if (d && item.kind === 'phrase') location.reload(); // the highlight is drawn by the page
+        else if (d) b.setAttribute('aria-pressed', String(d.saved));
       });
       const wordSave = (w) => { // sidebar button, with the word's saved state
         const b = el('button', 'save', 'لفظ محفوظ کریں', { type: 'button', 'aria-pressed': 'false' });
@@ -306,6 +310,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
           const block = sel.anchorNode.parentElement?.closest('[data-c]');
           source = block ? { poemId: Number(block.closest('[data-poem]')?.dataset.poem) || undefined, couplet: Number(block.dataset.c) } : {};
           menu.querySelector('[data-act=saveword]').hidden = !w;
+          menu.querySelector('[data-act=bookmark]').hidden = !(source.poemId && Number.isInteger(source.couplet));
           menu.querySelector('[data-act=meaning]').hidden = !w;
           menu.hidden = false;
           // below the selection, centred, kept inside the viewport (absolute: moves with the page)
@@ -326,6 +331,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         const q = /\s/.test(selText) ? `"${selText}"` : selText, enc = encodeURIComponent(selText);
         switch (b.dataset.act) {
           case 'meaning': showWord(oneWord(selText)); break;
+          case 'bookmark': save({ kind: 'phrase', poemId: source.poemId, couplet: source.couplet, phrase: selText })
+            .then((d) => d && (d.saved ? location.reload() : flash(b, 'نشان پہلے سے تھا، ہٹا دیا'))); break;
           case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? 'محفوظ ہو گیا' : 'ہٹا دیا گیا')); break;
           case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
           case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;

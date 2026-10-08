@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { api } from '../lib/api';
+import { asUser, COOKIE } from '../lib/auth';
 import { centuryOf, centuryName, years, ud } from '../lib/urdu';
 
 type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null; pin_order: number | null };
@@ -15,6 +16,10 @@ for (const p of poets) {
 }
 const ordered = [...groups.entries()].sort(([a], [b]) => (a ?? 99) - (b ?? 99));
 const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.pin_order!);
+// poets whose works hold the signed-in reader's favourites or bookmarks
+const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
+const marked: number[] = token ? (await asUser(token, '/api/library/marks')).data.poets ?? [] : [];
+const card = (p: Poet) => `poet-card${marked.includes(p.id) ? ' mark-bm' : ''}`;
 ---
 <Base>
   <section class="hero">
@@ -29,7 +34,7 @@ const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.
       <h2>مقبول شعرا</h2>
       <div class="poets">
         {pinned.map((p) => (
-          <a class="poet-card" href={p.url}>{p.nickname}<small>{years(p)}</small></a>
+          <a class={card(p)} href={p.url}>{p.nickname}<small>{years(p)}</small></a>
         ))}
       </div>
     </section>
@@ -40,7 +45,7 @@ const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.
       <h2>{centuryName(century)}</h2>
       <div class="poets">
         {list.map((p) => (
-          <a class="poet-card" href={p.url}>
+          <a class={card(p)} href={p.url}>
             {p.nickname}
             <small>{years(p)}</small>
           </a>

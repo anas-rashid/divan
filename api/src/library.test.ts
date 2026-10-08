@@ -2,7 +2,7 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
 import { authRoutes } from './auth.ts';
-import { libraryRoutes, cleanWord } from './library.ts';
+import { libraryRoutes, cleanWord, cleanPhrase } from './library.ts';
 import { pool } from './db.ts';
 
 after(() => pool.end());
@@ -11,6 +11,8 @@ test('saved words are cleaned like the sidebar does', () => {
   assert.equal(cleanWord(' دل، '), 'دل');
   assert.equal(cleanWord('غالبؔ'), 'غالب');
   assert.equal(cleanWord('love'), null);
+  assert.equal(cleanPhrase('  وصال   یار '), 'وصال یار');
+  assert.equal(cleanPhrase('ی'), null);
   assert.equal(cleanWord(''), null);
 });
 
@@ -36,8 +38,19 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   assert.equal((await toggle({ kind: 'poet', poetId: 999999 })).statusCode, 404);
   assert.equal((await toggle({ kind: 'word', word: 'hello' })).statusCode, 400);
 
+  // phrases: part of a couplet (also across its two misras), must be in that couplet
+  const lines0 = (await pool.query('SELECT text FROM verses WHERE poem_id = $1 AND couplet = 0 ORDER BY vorder', [poem])).rows.map((r) => r.text);
+  const across = lines0[0].split(' ').slice(-2).join(' ') + ' ' + lines0[1].split(' ')[0];
+  assert.equal((await toggle({ kind: 'phrase', poemId: poem, couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') })).json().saved, true);
+  assert.equal((await toggle({ kind: 'phrase', poemId: poem, couplet: 0, phrase: across })).json().saved, true, 'across the two misras');
+  assert.equal((await toggle({ kind: 'phrase', poemId: poem, couplet: 0, phrase: 'یہ عبارت یہاں نہیں' })).statusCode, 400);
+  // marks for contents lists: the work, its book and its poet
+  const marks = (await call('GET', '/api/library/marks', undefined, t)).json();
+  assert.deepEqual(marks.poems[poem], { fav: true, bm: 4 }, 'two couplets and two phrases');
+  const book = (await pool.query(`SELECT id FROM categories WHERE url = '/p266/ghazal'`)).rows[0].id;
+  assert.ok(marks.categories.includes(book) && marks.poets.includes(266));
   // state for a page
-  assert.deepEqual((await call('GET', `/api/library/state?poet=266&poem=${poem}`, undefined, t)).json(), { poet: true, poem: true, couplets: [0, 2] });
+  assert.deepEqual((await call('GET', `/api/library/state?poet=266&poem=${poem}`, undefined, t)).json(), { poet: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }] });
 
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('وصال'), undefined, t)).json(), { word: true });
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('ہجر'), undefined, t)).json(), { word: false });
@@ -48,6 +61,8 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   assert.equal(lib.poets[0].poet.url, '/p266');
   assert.deepEqual(lib.poems[0].poem.path.map((c: any) => c.url), ['/p266', '/p266/ghazal'], 'poet » book path');
   assert.equal(lib.couplets.length, 1);
+  assert.equal(lib.phrases.length, 2);
+  assert.deepEqual(lib.phrases[0].poem.path.map((c: any) => c.url), ['/p266', '/p266/ghazal']);
   assert.equal(lib.couplets[0].lines.length, 2, 'both misras');
   assert.equal(lib.words[0].word, 'وصال');
   assert.equal(lib.words[0].source.couplet, 0);

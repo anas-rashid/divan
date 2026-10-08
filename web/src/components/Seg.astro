@@ -1,5 +1,6 @@
 ---
-// renders text segments: [text, 'mark' (search hit) | 'pen' (takhallus) | '']
-const { s } = Astro.props as { s: [string, string][] };
+// renders text segments: [text, 'mark' (search hit) | 'pen' (takhallus) | 'bmk' (bookmarked phrase) | '', data?]
+const { s } = Astro.props as { s: [string, string, string?][] };
 ---
-{s.map(([t, k]) => (k === 'mark' ? <mark>{t}</mark> : k === 'pen' ? <span class="takhallus">{t}</span> : t))}
+{s.map(([t, k, d]) => (k === 'mark' ? <mark>{t}</mark> : k === 'pen' ? <span class="takhallus">{t}</span>
+  : k === 'bmk' ? <span class="bmk" data-save={d} data-confirm="یہ نشان ہٹائیں؟" title="نشان زدہ عبارت (ہٹانے کے لیے دبائیں)">{t}</span> : t))}

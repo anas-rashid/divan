@@ -1,17 +1,25 @@
-// Personal library (#24, #25): a reader's saved poets and works, bookmarked couplets and saved words.
+// Personal library (#24, #25): a reader's saved poets and works, bookmarked couplets and phrases, saved words.
 // JSON in and out with Bearer tokens, so the site and mobile apps (#44) use the same endpoints.
 //   GET  /api/library                          everything, each item with its path in the site
-//   GET  /api/library/state?poet=&poem=&word=  what is saved on one page (poet, poem, couplets) or a word
-//   POST /api/library/toggle  {kind, poetId?, poemId?, couplet?, word?}   -> {saved, id?}
+//   GET  /api/library/state?poet=&poem=&word=  what is saved on one page (poet, poem, couplets, phrases) or a word
+//   GET  /api/library/marks                    which works, books/sections and poets hold the reader's saved items
+//   POST /api/library/toggle  {kind, poetId?, poemId?, couplet?, phrase?, word?}   -> {saved, id?}
 //   POST /api/library/:id/note {note}
 //   POST /api/library/:id/delete
-// kind: poet {poetId} | poem {poemId} | couplet {poemId, couplet} | word {word, poemId?, couplet?}
+// kind: poet {poetId} | poem {poemId} | couplet {poemId, couplet} | phrase {poemId, couplet, phrase} (part of a
+//       couplet or paragraph) | word {word, poemId?, couplet?} (dictionary word)
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { sessionUser } from './auth.ts';
 import { PUNCT } from './dictionary.ts';
 
-const KINDS = ['poet', 'poem', 'couplet', 'word'] as const;
+const KINDS = ['poet', 'poem', 'couplet', 'phrase', 'word'] as const;
+
+// a bookmarked phrase: spaces collapsed, 2 to 300 characters
+export const cleanPhrase = (p: unknown) => {
+  const s = String(p ?? '').normalize('NFC').replace(/\u0614/g, '').replace(/\s+/g, ' ').trim();
+  return s.length >= 2 && s.length <= 300 ? s : null;
+};
 
 async function reader(req: FastifyRequest, reply: FastifyReply) {
   const u = await sessionUser(req);
@@ -44,7 +52,7 @@ export function libraryRoutes(app: FastifyInstance) {
   app.get('/api/library', async (req, reply) => {
     const u = await reader(req, reply); if (!u) return;
     const { rows } = await pool.query(
-      `SELECT l.id, l.kind, l.poet_id, l.poem_id, l.couplet, l.word, l.note, l.created_at,
+      `SELECT l.id, l.kind, l.poet_id, l.poem_id, l.couplet, l.word, l.phrase, l.note, l.created_at,
               pt.nickname AS poet_name, pt.url AS poet_url, pm.title AS poem_title, pm.url AS poem_url, pm.poet_id AS poem_poet
        FROM library l LEFT JOIN poets pt ON pt.id = l.poet_id LEFT JOIN poems pm ON pm.id = l.poem_id
        WHERE l.user_id = $1 ORDER BY l.created_at DESC, l.id DESC`, [u.id]);
@@ -62,6 +70,7 @@ export function libraryRoutes(app: FastifyInstance) {
       poets: rows.filter((r) => r.kind === 'poet').map((r) => ({ ...item(r), poet: r.poet_url && { url: r.poet_url, name: r.poet_name } })),
       poems: rows.filter((r) => r.kind === 'poem').map((r) => ({ ...item(r), poem: r.poem_url && where(r) })),
       couplets: rows.filter((r) => r.kind === 'couplet').map((r) => ({ ...item(r), poem: r.poem_url && where(r), lines: lines(r.poem_id, r.couplet) })),
+      phrases: rows.filter((r) => r.kind === 'phrase').map((r) => ({ ...item(r), phrase: r.phrase, poem: r.poem_url && where(r), lines: lines(r.poem_id, r.couplet) })),
       words: rows.filter((r) => r.kind === 'word').map((r) => ({
         ...item(r), word: r.word, source: r.poem_url ? { ...where(r), lines: r.couplet != null ? lines(r.poem_id, r.couplet) : [] } : null,
       })),
@@ -76,11 +85,31 @@ export function libraryRoutes(app: FastifyInstance) {
     }
     const poet = Number(req.query.poet) || 0, poem = Number(req.query.poem) || 0;
     const { rows } = await pool.query(
-      `SELECT kind, couplet FROM library WHERE user_id = $1 AND ((kind = 'poet' AND poet_id = $2) OR (kind IN ('poem', 'couplet') AND poem_id = $3))`,
+      `SELECT kind, couplet, phrase FROM library WHERE user_id = $1 AND ((kind = 'poet' AND poet_id = $2) OR (kind IN ('poem', 'couplet', 'phrase') AND poem_id = $3))`,
       [u.id, poet, poem]);
     return {
       poet: rows.some((r) => r.kind === 'poet'), poem: rows.some((r) => r.kind === 'poem'),
       couplets: rows.filter((r) => r.kind === 'couplet').map((r) => r.couplet),
+      phrases: rows.filter((r) => r.kind === 'phrase').map((r) => ({ couplet: r.couplet, phrase: r.phrase })),
+    };
+  });
+
+  // for contents lists and cards: works that are favourites (fav) or hold bookmarks (bm), and the books,
+  // sections and poets containing them
+  app.get('/api/library/marks', async (req, reply) => {
+    const u = await reader(req, reply); if (!u) return;
+    const { rows } = await pool.query(
+      `SELECT poem_id, bool_or(kind = 'poem') AS fav, count(*) FILTER (WHERE kind IN ('couplet', 'phrase'))::int AS bm
+       FROM library WHERE user_id = $1 AND kind IN ('poem', 'couplet', 'phrase') GROUP BY poem_id`, [u.id]);
+    const ids = rows.map((r) => r.poem_id);
+    const [cats, poets] = await Promise.all([
+      pool.query(`WITH RECURSIVE up AS (SELECT c.id, c.parent_id FROM poems p JOIN categories c ON c.id = p.category_id WHERE p.id = ANY($1)
+                    UNION SELECT c.id, c.parent_id FROM categories c JOIN up ON c.id = up.parent_id) SELECT id FROM up`, [ids]),
+      pool.query('SELECT DISTINCT poet_id FROM poems WHERE id = ANY($1) UNION SELECT poet_id FROM library WHERE user_id = $2 AND kind = $3', [ids, u.id, 'poet']),
+    ]);
+    return {
+      poems: Object.fromEntries(rows.map((r) => [r.poem_id, { fav: r.fav, bm: r.bm }])),
+      categories: cats.rows.map((r) => r.id), poets: poets.rows.map((r) => r.poet_id),
     };
   });
 
@@ -100,6 +129,19 @@ export function libraryRoutes(app: FastifyInstance) {
       // the source couplet is kept only if it exists
       const src = poemId && couplet != null && (await pool.query('SELECT 1 FROM verses WHERE poem_id = $1 AND couplet = $2 LIMIT 1', [poemId, couplet])).rowCount ? [poemId, couplet] : [null, null];
       const { rows } = await pool.query(`INSERT INTO library (user_id, kind, word, poem_id, couplet) VALUES ($1, 'word', $2, $3, $4) RETURNING id`, [u.id, word, ...src]);
+      return { saved: true, id: Number(rows[0].id) };
+    }
+    if (kind === 'phrase') {
+      const phrase = cleanPhrase(b.phrase);
+      if (!phrase || !poemId || couplet == null) return reply.code(400).send({ error: 'عبارت منتخب کریں' });
+      // the phrase must be in that couplet or paragraph (its lines, or across its two misras)
+      const text = (await pool.query('SELECT string_agg(text, $3 ORDER BY vorder) AS t FROM verses WHERE poem_id = $1 AND couplet = $2', [poemId, couplet, ' '])).rows[0]?.t;
+      if (!text) return reply.code(404).send({ error: 'نہیں ملا' });
+      if (!text.normalize('NFC').replace(/\u0614/g, '').replace(/\s+/g, ' ').includes(phrase)) return reply.code(400).send({ error: 'یہ عبارت اس شعر میں نہیں' });
+      const args = [u.id, poemId, couplet, phrase];
+      if ((await pool.query(`DELETE FROM library WHERE user_id = $1 AND kind = 'phrase' AND poem_id = $2 AND couplet = $3 AND phrase = $4 RETURNING id`, args)).rowCount)
+        return { saved: false };
+      const { rows } = await pool.query(`INSERT INTO library (user_id, kind, poem_id, couplet, phrase) VALUES ($1, 'phrase', $2, $3, $4) RETURNING id`, args);
       return { saved: true, id: Number(rows[0].id) };
     }
     // poet, poem or couplet: the target must exist

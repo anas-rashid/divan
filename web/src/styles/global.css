@@ -245,3 +245,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .lib-note button, .lib-remove button { font: inherit; font-size: .8rem; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .lib-remove { position: absolute; left: 8px; top: 8px; margin: 0; }
 .lib-remove button { color: var(--brand); }
+
+/* bookmarked phrases, and glyphs where the reader's favourites (♥) and bookmarks (🔖) are */
+.bmk { text-decoration: underline dotted var(--brand) 2px; text-underline-offset: 6px; cursor: pointer; background: var(--gold-subtle); border-radius: 4px; }
+.bmk::after { content: '🔖'; font-size: .55em; vertical-align: super; margin-inline-start: 1px; user-select: none; }
+.mark-fav::after, .mark-bm::after { font-size: .65em; margin-inline-start: 6px; vertical-align: middle; user-select: none; }
+.mark-fav::after { content: '♥'; color: var(--brand); }
+.mark-bm::after { content: '🔖'; }
+.mark-fav.mark-bm::after { content: '♥ 🔖'; }
