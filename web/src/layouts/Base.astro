@@ -120,7 +120,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       const dict = document.getElementById('dict'), dictBody = dict.querySelector('.dict-body'), main = document.querySelector('main');
       const LANG = { ur: 'اردو', fa: 'فارسی', ar: 'عربی' };
       const POS = { Noun: 'اسم', 'Proper noun': 'اسم معرفہ', Verb: 'فعل', Adjective: 'صفت', Adverb: 'متعلق فعل', Pronoun: 'ضمیر',
-        Postposition: 'حرف جار', Preposition: 'حرف جار', Conjunction: 'حرف عطف', Interjection: 'حرف ندا', Particle: 'حرف' };
+        Postposition: 'حرف جار', Preposition: 'حرف جار', Conjunction: 'حرف عطف', Interjection: 'حرف ندا', Particle: 'حرف',
+        Translation: 'ترجمہ (اردو ویکی لغت)', Phrase: 'فقرہ', Proverb: 'کہاوت', Name: 'اسم معرفہ' };
       const el = (tag, cls, text, attrs) => {
         const e = document.createElement(tag);
         if (cls) e.className = cls;
@@ -134,7 +135,8 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         current = w; dict.hidden = false; document.body.classList.add('dict-open');
         dictBody.replaceChildren(el('h2', null, w), el('p', 'muted', 'تلاش جاری ہے…'));
         let d = null;
-        try { const r = await fetch('/api/word?w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
+        // v: bump when the response format changes (responses are browser-cached for a day)
+        try { const r = await fetch('/api/word?v=2&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
         if (w !== current) return; // a newer selection won
         const out = [el('h2', null, w)];
         if (!d || !d.found) {
@@ -171,14 +173,20 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
             if (l.source) label.append(el('a', null, 'ماخذ', { href: l.source, target: '_blank', rel: 'noopener' }));
             sec.append(label, list(l.meanings, null, { lang: l.code }));
           }
-          for (const s of l.senses) sec.append(el('p', 'pos', `انگریزی میں · ${POS[s.pos] ?? s.pos}`), list(s.defs, 'en', { dir: 'ltr', lang: 'en' }));
+          for (const s of l.senses) sec.append(el('p', 'pos', `انگریزی میں · ${POS[s.pos.charAt(0).toUpperCase() + s.pos.slice(1)] ?? s.pos}`), list(s.defs, 'en', { dir: 'ltr', lang: 'en' }));
+          if (l.synonyms.length) sec.append(el('p', 'pos', 'مترادفات'), el('p', null, l.synonyms.join('، ')));
+          if (l.ety) sec.append(el('p', 'pos', 'اشتقاق'), el('p', 'en ety', l.ety, { dir: 'ltr', lang: 'en' }));
+          if (l.en) {
+            const p = el('p', 'pos');
+            p.append(el('a', null, 'انگریزی ویکی لغت', { href: l.en, target: '_blank', rel: 'noopener' }));
+            sec.append(p);
+          }
           out.push(sec);
           if (l.code === 'ur' && d.equivalents.length) out.push(equivalents());
         }
         if (d.equivalents.length && !d.langs.some((l) => l.code === 'ur')) out.splice(1, 0, equivalents());
         const src = el('p', 'src muted');
-        src.append('ویکی لغت · ');
-        if (d.sources.en) src.append(el('a', null, 'انگریزی ویکی لغت', { href: d.sources.en, target: '_blank', rel: 'noopener' }), ' · ');
+        src.append('ویکی لغت (Wiktionary) · ');
         src.append('CC BY-SA');
         dictBody.replaceChildren(...out, src);
       }

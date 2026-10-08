@@ -42,6 +42,8 @@ The import upserts, so re-running it after a divan-data sync applies the changes
 15 3 * * * DATABASE_URL=postgres://divan:...@localhost:5432/divan /opt/divan/deploy/sync.sh >> /var/log/divan-sync.log 2>&1
 ```
 
+The same script keeps the word dictionary current (`npm run dict-sync` in `api/`): the full Wiktionary data for Urdu, Persian and Arabic (English Wiktionary via [kaikki.org](https://kaikki.org), and the Urdu, Persian and Arabic Wiktionary dumps) is re-imported when upstream publishes new files, and each day's Wiktionary edits are applied from recent changes. The first run downloads about 700 MB.
+
 Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DIVAN_APP_DIR` (default: this repo), `DIVAN_DATA_PUSH=1` to also commit and push data changes (needs git push access). Needs git, python3 and Node 24+.
 
 ## API
@@ -51,7 +53,7 @@ Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DI
 | `GET /api/poets` | all poets |
 | `GET /api/page?url=/p238/...` | the poet, category or poem at a site URL (breadcrumbs, children, verses, prev/next) |
 | `GET /api/search?q=&poet=&page=` | poems containing all words (or a `"quoted phrase"`), Urdu-normalised; exact phrase first; each with the best-matching couplet or paragraph (`snippet`) |
-| `GET /api/word?w=` | one word's meanings and pronunciation from Wiktionary (Urdu, Persian, Arabic in that order; English meanings; Urdu equivalents via English when Urdu Wiktionary has none), cached 30 days |
+| `GET /api/word?w=` | one word's meanings and pronunciation from the local Wiktionary data (Urdu, Persian, Arabic in that order; English meanings; Urdu equivalents via English when Urdu Wiktionary has none) |
 | `GET /health` | database check |
 
 Search normalises both stored text and queries: Arabic ي/ك/ه → Urdu ی/ک/ہ, ۂ/ۓ, diacritics and the Urdu full stop removed; do-chashmi ھ stays distinct.

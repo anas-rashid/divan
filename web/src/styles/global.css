@@ -146,6 +146,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .dict .pos { font-size: .8rem; color: var(--muted); margin: 8px 0 0; }
 .dict .note { font-size: .8rem; margin: 0; }
 .dict .src { font-size: .78rem; margin-top: 18px; }
+.dict .ety { text-align: left; color: var(--muted); font-size: .8rem; }
 .dict-close { position: sticky; top: 0; float: left; border: 0; background: none; color: var(--muted); font-size: 1rem; cursor: pointer; }
 .dict .play { border: 1px solid var(--border); background: var(--inner); border-radius: 8px; cursor: pointer; padding: 0 6px; }
 /* wide screens: the page moves over instead of being covered */

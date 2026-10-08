@@ -58,9 +58,25 @@ CREATE TABLE IF NOT EXISTS verses (
     PRIMARY KEY (poem_id, vorder)
 );
 
--- Wiktionary lookups for the reading sidebar (api/src/dictionary.ts), refreshed after 30 days
-CREATE TABLE IF NOT EXISTS dictionary (
-    word       text PRIMARY KEY,
-    data       jsonb NOT NULL,
-    fetched_at timestamptz NOT NULL DEFAULT now()
+-- Wiktionary for the word sidebar (api/src/dictionary.ts; filled and kept current by dict-sync.ts)
+DROP TABLE IF EXISTS dictionary;                 -- the earlier live-lookup cache
+CREATE TABLE IF NOT EXISTS wiktionary (
+    id     bigserial PRIMARY KEY,
+    lang   text NOT NULL,                        -- the word's language: ur | fa | ar
+    source text NOT NULL,                        -- en (en.wiktionary, via kaikki.org) | own (that language's Wiktionary)
+    title  text NOT NULL,                        -- headword / page title
+    key    text NOT NULL,                        -- spelling-insensitive lookup key (dictionary.ts key())
+    data   jsonb NOT NULL
+);
+CREATE INDEX IF NOT EXISTS wiktionary_key ON wiktionary(key);
+CREATE INDEX IF NOT EXISTS wiktionary_title ON wiktionary(lang, source, title);
+CREATE TABLE IF NOT EXISTS ur_glosses (          -- English gloss -> Urdu word, for the pivot through English
+    gloss text NOT NULL,
+    word  text NOT NULL
+);
+ALTER TABLE ur_glosses ADD COLUMN IF NOT EXISTS source text NOT NULL DEFAULT 'en';  -- en | own (ur.wiktionary English entries)
+CREATE INDEX IF NOT EXISTS ur_glosses_gloss ON ur_glosses(gloss);
+CREATE TABLE IF NOT EXISTS dict_meta (           -- upstream file versions and recent-changes timestamps
+    name  text PRIMARY KEY,
+    value text NOT NULL
 );

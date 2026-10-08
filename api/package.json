@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node src/server.ts",
     "import": "node src/import.ts",
-    "test": "node --test src/*.test.ts"
+    "test": "node --test src/*.test.ts",
+    "dict-sync": "node src/dict-sync.ts"
   },
   "dependencies": {
     "fastify": "^5.12.5",
