@@ -115,6 +115,61 @@ above.
 8. **Later**: Wikibase as linked-data records for poets and works, if that becomes useful; OpenITI-style
    stable identifiers for works and versions.
 
+## Content management model
+
+Owner direction (October 2026): this is **content management**, not only text editing. Every piece of content is
+identified for what it is, every change is a version with who did what, and content carries searchable tags.
+
+### What is identified
+
+| Entity | What it is | Its text or fields |
+|---|---|---|
+| شاعر / ادیب (poet, writer) | A person | Name, pen name, years, places; links to their books |
+| تعارف (intro) | A poet's or a book's introduction | Divan text (paragraphs, headings) |
+| کتاب (book) | A published collection | Title, year, publisher/edition, order of chapters; intro |
+| باب / ذیلی باب (chapter, sub-chapter) | A section of a book, nested | Title, order of works |
+| کلام (work) | A ghazal, nazm, rubai, prose chapter, … | Data points (genre, radif, metre, sources) and its text in Divan text |
+| Inside a work's text | Identified by Divan text: chapter **heading** (level 2), **sub-heading** (level 3, 4, …), **شعر** (couplet) of two **مصرع** (lines), **بند** (stanza), single line, **paragraph**, **footnote**, **variant reading**, **word** (with its dictionary lemma) | Divan text |
+| لغت (dictionary entry) | A word's meanings, readings, pronunciation | Fields |
+| ٹیگ (tag) | A typed label | Type and name |
+
+Every entity has a stable id. Elements inside a work (couplets, paragraphs, headings) are addressed by their
+position, as the site already does with `#c3` links and bookmarks. The prototype shows the whole library can be
+written this way: all 11,087 works convert to Divan text and back unchanged (the only clean-ups are repeated spaces
+and raw `== … ==` markers in prose becoming real chapter headings).
+
+### Versions: who did what (#51)
+
+- **Revisions**: every change to any entity is a revision. It records the entity, the version number, the full
+  content (Divan text or fields), the author, the time, an edit summary and its status. Statuses are draft,
+  submitted, L1-approved, published, returned and rejected; reviewers and publishers are recorded too.
+- **History** page per entity: each version with who, when, summary and status. Any two versions can be compared
+  with a **diff** (by line for Divan text, by field for metadata). **Revert** creates a new revision through the
+  pipeline.
+- **Moderation log** across the site: who did what, filtered by person, entity, date or action.
+- **Pipeline**: the approval pipeline (#31) moves revisions through their statuses. Publishing writes the published
+  version to divan-data and commits it (#34), so the git history mirrors the published revisions.
+
+### Tags (#52)
+
+- **Types**: tags are typed: موضوع (theme), صنف (genre), بحر (metre), شخصیت (person mentioned), مقام (place),
+  دور (period), and free tags.
+- **Where**: they attach to any entity, down to a couplet or a phrase.
+- **Finding tagged content**:
+  - every tag has a page listing everything tagged with it;
+  - tags are a search filter and facet, like authors;
+  - `tag:تصوف` can be typed in the search box.
+- **History and permissions**: adding or removing a tag is a revision like any other change, so its history shows
+  who tagged what and when. The permission model gets a `tags` content type.
+
+### Storage
+
+- **PostgreSQL** holds the entities (`poets`, `categories`, `poems`, `verses` today), plus `revisions`, `tags` and
+  `entity_tags`.
+- **divan-data** holds the published versions: works as `.dtx` with generated `.json` in `divan/` (#30, done in
+  this step). Intros, books and chapters follow the same pattern as they become editable, and tags go in the
+  Divan text header (`| ٹیگ = عشق، تصوف`) and a tags list.
+
 ## Prototype results
 
 `api/src/divantext.ts` parses Divan text into blocks, converts them to the site's verse JSON, and exports TEI.

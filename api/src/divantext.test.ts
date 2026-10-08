@@ -39,7 +39,8 @@ test('prose: chapter heading, paragraphs, footnote', () => {
   assert.equal(prose.meta['مصنف'], 'سید احمد خان');
   assert.deepEqual(prose.blocks.map((b) => b.type), ['heading', 'para', 'para', 'para']);
   assert.equal((prose.blocks[1] as any).line.notes.length, 1);
-  assert.deepEqual(toVerses(prose).map((v) => v.Position), ['Paragraph', 'Paragraph', 'Paragraph']);
+  assert.deepEqual(toVerses(prose).map((v) => v.Position), ['Heading', 'Paragraph', 'Paragraph', 'Paragraph']);
+  assert.equal(toVerses(parse('== باب ==\n\n=== فصل ===\n\nمتن')).map((v) => v.Level ?? 0).join(), '2,3,0', 'chapter and sub-heading levels');
 });
 
 test('stanzas and single lines', () => {

@@ -17,7 +17,7 @@
 
 export type Inline = { text: string; words: { shown: string; lemma: string }[]; notes: string[]; variants: { shown: string; others: string[]; source?: string }[] };
 export type Block =
-  | { type: 'heading'; text: string }
+  | { type: 'heading'; text: string; level: number } // == chapter == is level 2, === sub-heading === level 3, …
   | { type: 'para'; line: Inline }
   | { type: 'couplet' | 'line' | 'stanza'; lines: Inline[]; label?: string };
 export type Doc = { meta: Record<string, string>; blocks: Block[] };
@@ -76,8 +76,8 @@ export function parse(src: string): Doc {
       if (!lines.length) continue;
       if (!verse) {
         for (const l of lines) {
-          const h = l.match(/^=+\s*(.+?)\s*=+$/);
-          blocks.push(h ? { type: 'heading', text: h[1] } : { type: 'para', line: inline(l) });
+          const h = l.match(/^(=+)\s*(.+?)\s*=+$/);
+          blocks.push(h ? { type: 'heading', text: h[2], level: h[1].length } : { type: 'para', line: inline(l) });
         }
         continue;
       }
@@ -98,10 +98,11 @@ export const words = (text: string) =>
 
 // → the site's verse JSON (the ganjoor-data layout divan-data already exports)
 export function toVerses(doc: Doc) {
-  const out: { VOrder: number; Position: string; Text: string; CoupletIndex: number }[] = [];
+  const out: { VOrder: number; Position: string; Text: string; CoupletIndex: number; Level?: number }[] = [];
   let couplet = 0;
   for (const b of doc.blocks) {
-    if (b.type === 'heading') continue;
+    // headings inside a work (chapter, sub-heading) are their own kind of verse entry
+    if (b.type === 'heading') { out.push({ VOrder: 0, Position: 'Heading', Text: b.text, CoupletIndex: couplet++, Level: b.level }); continue; }
     if (b.type === 'para') out.push({ VOrder: 0, Position: 'Paragraph', Text: b.line.text, CoupletIndex: couplet++ });
     else if (b.type === 'couplet') { b.lines.forEach((l, i) => out.push({ VOrder: 0, Position: i ? 'Left' : 'Right', Text: l.text, CoupletIndex: couplet })); couplet++; }
     else for (const l of b.lines) out.push({ VOrder: 0, Position: 'Single', Text: l.text, CoupletIndex: couplet++ });
@@ -123,7 +124,7 @@ export function toTEI(doc: Doc) {
   const m = doc.meta, body: string[] = [];
   let n = 0;
   for (const b of doc.blocks) {
-    if (b.type === 'heading') body.push(`<head>${x(b.text)}</head>`);
+    if (b.type === 'heading') body.push(`<head type="h${b.level}">${x(b.text)}</head>`);
     else if (b.type === 'para') body.push(`<p>${teiLine(b.line)}</p>`);
     else {
       const type = b.type === 'couplet' ? 'sher' : b.type === 'stanza' ? 'band' : 'misra';
