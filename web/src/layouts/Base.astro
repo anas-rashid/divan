@@ -71,7 +71,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         A:'آ', T:'ٹ', D:'ڈ', R:'ڑ', N:'ں', Z:'ذ', S:'ص', G:'غ', H:'ھ', K:'خ', C:'ث', V:'ظ', X:'ژ', J:'ض', I:'ئ', O:'ۂ', Y:'ؤ',
         ',':'،', '.':'۔', '?':'؟', ';':'؛',
       };
-      const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'ATDRNZSGHKCVXJIOY', ',.?;'];
+      const ROWS = ['qwertyuiop', 'asdfghjkl', 'zxcvbnm', 'ATDRNZSGH', 'KCVXJIOY', ',.?;'];
       const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle');
       const insert = (text) => {
         const s = q.selectionStart ?? q.value.length, e = q.selectionEnd ?? q.value.length;
