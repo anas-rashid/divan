@@ -8,9 +8,10 @@ import '../styles/global.css';
 interface Props { title?: string; description?: string; q?: string; author?: string; jsonld?: object }
 // author and jsonld describe a work for search engines and the browser's own reader view
 const { title, description = 'اردو کا کلاسیکی ادب', q = '', author, jsonld } = Astro.props;
-const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو کا کلاسیکی ادب';
+const fullTitle = title ? `${title} · ${brand.name}` : `${brand.name} · ${brand.tagline}`;
 import Icon from '../components/Icon.astro';
 import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can turn its rays
+import { brand } from '../lib/brand';
 ---
 <!doctype html>
 <html lang="ur-PK" dir="rtl">
@@ -26,7 +27,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
     <meta name="theme-color" content="#fbf6ea" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)" />
     <!-- link previews (WhatsApp, Facebook, X, Slack): the logo and headline -->
-    <meta property="og:site_name" content="دیوان" />
+    <meta property="og:site_name" content={brand.name} />
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="ur_PK" />
     <meta property="og:title" content={fullTitle} />
@@ -35,7 +36,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
     <meta property="og:image" content={new URL('/og-image.png', Astro.url.origin).href} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="دیوان: اردو کا کلاسیکی ادب" />
+    <meta property="og:image:alt" content={`${brand.name}: ${brand.tagline}`} />
     <meta name="twitter:card" content="summary_large_image" />
     {author && <meta name="author" content={author} />}
     {jsonld && <script type="application/ld+json" set:html={JSON.stringify(jsonld).replace(/</g, '\\u003c')} />}
@@ -128,10 +129,10 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
     </aside>
     <footer class="site-footer">
       <div class="wrap">
-        <a class="footer-logo" href="/" title="سرورق"><img src="/logo/turanj.svg" width="56" height="56" alt="دیوان" /></a>
+        <a class="footer-logo" href="/" title="سرورق"><img src="/logo/turanj.svg" width="56" height="56" alt={brand.name} /></a>
         <nav class="footer-links" aria-label="سائٹ کے بارے میں">
-          <div><h2>دیوان</h2><ul>
-            <li><a href="/about"><Icon name="info" size={18} /><span>دیوان کے بارے میں<small>مقصد اور طریقۂ کار</small></span></a></li>
+          <div><h2>{brand.name}</h2><ul>
+            <li><a href="/about"><Icon name="info" size={18} /><span>{brand.name} کے بارے میں<small>مقصد اور طریقۂ کار</small></span></a></li>
             <li><a href="/tags"><Icon name="tag" size={18} /><span>ٹیگ<small>موضوعات سے کلام</small></span></a></li>
           </ul></div>
           <div><h2>ماخذ</h2><ul>
@@ -149,7 +150,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
             <circle cx="19.2" cy="10" r="6" fill="#fff" /><circle cx="20.6" cy="8.7" r="5.4" fill="#01411c" />
             <polygon fill="#fff" points="23.65,5.99 23.12,7.39 24.25,8.39 22.75,8.32 22.15,9.69 21.75,8.25 20.26,8.11 21.51,7.28 21.19,5.82 22.36,6.75" />
           </svg>
-          ایک پاکستانی کی طرف سے، پاکستان کے لیے
+          {brand.madeBy}
         </p>
       </div>
     </footer>
