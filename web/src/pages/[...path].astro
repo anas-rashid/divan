@@ -114,7 +114,7 @@ import TagsBox from '../components/TagsBox.astro';
 
   {page.type === 'poet' && (
     <>
-      <h1 data-readable>{page.poet.name}</h1>
+      <h1 class="lit" data-readable>{page.poet.name}</h1>
       <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="یہ شاعر محفوظ کریں">{label(saved.poet)}</button><button type="button" class="icon-btn small" data-reading-toggle title="مطالعے کا انداز: صرف متن" aria-label="مطالعے کا انداز"><Icon name="dict" size={17} /></button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn"><Icon name="arrange" size={17} /> ترتیب دیں</button></form>
         <a class="icon-btn small" href={`/mod/order/${page.category.id}`} title="ترتیب کا تاریخچہ" aria-label="ترتیب کا تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}{catCan.poet && <> <form method="post" action={`/mod/details/poet/${poetId}`} class="inline-form"><button class="mod-edit-btn"><Icon name="edit" size={17} /> تفصیل</button></form></>}</div>
       <p class="muted">{years(page.poet)}</p>
@@ -123,7 +123,7 @@ import TagsBox from '../components/TagsBox.astro';
   )}
   {page.type === 'category' && (
     <>
-      <h1 data-readable>{page.category.title}</h1>
+      <h1 class="lit" data-readable>{page.category.title}</h1>
       <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'category', categoryId: page.category.id })} aria-pressed={String(!!saved.category)} title="یہ کتاب یا باب محفوظ کریں">{label(saved.category)}</button><button type="button" class="icon-btn small" data-reading-toggle title="مطالعے کا انداز: صرف متن" aria-label="مطالعے کا انداز"><Icon name="dict" size={17} /></button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn"><Icon name="arrange" size={17} /> ترتیب دیں</button></form>
         <a class="icon-btn small" href={`/mod/order/${page.category.id}`} title="ترتیب کا تاریخچہ" aria-label="ترتیب کا تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}{catCan.book && <> <form method="post" action={`/mod/details/book/${page.category.id}`} class="inline-form"><button class="mod-edit-btn"><Icon name="edit" size={17} /> عنوان</button></form></>}</div>
     </>
@@ -148,7 +148,7 @@ import TagsBox from '../components/TagsBox.astro';
   {page.type === 'poem' && (
     <>
       <article class="work" data-readable>
-      <h1><Seg s={show(page.poem.title)} /></h1>
+      <h1 class="lit"><Seg s={show(page.poem.title)} /></h1>
       <p class="byline">{page.poet.nickname}</p>
       {re && (
         <p class="hl-note muted">
