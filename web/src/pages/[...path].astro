@@ -153,10 +153,13 @@ import Icon from '../components/Icon.astro';
           const cn = noteOf(b.c), any = cn || notes.some((n) => n.couplet === b.c);
           // the bookmark, and beside it the note glyph (shown when this couplet or a phrase in it has a note)
           const bm = <span class="c-tools">
+            {/* wide screens: four icons on hover; phones: one ⋯ that opens a menu (the CSS shows one or the other) */}
             <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں" />
             <button type="button" class="nt" data-for={b.c} aria-pressed={String(!!any)} aria-label={any ? 'نوٹ' : 'نوٹ لکھیں'} title={cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'} />
             <button type="button" class="sh" data-for={b.c} aria-label="بھیجیں" title="تصویر بنا کر بھیجیں" />
             <button type="button" class="dl" data-for={b.c} aria-label="تصویر ڈاؤن لوڈ کریں" title="تصویر ڈاؤن لوڈ کریں" />
+            <button type="button" class="more" data-for={b.c} data-bm={saved.couplets.includes(b.c) ? '' : undefined} data-nt={any ? '' : undefined}
+              aria-haspopup="menu" aria-label="محفوظ، نوٹ، بھیجیں" title={cn ? `نوٹ: ${cn}` : 'محفوظ، نوٹ، بھیجیں'}><i class="g-bm" /><i class="g-nt" /><i class="g-dots" /></button>
           </span>;
           const lm = lineMarks(b.c, b.lines);
           return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}<Tags tags={coupletTags(b.c)} /></div>
@@ -166,6 +169,12 @@ import Icon from '../components/Icon.astro';
       </div>
       </article>
       <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے؛ کسی عبارت پر نوٹ بھی لکھ سکتے ہیں۔</p>
+      <div id="c-menu" class="c-menu" popover role="menu" aria-label="شعر">
+        <button type="button" role="menuitem" data-act="bm"><i class="g-bm" /><span>محفوظ کریں</span></button>
+        <button type="button" role="menuitem" data-act="nt"><i class="g-nt" /><span>نوٹ</span></button>
+        <button type="button" role="menuitem" data-act="sh"><i class="g-sh" /><span>بھیجیں</span></button>
+        <button type="button" role="menuitem" data-act="dl"><i class="g-dl" /><span>تصویر ڈاؤن لوڈ</span></button>
+      </div>
       <dialog class="ask note-box" id="note-box" aria-labelledby="note-for">
         <form method="dialog">
           <p id="note-for" class="note-for"></p>
@@ -233,9 +242,10 @@ import Icon from '../components/Icon.astro';
       box.showModal(); text.focus();
     };
     const mark = (couplet: number) => { // the glyph follows the notes on this couplet
-      const nt = document.querySelector(`.nt[data-for="${couplet}"]`); if (!nt) return;
       const cn = notes.find((n) => n.couplet === couplet && !n.phrase)?.note, any = notes.some((n) => n.couplet === couplet);
-      nt.setAttribute('aria-pressed', String(any)); nt.setAttribute('title', cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'); // the bookmark is separate
+      const nt = document.querySelector(`.nt[data-for="${couplet}"]`), more = document.querySelector(`.more[data-for="${couplet}"]`) as HTMLElement | null;
+      nt?.setAttribute('aria-pressed', String(any)); nt?.setAttribute('title', cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں');
+      if (more) { any ? (more.dataset.nt = '') : delete more.dataset.nt; more.title = cn ? `نوٹ: ${cn}` : 'محفوظ، نوٹ، بھیجیں'; } // the bookmark is separate
     };
     box.addEventListener('close', async () => {
       const act = box.returnValue, { couplet, phrase } = at;
@@ -305,6 +315,36 @@ import Icon from '../components/Icon.astro';
       else { try { await navigator.clipboard.writeText(`${text}\n${url}`); (window as any).toast('یہ براؤزر شیئر نہیں کر سکتا: شعر اور لنک کاپی ہو گئے'); } catch { (window as any).toast('شیئر نہیں ہو سکا', 'error'); } }
     };
     document.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('.sh, .dl') as HTMLElement | null; if (b) share(Number(b.dataset.for), b.classList.contains('dl')); });
+    // phones: one ⋯ per couplet opens the shared menu beside it: bookmark, note, share, download
+    const menu = document.getElementById('c-menu') as HTMLElement & { showPopover(): void; hidePopover(): void };
+    let forC = 0, from: HTMLElement | null = null;
+    document.addEventListener('click', (e) => {
+      const more = (e.target as HTMLElement).closest('.more') as HTMLElement | null; if (!more) return;
+      forC = Number(more.dataset.for); from = more;
+      const on = 'bm' in more.dataset;
+      menu.querySelector('[data-act=bm] span')!.textContent = on ? 'محفوظ شدہ سے ہٹائیں' : 'محفوظ کریں';
+      menu.querySelector('[data-act=bm]')!.toggleAttribute('data-on', on);
+      menu.showPopover();
+      const r = more.getBoundingClientRect(), m = menu.getBoundingClientRect(); // below the button, kept on screen
+      menu.style.left = `${Math.max(8, Math.min(innerWidth - m.width - 8, r.left))}px`;
+      menu.style.top = `${r.bottom + 6 + m.height > innerHeight ? r.top - m.height - 6 : r.bottom + 6}px`;
+      (menu.querySelector('[role=menuitem]') as HTMLElement).focus();
+    });
+    menu.addEventListener('click', async (e) => {
+      const act = (e.target as HTMLElement).closest('[data-act]')?.getAttribute('data-act'); if (!act) return;
+      menu.hidePopover();
+      if (act === 'nt') return open(forC, null);
+      if (act === 'sh' || act === 'dl') return share(forC, act === 'dl');
+      const d = await post({ kind: 'couplet', poemId, couplet: forC }); if (!d || !from) return;
+      d.saved ? (from.dataset.bm = '') : delete from.dataset.bm;
+      from.parentElement?.querySelector('.bm')?.setAttribute('aria-pressed', String(d.saved)); // the wide-screen icon too
+      (window as any).toast(d.saved ? 'شعر محفوظ ہو گیا' : 'محفوظ شدہ سے ہٹا دیا');
+    });
+    menu.addEventListener('keydown', (e) => { // arrows move through the menu
+      const items = [...menu.querySelectorAll<HTMLElement>('[role=menuitem]')], i = items.indexOf(document.activeElement as HTMLElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[(i + 1) % items.length].focus(); }
+      if (e.key === 'ArrowUp') { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus(); }
+    });
     // touch screens: tapping a couplet shows its tools (and hides the last one's); links, buttons and selections are left alone
     if (matchMedia('(hover: none)').matches) document.querySelector('.poem')?.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;

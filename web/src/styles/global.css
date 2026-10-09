@@ -873,14 +873,42 @@ p, li { text-wrap: pretty; }
 /* touch screens have no hover: a couplet's tools show when it is tapped (the couplet is lightly marked); a set bookmark
    or note stays visible; couplets without either do not keep room for the row */
 @media (hover: none) {
-  .c-tools > button { opacity: 0; pointer-events: none; }
-  .c-tools > button[aria-pressed='true'], .is-active > .c-tools > button { opacity: 1; pointer-events: auto; }
   .poem .couplet.is-active, .poem .para.is-active, .poem .single.is-active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-radius: var(--r-sm); }
-  .poem .couplet:not(.is-active):not(:has(.c-tools [aria-pressed='true'])) { padding-bottom: 6px; }
-  .poem .para:not(.is-active):not(:has(.c-tools [aria-pressed='true'])), .poem .single:not(.is-active):not(:has(.c-tools [aria-pressed='true'])) { margin-bottom: 10px; }
 }
 /* phones: the header slides away while scrolling down and comes back on the way up (a transform: nothing below jumps) */
 @media (max-width: 640px) {
   .site-header { transition: transform .25s ease, box-shadow .2s, background .2s; }
   :root[data-header-hidden] .site-header { transform: translateY(-100%); box-shadow: none; }
 }
+
+/* ── a couplet's tools: one small button (⋯, with a filled bookmark and/or note glyph when set) that opens one shared
+   menu: bookmark, note, share, download. The button shows on hover (on touch screens when the couplet is tapped); a set
+   bookmark or note keeps it visible ── */
+:root { --dots: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='5' cy='12' r='2.2'/%3E%3Ccircle cx='12' cy='12' r='2.2'/%3E%3Ccircle cx='19' cy='12' r='2.2'/%3E%3C/svg%3E"); --sh-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7'/%3E%3Cpath d='m16 6-4-4-4 4'/%3E%3Cpath d='M12 2v13'/%3E%3C/svg%3E"); --dl-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M12 15V3'/%3E%3C/svg%3E"); }
+.c-tools > .more { align-items: center; gap: 3px; height: 24px; padding: 0 6px; border: 0; border-radius: var(--r-pill); background: none;
+  color: var(--text-muted); cursor: pointer; opacity: 0; transition: opacity .15s, background .15s; }
+.more i, .c-menu i { flex: none; width: 15px; height: 15px; background-color: currentColor; -webkit-mask: var(--m) center / contain no-repeat; mask: var(--m) center / contain no-repeat; }
+.more i { display: none; }
+.more .g-dots { display: block; --m: var(--dots); }
+.more[data-bm] .g-bm { display: block; --m: var(--bm-filled); background-color: var(--active); }
+.more[data-nt] .g-nt { display: block; --m: var(--nt-filled); background-color: var(--accent); }
+.more[data-bm], .more[data-nt] { opacity: 1; }
+.more[data-bm] .g-dots, .more[data-nt] .g-dots { opacity: .45; }
+:is(.couplet, .para, .single):hover .more, .is-active .more, .more:focus-visible { opacity: 1; }
+.more:hover { background: var(--accent-soft); color: var(--active); }
+/* the ⋯ and its menu are for phones; wider screens keep the four icons */
+.more { display: none; }
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+  .c-tools > .bm, .c-tools > .nt, .c-tools > .sh, .c-tools > .dl { display: none; }
+  .c-tools > .more { display: inline-flex; }
+  .c-tools { bottom: 2px; } .poem .couplet { padding-bottom: 26px; } /* room for the button: it never sits on the text */
+}
+.c-menu { position: fixed; inset: auto; margin: 0; min-width: 180px; padding: 6px; border: 1px solid var(--border); border-radius: var(--r-md);
+  background: var(--surface-raised); color: var(--text); box-shadow: var(--shadow-lg); }
+.c-menu:popover-open { display: flex; flex-direction: column; animation: pop-in .14s ease-out; }
+.c-menu button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 5px 10px; border: 0; border-radius: var(--r-sm); background: none;
+  color: var(--text); font: var(--fs-sm)/1.9 var(--font-ui); text-align: start; cursor: pointer; }
+.c-menu button:hover, .c-menu button:focus-visible { background: var(--accent-soft); color: var(--active); outline: none; }
+.c-menu i { width: 17px; height: 17px; background-color: var(--text-muted); }
+.c-menu .g-bm { --m: var(--bm-outline); } .c-menu [data-on] .g-bm { --m: var(--bm-filled); background-color: var(--active); }
+.c-menu .g-nt { --m: var(--nt-outline); } .c-menu .g-sh { --m: var(--sh-mask); } .c-menu .g-dl { --m: var(--dl-mask); }
