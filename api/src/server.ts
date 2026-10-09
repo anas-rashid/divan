@@ -25,6 +25,25 @@ import { ebookRoutes } from './ebooks.ts';
 import { feedRoutes } from './feeds.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
+
+// Errors: readers get a short message, never internal details; the log gets the whole error (one JSON line each,
+// with the method and address), which is what the server's error report reads (divan-deploy scripts/errors.sh).
+app.setErrorHandler((err: any, req, reply) => {
+  const status = err.statusCode >= 400 && err.statusCode < 500 ? err.statusCode : 500;
+  if (status === 500) req.log.error({ err, method: req.method, url: req.url }, 'request failed');
+  reply.code(status).send({ error: status === 500 ? 'سرور میں خرابی۔ تھوڑی دیر بعد کوشش کریں۔' : err.message });
+});
+
+// for the site's /health (uptime monitoring): the API answers and the database too
+app.get('/api/health', async (req, reply) => {
+  try {
+    await pool.query('SELECT 1');
+    return { ok: true, db: 'ok' };
+  } catch (err) {
+    req.log.error({ err }, 'health: database unreachable');
+    return reply.code(503).send({ ok: false, db: 'down' });
+  }
+});
 const PAGE_SIZE = 20;
 
 app.get('/health', async () => {
