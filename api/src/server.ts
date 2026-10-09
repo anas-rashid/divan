@@ -22,6 +22,7 @@ import { moderationRoutes } from './moderation.ts';
 import { siteRoutes } from './site.ts';
 import { tagRoutes, pageTags } from './tags.ts';
 import { ebookRoutes } from './ebooks.ts';
+import { feedRoutes } from './feeds.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -199,6 +200,7 @@ moderationRoutes(app);
 siteRoutes(app);
 tagRoutes(app);
 ebookRoutes(app);
+feedRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });

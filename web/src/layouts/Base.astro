@@ -21,6 +21,7 @@ import { brand } from '../lib/brand';
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${brand.name}: نئی تبدیلیاں`} href="/rss.xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
@@ -134,6 +135,7 @@ import { brand } from '../lib/brand';
           <div><h2>{brand.name}</h2><ul>
             <li><a href="/about"><Icon name="info" size={18} /><span>{brand.name} کے بارے میں<small>مقصد اور طریقۂ کار</small></span></a></li>
             <li><a href="/tags"><Icon name="tag" size={18} /><span>ٹیگ<small>موضوعات سے کلام</small></span></a></li>
+            <li><a href="/rss.xml"><Icon name="rss" size={18} /><span>نئی تبدیلیاں<small>RSS: نئے ورژن اور ای بکس</small></span></a></li>
           </ul></div>
           <div><h2>ماخذ</h2><ul>
             <li><a href="https://ur.wikisource.org" rel="noopener"><Icon name="dict" size={18} /><span>ویکی ماخذ<small>متن · عوامی ملکیت</small></span><Icon name="external" size={13} class="ext" /></a></li>
