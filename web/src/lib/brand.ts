@@ -7,5 +7,5 @@ export const brand = {
   // where readers write: questions, corrections, copyright claims (privacy and terms pages)
   contact: { text: 'ہم سے رابطہ کریں', url: 'https://git.anasrashid.net/anas/divan/issues' },
   // the attribution forks keep (NOTICE, GPL v3 section 7(b))
-  basedOn: { text: 'Divan by Anas Rashid', url: 'https://git.anasrashid.net/anas/divan' },
+  basedOn: { text: 'Divan by Muhammad Anas Rashid', url: 'https://git.anasrashid.net/anas/divan' },
 };
