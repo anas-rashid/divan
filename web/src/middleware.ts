@@ -4,6 +4,21 @@
 import { defineMiddleware } from 'astro:middleware';
 import { auth, COOKIE } from './lib/auth';
 
+// visitor statistics (#86): each reading page shown is reported to the API without waiting; the API keeps only counts
+// and a one-day hash. Bots, link previews, private pages (accounts, moderation) and errors are not counted.
+const API = process.env.API_URL ?? 'http://127.0.0.1:4100';
+const PRIVATE = /^\/(api|mod|admin|account|library|notes|words|writers|signin|signup|_astro|ebooks\/file|health)(\/|$)/;
+const BOT = /bot|crawl|spider|slurp|preview|fetch|curl|wget|python|java\/|go-http|headless|lighthouse|monitor/i;
+function count(ctx: any, res: Response) {
+  const ua = ctx.request.headers.get('user-agent') ?? '', path = ctx.url.pathname;
+  if (ctx.request.method !== 'GET' || res.status !== 200 || !res.headers.get('content-type')?.includes('text/html') || !ua || BOT.test(ua) || PRIVATE.test(path)) return;
+  let ip = '', ref = '';
+  try { ip = ctx.clientAddress; } catch {}
+  try { const h = new URL(ctx.request.headers.get('referer') ?? '').hostname; if (h !== ctx.url.hostname) ref = h.replace(/^www\./, ''); } catch {}
+  fetch(`${API}/api/stats/hit`, { method: 'POST', headers: { 'content-type': 'application/json', ...(process.env.DIVAN_SITE_KEY && { 'x-site-key': process.env.DIVAN_SITE_KEY }) },
+    body: JSON.stringify({ path, ref, ip, ua }) }).catch(() => {});
+}
+
 export const onRequest = defineMiddleware(async (ctx, next) => {
   const token = ctx.cookies.get(COOKIE)?.value;
   ctx.locals.user = null;
@@ -21,6 +36,7 @@ export const onRequest = defineMiddleware(async (ctx, next) => {
       msg: String(err?.message ?? err), stack: String(err?.stack ?? '').split('\n').slice(0, 8).join('\n') }));
     throw err;
   }
+  count(ctx, res);
   if (ctx.cookies.get('divan-digits')?.value !== 'latn' || !res.headers.get('content-type')?.includes('text/html')) return res;
   // text only: scripts and styles are left alone (the page's own scripts look for Eastern digits)
   const html = (await res.text()).split(/(<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>)/)
