@@ -87,12 +87,10 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 
 /* header: logo + search + toggles in a gold-bordered bar */
 .site-header .wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; }
-.wordmark { display: inline-flex; align-items: center; gap: 10px; font-family: 'Noto Nastaliq Urdu', serif; font-size: 2rem; line-height: 1.5; color: var(--brand); font-weight: 700; }
-/* the logo: the shamsa medallion, then the word */
-.wordmark .logo { flex: none; width: 44px; height: 44px; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .15)); transition: transform .3s; }
-.wordmark:hover .logo { transform: rotate(15deg); }
-.wordmark span { padding-bottom: .45em; margin-bottom: -.2em; } /* Nastaliq hangs below its line box: room underneath centres the ink on the medallion */
-@media (min-width: 641px) { .wordmark span { position: relative; top: -.22em; } }
+.wordmark { display: flex; flex: none; }
+/* the logo: the shamsa with دیوان inside, sized with the viewport */
+.wordmark .logo { width: clamp(52px, 13vw, 72px); height: auto; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .15)); transition: transform .3s; }
+.wordmark:hover .logo { transform: rotate(8deg); }
 .search-form { flex: 1; min-width: 0; display: flex; position: relative; }
 .search-form input { background: var(--surface-sunken); }
 .search-form input { flex: 1; min-width: 0; padding: 4px 14px; padding-inline-end: 116px; } /* min-width 0: shrinks instead of pushing past the icons */
@@ -221,8 +219,6 @@ h1 + .muted { text-align: center; margin-top: 0; }
 /* phones: wordmark and icons on one row, the search box on its own full-width row below */
 @media (max-width: 640px) {
   .site-header .wrap { gap: 8px; }
-  .wordmark { font-size: 1.7rem; gap: 8px; }
-  .wordmark .logo { width: 38px; height: 38px; } /* Nastaliq's descenders hang below the line box: room so they clear the search row */
   .toggles { margin-inline-start: auto; gap: 4px; }
   .search-form { order: 3; flex-basis: 100%; }
 }

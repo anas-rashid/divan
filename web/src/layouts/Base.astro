@@ -37,7 +37,7 @@ import Icon from '../components/Icon.astro';
   <body data-user={Astro.locals.user ? '1' : undefined}>
     <header class="site-header">
       <div class="wrap">
-        <a class="wordmark" href="/"><img class="logo" src="/logo/shamsa-icon.svg" width="44" height="44" alt="" /><span>دیوان</span></a>
+        <a class="wordmark" href="/" title="سرورق"><img class="logo" src="/logo/shamsa.svg" width="72" height="72" alt="دیوان" /></a>
         <form class="search-form" action="/search" method="get" role="search">
           <input type="search" name="q" id="q" data-urdu value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
           <button type="button" id="rom-toggle" class="in-box rom" aria-label="رومن حروف سے اردو" aria-pressed="false" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
