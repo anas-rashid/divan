@@ -31,6 +31,11 @@ test('admin panel: only admins; reset, disable, role, delete, self-protection, a
   const list = (await call('GET', `/api/admin/users?q=reader-${run}`, undefined, a.token)).json();
   assert.deepEqual(list.users.map((u: any) => u.email), [`reader-${run}@divan.test`]);
   const rid = r.user.id;
+  // role filter and counts: the search for this run's emails finds one admin and one reader
+  const both = (await call('GET', `/api/admin/users?q=-${run}@`, undefined, a.token)).json();
+  assert.equal(both.counts.all, 2); assert.equal(both.counts.admin, 1); assert.equal(both.counts.reader, 1);
+  assert.deepEqual((await call('GET', `/api/admin/users?q=-${run}@&role=admin`, undefined, a.token)).json().users.map((u: any) => u.email), [`admin-${run}@divan.test`]);
+  assert.equal(both.users[0].grants, 0);
 
   // password reset: new temporary password works, the old one and old sessions do not
   const { password } = (await call('POST', `/api/admin/users/${rid}/password`, undefined, a.token)).json();

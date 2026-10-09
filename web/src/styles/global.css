@@ -1,5 +1,15 @@
 /* Divan styles: Ganjoor's look (palette, gold pills, centred couplets with ✤), RTL, Naskh default. */
 [hidden] { display: none !important; } /* layout rules (e.g. .site-header .wrap flex) must not unhide */
+/* Libron (OFL, github.com/nicoverbruggen/libron) for Latin text: emails, the dictionary's English, Western digits. Limited to
+   Latin, so it can lead every font stack and Urdu falls through to Naskh or Nastaliq */
+@font-face { font-family: 'Libron'; src: url('/fonts/libron/Libron-Regular.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20AC, U+2122, U+2190-2193; }
+@font-face { font-family: 'Libron'; src: url('/fonts/libron/Libron-Bold.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20AC, U+2122, U+2190-2193; }
+@font-face { font-family: 'Libron'; src: url('/fonts/libron/Libron-Italic.woff2') format('woff2'); font-weight: 400; font-style: italic; font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20AC, U+2122, U+2190-2193; }
+@font-face { font-family: 'Libron'; src: url('/fonts/libron/Libron-BoldItalic.woff2') format('woff2'); font-weight: 700; font-style: italic; font-display: swap;
+  unicode-range: U+0000-024F, U+1E00-1EFF, U+2000-206F, U+20AC, U+2122, U+2190-2193; }
 /* Design tokens. Palettes set colours only, each as light-dark(light, dark); roles below derive from them.
    color-scheme picks the half: the system's by default, or the reader's choice (data-theme on <html>). */
 :root {
@@ -21,7 +31,7 @@
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-pill: 999px;
   --fs-xs: .75rem; --fs-sm: .85rem; --fs-md: .95rem; --fs-lg: 1.1rem; --fs-xl: 1.25rem; --fs-2xl: 1.7rem;
   --shadow-sm: 0 2px 8px rgb(0 0 0 / .08); --shadow-lg: 0 8px 24px rgb(0 0 0 / .18);
-  --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --font-ui: 'Noto Naskh Arabic', serif; --verse-lh: 2.1;
+  --font: 'Libron', 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --font-ui: 'Libron', 'Noto Naskh Arabic', serif; --font-latin: 'Libron', Georgia, serif; --verse-lh: 2.1;
 }
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }
@@ -50,7 +60,7 @@
   --brand: light-dark(#b0304a, #ef6f86); --accent: light-dark(#c27c88, #d792a0); --accent-soft: light-dark(#f7e8ec, #2a1d21);
   --action: light-dark(#6b2c5e, #e3a3c3); --action-ink: light-dark(#fff, #1d1216);
 }
-:root.nastaliq { --font: 'Noto Nastaliq Urdu', var(--font-ui); --verse-lh: 2.7; }
+:root.nastaliq { --font: 'Libron', 'Noto Nastaliq Urdu', var(--font-ui); --verse-lh: 2.7; }
 
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--surface-page); color: var(--text); font-family: var(--font); line-height: 1.9; }
@@ -80,7 +90,7 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 .wordmark { font-family: 'Noto Nastaliq Urdu', serif; font-size: 2rem; line-height: 1.5; color: var(--brand); font-weight: 700; }
 .search-form { flex: 1; min-width: 0; display: flex; position: relative; }
 .search-form input { background: var(--surface-sunken); }
-.search-form input { flex: 1; min-width: 0; padding: 4px 14px; padding-inline-end: 106px; } /* min-width 0: shrinks instead of pushing past the icons */
+.search-form input { flex: 1; min-width: 0; padding: 4px 14px; padding-inline-end: 116px; } /* min-width 0: shrinks instead of pushing past the icons */
 .toggles { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; } /* icon buttons with tooltips */
 .toggles form { display: flex; margin: 0; } /* the log-out button sits in a form: no line box of its own */
 /* controls keep Naskh at normal height whatever reading font is chosen */
@@ -174,7 +184,19 @@ mark { background: var(--accent-soft); color: inherit; border-radius: 3px; paddi
 .made-in { margin: 10px 0 0; display: flex; align-items: center; justify-content: center; gap: 10px;
   font-family: 'Noto Nastaliq Urdu', serif; font-size: 1.05rem; line-height: 2; color: var(--text); } /* a tagline */
 .made-in .flag { flex: none; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .15); }
-.site-footer { border-top: 1.5px solid var(--border); padding: 16px 0; font-size: .85rem; color: var(--text-muted); text-align: center; }
+.site-footer { border-top: 1.5px solid var(--border); padding: 20px 0 16px; margin-top: 16px; font-size: var(--fs-sm); color: var(--text-muted); background: var(--surface-raised); }
+/* footer: three labelled groups of links, each with an icon and a one-line note; external links marked */
+.footer-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 24px; max-width: 760px; margin: 0 auto; }
+.footer-links h2 { text-align: start; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); letter-spacing: .02em; margin: 0 0 4px; }
+.footer-links h2::after { display: none; }
+.footer-links ul { list-style: none; margin: 0; padding: 0; }
+.footer-links a { display: flex; align-items: center; gap: 10px; padding: 4px 8px; margin-inline-start: -8px; border-radius: var(--r-sm); color: var(--text); }
+.footer-links a:hover { background: var(--accent-soft); color: var(--active); }
+.footer-links a > .icon:first-child { color: var(--accent); }
+.footer-links a span { display: flex; flex-direction: column; line-height: 1.5; }
+.footer-links small { color: var(--text-muted); font-size: var(--fs-xs); }
+.footer-links .ext { align-self: flex-start; margin-top: 6px; margin-inline-start: -4px; opacity: .5; }
+.made-in { border-top: 1px dashed var(--line); padding-top: 12px; margin-top: 16px !important; }
 
 h1 + .muted { text-align: center; margin-top: 0; }
 
@@ -183,11 +205,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
 /* icons inside a text box, from the far left: search (top box only), keyboard, Roman-to-Urdu */
 .in-box.rom { font: 600 .95rem/1 var(--font-ui); }
 .search-form .in-box.go { inset-inline-end: 8px; }
-.search-form #kb-toggle { inset-inline-end: 38px; }
-.search-form #rom-toggle { inset-inline-end: 68px; }
+.search-form #kb-toggle { inset-inline-end: 42px; }
+.search-form #rom-toggle { inset-inline-end: 76px; } /* 34px apart: each icon its own tap target */
 .in-box-field { position: relative; }
-.in-box-field input { padding-inline-end: 76px !important; }
-.in-box-field .in-box.rom { inset-inline-end: 38px; }
+.in-box-field input { padding-inline-end: 80px !important; }
+.in-box-field .in-box.rom { inset-inline-end: 42px; }
 .in-box:hover { opacity: 1; }
 .in-box[aria-pressed='true'] { color: var(--active); opacity: 1; }
 /* phones: wordmark and icons on one row, the search box on its own full-width row below */
@@ -210,9 +232,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .dict h2::after { display: none; }
 .dict h3 { font-size: 1rem; margin: 14px 0 4px; padding-bottom: 2px; border-bottom: 1px dashed var(--line); }
 .dict ol { margin: 4px 0; padding-inline-start: 22px; }
-.dict .en { font-family: system-ui, sans-serif; font-size: .88rem; line-height: 1.5; }
+.dict .en { font-family: var(--font-latin); font-size: .88rem; line-height: 1.5; }
 .dict ol.en { text-align: left; }
-.dict .ipa { font-family: system-ui, sans-serif; font-size: .88rem; color: var(--text-muted); }
+.dict .ipa { font-family: var(--font-latin), system-ui, sans-serif; font-size: .88rem; color: var(--text-muted); }
 .dict .pron { margin: 2px 0; }
 .dict .pos { font-size: .8rem; color: var(--text-muted); margin: 8px 0 0; }
 .dict .note { font-size: .8rem; margin: 0; }
@@ -262,8 +284,6 @@ h1 + .muted { text-align: center; margin-top: 0; }
 
 /* admin panel */
 .admin-nav { display: flex; justify-content: center; gap: 8px; margin: 0 0 16px; }
-.admin-search { display: flex; gap: 6px; max-width: 420px; margin: 0 auto 8px; }
-.admin-search input { flex: 1; }
 .admin-table button { font-size: var(--fs-xs); padding: 0 10px; }
 .admin-table button.danger { color: var(--danger); }
 .admin-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 8px 0; }
@@ -275,11 +295,6 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .temp-password code { font-size: 1.2rem; letter-spacing: .08em; user-select: all; }
 @media (max-width: 700px) { .admin-table thead { display: none; } .admin-table tr { display: block; border-bottom: 1px dashed var(--line); padding: 6px 0; } .admin-table td { display: inline-block; border: 0; padding: 2px 6px; } }
 
-.role-form { display: flex; gap: 4px; align-items: center; }
-.role-form select, .grant-form select { font-size: var(--fs-sm); padding: 2px 8px; }
-.grant-form fieldset { border: 1px dashed var(--line); border-radius: 10px; display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 6px 12px; }
-.grant-form legend { font-size: .85rem; padding: 0 6px; }
-.grant-form label.check { flex-direction: row; align-items: center; gap: 6px; }
 
 /* bookmarks: our own rounded bookmark icon (soft corners and notch, like common app icon packs), a grey outline
    when not set and filled in the brand colour when set; drawn as a mask so it follows the theme. The word book is
@@ -308,7 +323,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .lib-section { margin: 22px 0; }
 .lib-section h2 { font-size: 1.1rem; text-align: center; color: var(--brand); }
 .lib-list { list-style: none; padding: 0; max-width: 760px; margin: 0 auto; }
-.lib-list li { position: relative; padding: 10px 14px 10px 40px; margin: 8px 0; border: 1px dashed var(--line); border-radius: 12px; }
+.lib-list li { position: relative; padding: 10px 14px 10px 54px; margin: 8px 0; border: 1px dashed var(--line); border-radius: 12px; }
 .lib-list .crumbs { text-align: start; margin: 0 0 4px; font-size: .8rem; }
 .lib-title { font-weight: 700; }
 .lib-couplet { display: block; color: var(--text); text-decoration: none; text-align: center; line-height: var(--verse-lh, 2.2); }
@@ -375,6 +390,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .timeline li { margin: 4px 0; }
 .mod-h { text-align: center; color: var(--brand); }
 .inline-form { display: inline; }
+/* a page's action row (save, edit, history, tags): spaced as one row of buttons, wrapping on phones */
+.center:has(> .save) { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
 .mod-history { font-size: .85rem; margin-inline-start: 6px; }
 
 /* moderators' guide */
@@ -441,8 +458,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .site-head .site-title { flex: 1 1 14em; }
 .site-head input { width: 100%; padding: 2px 10px; }
 .site-poets { list-style: urdu; margin: 8px 0; padding-inline-start: 2.5em; columns: 2 16em; }
-.site-poets li { break-inside: avoid; }
-.site-poets .tool { min-width: 1.6em; padding: 0 4px; margin-inline-start: 4px; font-size: .85rem; }
+.site-poets li { break-inside: avoid; padding: 3px 0; }
+.site-poets .tool { min-width: 1.6em; padding: 0 4px; margin-inline-start: 6px; font-size: .85rem; }
 .site-section .author-find { position: relative; max-width: 26em; }
 .site-section .author-find input { width: 100%; padding: 2px 10px; }
 /* tags (#52) */
@@ -528,3 +545,77 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .glyph-icon { position: relative; display: inline-flex; }
 .glyph-icon > span { position: absolute; inset: 0 0 4px 2px; display: flex; align-items: center; justify-content: center;
   font: 700 11px/1 var(--font-ui); }
+
+/* user access (admin): a list to find people, one page per user. Role colours: admin brand, senior moderator action,
+   moderator accent, reader muted; the avatar and the role badge share them */
+[data-role] { --c: var(--text-muted); }
+[data-role='admin'] { --c: var(--brand); } [data-role='mod-l1'] { --c: var(--action); } [data-role='mod-l2'] { --c: var(--accent); }
+.badge { display: inline-flex; align-items: center; padding: 0 10px; border-radius: var(--r-pill); font: 600 var(--fs-xs)/1.9 var(--font-ui); white-space: nowrap;
+  color: var(--c, var(--text-muted)); background: color-mix(in srgb, var(--c, var(--text-muted)) 12%, transparent); }
+.badge.plain { --c: var(--text-muted); font-weight: 400; }
+.badge.warn { --c: var(--accent); }
+.badge.danger { --c: var(--danger); }
+.avatar { flex: none; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; font: 700 1.1rem/1 var(--font-ui);
+  color: var(--surface-raised); background: var(--c); }
+.avatar.big { width: 64px; height: 64px; font-size: 1.6rem; }
+.admin-search { position: relative; max-width: 520px; margin: 0 auto 10px; }
+.admin-search input { width: 100%; padding-inline-start: 40px; border-radius: var(--r-pill); }
+.field-icon { position: absolute; inset-inline-start: 14px; top: 50%; transform: translateY(-50%); display: flex; color: var(--text-muted); pointer-events: none; }
+.role-filter { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 0 0 16px; }
+.role-filter small { opacity: .7; font-weight: 400; }
+.user-list { list-style: none; padding: 0; margin: 0 auto; max-width: 760px; border: 1.5px solid var(--border); border-radius: var(--r-lg);
+  background: var(--surface-raised); overflow: hidden; }
+.user-row + .user-row { border-top: 1px solid var(--line); }
+.user-row > a { display: flex; align-items: center; gap: 12px; padding: 10px 14px; color: var(--text); }
+.user-row > a:hover { background: var(--accent-soft); color: var(--text); }
+.user-row.disabled .who, .user-row.disabled .avatar { opacity: .5; }
+.who { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.6; }
+.who .name, .who .email { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.who [dir='ltr'], .who .email { direction: ltr; text-align: right; } /* an email is cut at its end, not its start */
+.who .email, .user-head .email { font: var(--fs-sm) var(--font-latin); color: var(--text-muted); }
+.tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.seen { font-size: var(--fs-xs); white-space: nowrap; min-width: 5.5em; text-align: end; }
+.user-row .go { color: var(--text-muted); }
+@media (max-width: 560px) {
+  .user-row > a { flex-wrap: wrap; row-gap: 4px; }
+  .user-row .tags { order: 4; flex-basis: 100%; padding-inline-start: 52px; }
+  .user-row .seen { min-width: 0; }
+}
+/* one user */
+.back { margin: 0 0 8px; font-size: var(--fs-sm); }
+.back a { display: inline-flex; align-items: center; gap: 4px; }
+.user-head { display: flex; align-items: center; gap: 16px; max-width: 760px; margin: 0 auto 16px; }
+.user-head h1 { text-align: start; margin: 0; font-size: var(--fs-xl); }
+.user-head h1::after { display: none; }
+.user-head p { margin: 4px 0 0; }
+.panel { max-width: 760px; margin: 0 auto 16px; padding: 12px 18px 16px; border: 1.5px solid var(--border); border-radius: var(--r-lg); background: var(--surface-raised); }
+.panel h2 { text-align: start; font-size: var(--fs-lg); margin: 0 0 10px; }
+.panel h2::after { display: none; }
+.role-pick { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px; }
+.role-pick button { flex-direction: column; align-items: flex-start; gap: 2px; padding: 8px 12px; border-radius: var(--r-md); text-align: start; font-weight: 400; }
+.role-pick button small { color: var(--text-muted); font-size: var(--fs-xs); line-height: 1.6; }
+.role-pick button[aria-pressed='true'] { opacity: 1; cursor: default; border-color: var(--c, var(--active)); }
+.role-pick button[aria-pressed='true'] .badge { color: var(--surface-raised); background: var(--c); }
+.grants { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-direction: column; gap: 8px; }
+.grant { display: flex; align-items: flex-start; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface-page); }
+.grant > div { flex: 1; min-width: 0; }
+.grant-scope { margin: 0 0 4px; }
+.grant .tag-chips { justify-content: flex-start; margin: 0; gap: 4px; }
+.grant .sep { width: 1px; background: var(--line); margin: 2px 4px; }
+.new-grant > summary { list-style: none; width: fit-content; }
+.new-grant > summary::-webkit-details-marker { display: none; }
+.new-grant[open] > summary { display: none; } /* the form replaces the button */
+.grant-form { display: flex; flex-direction: column; gap: 12px; }
+.grant-form fieldset { border: 0; padding: 0; margin: 0; }
+.grant-form legend { font-weight: 700; padding: 0; margin-bottom: 4px; }
+.grant-form .target { display: flex; flex-direction: column; gap: 4px; font-weight: 700; }
+.grant-form .target small { font-weight: 400; }
+.grant-form:has(input[name='scope'][value='all']:checked) .target { display: none; } /* "all poets" needs no target */
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+/* toggle chips: the chip shows the state (checked = --active), the box itself is visually hidden but focusable */
+.chips .chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chips .chip:has(input:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
+.chips .chip:has(input:checked)::before { content: '✓'; }
+.account-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.danger-zone { margin-top: 14px; padding-top: 12px; border-top: 1px dashed color-mix(in srgb, var(--danger) 40%, transparent); }
+.danger-zone p { margin: 0 0 6px; }

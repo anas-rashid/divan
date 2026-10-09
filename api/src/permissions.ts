@@ -95,7 +95,7 @@ export async function grantsOf(userId: number) {
 export function permissionRoutes(app: FastifyInstance) {
   app.get<{ Params: { id: string } }>('/api/admin/users/:id/grants', async (req, reply) => {
     if (!(await requireAdmin(req, reply))) return;
-    const u = (await pool.query('SELECT id, email, role, disabled_at FROM users WHERE id = $1', [Number(req.params.id) || 0])).rows[0];
+    const u = (await pool.query('SELECT id, email, full_name, role, created_at, disabled_at, (SELECT max(created_at) FROM sessions WHERE user_id = users.id) AS last_sign_in FROM users WHERE id = $1', [Number(req.params.id) || 0])).rows[0];
     if (!u) return reply.code(404).send({ error: 'صارف نہیں ملا' });
     return { user: { ...u, id: Number(u.id) }, grants: await grantsOf(u.id) };
   });
