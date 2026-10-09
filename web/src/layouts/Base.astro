@@ -29,6 +29,7 @@ import Icon from '../components/Icon.astro';
         if (t) document.documentElement.dataset.theme = t;
         const pal = localStorage.getItem('divan-palette'); // sepia when unset
         if (pal) document.documentElement.dataset.palette = pal;
+        if (document.cookie.includes('divan-digits=latn')) document.documentElement.dataset.digits = 'latn'; // Western numerals
       } catch (e) {}
     </script>
   </head>
@@ -66,6 +67,8 @@ import Icon from '../components/Icon.astro';
                   <button type="button" data-palette={v} title={name} aria-label={name} style={`--a: ${a}; --b: ${b}`}><span></span>{name}</button>
                 ))}
               </div>
+              <p>ہندسے</p>
+              <div class="seg"><button type="button" data-digits="">۱۲۳ مشرقی</button><button type="button" data-digits="latn">123 مغربی</button></div>
               <p>روشنی</p>
               <div class="seg">
                 <button type="button" data-theme-pick="light"><Icon name="sun" size={16} /> روشن</button>
@@ -122,15 +125,32 @@ import Icon from '../components/Icon.astro';
         panel.querySelectorAll('[data-font]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.font === on.font)));
         panel.querySelectorAll('[data-palette]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.palette === on.palette)));
         panel.querySelectorAll('[data-theme-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themePick === on.theme)));
+        panel.querySelectorAll('[data-digits]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.digits === (root.dataset.digits ?? ''))));
       };
       panel.addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
         if (b.dataset.font) { root.classList.toggle('nastaliq', b.dataset.font === 'nastaliq'); store('divan-font', b.dataset.font); }
         if (b.dataset.palette != null) { if (b.dataset.palette) root.dataset.palette = b.dataset.palette; else delete root.dataset.palette; store('divan-palette', b.dataset.palette); }
+        if (b.dataset.digits != null) {
+          // numerals: a cookie, so the server sends pages with them; switching back to Eastern reloads the page
+          document.cookie = `divan-digits=${b.dataset.digits}; path=/; max-age=${b.dataset.digits ? 31536000 : 0}; samesite=lax`;
+          if (!b.dataset.digits) { delete root.dataset.digits; location.reload(); return; }
+          root.dataset.digits = 'latn'; westernDigits(document.body);
+        }
         if (b.dataset.themePick != null) { if (b.dataset.themePick) root.dataset.theme = b.dataset.themePick; else delete root.dataset.theme; store('divan-theme', b.dataset.themePick); }
         marks();
+
       });
       document.addEventListener('click', (e) => { if (panel.open && !panel.contains(e.target)) panel.open = false; }); // close when clicking elsewhere
+      // Western numerals also in what scripts add later (word sidebar, page numbers, suggestions)
+      function westernDigits(node) {
+      const walk = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      for (let t = walk.nextNode(); t; t = walk.nextNode()) if (/[۰-۹]/.test(t.data)) t.data = t.data.replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x6f0));
+      }
+      new MutationObserver((list) => {
+      if (root.dataset.digits !== 'latn') return;
+      for (const m of list) for (const n of m.addedNodes) n.nodeType === 3 ? westernDigits(n.parentNode) : n.nodeType === 1 && westernDigits(n);
+      }).observe(document.body, { childList: true, subtree: true });
       marks();
       // Urdu on-screen keyboard, Gboard/Windows Urdu layout
       const BASE = [[...'طصھدٹپتبجح'], [...'مورنلہاکی'], [...'قفےسشغع']];

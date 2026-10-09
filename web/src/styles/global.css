@@ -496,7 +496,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .icon-btn.small { width: 30px; height: 30px; }
 /* display settings in the header: a button and its panel (font, palette swatches, light/dark/automatic) */
-.display-menu { position: relative; }
+.display-menu { position: relative; display: flex; } /* no line box: lines up with the other header icons */
 .display-menu > summary { list-style: none; }
 .display-menu > summary::-webkit-details-marker { display: none; }
 .display-menu[open] > summary { border-color: var(--brand); color: var(--brand); }
