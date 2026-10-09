@@ -210,7 +210,11 @@ import { siteUrl } from '../lib/site-url';
       });
       panel.addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
-        if (b.dataset.font) { root.classList.toggle('nastaliq', b.dataset.font === 'nastaliq'); store('divan-font', b.dataset.font); }
+        if (b.dataset.font) {
+          // switching to Nastaliq: a short note that it is for the text (the interface stays Naskh, by design)
+          if (b.dataset.font === 'nastaliq' && !root.classList.contains('nastaliq')) toast('نستعلیق صرف کلام اور متن پر؛ باقی سائٹ نسخ میں رہتی ہے', 'info');
+          root.classList.toggle('nastaliq', b.dataset.font === 'nastaliq'); store('divan-font', b.dataset.font);
+        }
         if (b.dataset.palette != null) { if (b.dataset.palette) root.dataset.palette = b.dataset.palette; else delete root.dataset.palette; store('divan-palette', b.dataset.palette); }
         if (b.dataset.digits != null) {
           // numerals: a cookie, so the server sends pages with them; switching back to Eastern reloads the page

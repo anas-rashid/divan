@@ -684,6 +684,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
   font: var(--fs-sm)/1.8 var(--font-ui); animation: toast-in .25s ease-out; }
 .toast::before { content: '✓  '; color: var(--ok); font-weight: 700; }
 .toast.error::before { content: '!  '; color: var(--danger); }
+.toast.info::before { content: 'ⓘ  '; color: var(--accent); }
 .toast.out { animation: toast-out .3s ease-in forwards; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(14px); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(14px); } }
