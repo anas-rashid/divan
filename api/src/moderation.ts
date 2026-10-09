@@ -9,11 +9,15 @@
 // Publishing numbers the version, writes it to divan-data as Divan-owned content (owned.ts), commits it there (git.ts)
 // and updates the site.
 // If another version was published after the draft started, publishing is refused until the draft is redone.
+// Arranging a book or section (order.ts, entity 'order') uses the same revisions, steps and publishing; it needs
+// the separate 'arrange' permission.
 //   GET  /api/mod/can?poem=                  what the reader may do on a work
 //   GET  /api/mod/queue                      my drafts, drafts to review, drafts to publish
 //   GET  /api/mod/work/:id                   a work's current text and its history
 //   POST /api/mod/work/:id/draft             start (or reopen) my draft
 //   GET  /api/mod/revisions/:id              a revision, its diff against the version it started from, its events
+//   GET  /api/mod/order/:id                  a book/section's current order and its history
+//   POST /api/mod/order/:id/draft            start (or reopen) my arrangement draft
 //   POST /api/mod/revisions/:id/save         {content, summary}
 //   POST /api/mod/revisions/:id/:action      submit | approve | return | reject | publish  {comment}
 //   GET  /api/mod/log?page=                  who did what, newest first
@@ -26,12 +30,17 @@ import { parse, toVerses, toText } from './divantext.ts';
 import { normalise } from './urdu.ts';
 import { diffLines, changed } from './diff.ts';
 import { commit, identity } from './git.ts';
+import { currentOrder, checkOrder, applyOrder, writeOrder, orderSlugs } from './order.ts';
 import { publicName } from './auth.ts';
 
 const dataDir = () => process.env.DIVAN_DATA_DIR ?? new URL('../../../divan-data', import.meta.url).pathname;
 const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
 const mayEdit = (u: any, poemId: number) => can(u, 'edit', 'works', { poemId });
-const mayReview = async (u: any, poemId: number) => ['mod-l1', 'admin'].includes(u?.role) && (await mayEdit(u, poemId));
+const mayArrange = async (u: any, categoryId: number) =>
+  (await can(u, 'arrange', 'works', { categoryId })) || (await can(u, 'arrange', 'books', { categoryId }));
+// may change what this revision changes (a work's text, or a book/section's order); reviewing needs L1 or admin
+const mayChange = (u: any, r: { entity: string; entity_id: number }) => (r.entity === 'order' ? mayArrange : mayEdit)(u, r.entity_id);
+const mayReview = async (u: any, r: { entity: string; entity_id: number }) => ['mod-l1', 'admin'].includes(u?.role) && (await mayChange(u, r));
 const OPEN = ['draft', 'returned'];
 // a draft whose text is still the text it started from is not shown anywhere (opening the editor is not a change)
 const CHANGED = `(r.status <> 'draft' OR r.content <> r.base_content)`;
@@ -59,15 +68,18 @@ async function current(poemId: number) {
   return { poem, version: 0, content: fromPoem({ Title: poem.title, Verses: verses, SourceUrl: poem.source_url ?? undefined }, { شاعر: poem.poet }) };
 }
 
+// what a revision changes: a work, or a book/section's order (work_title/work_url name either)
+const TARGET = `LEFT JOIN poems p ON r.entity = 'work' AND p.id = r.entity_id
+  LEFT JOIN categories c ON r.entity = 'order' AND c.id = r.entity_id`;
+const TARGET_COLS = `coalesce(p.title, c.title) AS work_title, coalesce(p.url, c.url) AS work_url`;
+
 async function revision(id: number) {
-  return (await pool.query(
-    `SELECT r.*, p.title AS work_title, p.url AS work_url FROM revisions r JOIN poems p ON p.id = r.entity_id
-     WHERE r.id = $1 AND r.entity = 'work'`, [id])).rows[0];
+  return (await pool.query(`SELECT r.*, ${TARGET_COLS} FROM revisions r ${TARGET} WHERE r.id = $1 AND r.entity IN ('work', 'order')`, [id])).rows[0];
 }
 
 // what this person may do with this revision now
 async function actions(u: any, r: any) {
-  const mine = Number(r.author_id) === Number(u.id), review = await mayReview(u, r.entity_id), admin = u.role === 'admin';
+  const mine = Number(r.author_id) === Number(u.id), review = await mayReview(u, r), admin = u.role === 'admin';
   return {
     save: mine && OPEN.includes(r.status),
     submit: mine && OPEN.includes(r.status),
@@ -79,19 +91,25 @@ async function actions(u: any, r: any) {
 }
 
 async function publish(r: any, u: any, comment?: string) {
-  const cur = await current(r.entity_id);
+  const order = r.entity === 'order';
+  const cur = order ? await currentOrder(r.entity_id) : await current(r.entity_id);
   if (!cur) throw Object.assign(new Error('کلام نہیں ملا'), { code: 404 });
   if (cur.version !== r.base_version)
-    throw Object.assign(new Error('اس دوران اس کلام کا نیا ورژن شائع ہو چکا ہے۔ مسودہ واپس بھیج کر تازہ متن پر دوبارہ بنوائیں۔'), { code: 409 });
-  const doc = parse(r.content), verses = toVerses(doc);
-  const title = doc.meta['عنوان'] || cur.poem.title, version = cur.version + 1, at = new Date().toISOString();
+    throw Object.assign(new Error('اس دوران اس کا نیا ورژن شائع ہو چکا ہے۔ مسودہ واپس بھیج کر تازہ متن پر دوبارہ بنوائیں۔'), { code: 409 });
+  // the section's contents may have changed since (a new work from the sync): the arrangement must be redone
+  const stale = order && (await checkOrder(r.entity_id, r.content));
+  if (stale) throw Object.assign(new Error(`اس دوران اس حصے کی چیزیں بدل گئی ہیں: ${stale}`), { code: 409 });
+  const doc = order ? null : parse(r.content), verses = doc ? toVerses(doc) : [];
+  const title = 'cat' in cur ? `ترتیب: ${cur.cat.title}` : doc!.meta['عنوان'] || cur.poem.title;
+  const version = cur.version + 1, at = new Date().toISOString();
   // who did it, by public name (divan-data is public: never email addresses)
   const people = async (id: unknown) => id ? (await pool.query('SELECT id, full_name FROM users WHERE id = $1', [id])).rows[0] ?? null : null;
   const [author, reviewer] = await Promise.all([people(r.author_id), people(r.reviewer_id)]);
   const who = (p: any) => p && { id: Number(p.id), name: publicName(p) };
   const credits = { by: who(author)?.name ?? 'موڈریٹر', reviewedBy: who(reviewer)?.name ?? null, publishedBy: publicName(u) };
   // divan-data first (the published record, committed to git), then the site's database
-  const files = await writeOwned(dataDir(), cur.poem.url, r.content, { ...credits, at, version, revision: Number(r.id) });
+  const files = 'cat' in cur ? [await writeOrder(dataDir(), cur.cat.url, r.content)]
+    : await writeOwned(dataDir(), cur.poem.url, r.content, { ...credits, at, version, revision: Number(r.id) });
   const trailers = [`Divan-Revision: ${r.id}`, `Divan-Version: ${version}`,
     ...(reviewer ? [`Reviewed-by: ${identityOf(reviewer)}`] : []), `Approved-by: ${identityOf(u)}`];
   const sha = await commit(dataDir(), files.map((f) => f.slice(dataDir().replace(/\/$/, '').length + 1)),
@@ -101,12 +119,15 @@ async function publish(r: any, u: any, comment?: string) {
     await client.query('BEGIN');
     await client.query(`UPDATE revisions SET status = 'published', version = $2, publisher_email = $3, published_at = $4, commit = $5, credits = $6, updated_at = now()
                         WHERE id = $1`, [r.id, version, u.email, at, sha, credits]);
-    await client.query('UPDATE poems SET title = $2, search_text = $3 WHERE id = $1',
-      [r.entity_id, title, normalise([title, ...verses.map((v) => v.Text)].join(' '))]);
-    await client.query('DELETE FROM verses WHERE poem_id = $1', [r.entity_id]);
-    for (const v of verses)
-      await client.query('INSERT INTO verses (poem_id, vorder, position, couplet, text) VALUES ($1, $2, $3, $4, $5)',
-        [r.entity_id, v.VOrder, v.Position, v.CoupletIndex, v.Text]);
+    if (order) await applyOrder(client, r.entity_id, r.content);
+    else {
+      await client.query('UPDATE poems SET title = $2, search_text = $3 WHERE id = $1',
+        [r.entity_id, title, normalise([title, ...verses.map((v) => v.Text)].join(' '))]);
+      await client.query('DELETE FROM verses WHERE poem_id = $1', [r.entity_id]);
+      for (const v of verses)
+        await client.query('INSERT INTO verses (poem_id, vorder, position, couplet, text) VALUES ($1, $2, $3, $4, $5)',
+          [r.entity_id, v.VOrder, v.Position, v.CoupletIndex, v.Text]);
+    }
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
@@ -122,22 +143,25 @@ async function publish(r: any, u: any, comment?: string) {
 const identityOf = (p: any) => identity({ id: Number(p.id), name: publicName(p) });
 
 export function moderationRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: { poem?: string } }>('/api/mod/can', async (req) => {
-    const u = await sessionUser(req), poemId = Number(req.query.poem) || 0;
-    if (!isModerator(u)) return { edit: false, review: false, publish: false };
-    return { edit: await mayEdit(u, poemId), review: await mayReview(u, poemId), publish: u.role === 'admin' };
+  // ?poem= on a work page; ?category= on a poet or book/section page (arrange)
+  app.get<{ Querystring: { poem?: string; category?: string } }>('/api/mod/can', async (req) => {
+    const u = await sessionUser(req), poemId = Number(req.query.poem) || 0, categoryId = Number(req.query.category) || 0;
+    if (!isModerator(u)) return { edit: false, review: false, publish: false, arrange: false };
+    if (categoryId) return { arrange: await mayArrange(u, categoryId) };
+    return { edit: await mayEdit(u, poemId), review: await mayReview(u, { entity: 'work', entity_id: poemId }), publish: u.role === 'admin' };
   });
 
   app.get('/api/mod/queue', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
     const { rows } = await pool.query(
-      `SELECT r.id, r.entity_id, r.status, r.summary, r.author_id, r.author_email, r.reviewer_email, r.updated_at, p.title, p.url
-       FROM revisions r JOIN poems p ON p.id = r.entity_id
-       WHERE r.entity = 'work' AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned') AND ${CHANGED}))
+      `SELECT r.id, r.entity, r.entity_id, r.status, r.summary, r.author_id, r.author_email, r.reviewer_email, r.updated_at,
+              coalesce(p.title, c.title) AS title, coalesce(p.url, c.url) AS url
+       FROM revisions r ${TARGET}
+       WHERE r.entity IN ('work', 'order') AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned') AND ${CHANGED}))
        ORDER BY r.updated_at DESC LIMIT 300`, [u.id]);
     const strip = ({ author_id, ...r }: any) => ({ ...r, id: Number(r.id) });
     const review = [];
-    for (const r of rows) if (r.status === 'submitted' && Number(r.author_id) !== Number(u.id) && (await mayReview(u, r.entity_id))) review.push(strip(r));
+    for (const r of rows) if (r.status === 'submitted' && Number(r.author_id) !== Number(u.id) && (await mayReview(u, r))) review.push(strip(r));
     return {
       mine: rows.filter((r) => Number(r.author_id) === Number(u.id)).map(strip),
       review,
@@ -173,12 +197,41 @@ export function moderationRoutes(app: FastifyInstance) {
     return { id: Number(rows[0].id) };
   });
 
+  app.get<{ Params: { id: string } }>('/api/mod/order/:id', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const cur = await currentOrder(Number(req.params.id) || 0);
+    if (!cur) return reply.code(404).send({ error: 'حصہ نہیں ملا' });
+    const { rows } = await pool.query(
+      `SELECT id, version, base_version, status, summary, author_email, reviewer_email, publisher_email, created_at, published_at
+       FROM revisions r WHERE entity = 'order' AND entity_id = $1 AND ${CHANGED} ORDER BY coalesce(published_at, created_at) DESC`, [cur.cat.id]);
+    return { section: cur.cat, version: cur.version, content: cur.content, count: cur.count,
+      history: rows.map((r) => ({ ...r, id: Number(r.id) })), may: { arrange: await mayArrange(u, cur.cat.id) } };
+  });
+
+  app.post<{ Params: { id: string } }>('/api/mod/order/:id/draft', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const catId = Number(req.params.id) || 0;
+    if (!(await mayArrange(u, catId))) return reply.code(403).send({ error: 'اس حصے کی ترتیب بدلنے کی اجازت نہیں' });
+    const open = (await pool.query(
+      `SELECT id FROM revisions WHERE entity = 'order' AND entity_id = $1 AND author_id = $2 AND status IN ('draft', 'returned') LIMIT 1`, [catId, u.id])).rows[0];
+    if (open) return { id: Number(open.id) };
+    const cur = await currentOrder(catId);
+    if (!cur) return reply.code(404).send({ error: 'حصہ نہیں ملا' });
+    if (cur.count < 2) return reply.code(400).send({ error: 'اس حصے میں ترتیب دینے کو کچھ نہیں' });
+    const { rows } = await pool.query(
+      `INSERT INTO revisions (entity, entity_id, base_version, base_content, content, status, author_id, author_email)
+       VALUES ('order', $1, $2, $3, $3, 'draft', $4, $5) RETURNING id`,
+      [catId, cur.version, cur.content, u.id, u.email]);
+    await event(rows[0].id, u, 'created');
+    return { id: Number(rows[0].id) };
+  });
+
   app.get<{ Params: { id: string } }>('/api/mod/revisions/:id', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
     const r = await revision(Number(req.params.id) || 0);
     if (!r) return reply.code(404).send({ error: 'مسودہ نہیں ملا' });
     const may = await actions(u, r);
-    if (Number(r.author_id) !== Number(u.id) && !(await mayReview(u, r.entity_id)) && u.role !== 'admin')
+    if (Number(r.author_id) !== Number(u.id) && !(await mayReview(u, r)) && u.role !== 'admin')
       return reply.code(403).send({ error: 'یہ مسودہ دیکھنے کی اجازت نہیں' });
     const diff = diffLines(r.base_content, r.content); // against the text the draft started from
     const events = (await pool.query('SELECT actor_email, action, comment, at FROM revision_events WHERE revision_id = $1 ORDER BY at, id', [r.id])).rows;
@@ -192,11 +245,15 @@ export function moderationRoutes(app: FastifyInstance) {
     if (!r) return reply.code(404).send({ error: 'مسودہ نہیں ملا' });
     if (!(await actions(u, r)).save) return reply.code(403).send({ error: 'یہ مسودہ اب محفوظ نہیں کیا جا سکتا' });
     const content = String(req.body?.content ?? '').replace(/\r\n?/g, '\n');
-    if (!toVerses(parse(content)).length) return reply.code(400).send({ error: 'متن میں کوئی شعر یا پیراگراف نہیں' });
+    if (r.entity === 'order') {
+      const bad = await checkOrder(r.entity_id, content);
+      if (bad) return reply.code(400).send({ error: bad });
+    } else if (!toVerses(parse(content)).length) return reply.code(400).send({ error: 'متن میں کوئی شعر یا پیراگراف نہیں' });
     if (content.length > 500_000) return reply.code(400).send({ error: 'متن بہت لمبا ہے' });
     // no change from the text it started from (compared as Divan text, so layout-only differences don't count):
     // a plain draft is dropped rather than kept
-    const same = toText(parse(content)) === toText(parse(r.base_content));
+    const norm = (t: string) => (r.entity === 'order' ? orderSlugs(t).join('\n') : toText(parse(t)));
+    const same = norm(content) === norm(r.base_content);
     if (same && r.status === 'draft') {
       await pool.query('DELETE FROM revisions WHERE id = $1', [r.id]);
       return { discarded: true };
@@ -246,9 +303,9 @@ export function moderationRoutes(app: FastifyInstance) {
     const u = await moderator(req, reply); if (!u) return;
     const page = Math.max(1, Number(req.query.page) || 1);
     const { rows } = await pool.query(
-      `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.version, p.title, p.url
-       FROM revision_events e JOIN revisions r ON r.id = e.revision_id JOIN poems p ON p.id = r.entity_id
-       WHERE ${CHANGED}
+      `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.entity, r.version, coalesce(p.title, c.title) AS title, coalesce(p.url, c.url) AS url
+       FROM revision_events e JOIN revisions r ON r.id = e.revision_id ${TARGET}
+       WHERE r.entity IN ('work', 'order') AND ${CHANGED}
        ORDER BY e.at DESC, e.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`);
     return { page, entries: rows.map((r) => ({ ...r, revision: Number(r.revision) })) };
   });

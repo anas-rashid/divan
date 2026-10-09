@@ -23,21 +23,47 @@ if (Astro.request.method === 'POST') {
 const res = await asUser(token, `/api/mod/revisions/${id}`);
 if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
 const { revision: rev, diff, changes, events, may } = res.data;
+// an arrangement (#41) lists a book/section's items, one per line: "<url part> <title>"
+const order = rev.entity === 'order';
+const items = order ? rev.content.split('\n').filter(Boolean).map((l: string) => ({ line: l, title: l.slice(l.indexOf(' ') + 1) })) : [];
 const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیجیں'], ['reject', 'مسترد کریں'], ['publish', 'شائع کریں']] as const).filter(([a]) => may[a]);
 ---
 <Base title={`مسودہ: ${rev.work_title}`}>
-  <h1>{rev.work_title}</h1>
+  <h1>{order && 'ترتیب: '}{rev.work_title}</h1>
   <ModNav />
   <p class="center">
     <span class={`status s-${rev.status}`}>{STATUS[rev.status]}</span>
     · <bdi dir="ltr">{rev.author_email}</bdi>
     · {rev.base_version ? `ورژن ${ud(rev.base_version)} سے` : 'ویکی ماخذ کے متن سے'}
-    · <a href={rev.work_url}>کلام</a> · <a href={`/mod/work/${rev.entity_id}`}>تاریخچہ</a>
+    · <a href={rev.work_url}>{order ? 'حصہ' : 'کلام'}</a> · <a href={`/mod/${order ? 'order' : 'work'}/${rev.entity_id}`}>تاریخچہ</a>
   </p>
   {error && <p class="form-error" role="alert">{error}</p>}
   {done && <p class="form-done" role="status">{done}</p>}
 
-  {may.save ? (
+  {may.save && order ? (
+    <form method="post" class="mod-edit">
+      <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu placeholder="مثلاً: غزلیں مطبوعہ دیوان کی ترتیب میں" /></label>
+      <p class="muted note">کسی چیز کو کھینچ کر اس کی جگہ رکھیں، یا ↑ ↓ سے ایک جگہ اوپر نیچے کریں؛ «اول» سب سے اوپر، «آخر» سب سے نیچے۔</p>
+      <ol class="order-list" id="order-list">
+        {items.map((it: any) => (
+          <li draggable="true" data-line={it.line}>
+            <span class="order-title">{it.title}</span>
+            <span class="order-tools">
+              <button type="button" class="tool" data-move="top" title="سب سے اوپر">اول</button>
+              <button type="button" class="tool" data-move="up" title="اوپر">↑</button>
+              <button type="button" class="tool" data-move="down" title="نیچے">↓</button>
+              <button type="button" class="tool" data-move="bottom" title="سب سے نیچے">آخر</button>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <textarea name="content" id="order-content" hidden>{rev.content}</textarea>
+      <div class="filter-actions">
+        <button name="act" value="save">محفوظ کریں</button>
+        <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+      </div>
+    </form>
+  ) : may.save ? (
     <form method="post" class="mod-edit">
       <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu placeholder="مثلاً: دوسرے شعر کا مصرع درست کیا" /></label>
       <nav class="admin-nav editor-tabs" role="tablist">
@@ -95,7 +121,7 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
 
   <section class="lib-section">
     <h2>پیش نظارہ</h2>
-    <DivanPreview text={rev.content} />
+    {order ? <ol class="toc">{items.map((it: any) => <li>{it.title}</li>)}</ol> : <DivanPreview text={rev.content} />}
   </section>
 
   {acts.length > 0 && (
@@ -114,6 +140,33 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
     </ol>
   </section>
   <script>
+    // arranging: drag an item, or move it with the buttons; the hidden text follows the list
+    const list = document.getElementById('order-list');
+    const text = document.getElementById('order-content') as HTMLTextAreaElement | null;
+    if (list && text) {
+      const sync = () => { text.value = [...list.children].map((li) => (li as HTMLElement).dataset.line).join('\n'); };
+      const flash = (li: Element) => { li.classList.add('moved'); li.scrollIntoView({ block: 'nearest' }); setTimeout(() => li.classList.remove('moved'), 600); };
+      list.addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-move]'); if (!b) return;
+        const li = b.closest('li')!, m = b.dataset.move;
+        if (m === 'up' && li.previousElementSibling) li.previousElementSibling.before(li);
+        else if (m === 'down' && li.nextElementSibling) li.nextElementSibling.after(li);
+        else if (m === 'top') list.prepend(li);
+        else if (m === 'bottom') list.append(li);
+        sync(); flash(li); b.focus();
+      });
+      let dragged: HTMLElement | null = null;
+      list.addEventListener('dragstart', (e) => { dragged = (e.target as HTMLElement).closest('li'); dragged?.classList.add('dragging'); });
+      list.addEventListener('dragend', () => { dragged?.classList.remove('dragging'); dragged = null; sync(); });
+      list.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const over = (e.target as HTMLElement).closest('li');
+        if (!dragged || !over || over === dragged) return;
+        const r = over.getBoundingClientRect();
+        e.clientY > r.top + r.height / 2 ? over.after(dragged) : over.before(dragged);
+      });
+    }
+
     // the structured editor (Tiptap) and the source view edit the same Divan text; saving always sends the text
     import { createEditor, fromEditor, toEditor, actions } from '../../../lib/editor';
     import { parse } from '../../../../../api/src/divantext.ts';
