@@ -305,11 +305,14 @@ import { siteUrl } from '../lib/site-url';
       document.addEventListener('click', (e) => {
         const b = e.target.closest('[data-urdu-kb], [data-urdu-rom]'); if (!b) return;
         target = document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom)?.querySelector('[contenteditable]') ?? document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom);
-        // in an open dialog (the note box) the header can't be reached: the keyboard moves under the box, and back when it closes
-        const box = b.dataset.urduKb && target.closest('dialog');
-        if (box) { kb.classList.remove('kb-float'); target.closest('.in-box-field')?.after(kb); }
-        else if (b.dataset.urduKb && target.isContentEditable) { kb.classList.add('kb-float'); document.body.append(kb); } // the editor: floating
-        else if (b.dataset.urduKb) home();
+        // a field's own keyboard opens right under that field (in view while typing, also in a dialog), and goes back to
+        // the header when closed; open under another field, it moves here
+        if (b.dataset.urduKb && target.isContentEditable) { kb.classList.add('kb-float'); document.body.append(kb); } // the editor: floating
+        else if (b.dataset.urduKb) {
+          const at = target.closest('.in-box-field') ?? target;
+          if (!kb.hidden && kb.previousElementSibling !== at) closeKb();
+          kb.classList.remove('kb-float'); at.after(kb);
+        }
         (b.dataset.urduKb ? kbBtn : romBtn).click();
         b.setAttribute('aria-pressed', (b.dataset.urduKb ? kbBtn : romBtn).getAttribute('aria-pressed'));
       });

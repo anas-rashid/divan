@@ -48,8 +48,8 @@ import Icon from '../components/Icon.astro';
   <form method="post" class="account-form">
     <h2>پروفائل</h2>
     <input type="hidden" name="act" value="profile" />
-    <label>پورا نام<input name="full_name" value={user.full_name} maxlength="100" dir="auto" autocomplete="name" /></label>
-    <label>تعارف<textarea name="bio" maxlength="1000" rows="4" dir="auto">{user.bio}</textarea></label>
+    <label>پورا نام<span class="in-box-field"><input id="p-name" name="full_name" value={user.full_name} maxlength="100" dir="auto" autocomplete="name" data-urdu /><button type="button" class="in-box rom" data-urdu-rom="p-name" aria-pressed="false" aria-label="رومن حروف سے اردو" title="رومن حروف سے اردو ٹائپنگ">اب</button><button type="button" class="in-box" data-urdu-kb="p-name" aria-pressed="false" aria-label="اردو کی بورڈ" title="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button></span></label>
+    <label>تعارف<span class="in-box-field note-field"><textarea id="p-bio" name="bio" maxlength="1000" rows="4" dir="auto" data-urdu>{user.bio}</textarea><button type="button" class="in-box rom" data-urdu-rom="p-bio" aria-pressed="false" aria-label="رومن حروف سے اردو" title="رومن حروف سے اردو ٹائپنگ">اب</button><button type="button" class="in-box" data-urdu-kb="p-bio" aria-pressed="false" aria-label="اردو کی بورڈ" title="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button></span></label>
     <button type="submit" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
   </form>
 
