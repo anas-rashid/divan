@@ -1,0 +1,42 @@
+---
+// A poet's e-books (/p17/ebooks), every poet has one: tabs by kind, covers in a grid
+import Base from '../../layouts/Base.astro';
+import { api } from '../../lib/api';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+
+const page = /^p\d+$/.test(Astro.params.poet ?? '') ? await api(`/api/page?url=${encodeURIComponent('/' + Astro.params.poet)}`) : null;
+if (!page || page.type !== 'poet') return new Response(null, { status: 404, statusText: 'Not found' });
+const books = (await api<any[]>(`/api/ebooks?poet=${page.poet.id}`)) ?? [];
+// tabs: the three kinds always, archive.org only when there are such books
+const TABS = [['pdf', 'پی ڈی ایف', 'PDF'], ['epub', 'ای پب', 'ePUB'], ['text', 'یونیکوڈ متن', 'Unicode'], ['archive', 'آرکائیو', 'archive.org']] as const;
+const tabs = TABS.filter(([k]) => k !== 'archive' || books.some((b) => b.kind === 'archive'));
+const asked = Astro.url.searchParams.get('kind');
+const kind = tabs.some(([k]) => k === asked) ? asked : (tabs.find(([k]) => books.some((b) => b.kind === k))?.[0] ?? 'pdf');
+const shown = books.filter((b) => b.kind === kind);
+const cover = (b: any) => (b.has_cover ? `/ebooks/cover/${b.id}` : b.kind === 'archive' ? `https://archive.org/services/img/${b.archive_id}` : null);
+const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
+const mayAdd = token && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user!.role)
+  && (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data.ebooks;
+---
+<Base title={`ای بکس · ${page.poet.nickname}`}>
+  <nav class="crumbs"><a href={page.poet.url}>{page.poet.nickname}</a></nav>
+  <h1>ای بکس</h1>
+  {mayAdd && <p class="center"><a class="mod-edit-btn" href={`/mod/ebook/new?poet=${page.poet.id}`}>ای بک شامل کریں</a></p>}
+  <nav class="admin-nav ebook-tabs" aria-label="کتابوں کی قسم">
+    {tabs.map(([k, ur, en]) => {
+      const n = books.filter((b) => b.kind === k).length;
+      return <a href={`?kind=${k}`} aria-current={k === kind ? 'page' : undefined}>{ur} <span lang="en" dir="ltr">({en})</span>{n > 0 && <small> {ud(n)}</small>}</a>;
+    })}
+  </nav>
+  {shown.length === 0 ? <p class="muted center">اس قسم کی کوئی کتاب ابھی نہیں۔</p> : (
+    <div class="ebook-grid">
+      {shown.map((b) => (
+        <a class="ebook-card" href={`/ebook/${b.id}`}>
+          {cover(b) ? <img src={cover(b)} alt="" loading="lazy" /> : <span class="ebook-plain"><span>{b.title}</span><small>{page.poet.nickname}</small></span>}
+          <span class="ebook-title">{b.title}{b.co && <small class="muted"> (شریک مصنف)</small>}{b.language !== 'اردو' && <small class="muted"> · {b.language}</small>}</span>
+        </a>
+      ))}
+    </div>
+  )}
+</Base>

@@ -17,7 +17,7 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect(`/library#i${id}`, 303);
 }
 const lib = (await asUser(token, '/api/library')).data;
-const total = lib.poets.length + lib.categories.length + lib.poems.length + lib.couplets.length + lib.phrases.length;
+const total = lib.poets.length + lib.categories.length + lib.poems.length + lib.couplets.length + lib.phrases.length + (lib.pages?.length ?? 0);
 // a bookmarked phrase shown inside its couplet: [before, phrase, after] per line
 const marked = (lines: string[], phrase: string) => phraseParts(lines, phrase).map((part, i) => {
   if (!part) return [lines[i], '', ''];
@@ -123,4 +123,23 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
     </section>
   )}
 
+  {lib.pages?.length > 0 && (
+    <section class="lib-section">
+      <h2>کتابوں کے محفوظ صفحات</h2>
+      <ul class="lib-list">
+        {lib.pages.map((p: any) => (
+          <li id={`i${p.id}`}>
+            <nav class="crumbs"><span><a href={p.ebook.poet_url}>{p.ebook.poet}</a></span><span><a href={`${p.ebook.poet_url}/ebooks`}>ای بکس</a></span></nav>
+            <a class="lib-title" href={`/ebook/${p.ebook.id}?page=${p.page}`}>{p.ebook.title} · صفحہ {ud(p.page)}</a>
+            <form method="post" class="lib-note">
+              <input type="hidden" name="id" value={p.id} />
+              <input name="note" value={p.note ?? ''} placeholder="نوٹ" maxlength="1000" dir="auto" />
+              <button name="act" value="note">محفوظ</button>
+            </form>
+            <form method="post" class="lib-remove"><input type="hidden" name="id" value={p.id} /><button name="act" value="delete" aria-label="ہٹائیں">✕</button></form>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 </Base>

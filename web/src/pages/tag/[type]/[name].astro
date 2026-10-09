@@ -7,8 +7,8 @@ import { ud } from '../../../lib/urdu';
 const { type = '', name = '' } = Astro.params;
 const res = await api(`/api/tag?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}`);
 if (!res) return new Response(null, { status: 404, statusText: 'Not found' });
-const { tag, categories, works } = res;
-const count = categories.length + works.length;
+const { tag, categories, works, ebooks = [] } = res;
+const count = categories.length + works.length + ebooks.length;
 ---
 <Base title={`${tag.type}: ${tag.name}`}>
   <h1><small class="muted">{tag.type}:</small> {tag.name}</h1>
@@ -19,6 +19,12 @@ const count = categories.length + works.length;
       <ul class="book-results">
         {categories.map((c: any) => <li><a href={c.url}>{c.is_poet ? c.poet : c.title}</a>{!c.is_poet && <> · <a class="muted" href={c.poet_url}>{c.poet}</a></>}</li>)}
       </ul>
+    </section>
+  )}
+  {ebooks.length > 0 && (
+    <section class="search-group">
+      <h2>ای بکس</h2>
+      <ul class="book-results">{ebooks.map((b: any) => <li><a href={`/ebook/${b.id}`}>{b.title}</a> · <a class="muted" href={b.poet_url}>{b.poet}</a></li>)}</ul>
     </section>
   )}
   {works.length > 0 && (

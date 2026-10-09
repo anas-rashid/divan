@@ -77,9 +77,8 @@ const arrange = catCan.arrange, tagCan = page.type === 'poem' ? modCan.tags : ca
 // tags (#52): the page's own, and each couplet's (tags count couplets from 1, verses from 0)
 const pageTags = (page.tags ?? []).filter((t: any) => !t.couplet);
 const coupletTags = (c: number) => (page.tags ?? []).filter((t: any) => t.couplet === c + 1);
-// a poet's e-books (published), and the upload link for moderators with the e-books permission for this poet
-const ebooks = page.type === 'poet' ? (await api<any[]>(`/api/ebooks?poet=${poetId}`)) ?? [] : [];
-const EBOOK_KIND: Record<string, string> = { pdf: 'PDF', epub: 'EPUB', text: 'متن', archive: 'آرکائیو' };
+// every poet has an ای بکس section beside their books and genres (/p17/ebooks)
+const ebookCount = page.type === 'poet' ? ((await api<any[]>(`/api/ebooks?poet=${poetId}`)) ?? []).length : 0;
 const tagTarget = page.type === 'poem' ? `work/${poemId}` : `category/${page.category?.id}`;
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
@@ -112,11 +111,12 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
     </>
   )}
 
-  {page.type !== 'poem' && page.children.length > 0 && (
+  {page.type !== 'poem' && (page.children.length > 0 || page.type === 'poet') && (
     <div class="cards">
       {page.children.map((c: any) => (
         <a class={`card${marks.categories.includes(c.id) ? ' mark-bm' : ''}`} href={c.url}>{c.title}{c.poems > 0 && <small>{ud(c.poems)}</small>}</a>
       ))}
+      {page.type === 'poet' && <a class="card" href={`${page.poet.url}/ebooks`}>ای بکس{ebookCount > 0 && <small>{ud(ebookCount)}</small>}</a>}
     </div>
   )}
   {page.type !== 'poem' && groups.map((g) => (
@@ -125,16 +125,6 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
       <ol class="toc">{g.poems.map((p: any) => <li><a class={glyph(p.id)} href={p.url}>{p.title}</a></li>)}</ol>
     </>
   ))}
-
-  {page.type === 'poet' && (ebooks.length > 0 || catCan.ebooks) && (
-    <section class="search-group" id="ebooks">
-      <h2>ای بکس {ebooks.length > 0 && <small class="muted">{ud(ebooks.length)}</small>}</h2>
-      <ul class="book-results">
-        {ebooks.map((b) => <li><a href={`/ebook/${b.id}`}>{b.title}</a> <small class="muted">{EBOOK_KIND[b.kind]}</small></li>)}
-      </ul>
-      {catCan.ebooks && <p class="center"><a class="mod-edit-btn" href={`/mod/ebook/new?poet=${poetId}`}>ای بک شامل کریں</a></p>}
-    </section>
-  )}
 
   {page.type === 'poem' && (
     <>

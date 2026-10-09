@@ -7,6 +7,7 @@ import { STATUS, EVENT, when } from '../../../lib/mod';
 import { ud } from '../../../lib/urdu';
 import DivanPreview from '../../../components/DivanPreview.astro';
 import Tags from '../../../components/Tags.astro';
+import EbookFields from '../../../components/EbookFields.astro';
 import { api } from '../../../lib/api';
 
 const me = Astro.locals.user;
@@ -38,7 +39,8 @@ const couplets = tagging && tagKind === 'work' ? (await asUser(token, `/api/mod/
 const knownTags = tagging ? ((await api<{ name: string }[]>('/api/tags')) ?? []).map((t) => t.name) : [];
 // an e-book's details: title, source, copyright, note
 const ebook = rev.entity === 'ebook';
-const EB: [string, string][] = [['title', 'عنوان'], ['source', 'ماخذ'], ['licence', 'اجازت'], ['note', 'تفصیل']];
+const EB: [string, string][] = [['title', 'عنوان'], ['writer', 'مصنف'], ['coauthors', 'شریک مصنفین'], ['language', 'زبان'], ['direction', 'سمت'],
+  ['tags', 'ٹیگ'], ['source', 'ماخذ'], ['licence', 'اجازت'], ['note', 'تفصیل']];
 const ebMeta = ebook ? Object.fromEntries(EB.map(([k, label]) => [k, (rev.content.split('\n').find((l: string) => l.startsWith(label + ':')) ?? '').slice(label.length + 1).trim()])) : {};
 const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیجیں'], ['reject', 'مسترد کریں'], ['publish', 'شائع کریں']] as const).filter(([a]) => may[a]);
 ---
@@ -57,10 +59,7 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
   {may.save && ebook ? (
     <form method="post" class="mod-edit account-form">
       <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu /></label>
-      <label>عنوان<input data-eb="title" value={ebMeta.title} maxlength="300" required data-urdu /></label>
-      <label>ماخذ<input data-eb="source" value={ebMeta.source} maxlength="300" data-urdu /></label>
-      <label>حقوق / اجازت<input data-eb="licence" value={ebMeta.licence} maxlength="300" data-urdu /></label>
-      <label>تفصیل<textarea data-eb="note" rows="3" maxlength="2000" data-urdu>{ebMeta.note}</textarea></label>
+      <EbookFields v={ebMeta} />
       <textarea name="content" id="eb-content" hidden>{rev.content}</textarea>
       <div class="filter-actions">
         <button name="act" value="save">محفوظ کریں</button>
@@ -203,9 +202,13 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
     // e-book details -> the hidden text, one "label: value" per line
     const ebText = document.getElementById('eb-content') as HTMLTextAreaElement | null;
     if (ebText) {
-      const LABEL: Record<string, string> = { title: 'عنوان', source: 'ماخذ', licence: 'اجازت', note: 'تفصیل' };
-      const sync = () => { ebText.value = [...document.querySelectorAll<HTMLInputElement>('[data-eb]')].map((i) => `${LABEL[i.dataset.eb!]}: ${i.value.replace(/\s+/g, ' ').trim()}`).join('\n'); };
-      ebText.form!.addEventListener('input', sync); ebText.form!.addEventListener('submit', sync);
+      const LABEL: Record<string, string> = { title: 'عنوان', writer: 'مصنف', coauthors: 'شریک مصنفین', language: 'زبان', direction: 'سمت',
+        tags: 'ٹیگ', source: 'ماخذ', licence: 'اجازت', note: 'تفصیل' };
+      const sync = () => {
+        const val = (k: string) => [...ebText.form!.querySelectorAll<HTMLInputElement>(`[data-eb="${k}"]`)].find((i) => i.type !== 'radio' || i.checked)?.value ?? '';
+        ebText.value = Object.keys(LABEL).map((k) => `${LABEL[k]}: ${val(k).replace(/\s+/g, ' ').trim()}`).join('\n');
+      };
+      ebText.form!.addEventListener('input', sync); ebText.form!.addEventListener('change', sync); ebText.form!.addEventListener('submit', sync);
     }
     // tagging: rows -> the hidden text ("شعر 3 › موضوع: عشق"), on every change and before saving
     const rowsBox = document.getElementById('tag-rows');

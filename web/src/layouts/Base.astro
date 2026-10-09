@@ -342,7 +342,11 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         clearTimeout(selTimer);
         selTimer = setTimeout(() => {
           const sel = getSelection();
-          const inText = sel && !sel.isCollapsed && main.contains(sel.anchorNode) && !sel.anchorNode.parentElement?.closest('form, input, textarea, [contenteditable]'); // not while editing
+          // only the reading text (poems and prose, intros, e-book text, search snippets, library couplets), never the
+          // site's menus, buttons, tabs or forms
+          const at = sel && !sel.isCollapsed && sel.anchorNode?.parentElement;
+          const inText = at && main.contains(at) && at.closest('article, .intro, .ebook-text, .snippet, .lib-couplet')
+            && !at.closest('form, input, textarea, [contenteditable], button, nav, .admin-nav');
           selText = inText ? sel.toString().replace(/\u0614/g, '').trim() : '';
           if (!selText) return hideMenu();
           const w = oneWord(selText);
