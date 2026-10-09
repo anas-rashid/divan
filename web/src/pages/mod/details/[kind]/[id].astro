@@ -1,0 +1,39 @@
+---
+// A poet's details or a book/section's title (#32): what they are now, their versions and drafts; "ترمیم کریں" starts a
+// draft (also reached by POST from the poet or book page)
+import Base from '../../../../layouts/Base.astro';
+import ModNav from '../../../../components/ModNav.astro';
+import History from '../../../../components/History.astro';
+import { asUser, COOKIE } from '../../../../lib/auth';
+import { ud } from '../../../../lib/urdu';
+import Icon from '../../../../components/Icon.astro';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
+const token = Astro.cookies.get(COOKIE)!.value, { kind, id } = Astro.params;
+let error = '';
+if (Astro.request.method === 'POST') {
+  const r = await asUser(token, `/api/mod/details/${kind}/${id}/draft`, {});
+  if (r.ok) return Astro.redirect(`/mod/rev/${r.data.id}`);
+  error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+const res = await asUser(token, `/api/mod/details/${kind}/${id}`);
+if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
+const { target, version, fields, history, may } = res.data;
+const poet = kind === 'poet';
+---
+<Base title={`${poet ? 'شاعر' : 'عنوان'}: ${target.title}`}>
+  <h1>{poet ? 'شاعر' : 'عنوان'}: {target.title}</h1>
+  <ModNav />
+  <p class="center"><a href={target.url}>صفحہ</a> · {version ? `موجودہ: ورژن ${ud(version)}` : 'ویکی ماخذ اور ویکیپیڈیا سے (ابھی دیوان کا کوئی ورژن نہیں)'}</p>
+  <dl class="eb-meta">
+    {poet ? <>
+      <dt>نام</dt><dd>{fields['نام']}</dd><dt>تخلص</dt><dd>{fields['تخلص']}</dd>
+      <dt>پیدائش</dt><dd>{fields['پیدائش'] ? ud(fields['پیدائش']) : '—'}</dd><dt>وفات</dt><dd>{fields['وفات'] ? ud(fields['وفات']) : '—'}</dd>
+    </> : <><dt>عنوان</dt><dd>{fields['عنوان']}</dd></>}
+  </dl>
+  {poet && fields['تعارف'] && <div class="poet-intro">{fields['تعارف'].split(/\n\s*\n/).map((p: string) => <p>{p}</p>)}</div>}
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {may.edit && <form method="post" class="center"><button class="save-like"><Icon name="edit" size={17} /> ترمیم کریں</button></form>}
+  <History entity={kind!} id={target.id} history={history} version={version} empty="ابھی کوئی ترمیم نہیں۔" />
+</Base>

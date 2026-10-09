@@ -506,6 +506,12 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .eb-meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; max-width: 700px; margin: 0 auto; }
 .eb-meta dt { color: var(--text-muted); }
 .eb-meta dd { margin: 0; }
+/* poet details (#32): two years side by side; an intro in paragraphs */
+.year-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.year-pair label { min-width: 0; }
+.year-pair input { width: 100%; box-sizing: border-box; }
+.poet-intro { max-width: 700px; margin: 10px auto; line-height: 2; }
+.intro p { margin: 0 0 .6em; }
 /* e-books: tabs, cover grid, right-to-left PDF reader */
 .ebook-tabs a span[lang] { font-size: .8em; }
 .ebook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; margin: 16px 0; }

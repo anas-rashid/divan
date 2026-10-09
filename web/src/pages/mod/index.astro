@@ -17,9 +17,9 @@ const queue = showLog ? null : (await asUser(token, '/api/mod/queue')).data;
 const f = Object.fromEntries(['who', 'kind', 'action'].map((k) => [k, Astro.url.searchParams.get(k) ?? '']));
 const log = showLog ? (await asUser(token, `/api/mod/log?${new URLSearchParams(f)}`)).data : null;
 // what kind of change a row is (a work's text needs no label)
-const KIND: Record<string, string> = { order: 'ترتیب: ', 'tags-category': 'ٹیگ: ', 'tags-work': 'ٹیگ: ', ebook: 'ای بک: ' };
+const KIND: Record<string, string> = { order: 'ترتیب: ', 'tags-category': 'ٹیگ: ', 'tags-work': 'ٹیگ: ', ebook: 'ای بک: ', poet: 'شاعر: ', book: 'عنوان: ' };
 // each kind of change has its icon; each event its tone on the timeline
-const ICON: Record<string, any> = { order: 'arrange', 'tags-category': 'tag', 'tags-work': 'tag', ebook: 'upload' };
+const ICON: Record<string, any> = { order: 'arrange', 'tags-category': 'tag', 'tags-work': 'tag', ebook: 'upload', poet: 'user', book: 'edit' };
 const TONE: Record<string, string> = { published: 'ok', approved: 'action', submitted: 'accent', returned: 'danger', rejected: 'danger' };
 const groups = queue ? [
   ['میرے مسودے', queue.mine, 'ابھی کوئی مسودہ نہیں۔ کسی کلام کے صفحے پر "ترمیم کریں" سے شروع کریں۔'],
@@ -59,7 +59,7 @@ const groups = queue ? [
       <input type="hidden" name="log" />
       <input type="search" name="who" value={f.who} placeholder="کس نے (ای میل)" aria-label="کس نے" dir="auto" />
       <select name="kind" aria-label="کس چیز میں">
-        {[['', 'سب تبدیلیاں'], ['work', 'متن'], ['order', 'ترتیب'], ['tags', 'ٹیگ'], ['ebook', 'ای بکس']].map(([v, t]) => <option value={v} selected={f.kind === v}>{t}</option>)}
+        {[['', 'سب تبدیلیاں'], ['work', 'متن'], ['order', 'ترتیب'], ['tags', 'ٹیگ'], ['ebook', 'ای بکس'], ['poet', 'شاعر'], ['book', 'کتاب کا عنوان']].map(([v, t]) => <option value={v} selected={f.kind === v}>{t}</option>)}
       </select>
       <select name="action" aria-label="کیا کیا">
         <option value="">ہر قدم</option>

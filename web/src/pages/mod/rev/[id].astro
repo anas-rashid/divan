@@ -17,7 +17,12 @@ let error = '', done = '';
 if (Astro.request.method === 'POST') {
   const f = await Astro.request.formData(), act = String(f.get('act'));
   let r: any = { ok: true, data: {} };
-  if (act === 'save' || act === 'submit') r = await asUser(token, `/api/mod/revisions/${id}/save`, { content: f.get('content'), summary: f.get('summary') });
+  // a poet's or book's details come as fields (#32): one "label: value" per line, the intro last
+  const clean = (k: string) => String(f.get(k) ?? '').replace(/\s+/g, ' ').trim();
+  const content = f.get('details') === 'book' ? `عنوان: ${clean('عنوان')}`
+    : f.get('details') === 'poet' ? `${['نام', 'تخلص', 'پیدائش', 'وفات'].map((k) => `${k}: ${clean(k)}`).join('\n')}\nتعارف:\n${String(f.get('تعارف') ?? '').trim()}`
+    : f.get('content');
+  if (act === 'save' || act === 'submit') r = await asUser(token, `/api/mod/revisions/${id}/save`, { content, summary: f.get('summary') });
   if (r.ok && r.data.discarded) return Astro.redirect('/mod?unchanged=1'); // nothing changed: no draft kept
   if (r.ok && act !== 'save') r = await asUser(token, `/api/mod/revisions/${id}/${act}`, { comment: f.get('comment') ?? '' });
   if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
@@ -39,6 +44,15 @@ const couplets = tagging && tagKind === 'work' ? (await asUser(token, `/api/mod/
 const knownTags = tagging ? ((await api<{ name: string }[]>('/api/tags')) ?? []).map((t) => t.name) : [];
 // an e-book's details: title, source, copyright, note
 const ebook = rev.entity === 'ebook';
+// a poet's details or a book/section's title (#32)
+const details = ['poet', 'book'].includes(rev.entity) ? rev.entity : '';
+const dv: Record<string, string> = {};
+if (details) {
+  const lines = rev.content.split('\n'), intro = lines.findIndex((l: string) => /^تعارف\s*:/.test(l));
+  for (const l of intro < 0 ? lines : lines.slice(0, intro)) { const m = l.match(/^([^:]+):\s*(.*)$/); if (m) dv[m[1].trim()] = m[2].trim(); }
+  if (intro >= 0) dv['تعارف'] = [lines[intro].replace(/^تعارف\s*:\s*/, ''), ...lines.slice(intro + 1)].join('\n').trim();
+}
+const keys = (i: string) => `<button type="button" class="in-box rom" data-urdu-rom="${i}" aria-pressed="false" aria-label="رومن حروف سے اردو" title="رومن حروف سے اردو">اب</button><button type="button" class="in-box" data-urdu-kb="${i}" aria-pressed="false" aria-label="اردو کی بورڈ" title="اردو کی بورڈ"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg></button>`;
 const EB: [string, string][] = [['title', 'عنوان'], ['writer', 'مصنف'], ['coauthors', 'شریک مصنفین'], ['language', 'زبان'], ['direction', 'سمت'],
   ['tags', 'ٹیگ'], ['source', 'ماخذ'], ['licence', 'اجازت'], ['note', 'تفصیل']];
 const ebMeta = ebook ? Object.fromEntries(EB.map(([k, label]) => [k, (rev.content.split('\n').find((l: string) => l.startsWith(label + ':')) ?? '').slice(label.length + 1).trim()])) : {};
@@ -48,18 +62,38 @@ const acts = ([['approve', 'منظور کریں', 'ok', 'check'], ['return', 'و
 import Icon from '../../../components/Icon.astro';
 ---
 <Base title={`مسودہ: ${rev.work_title}`}>
-  <h1>{order && 'ترتیب: '}{tagging && 'ٹیگ: '}{ebook && 'ای بک: '}{rev.work_title}</h1>
+  <h1>{order && 'ترتیب: '}{tagging && 'ٹیگ: '}{ebook && 'ای بک: '}{details === 'poet' && 'شاعر: '}{details === 'book' && 'عنوان: '}{rev.work_title}</h1>
   <ModNav />
   <p class="center">
     <span class={`status s-${rev.status}`}>{STATUS[rev.status]}</span>
     · <bdi dir="ltr">{rev.author_email}</bdi>
     · {rev.base_version ? `ورژن ${ud(rev.base_version)} سے` : 'ویکی ماخذ کے متن سے'}
-    · <a href={rev.work_url}>{order ? 'حصہ' : tagging ? 'صفحہ' : ebook ? 'کتاب دیکھیں' : 'کلام'}</a>{!ebook && <> · <a href={tagging ? `/mod/tags/${tagKind}/${rev.entity_id}` : `/mod/${order ? 'order' : 'work'}/${rev.entity_id}`}>تاریخچہ</a></>}
+    · <a href={rev.work_url}>{order ? 'حصہ' : tagging || details ? 'صفحہ' : ebook ? 'کتاب دیکھیں' : 'کلام'}</a>{!ebook && <> · <a href={details ? `/mod/details/${details}/${rev.entity_id}` : tagging ? `/mod/tags/${tagKind}/${rev.entity_id}` : `/mod/${order ? 'order' : 'work'}/${rev.entity_id}`}>تاریخچہ</a></>}
   </p>
   {error && <p class="form-error" role="alert">{error}</p>}
   {done && <p class="form-done" role="status">{done}</p>}
 
-  {may.save && ebook ? (
+  {may.save && details ? (
+    <form method="post" class="mod-edit account-form">
+      <input type="hidden" name="details" value={details} />
+      <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu /></label>
+      {details === 'book' ? (
+        <label>عنوان<span class="in-box-field"><input id="d-title" name="عنوان" value={dv['عنوان'] ?? ''} required maxlength="200" data-urdu /><Fragment set:html={keys('d-title')} /></span></label>
+      ) : <>
+        <label>نام<span class="in-box-field"><input id="d-name" name="نام" value={dv['نام'] ?? ''} required maxlength="100" data-urdu /><Fragment set:html={keys('d-name')} /></span></label>
+        <label>تخلص (جو سائٹ پر ہر جگہ دکھتا ہے)<span class="in-box-field"><input id="d-nick" name="تخلص" value={dv['تخلص'] ?? ''} required maxlength="100" data-urdu /><Fragment set:html={keys('d-nick')} /></span></label>
+        <div class="year-pair">
+          <label>پیدائش (سنِ عیسوی)<input name="پیدائش" value={dv['پیدائش'] ?? ''} inputmode="numeric" maxlength="4" placeholder="۱۸۷۷" /></label>
+          <label>وفات (سنِ عیسوی)<input name="وفات" value={dv['وفات'] ?? ''} inputmode="numeric" maxlength="4" placeholder="۱۹۳۸" /></label>
+        </div>
+        <label>تعارف (پیراگراف خالی سطر سے الگ کریں)<span class="in-box-field note-field"><textarea id="d-intro" name="تعارف" rows="10" maxlength="5000" dir="auto" data-urdu>{dv['تعارف'] ?? ''}</textarea><Fragment set:html={keys('d-intro')} /></span></label>
+      </>}
+      <div class="filter-actions">
+        <button name="act" value="save" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
+        <button name="act" value="submit" class="btn primary"><Icon name={me.role === 'admin' ? 'upload' : 'send'} size={18} /> {me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+      </div>
+    </form>
+  ) : may.save && ebook ? (
     <form method="post" class="mod-edit account-form">
       <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu /></label>
       <EbookFields v={ebMeta} />
@@ -181,6 +215,8 @@ import Icon from '../../../components/Icon.astro';
   <section class="lib-section">
     <h2>پیش نظارہ</h2>
     {order ? <ol class="toc">{items.map((it: any) => <li>{it.title}</li>)}</ol>
+      : details ? <><dl class="eb-meta">{Object.entries(dv).filter(([k, v]) => k !== 'تعارف' && v).map(([k, v]) => <><dt>{k}</dt><dd>{ud(v)}</dd></>)}</dl>
+          {dv['تعارف'] && <div class="poet-intro">{dv['تعارف'].split(/\n\s*\n/).map((p) => <p>{p}</p>)}</div>}</>
       : ebook ? <dl class="eb-meta">{EB.map(([k, label]) => ebMeta[k] && <><dt>{label}</dt><dd>{ebMeta[k]}</dd></>)}</dl>
       : tagging ? (tagRows.length ? tagRows.map((t: any) => <div class="tag-preview">{t.couplet > 0 && <small class="muted">شعر {ud(t.couplet)}:</small>}<Tags tags={[t]} /></div>) : <p class="muted center">کوئی ٹیگ نہیں</p>)
       : <DivanPreview text={rev.content} />}
