@@ -833,3 +833,7 @@ p, li { text-wrap: pretty; }
   .byline { display: block; text-align: center; }
   .poem { background: none; border: 0; }
 }
+/* 404 and error pages */
+.error-page { text-align: center; padding: 32px 0 48px; }
+.error-code { font: 700 4.5rem/1 'Noto Naskh Arabic', serif; color: var(--accent, var(--brand)); opacity: .35; margin: 0 0 8px; }
+.error-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 18px; }
