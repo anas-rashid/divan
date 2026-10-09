@@ -42,7 +42,10 @@ const ebook = rev.entity === 'ebook';
 const EB: [string, string][] = [['title', 'عنوان'], ['writer', 'مصنف'], ['coauthors', 'شریک مصنفین'], ['language', 'زبان'], ['direction', 'سمت'],
   ['tags', 'ٹیگ'], ['source', 'ماخذ'], ['licence', 'اجازت'], ['note', 'تفصیل']];
 const ebMeta = ebook ? Object.fromEntries(EB.map(([k, label]) => [k, (rev.content.split('\n').find((l: string) => l.startsWith(label + ':')) ?? '').slice(label.length + 1).trim()])) : {};
-const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیجیں'], ['reject', 'مسترد کریں'], ['publish', 'شائع کریں']] as const).filter(([a]) => may[a]);
+// each action in its colour and with its icon: approve and publish confirm, return goes back, reject is destructive
+const acts = ([['approve', 'منظور کریں', 'ok', 'check'], ['return', 'واپس بھیجیں', '', 'undo'], ['reject', 'مسترد کریں', 'danger', 'close'],
+  ['publish', 'شائع کریں', 'ok', 'upload']] as const).filter(([a]) => may[a]);
+import Icon from '../../../components/Icon.astro';
 ---
 <Base title={`مسودہ: ${rev.work_title}`}>
   <h1>{order && 'ترتیب: '}{tagging && 'ٹیگ: '}{ebook && 'ای بک: '}{rev.work_title}</h1>
@@ -62,8 +65,8 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
       <EbookFields v={ebMeta} />
       <textarea name="content" id="eb-content" hidden>{rev.content}</textarea>
       <div class="filter-actions">
-        <button name="act" value="save">محفوظ کریں</button>
-        <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+        <button name="act" value="save" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
+        <button name="act" value="submit" class="btn primary"><Icon name={me.role === 'admin' ? 'upload' : 'send'} size={18} /> {me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
       </div>
     </form>
   ) : may.save && tagging ? (
@@ -92,8 +95,8 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
       <p><button type="button" class="tool" id="tag-add">+ ٹیگ</button></p>
       <textarea name="content" id="tag-content" hidden>{rev.content}</textarea>
       <div class="filter-actions">
-        <button name="act" value="save">محفوظ کریں</button>
-        <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+        <button name="act" value="save" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
+        <button name="act" value="submit" class="btn primary"><Icon name={me.role === 'admin' ? 'upload' : 'send'} size={18} /> {me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
       </div>
     </form>
   ) : may.save && order ? (
@@ -115,8 +118,8 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
       </ol>
       <textarea name="content" id="order-content" hidden>{rev.content}</textarea>
       <div class="filter-actions">
-        <button name="act" value="save">محفوظ کریں</button>
-        <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+        <button name="act" value="save" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
+        <button name="act" value="submit" class="btn primary"><Icon name={me.role === 'admin' ? 'upload' : 'send'} size={18} /> {me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
       </div>
     </form>
   ) : may.save ? (
@@ -160,8 +163,8 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
         <textarea name="content" id="mod-content" data-urdu rows="22" dir="rtl" spellcheck="false">{rev.content}</textarea>
       </label>
       <div class="filter-actions">
-        <button name="act" value="save">محفوظ کریں</button>
-        <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+        <button name="act" value="save" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
+        <button name="act" value="submit" class="btn primary"><Icon name={me.role === 'admin' ? 'upload' : 'send'} size={18} /> {me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
       </div>
     </form>
   ) : rev.summary && <p class="center">خلاصہ: {rev.summary}</p>}
@@ -186,7 +189,7 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
   {acts.length > 0 && (
     <form method="post" class="account-form mod-actions">
       <label>تبصرہ (واپس بھیجنے یا مسترد کرنے کے لیے ضروری)<textarea name="comment" rows="2" data-urdu maxlength="2000"></textarea></label>
-      <div class="filter-actions">{acts.map(([a, label]) => <button name="act" value={a} class={`act-${a}`}>{label}</button>)}</div>
+      <div class="filter-actions">{acts.map(([a, label, role, icon]) => <button name="act" value={a} class={`btn ${role} act-${a}`}><Icon name={icon} size={18} /> {label}</button>)}</div>
     </form>
   )}
 

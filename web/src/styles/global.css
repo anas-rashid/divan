@@ -4,6 +4,8 @@
   --bg: #fbf6ea; --paper: #fffdf7; --poem: #f6edd6; --inner: #f6efe3; --nested: #eee3d0;
   --ink: #17130f; --muted: #635543; --lapis: #0d1d30; --gold: #b88828; --gold-light: #dfcd9f;
   --gold-subtle: #f5edd8; --border: #b8a78c; --brand: #bf3f2a;
+  /* roles: primary actions (filled), confirming (approve, publish), destructive (log out, delete, reject) */
+  --action: #1f4e79; --action-ink: #fff; --ok: #2e7d32; --danger: #b3261e;
   --font: 'Noto Naskh Arabic', 'Noto Nastaliq Urdu', serif; --verse-lh: 2.1;
   color-scheme: light;
 }
@@ -12,12 +14,14 @@
     --bg: #14120f; --paper: #181510; --poem: #1c1916; --inner: #242019; --nested: #2d2620;
     --ink: #e7ded0; --muted: #9e9185; --lapis: #f0f6fc; --gold: #c9a050; --gold-light: #3a322b;
     --gold-subtle: #2a2418; --border: #9b7332; --brand: #d4553a; color-scheme: dark;
+    --action: #7db3e8; --action-ink: #0d1520; --ok: #7cc47f; --danger: #f07a6e;
   }
 }
 :root[data-theme='dark'] {
   --bg: #14120f; --paper: #181510; --poem: #1c1916; --inner: #242019; --nested: #2d2620;
   --ink: #e7ded0; --muted: #9e9185; --lapis: #f0f6fc; --gold: #c9a050; --gold-light: #3a322b;
   --gold-subtle: #2a2418; --border: #9b7332; --brand: #d4553a; color-scheme: dark;
+  --action: #7db3e8; --action-ink: #0d1520; --ok: #7cc47f; --danger: #f07a6e;
 }
 :root.nastaliq { --font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --verse-lh: 2.7; }
 
@@ -32,16 +36,14 @@ a:hover { color: var(--brand); }
 .site-header .wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; }
 .wordmark { font-family: 'Noto Nastaliq Urdu', serif; font-size: 2rem; line-height: 1.5; color: var(--brand); font-weight: 700; }
 .search-form { flex: 1; min-width: 200px; display: flex; position: relative; }
-.search-form input, .toggles button {
+.search-form input {
   font: inherit; border: 1.5px solid var(--border); background: var(--inner); color: var(--ink); border-radius: 10px;
 }
 .search-form input { flex: 1; padding: 4px 14px; padding-inline-end: 106px; }
 .search-form input:focus { outline: none; border-color: var(--gold); }
-.toggles { display: flex; gap: 6px; }
-.toggles button { padding: 2px 12px; cursor: pointer; font-size: .85rem; }
+.toggles { display: flex; gap: 6px; align-items: center; } /* icon buttons with tooltips */
 /* controls keep Naskh at normal height whatever reading font is chosen */
-.search-form input, .toggles button { font-family: 'Noto Naskh Arabic', serif; line-height: 1.8; }
-.toggles button:hover { border-color: var(--brand); }
+.search-form input { font-family: 'Noto Naskh Arabic', serif; line-height: 1.8; }
 
 main { padding: 16px 0 48px; }
 h1, h2 { line-height: 1.6; margin: .2em 0 .4em; font-weight: 700; text-align: center; color: var(--lapis); }
@@ -329,8 +331,6 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .mod-edit textarea { font-size: 1.05rem; line-height: 2; min-height: 26em; resize: vertical; }
 .mod-edit textarea:focus, .mod-edit input:focus { outline: none; border-color: var(--gold); }
 .mod-actions { max-width: 700px; }
-.mod-actions .act-publish { border-color: #3d8b4f; color: #3d8b4f; }
-.mod-actions .act-reject, .mod-actions .act-return { border-color: var(--brand); color: var(--brand); }
 .diff { max-width: 900px; margin: 0 auto; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .diff div { padding: 2px 12px; white-space: pre-wrap; line-height: 1.9; }
 .diff div span { display: inline-block; width: 1.2em; font-weight: 700; }
@@ -457,3 +457,26 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .eb-co .author-find input { width: 100%; }
 .eb-people { color: var(--muted); }
 .account-form.ebook-form, .mod-edit.account-form { max-width: 560px; }
+
+/* buttons by role (owner request): one shape, colour says what it does
+   .btn          secondary (gold outline)      .btn.primary  main action (filled)
+   .btn.ok       confirms (approve, publish)   .btn.danger   destructive (log out, delete, reject)
+   .icon-btn     icon only, round, with a tooltip (title) and aria-label */
+.btn, .mod-edit-btn, .save-like { display: inline-flex; align-items: center; gap: 6px; font: inherit; font-family: 'Noto Naskh Arabic', serif;
+  font-size: .85rem; line-height: 1.8; padding: 2px 14px; border: 1.5px solid var(--gold); border-radius: 999px; background: var(--inner);
+  color: var(--ink); cursor: pointer; text-decoration: none; }
+.btn:hover, .mod-edit-btn:hover, .save-like:hover { border-color: var(--brand); color: var(--brand); }
+.btn.primary { background: var(--action); border-color: var(--action); color: var(--action-ink); }
+.btn.primary:hover { filter: brightness(1.12); color: var(--action-ink); }
+.btn.ok { border-color: var(--ok); color: var(--ok); }
+.btn.ok:hover { background: var(--ok); color: var(--bg); }
+.btn.danger { border-color: var(--danger); color: var(--danger); }
+.btn.danger:hover { background: var(--danger); color: #fff; }
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border: 1.5px solid var(--border);
+  border-radius: 50%; background: var(--inner); color: var(--ink); cursor: pointer; text-decoration: none; }
+.icon-btn:hover, .icon-btn[aria-current='page'] { border-color: var(--brand); color: var(--brand); }
+.icon-btn.danger { color: var(--danger); border-color: var(--danger); }
+.icon-btn.danger:hover { background: var(--danger); color: #fff; }
+.icon { flex: none; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.icon-btn.small { width: 30px; height: 30px; }

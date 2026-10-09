@@ -18,6 +18,7 @@ const mayCover = token && poetPage && b.kind !== 'archive' && ['mod-l2', 'mod-l1
 // the reader's bookmarked pages of this book
 const marks = token && b.published && b.kind === 'pdf' ? (await asUser(token, `/api/library/state?ebook=${b.id}`)).data.pages ?? [] : [];
 const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size / 1024)))} KB` : `${ud((b.size / 1048576).toFixed(1))} MB`;
+import Icon from '../../components/Icon.astro';
 ---
 <Base title={`${b.title} · ${b.poet}`}>
   <nav class="crumbs"><a href={b.poet_url}>{b.poet}</a> » <a href={`${b.poet_url}/ebooks?kind=${b.kind}`}>ای بکس</a></nav>
@@ -25,7 +26,7 @@ const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size
   {!b.published && <p class="form-error center">یہ کتاب ابھی جائزے میں ہے؛ صرف موڈریٹر دیکھ سکتے ہیں۔</p>}
   <p class="center muted">
     {KIND[b.kind]}{mb && <> · {mb}</>}{b.source && <> · ماخذ: {b.source}</>}{b.licence && <> · {b.licence}</>}
-    {b.file && <> · <a href={file} download>ڈاؤن لوڈ</a></>}
+    {b.file && <> · <a class="btn" href={file} download><Icon name="download" size={17} /> ڈاؤن لوڈ</a></>}
     {b.kind === 'archive' && <> · <a href={`https://archive.org/details/${b.archive_id}`}>archive.org پر</a></>}
   </p>
   <p class="center eb-people">
@@ -38,8 +39,8 @@ const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size
   {mayCover && (
     <p class="center cover-tools" data-id={b.id} data-kind={b.kind} data-src={file}>
       {b.cover && <img class="cover-small" src={`/ebooks/cover/${b.id}`} alt="سرورق" />}
-      {(b.kind === 'pdf' || b.kind === 'epub') && <button type="button" class="mod-edit-btn" data-make>{b.kind === 'pdf' ? 'پہلے صفحے سے سرورق بنائیں' : 'کتاب کا سرورق لیں'}</button>}
-      <label class="mod-edit-btn">اپنی تصویر سرورق بنائیں<input type="file" accept="image/jpeg,image/png,image/webp" hidden data-own /></label>
+      {(b.kind === 'pdf' || b.kind === 'epub') && <button type="button" class="mod-edit-btn" data-make><Icon name="image" size={17} /> {b.kind === 'pdf' ? 'پہلے صفحے سے سرورق بنائیں' : 'کتاب کا سرورق لیں'}</button>}
+      <label class="mod-edit-btn"><Icon name="upload" size={17} /> اپنی تصویر سرورق بنائیں<input type="file" accept="image/jpeg,image/png,image/webp" hidden data-own /></label>
       <span class="muted" data-cover-status></span>
     </p>
   )}
@@ -47,15 +48,15 @@ const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size
   {b.kind === 'pdf' && (
     <div class="pdf-reader" data-src={file} data-ebook={b.id} data-marks={JSON.stringify(marks)} dir={b.direction === 'ltr' ? 'ltr' : 'rtl'}>
       <nav class="pdf-bar">
-        <button type="button" class="mod-edit-btn pdf-prev">‹ پچھلا</button>
+        <button type="button" class="icon-btn pdf-prev" title="پچھلا صفحہ" aria-label="پچھلا صفحہ"><Icon name={b.direction === 'ltr' ? 'next' : 'prev'} /></button>
         <span>صفحہ <input class="pdf-page" type="number" min="1" value="1" aria-label="صفحہ نمبر" /> از <span class="pdf-total">…</span></span>
-        <button type="button" class="mod-edit-btn pdf-next">اگلا ›</button>
-        <button type="button" class="mod-edit-btn pdf-full" title="پوری اسکرین (F)">پوری اسکرین</button>
+        <button type="button" class="icon-btn pdf-next" title="اگلا صفحہ" aria-label="اگلا صفحہ"><Icon name={b.direction === 'ltr' ? 'prev' : 'next'} /></button>
+        <button type="button" class="icon-btn pdf-full" title="پوری اسکرین (F)" aria-label="پوری اسکرین"><Icon name="full" /></button>
         {b.published && <button type="button" class="save pdf-mark" aria-pressed="false">صفحہ محفوظ کریں</button>}
       </nav>
       <p class="tag-chips pdf-marks" hidden></p>
       <div class="pdf-pages" title="بائیں طرف کلک: اگلا صفحہ"><p class="muted">کتاب کھل رہی ہے…</p></div>
-      <p class="muted center small-line" dir="rtl">{b.direction === 'ltr' ? '→ اگلا صفحہ · ← پچھلا صفحہ' : '← اگلا صفحہ · → پچھلا صفحہ'} · <a href={file} target="_blank" rel="noopener">نئی ٹیب میں کھولیں</a></p>
+      <p class="muted center small-line" dir="rtl">{b.direction === 'ltr' ? '→ اگلا صفحہ · ← پچھلا صفحہ' : '← اگلا صفحہ · → پچھلا صفحہ'} · <a href={file} target="_blank" rel="noopener"><Icon name="external" size={15} /> نئی ٹیب میں کھولیں</a></p>
     </div>
   )}
   {b.kind === 'archive' && <iframe class="ebook-frame" src={`https://archive.org/embed/${b.archive_id}`} title={b.title} allowfullscreen></iframe>}

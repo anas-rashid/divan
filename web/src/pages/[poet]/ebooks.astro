@@ -18,11 +18,12 @@ const cover = (b: any) => (b.has_cover ? `/ebooks/cover/${b.id}` : b.kind === 'a
 const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
 const mayAdd = token && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user!.role)
   && (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data.ebooks;
+import Icon from '../../components/Icon.astro';
 ---
 <Base title={`ای بکس · ${page.poet.nickname}`}>
   <nav class="crumbs"><a href={page.poet.url}>{page.poet.nickname}</a></nav>
   <h1>ای بکس</h1>
-  {mayAdd && <p class="center"><a class="mod-edit-btn" href={`/mod/ebook/new?poet=${page.poet.id}`}>ای بک شامل کریں</a></p>}
+  {mayAdd && <p class="center"><a class="btn primary" href={`/mod/ebook/new?poet=${page.poet.id}`}><Icon name="plus" size={18} /> ای بک شامل کریں</a></p>}
   <nav class="admin-nav ebook-tabs" aria-label="کتابوں کی قسم">
     {tabs.map(([k, ur, en]) => {
       const n = books.filter((b) => b.kind === k).length;

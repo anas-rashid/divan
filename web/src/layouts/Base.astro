@@ -8,6 +8,7 @@ import '../styles/global.css';
 interface Props { title?: string; description?: string; q?: string }
 const { title, description = 'اردو کی کلاسیکی شاعری اور نثر', q = '' } = Astro.props;
 const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو کی کلاسیکی شاعری اور نثر';
+import Icon from '../components/Icon.astro';
 ---
 <!doctype html>
 <html lang="ur-PK" dir="rtl">
@@ -43,17 +44,23 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
           </button>
         </form>
-        <div class="toggles">
-          {Astro.locals.user?.role === 'admin' && <a class="account-link" href="/admin">ایڈمن</a>}
-          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="account-link" href="/mod">موڈریشن</a>}
-          {Astro.locals.user && <a class="account-link" href="/library">نشانات</a>}
-          {Astro.locals.user && <a class="account-link" href="/words">ذخیرۂ الفاظ</a>}
+        <nav class="toggles" aria-label="سائٹ">
+          {Astro.locals.user?.role === 'admin' && <a class="icon-btn" href="/admin" title="ایڈمن" aria-label="ایڈمن"><Icon name="admin" /></a>}
+          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="icon-btn" href="/mod" title="موڈریشن" aria-label="موڈریشن"><Icon name="edit" /></a>}
+          {Astro.locals.user && <a class="icon-btn" href="/library" title="محفوظ شدہ" aria-label="محفوظ شدہ"><Icon name="bookmark" /></a>}
+          {Astro.locals.user && <a class="icon-btn" href="/words" title="ذخیرۂ الفاظ" aria-label="ذخیرۂ الفاظ"><Icon name="words" /></a>}
           {Astro.locals.user
-            ? <a class="account-link" href="/account" title={Astro.locals.user.email}>{Astro.locals.user.full_name.split(' ')[0] || 'اکاؤنٹ'}</a>
-            : <a class="account-link" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`}>لاگ ان</a>}
-          <button type="button" id="font-toggle" aria-label="خط بدلیں">نسخ</button>
-          <button type="button" id="theme-toggle" aria-label="روشن یا تاریک">◐</button>
-        </div>
+            ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
+            : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
+          <button type="button" class="icon-btn" id="font-toggle" aria-label="خط بدلیں" title="خط: نسخ"><Icon name="font" /></button>
+          <button type="button" class="icon-btn" id="theme-toggle" aria-label="روشن یا تاریک" title="روشن یا تاریک"><Icon name="theme" /></button>
+          {Astro.locals.user && (
+            <form method="post" action="/account" class="inline-form">
+              <input type="hidden" name="act" value="signout" />
+              <button class="icon-btn danger" title="لاگ آؤٹ" aria-label="لاگ آؤٹ"><Icon name="logout" /></button>
+            </form>
+          )}
+        </nav>
       </div>
       <div id="kb" class="wrap kb" hidden></div>
     </header>
@@ -88,7 +95,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <script is:inline>
       const root = document.documentElement;
       const fontBtn = document.getElementById('font-toggle');
-      const label = () => (fontBtn.textContent = root.classList.contains('nastaliq') ? 'نستعلیق' : 'نسخ');
+      const label = () => (fontBtn.title = `خط: ${root.classList.contains('nastaliq') ? 'نستعلیق' : 'نسخ'}`); // an icon; the name is in the tooltip
       label();
       fontBtn.onclick = () => {
         root.classList.toggle('nastaliq');
