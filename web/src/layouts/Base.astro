@@ -9,7 +9,7 @@ interface Props { title?: string; description?: string; q?: string }
 const { title, description = 'اردو کا کلاسیکی ادب', q = '' } = Astro.props;
 const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو کا کلاسیکی ادب';
 import Icon from '../components/Icon.astro';
-import shamsa from '../../public/logo/shamsa.svg?raw'; // inline, so the page can turn its rays
+import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can turn its rays
 ---
 <!doctype html>
 <html lang="ur-PK" dir="rtl">
@@ -38,7 +38,7 @@ import shamsa from '../../public/logo/shamsa.svg?raw'; // inline, so the page ca
   <body data-user={Astro.locals.user ? '1' : undefined}>
     <header class="site-header">
       <div class="wrap">
-        <a class="wordmark" href="/" title="سرورق"><Fragment set:html={shamsa.replace('<svg ', '<svg class="logo" ')} /></a>
+        <a class="wordmark" href="/" title="سرورق"><Fragment set:html={logo.replace('<svg ', '<svg class="logo" ')} /></a>
         <form class="search-form" action="/search" method="get" role="search">
           <input type="search" name="q" id="q" data-urdu value={q} placeholder="شعر، لفظ یا عبارت تلاش کریں" aria-label="تلاش" autocomplete="off" />
           <button type="button" id="rom-toggle" class="in-box rom" aria-label="رومن حروف سے اردو" aria-pressed="false" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
