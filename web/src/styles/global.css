@@ -481,11 +481,13 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .icon { flex: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .icon-btn.small { width: 30px; height: 30px; }
-/* the font picker in the header: the icon and a list; each name in its own font */
+/* the font picker in the header: the icon and a list */
 .font-pick { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 4px 0 10px; border: 1.5px solid var(--border); border-radius: 999px;
   background: var(--inner); color: var(--ink); cursor: pointer; }
 .font-pick:hover, .font-pick:focus-within { border-color: var(--brand); color: var(--brand); }
-.font-pick select { font: inherit; font-family: 'Noto Naskh Arabic', serif; font-size: .85rem; border: 0; background: transparent; color: inherit; cursor: pointer; padding: 0 2px; }
+.font-pick select { font: 400 .85rem/1.4 'Noto Naskh Arabic', serif; height: 28px; border: 0; background: transparent; color: inherit;
+  cursor: pointer; padding: 0 2px; } /* Naskh at a fixed height whatever the reading font (Nastaliq would spill out) */
 .font-pick select:focus { outline: none; }
-.font-pick .f-naskh { font-family: 'Noto Naskh Arabic', serif; }
-.font-pick .f-nastaliq { font-family: 'Noto Nastaliq Urdu', serif; }
+.glyph-icon { position: relative; display: inline-flex; }
+.glyph-icon > span { position: absolute; inset: 0 0 4px 2px; display: flex; align-items: center; justify-content: center;
+  font: 700 11px/1 'Noto Naskh Arabic', serif; }
