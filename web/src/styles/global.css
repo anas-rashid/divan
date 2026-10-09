@@ -781,14 +781,13 @@ p, li { text-wrap: pretty; }
 [data-tone] { --tone: var(--text-muted); }
 [data-tone='ok'] { --tone: var(--ok); } [data-tone='action'] { --tone: var(--action); } [data-tone='accent'] { --tone: var(--accent); } [data-tone='danger'] { --tone: var(--danger); }
 
-/* a couplet's bookmark, note and share sit in one row, centred under it on the ✤ line (bookmark and note on one side
-   of the ✤, share on the other): clear of the text however long the misras are, the same on phones */
-.c-tools { position: absolute; left: 50%; bottom: -4px; transform: translateX(-50%); z-index: 1; display: flex; align-items: center; gap: 4px; }
+/* a couplet's bookmark, note, share and download sit in one row at its left edge, on the bottom line (the ✤ line, where
+   there is never text): clear of the misras however long they are, the same on phones */
+.c-tools { position: absolute; left: 0; bottom: -4px; z-index: 1; display: flex; align-items: center; gap: 4px; }
 .c-tools > button { position: static; inset: auto; top: auto; }
-.c-tools > .sh { margin-inline-start: 26px; } /* room for the ✤ between */
 .poem .para > .c-tools, .poem .single > .c-tools { bottom: -20px; }
 .poem .para, .poem .single { margin-bottom: 26px; }
-@media (max-width: 760px) { .c-tools { bottom: 2px; } .c-tools > .sh { margin-inline-start: 4px; } .couplet { padding-bottom: 28px; } }
+@media (max-width: 760px) { .c-tools { bottom: 2px; } .couplet { padding-bottom: 28px; } }
 /* download the couplet's picture: beside share */
 .dl { width: 20px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer; opacity: 0; transition: opacity .15s; }
 .dl::before { content: ''; display: block; width: 16px; height: 16px; margin: auto; background-color: var(--text-muted); -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M12 15V3'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4'/%3E%3Cpath d='m7 10 5 5 5-5'/%3E%3Cpath d='M12 15V3'/%3E%3C/svg%3E") center / contain no-repeat; }
