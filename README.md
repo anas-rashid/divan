@@ -43,6 +43,8 @@ The import upserts, so re-running it after a divan-data sync applies the changes
 
 **File store.** Uploaded files are kept in `DIVAN_FILES_DIR` (default `../divan-files` beside the repo) under their SHA-256, `ab/cd/<sha256>.<ext>`, so a file uploaded twice is stored once and the folder spreads evenly. On the server, point it at storage that can grow: an attached block-storage volume (e.g. Vultr Block Storage, resizable later) mounted at `/srv/divan-files`, or an S3-compatible bucket mounted with rclone. Back it up with the database. The database keeps the details, indexed by poet and by a trigram index on the title (and the text of text books), so lists and search stay fast.
 
+**Readers' addresses and rate limits.** Sign-in and sign-up are limited per address. The site passes the reader's address to the API in `x-client-ip`, which the API believes only from the site: set the same random `DIVAN_SITE_KEY` for both (e.g. `openssl rand -hex 32`); without it, only requests from the same machine count as the site. Keep the API off the internet (only the site talks to it), and let Caddy be the only way in: it replaces any `X-Forwarded-For` a visitor sends with their real address, which is what the site reads.
+
 ## Daily content sync (server)
 
 `deploy/sync.sh` keeps a server current: it updates a divan-data checkout, fetches new and edited works from Wikisource (incremental, about a minute), rebuilds the export and upserts it into PostgreSQL. The site shows new content immediately. Runs are locked so they never overlap.

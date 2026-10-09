@@ -1,7 +1,10 @@
 // Accounts: email address and password only (no email is sent; owner decision 2026-10-08).
 // Passwords: scrypt with a per-user salt. Sessions: a random token held by the site in an HTTP-only
 // cookie; the database stores only its SHA-256, so a database leak does not give working sessions.
-// The API is private (only the site calls it), so the site passes the reader's IP in x-client-ip.
+// Rate limits go by the reader's address. The site passes it in x-client-ip, and only the site may: it proves itself
+// with DIVAN_SITE_KEY in x-site-key (set the same key for the API and the site in production); with no key set
+// (local development) only requests from this machine may. Anyone else is limited by their own address, so a
+// made-up x-client-ip cannot get round the limits.
 //   POST   /api/auth/signup    {email, password}            -> {token, user}
 //   POST   /api/auth/signin    {email, password}            -> {token, user}
 //   GET    /api/auth/me        Bearer token                 -> {user}
@@ -85,7 +88,14 @@ export async function sessionUser(req: FastifyRequest) {
   return u ?? null;
 }
 
-const ip = (req: FastifyRequest) => (req.headers['x-client-ip'] as string) || req.ip;
+const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
+const fromSite = (req: FastifyRequest) => {
+  const key = process.env.DIVAN_SITE_KEY;
+  if (!key) return LOOPBACK.includes(req.ip);
+  const given = Buffer.from(String(req.headers['x-site-key'] ?? '')), want = Buffer.from(key);
+  return given.length === want.length && timingSafeEqual(given, want);
+};
+export const ip = (req: FastifyRequest) => (fromSite(req) && (req.headers['x-client-ip'] as string)) || req.ip;
 
 export function authRoutes(app: FastifyInstance) {
   app.post<{ Body: { email?: string; password?: string } }>('/api/auth/signup', async (req, reply) => {
