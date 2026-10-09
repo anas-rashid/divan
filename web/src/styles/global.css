@@ -912,15 +912,17 @@ p, li { text-wrap: pretty; }
 .c-menu i { width: 17px; height: 17px; background-color: var(--text-muted); }
 .c-menu .g-bm { --m: var(--bm-outline); } .c-menu [data-on] .g-bm { --m: var(--bm-filled); background-color: var(--active); }
 .c-menu .g-nt { --m: var(--nt-outline); } .c-menu .g-sh { --m: var(--sh-mask); } .c-menu .g-dl { --m: var(--dl-mask); }
-/* a page's tags, folded at the end of its content */
-.tags-box { max-width: 760px; margin: 16px auto 10px; text-align: center; }
-.tags-box > summary { display: inline-flex; align-items: center; gap: 6px; padding: 1px 14px; border: 1.5px solid var(--border); border-radius: var(--r-pill);
-  background: var(--surface-sunken); font: var(--fs-sm)/1.8 var(--font-ui); cursor: pointer; list-style: none; }
-.tags-box > summary::-webkit-details-marker { display: none; }
-.tags-box > summary::after { content: '⌄'; transition: transform .2s; }
-.tags-box[open] > summary::after { transform: rotate(180deg); }
-.tags-box > summary:hover { border-color: var(--active); color: var(--active); }
-.tags-box .tag-chips { margin-top: 10px; }
+/* a page's tags at the end of its content: «ٹیگ» at the start of the line; opened, the tags follow it and wrap across the width */
+.tags-box { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 16px 0 10px; }
+.tags-box > .tag-chip { display: none; }
+.tags-box > :checked ~ .tag-chip { display: inline-flex; animation: rise .2s ease-out both; }
+.tags-toggle { display: inline-flex; align-items: center; gap: 6px; padding: 1px 14px; border: 1.5px solid var(--border); border-radius: var(--r-pill);
+  background: var(--surface-sunken); font: var(--fs-sm)/1.8 var(--font-ui); cursor: pointer; user-select: none; }
+.tags-toggle::after { content: '⌄'; transition: transform .2s; }
+.tags-box > :checked + .tags-toggle { border-color: var(--active); color: var(--active); }
+.tags-box > :checked + .tags-toggle::after { transform: rotate(-90deg); } /* points along the line, towards the tags */
+.tags-toggle:hover { border-color: var(--active); color: var(--active); }
+.tags-box > :focus-visible + .tags-toggle { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* how to use the site */
 .help { max-width: 760px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
 .help section { padding: 10px 16px 6px; border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--surface-raised); }
