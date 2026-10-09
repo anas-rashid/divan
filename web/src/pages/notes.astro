@@ -1,0 +1,64 @@
+---
+// نوٹس: the reader's notes on couplets and on phrases in them, newest first, each with where it is and the couplet
+// (the phrase marked). A note is separate from a bookmark: deleting a note never removes a bookmark.
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import LibraryNav from '../components/LibraryNav.astro';
+import { asUser, COOKIE } from '../lib/auth';
+import { ud } from '../lib/urdu';
+import { ago } from '../lib/roles';
+import { phraseParts, phraseRe } from '../lib/phrases';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/notes');
+const token = Astro.cookies.get(COOKIE)!.value;
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData(), id = Number(f.get('id')) || 0;
+  const r = await asUser(token, `/api/library/${id}/note`, { note: f.get('act') === 'delete' ? '' : f.get('note') });
+  return Astro.redirect(r.ok ? `/notes?done=${f.get('act')}${f.get('act') === 'save' ? `#n${id}` : ''}` : '/notes', 303);
+}
+const notes: any[] = (await asUser(token, '/api/library')).data.notes ?? [];
+const done = Astro.url.searchParams.get('done');
+// the noted phrase inside its couplet: [before, phrase, after] per line
+const marked = (lines: string[], phrase: string | null) => !phrase ? lines.map((l) => [l, '', '']) : phraseParts(lines, phrase).map((part, i) => {
+  if (!part) return [lines[i], '', ''];
+  const m = lines[i].match(phraseRe(part))!;
+  return [lines[i].slice(0, m.index), m[0], lines[i].slice(m.index! + m[0].length)];
+});
+---
+<Base title="نوٹس">
+  <h1>{me.full_name || 'نوٹس'}</h1>
+  <LibraryNav current="notes" />
+  {done && <p class="form-done" role="status">{done === 'delete' ? 'نوٹ ہٹا دیا' : 'نوٹ محفوظ ہو گیا'}</p>}
+  <p class="muted center">{ud(notes.length)} نوٹس</p>
+  {notes.length === 0 && <p class="empty"><span aria-hidden="true">✤</span>ابھی کوئی نوٹ نہیں۔ کلام پڑھتے ہوئے کسی شعر کے ساتھ والا نوٹ کا نشان دبائیں، یا کوئی عبارت منتخب کر کے "نوٹ" چنیں۔</p>}
+  <ul class="note-list">
+    {notes.map((n) => (
+      <li id={`n${n.id}`} class="note-card">
+        {n.poem ? <>
+          <header>
+            <nav class="crumbs">{[...n.poem.path, { title: n.poem.title, url: n.poem.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
+            {n.bookmarked && <span class="badge plain" title="یہ شعر محفوظ شدہ میں بھی ہے">محفوظ شدہ</span>}
+          </header>
+          <a class="lib-couplet" href={`${n.poem.url}#c${n.poem.couplet}`}>{marked(n.lines, n.phrase).map(([a, m, z]) => <p>{a}{m && <mark>{m}</mark>}{z}</p>)}</a>
+        </> : <span class="muted">یہ شعر اب دستیاب نہیں</span>}
+        <form method="post" class="note-edit">
+          <input type="hidden" name="id" value={n.id} />
+          <div class="in-box-field note-field">
+            <textarea id={`note-${n.id}`} name="note" rows="2" maxlength="1000" dir="auto" aria-label="نوٹ" data-urdu required>{n.note}</textarea>
+            <button type="button" class="in-box rom" data-urdu-rom={`note-${n.id}`} aria-pressed="false" aria-label="رومن حروف سے اردو" title="رومن حروف سے اردو ٹائپنگ">اب</button>
+            <button type="button" class="in-box" data-urdu-kb={`note-${n.id}`} aria-pressed="false" aria-label="اردو کی بورڈ" title="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button>
+          </div>
+          <div class="note-actions">
+            <small class="muted" title={new Date(n.saved_at).toISOString().slice(0, 16).replace('T', ' ')}>{ago(n.saved_at)}</small>
+            <button class="btn" name="act" value="save"><Icon name="check" size={16} /> محفوظ کریں</button>
+          </div>
+        </form>
+        <form method="post" class="note-delete" data-confirm="یہ نوٹ ہٹائیں؟ شعر محفوظ شدہ میں ہو تو وہیں رہے گا۔" data-danger data-ok="ہٹائیں">
+          <input type="hidden" name="id" value={n.id} />
+          <button class="icon-btn small danger" name="act" value="delete" title="نوٹ ہٹائیں" aria-label="نوٹ ہٹائیں"><Icon name="trash" size={16} /></button>
+        </form>
+      </li>
+    ))}
+  </ul>
+</Base>

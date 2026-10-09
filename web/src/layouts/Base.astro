@@ -69,6 +69,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
           {Astro.locals.user?.role === 'admin' && <a class="icon-btn" href="/admin" title="ایڈمن" aria-label="ایڈمن"><Icon name="admin" /></a>}
           {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="icon-btn" href="/mod" title="موڈریشن" aria-label="موڈریشن"><Icon name="edit" /></a>}
           {Astro.locals.user && <a class="icon-btn" href="/library" title="محفوظ شدہ" aria-label="محفوظ شدہ"><Icon name="bookmark" /></a>}
+          {Astro.locals.user && <a class="icon-btn" href="/notes" title="میرے نوٹس" aria-label="میرے نوٹس"><Icon name="note" /></a>}
           {Astro.locals.user && <a class="icon-btn" href="/words" title="ذخیرۂ الفاظ" aria-label="ذخیرۂ الفاظ"><span class="glyph-icon"><Icon name="words" /><span aria-hidden="true">ع</span></span></a>}
           {Astro.locals.user
             ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
@@ -110,6 +111,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
       <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
       <button type="button" data-act="saveword" class="plus" title="ذخیرۂ الفاظ میں ڈالیں">ذخیرۂ الفاظ</button>
       <button type="button" data-act="bookmark" title="یہ عبارت محفوظ کریں">محفوظ کریں</button>
+      <button type="button" data-act="note" title="اس عبارت پر نوٹ لکھیں">نوٹ</button>
       <button type="button" data-act="search" title="دیوان میں تلاش">تلاش</button>
       <button type="button" data-act="copy" title="حوالے کے ساتھ کاپی">کاپی</button>
       <button type="button" data-act="share" title="اس عبارت کا لنک">شیئر</button>
@@ -195,6 +197,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
         ',':'،', '.':'۔', '?':'؟', ';':'؛',
       };
       const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle'), romBtn = document.getElementById('rom-toggle');
+      const kbHome = [kb.parentElement, kb.nextSibling]; // the keyboard's place in the header
       let shift = false;
       const key = (ch) => ch ? `<button type="button" data-ch="${ch}">${ch}</button>` : '';
       const render = () => {
@@ -241,9 +244,17 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
       document.addEventListener('click', (e) => {
         const b = e.target.closest('[data-urdu-kb], [data-urdu-rom]'); if (!b) return;
         target = document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom)?.querySelector('[contenteditable]') ?? document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom);
+        // in an open dialog (the note box) the header can't be reached: the keyboard moves under the box, and back when it closes
+        const box = b.dataset.urduKb && target.closest('dialog');
+        if (box) target.closest('.in-box-field')?.after(kb); else if (b.dataset.urduKb) kbHome[0].insertBefore(kb, kbHome[1]);
         (b.dataset.urduKb ? kbBtn : romBtn).click();
         b.setAttribute('aria-pressed', (b.dataset.urduKb ? kbBtn : romBtn).getAttribute('aria-pressed'));
       });
+      document.addEventListener('close', (ev) => { // a dialog closing takes nothing of the header's with it
+        if (!ev.target.contains?.(kb)) return;
+        kb.hidden = true; kbBtn.setAttribute('aria-pressed', 'false'); kbHome[0].insertBefore(kb, kbHome[1]);
+        ev.target.querySelectorAll('[data-urdu-kb]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      }, true);
       document.addEventListener('keydown', (ev) => {
         if (!ev.target.matches?.('[data-urdu]')) return;
         if (romBtn.getAttribute('aria-pressed') !== 'true' || ev.ctrlKey || ev.metaKey || ev.altKey) return;
@@ -277,7 +288,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
       document.addEventListener('click', async (e) => {
         const b = e.target.closest('[data-save]'); if (!b) return;
         if (getSelection()?.toString().trim()) return; // selecting text, not pressing
-        if (b.dataset.confirm && !confirm(b.dataset.confirm)) return;
+        if (b.dataset.confirm && !(await ask(b.dataset.confirm, { danger: true, ok: 'ہٹائیں' }))) return;
         const item = JSON.parse(b.dataset.save), d = await save(item);
         if (d && item.kind === 'phrase') location.reload(); // the highlight is drawn by the page
         else if (d) {
@@ -441,7 +452,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
           const block = sel.anchorNode.parentElement?.closest('[data-c]');
           source = block ? { poemId: Number(block.closest('[data-poem]')?.dataset.poem) || undefined, couplet: Number(block.dataset.c) } : {};
           menu.querySelector('[data-act=saveword]').hidden = !w;
-          menu.querySelector('[data-act=bookmark]').hidden = !(source.poemId && Number.isInteger(source.couplet));
+          menu.querySelector('[data-act=bookmark]').hidden = menu.querySelector('[data-act=note]').hidden = !(source.poemId && Number.isInteger(source.couplet));
           menu.querySelector('[data-act=meaning]').hidden = !w;
           menu.hidden = false;
           // below the selection, centred, kept inside the viewport (absolute: moves with the page)
@@ -464,6 +475,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
           case 'meaning': showWord(oneWord(selText)); break;
           case 'bookmark': save({ kind: 'phrase', poemId: source.poemId, couplet: source.couplet, phrase: selText })
             .then((d) => d && (d.saved ? location.reload() : flash(b, 'پہلے سے محفوظ تھی، ہٹا دی'))); break;
+          case 'note': hideMenu(); document.dispatchEvent(new CustomEvent('divan:note', { detail: { couplet: source.couplet, phrase: selText } })); break; // the poem page opens its note box
           case 'saveword': save({ kind: 'word', word: oneWord(selText), ...source }).then((d) => d && flash(b, d.saved ? 'ذخیرۂ الفاظ میں ڈال دیا' : 'ذخیرۂ الفاظ سے نکال دیا')); break;
           case 'search': location.href = `/search?q=${encodeURIComponent(q)}`; break;
           case 'google': open(`https://www.google.com/search?q=${enc}`, '_blank', 'noopener'); break;
@@ -484,6 +496,47 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
         if (!menu.hidden) hideMenu(); else if (!dict.hidden) closeDict();
       });
 
+    </script>
+    <!-- shared UI: the confirm dialog (instead of the browser's English confirm), toasts, busy buttons -->
+    <dialog class="ask" id="ask" aria-labelledby="ask-msg">
+      <form method="dialog">
+        <p id="ask-msg"></p>
+        <div class="ask-actions"><button class="btn primary" value="ok">ہاں</button><button class="btn" value="">نہیں</button></div>
+      </form>
+    </dialog>
+    <div class="toasts" aria-live="polite"></div>
+    <script is:inline>
+      (() => {
+        const dlg = document.getElementById('ask'), ok = dlg.querySelector('[value=ok]');
+        // ask(message, {danger, ok}) -> Promise<boolean>; the destructive answer is red and named for what it does
+        window.ask = (message, o = {}) => new Promise((done) => {
+          dlg.querySelector('#ask-msg').textContent = message;
+          ok.textContent = o.ok || 'ہاں'; ok.classList.toggle('danger', !!o.danger); ok.classList.toggle('primary', !o.danger);
+          dlg.returnValue = ''; dlg.showModal(); dlg.querySelector('[value=""]').focus();
+          dlg.addEventListener('close', () => done(dlg.returnValue === 'ok'), { once: true });
+        });
+        dlg.addEventListener('click', (e) => { if (e.target === dlg) dlg.close(); }); // a click outside the box is "no"
+        // toast(message, kind): slides in, leaves by itself
+        const box = document.querySelector('.toasts');
+        window.toast = (message, kind = 'ok') => {
+          const t = document.createElement('p'); t.className = 'toast ' + kind; t.textContent = message; box.append(t);
+          setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 350); }, 4200); // removed on a timer: with reduced motion there is no animation to end
+        };
+        // a page's "done" line becomes a toast
+        document.querySelectorAll('.form-done').forEach((p) => { if (p.textContent.trim()) { toast(p.textContent.trim()); p.hidden = true; } });
+        // forms: data-confirm asks first; a submitting button shows it is busy
+        document.addEventListener('submit', async (e) => {
+          const f = e.target; if (f.method === 'dialog') return;
+          const btn = e.submitter;
+          if (f.dataset.confirm && !f.dataset.asked) {
+            e.preventDefault();
+            if (!(await ask(f.dataset.confirm, { danger: 'danger' in f.dataset, ok: f.dataset.ok }))) return;
+            f.dataset.asked = '1'; f.requestSubmit(btn); delete f.dataset.asked; return;
+          }
+          if (btn && !e.defaultPrevented && !f.hasAttribute('data-js')) btn.setAttribute('aria-busy', 'true');
+        });
+        addEventListener('pageshow', () => document.querySelectorAll('[aria-busy=true]').forEach((b) => b.removeAttribute('aria-busy'))); // back button
+      })();
     </script>
   </body>
 </html>

@@ -5,7 +5,7 @@ import Icon from '../../components/Icon.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { ud } from '../../lib/urdu';
-import { ROLE, CONTENT, ACTION as DO } from '../../lib/roles';
+import { ROLE, CONTENT, ACTION as DO, ago } from '../../lib/roles';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/admin/audit');
@@ -18,25 +18,28 @@ const ACTION: Record<string, string> = {
   grant: 'اجازت دی', revoke: 'اجازت واپس لی',
 };
 const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T', ' '));
+const TONE: Record<string, string> = { grant: 'ok', enable: 'ok', role: 'action', promote: 'action', 'password-reset': 'accent', disable: 'danger', delete: 'danger', revoke: 'danger' };
+const detail = (e: any) => e.detail?.to ? `${ROLE[e.detail.from] ?? '—'} ← ${ROLE[e.detail.to] ?? e.detail.to}`.replace('— ← ', '')
+  : e.detail?.content ? [e.detail.target, e.detail.content.map((c: string) => CONTENT[c]).join('، '), e.detail.actions.map((a: string) => DO[a]).join('، ')].filter(Boolean).join(' · ') : '';
+const kinds = [...new Set(log.entries.map((e: any) => e.action as string))];
 ---
 <Base title="ایڈمن: ریکارڈ">
   <h1>ایڈمن</h1>
   <AdminNav current="audit" />
-  <table class="admin-table">
-    <thead><tr><th>وقت (UTC)</th><th>ایڈمن</th><th>عمل</th><th>صارف</th><th>تفصیل</th></tr></thead>
-    <tbody>
-      {log.entries.map((e: any) => (
-        <tr>
-          <td>{when(e.at)}</td>
-          <td><bdi dir="ltr">{e.actor_email}</bdi></td>
-          <td>{ACTION[e.action] ?? e.action}</td>
-          <td><bdi dir="ltr">{e.target_email ?? '—'}</bdi></td>
-          <td>{e.detail?.to ? `${ROLE[e.detail.from] ?? '—'} ← ${ROLE[e.detail.to] ?? e.detail.to}`.replace('— ← ', '')
-            : e.detail?.content ? `${e.detail.target ?? ''} · ${e.detail.content.map((c: string) => CONTENT[c]).join('، ')} · ${e.detail.actions.map((a: string) => DO[a]).join('، ')}` : ''}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
+  {kinds.length > 1 && (
+    <div class="chips role-filter audit-filter" role="group" aria-label="عمل سے چھانٹیں">
+      {kinds.map((k) => <label class="chip"><input type="checkbox" value={k} checked /> {ACTION[k] ?? k}</label>)}
+    </div>
+  )}
+  <ol class="timeline">
+    {log.entries.map((e: any) => (
+      <li data-tone={TONE[e.action] ?? 'muted'} data-action={e.action}>
+        <header><bdi dir="ltr" class="who">{e.actor_email}</bdi><time class="muted" datetime={e.at} title={when(e.at)}>{ago(e.at)}</time></header>
+        <p><strong>{ACTION[e.action] ?? e.action}</strong>{e.target_email && <>: <bdi dir="ltr" class="target">{e.target_email}</bdi></>}</p>
+        {detail(e) && <p class="muted small-line">{detail(e)}</p>}
+      </li>
+    ))}
+  </ol>
   {pages > 1 && (
     <nav class="pager">
       {page > 1 && <a class="icon-btn" href={`/admin/audit?page=${page - 1}`} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
@@ -44,4 +47,11 @@ const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T
       {page < pages && <a class="icon-btn" href={`/admin/audit?page=${page + 1}`} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
     </nav>
   )}
+  <script>
+    // the action chips show and hide entries on this page
+    document.querySelector('.audit-filter')?.addEventListener('change', (e) => {
+      const on = new Set([...document.querySelectorAll<HTMLInputElement>('.audit-filter input:checked')].map((i) => i.value));
+      document.querySelectorAll<HTMLElement>('.timeline li').forEach((li) => (li.hidden = !on.has(li.dataset.action!)));
+    });
+  </script>
 </Base>

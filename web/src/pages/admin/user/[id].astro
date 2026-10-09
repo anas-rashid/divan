@@ -70,7 +70,7 @@ const initial = [...(user.full_name || user.email)][0]?.toUpperCase();
   <section class="panel">
     <h2>کردار</h2>
     {self ? <p class="muted">اپنا کردار خود نہیں بدل سکتے۔</p> : (
-      <form method="post" class="role-pick" onsubmit={`return confirm(${JSON.stringify(isMod ? 'کردار بدلیں؟ موڈریٹر نہ رہنے پر اس کی اجازتیں ختم ہو جائیں گی۔' : 'کردار بدلیں؟')})`}>
+      <form method="post" class="role-pick" data-confirm={isMod ? 'کردار بدلیں؟ موڈریٹر نہ رہنے پر اس کی اجازتیں ختم ہو جائیں گی۔' : 'کردار بدلیں؟'} data-ok="کردار بدلیں">
         <input type="hidden" name="act" value="role" />
         {Object.entries(ROLE).map(([k, v]) => (
           <button class="btn" name="role" value={k} aria-pressed={k === user.role ? 'true' : 'false'} disabled={k === user.role}>
@@ -92,7 +92,7 @@ const initial = [...(user.full_name || user.email)][0]?.toUpperCase();
               <p class="grant-scope"><strong>{SCOPE[g.scope]}</strong>{g.label && <>: {g.url ? <a href={g.url}>{g.label}</a> : g.label}</>}{g.poet && g.scope !== 'poet' && <small class="muted"> ({g.poet})</small>}</p>
               <p class="tag-chips">{g.content.map((c: string) => <span class="badge plain">{CONTENT[c]}</span>)}<span class="sep" aria-hidden="true"></span>{g.actions.map((a: string) => <span class="badge" data-role="mod-l2">{ACTION[a]}</span>)}</p>
             </div>
-            <form method="post" onsubmit="return confirm('یہ اجازت واپس لیں؟')">
+            <form method="post" data-confirm="یہ اجازت واپس لیں؟" data-danger data-ok="واپس لیں">
               <input type="hidden" name="grant" value={g.id} />
               <button class="icon-btn small danger" name="act" value="revoke" title="اجازت واپس لیں" aria-label="اجازت واپس لیں"><Icon name="trash" size={16} /></button>
             </form>
@@ -129,7 +129,7 @@ const initial = [...(user.full_name || user.email)][0]?.toUpperCase();
   <section class="panel">
     <h2>اکاؤنٹ</h2>
     <div class="account-actions">
-      <form method="post" onsubmit="return confirm('اس صارف کا پاس ورڈ ری سیٹ کریں؟ اس کے سب سیشن ختم ہو جائیں گے۔')">
+      <form method="post" data-confirm="اس صارف کا پاس ورڈ ری سیٹ کریں؟ اس کے سب سیشن ختم ہو جائیں گے۔" data-ok="ری سیٹ کریں">
         <button class="btn" name="act" value="reset"><Icon name="key" size={16} /> پاس ورڈ ری سیٹ</button>
       </form>
       {!self && (
@@ -141,7 +141,7 @@ const initial = [...(user.full_name || user.email)][0]?.toUpperCase();
       )}
     </div>
     {!self && (
-      <form method="post" class="danger-zone" onsubmit="return confirm('یہ اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔ جاری رکھیں؟')">
+      <form method="post" class="danger-zone" data-confirm="یہ اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔ جاری رکھیں؟" data-danger data-ok="حذف کریں">
         <p class="muted small-line">اکاؤنٹ اور اس کا تمام ڈیٹا (محفوظ شدہ، ذخیرۂ الفاظ) مستقل طور پر حذف۔ واپسی ممکن نہیں۔</p>
         <button class="btn danger" name="act" value="delete"><Icon name="trash" size={16} /> اکاؤنٹ حذف کریں</button>
       </form>

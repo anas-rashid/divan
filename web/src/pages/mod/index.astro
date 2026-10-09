@@ -5,6 +5,8 @@ import ModNav from '../../components/ModNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { STATUS, EVENT, when } from '../../lib/mod';
 import { ud } from '../../lib/urdu';
+import { ago } from '../../lib/roles';
+import Icon from '../../components/Icon.astro';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/mod');
@@ -14,6 +16,9 @@ const queue = showLog ? null : (await asUser(token, '/api/mod/queue')).data;
 const log = showLog ? (await asUser(token, '/api/mod/log')).data : null;
 // what kind of change a row is (a work's text needs no label)
 const KIND: Record<string, string> = { order: 'ترتیب: ', 'tags-category': 'ٹیگ: ', 'tags-work': 'ٹیگ: ', ebook: 'ای بک: ' };
+// each kind of change has its icon; each event its tone on the timeline
+const ICON: Record<string, any> = { order: 'arrange', 'tags-category': 'tag', 'tags-work': 'tag', ebook: 'upload' };
+const TONE: Record<string, string> = { published: 'ok', approved: 'action', submitted: 'accent', returned: 'danger', rejected: 'danger' };
 const groups = queue ? [
   ['میرے مسودے', queue.mine, 'ابھی کوئی مسودہ نہیں۔ کسی کلام کے صفحے پر "ترمیم کریں" سے شروع کریں۔'],
   ...(me.role !== 'mod-l2' ? [['جائزے کے منتظر', queue.review, 'جائزے کے لیے کچھ نہیں۔']] : []),
@@ -24,36 +29,39 @@ const groups = queue ? [
   <h1>موڈریشن</h1>
   <ModNav current={showLog ? 'log' : 'queue'} />
   {Astro.url.searchParams.has('unchanged') && <p class="form-done" role="status">متن میں کوئی تبدیلی نہیں تھی، اس لیے مسودہ نہیں رکھا گیا۔</p>}
-  {groups.map(([title, items, empty]) => (
-    <section class="lib-section">
+  {queue && (
+    <nav class="stat-tiles" aria-label="خلاصہ">
+      {groups.map(([title, items], i) => <a class="stat" href={`#q${i}`}><strong>{ud(items.length)}</strong><span>{title}</span></a>)}
+    </nav>
+  )}
+  {groups.map(([title, items, empty], i) => (
+    <section class="queue" id={`q${i}`}>
       <h2>{title} <small class="muted">{ud(items.length)}</small></h2>
-      {items.length === 0 ? <p class="muted center">{empty}</p> : (
-        <ul class="lib-list">
+      {items.length === 0 ? <p class="empty"><span aria-hidden="true">✤</span>{empty}</p> : (
+        <ul class="queue-list">
           {items.map((r) => (
-            <li>
-              <a class="lib-title" href={`/mod/rev/${r.id}`}>{KIND[r.entity] ?? ''}{r.title}</a>
+            <li><a class="queue-card" href={`/mod/rev/${r.id}`}>
+              <span class="kind" aria-hidden="true"><Icon name={ICON[r.entity] ?? 'edit'} size={18} /></span>
+              <span class="what"><strong>{KIND[r.entity] ?? ''}{r.title}</strong>
+                <small class="muted">{r.summary || 'بغیر خلاصہ'} · <bdi dir="ltr">{r.author_email}</bdi></small></span>
               <span class={`status s-${r.status}`}>{STATUS[r.status]}</span>
-              <p class="muted small-line">{r.summary || 'بغیر خلاصہ'} · <bdi dir="ltr">{r.author_email}</bdi> · <bdi dir="ltr">{when(r.updated_at)}</bdi></p>
-            </li>
+              <span class="seen muted" title={when(r.updated_at)}>{ago(r.updated_at)}</span>
+            </a></li>
           ))}
         </ul>
       )}
     </section>
   ))}
   {log && (
-    <table class="admin-table">
-      <thead><tr><th>وقت (UTC)</th><th>کس نے</th><th>کیا</th><th>کلام</th><th>تبصرہ</th></tr></thead>
-      <tbody>
-        {log.entries.map((e: any) => (
-          <tr>
-            <td><bdi dir="ltr">{when(e.at)}</bdi></td>
-            <td><bdi dir="ltr">{e.actor_email}</bdi></td>
-            <td>{EVENT[e.action] ?? e.action}{e.version && e.action === 'published' ? ` (ورژن ${ud(e.version)})` : ''}</td>
-            <td><a href={`/mod/rev/${e.revision}`}>{KIND[e.entity] ?? ''}{e.title}</a></td>
-            <td>{e.comment}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <ol class="timeline">
+      {log.entries.map((e: any) => (
+        <li data-tone={TONE[e.action] ?? 'muted'}>
+          <header><bdi dir="ltr" class="who">{e.actor_email}</bdi><time class="muted" datetime={e.at} title={when(e.at)}>{ago(e.at)}</time></header>
+          <p><strong>{EVENT[e.action] ?? e.action}{e.version && e.action === 'published' ? ` (ورژن ${ud(e.version)})` : ''}</strong>:
+            <a href={`/mod/rev/${e.revision}`}>{KIND[e.entity] ?? ''}{e.title}</a></p>
+          {e.comment && <blockquote>{e.comment}</blockquote>}
+        </li>
+      ))}
+    </ol>
   )}
 </Base>

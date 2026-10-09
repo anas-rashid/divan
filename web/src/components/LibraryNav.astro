@@ -1,9 +1,10 @@
 ---
 // tabs of the reader's own space: saved texts, favourite writers, the word book (kept separate), profile
-const { current } = Astro.props as { current: 'bookmarks' | 'writers' | 'words' };
+const { current } = Astro.props as { current: 'bookmarks' | 'notes' | 'writers' | 'words' };
 ---
 <nav class="admin-nav">
   <a href="/library" aria-current={current === 'bookmarks' ? 'page' : undefined}><span class="bm-icon on" aria-hidden="true"></span> محفوظ شدہ</a>
+  <a href="/notes" aria-current={current === 'notes' ? 'page' : undefined}>نوٹس</a>
   <a href="/writers" aria-current={current === 'writers' ? 'page' : undefined}>پسندیدہ لکھاری</a>
   <a href="/words" aria-current={current === 'words' ? 'page' : undefined}>ذخیرۂ الفاظ</a>
   <a href="/account">پروفائل</a>

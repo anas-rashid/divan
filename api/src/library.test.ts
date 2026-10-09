@@ -55,10 +55,39 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   const book = (await pool.query(`SELECT id FROM categories WHERE url = '/p266/ghazal'`)).rows[0].id;
   assert.ok(marks.categories.includes(book) && marks.poets.includes(266));
   // state for a page
-  assert.deepEqual((await call('GET', `/api/library/state?poet=266&category=${ghazals}&poem=${poem}`, undefined, t)).json(), { poet: true, category: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }] });
+  assert.deepEqual((await call('GET', `/api/library/state?poet=266&category=${ghazals}&poem=${poem}`, undefined, t)).json(), { poet: true, category: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }], notes: [] });
 
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('وصال'), undefined, t)).json(), { word: true });
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('ہجر'), undefined, t)).json(), { word: false });
+  // notes on a couplet and on a phrase are separate from bookmarks: a note never bookmarks; un-bookmarking keeps the note
+  const note = (body: object, tk = t) => call('POST', '/api/library/note', body, tk);
+  const st = () => call('GET', `/api/library/state?poem=${poem}`, undefined, t).then((r) => r.json());
+  assert.deepEqual((await note({ poemId: poem, couplet: 2, note: '  پہلا نوٹ ' })).json(), { note: 'پہلا نوٹ' }, 'on a bookmarked couplet');
+  assert.deepEqual((await note({ poemId: poem, couplet: 1, note: 'نیا' })).json(), { note: 'نیا' });
+  assert.ok(!(await st()).couplets.includes(1), 'a note does not bookmark');
+  const ph = lines0[0].split(' ').slice(1, 3).join(' ');
+  assert.deepEqual((await note({ poemId: poem, couplet: 0, phrase: ph, note: 'عبارت پر' })).json(), { note: 'عبارت پر' });
+  assert.ok(!(await st()).phrases.some((p: any) => p.phrase === ph), 'nor a phrase');
+  assert.equal((await note({ poemId: poem, couplet: 0, phrase: 'یہ عبارت یہاں نہیں', note: 'x' })).statusCode, 400);
+  assert.equal((await note({ poemId: poem, couplet: 9999, note: 'x' })).statusCode, 404);
+  assert.equal((await note({ poemId: poem, couplet: 1, note: 'x' }, other.token)).statusCode, 200, "another reader's note is their own");
+  assert.deepEqual((await st()).notes.map((n: any) => [n.couplet, n.phrase, n.note]).sort(), [[0, ph, 'عبارت پر'], [1, null, 'نیا'], [2, null, 'پہلا نوٹ']].sort());
+  // bookmarking a noted couplet keeps the note; un-bookmarking keeps it too
+  assert.equal((await toggle({ kind: 'couplet', poemId: poem, couplet: 1 })).json().saved, true);
+  assert.ok((await st()).couplets.includes(1));
+  assert.equal((await toggle({ kind: 'couplet', poemId: poem, couplet: 1 })).json().saved, false);
+  assert.ok(!(await st()).couplets.includes(1) && (await st()).notes.some((n: any) => n.couplet === 1), 'the note stays');
+  // clearing a note that has no bookmark removes it; on a bookmark it keeps the bookmark
+  await note({ poemId: poem, couplet: 1, note: '' });
+  assert.ok(!(await st()).notes.some((n: any) => n.couplet === 1));
+  await note({ poemId: poem, couplet: 0, phrase: ph, note: '' });
+  await note({ poemId: poem, couplet: 2, note: '' });
+  assert.ok((await st()).couplets.includes(2) && !(await st()).notes.length, 'bookmark kept, notes gone');
+  // the notes list (the notes page) holds notes only; the saved lists hold bookmarks only
+  await note({ poemId: poem, couplet: 3, note: 'صرف نوٹ' }).catch(() => {});
+  const listed = (await call('GET', '/api/library', undefined, t)).json();
+  assert.ok(listed.notes.every((n: any) => n.note) && !listed.couplets.some((c: any) => c.poem?.couplet === 3));
+  await note({ poemId: poem, couplet: 3, note: '' });
   // toggling again removes
   assert.equal((await toggle({ kind: 'couplet', poemId: poem, couplet: 2 })).json().saved, false);
 
