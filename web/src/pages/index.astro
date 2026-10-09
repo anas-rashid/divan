@@ -12,13 +12,14 @@ const count = new Set(sections.flatMap((s) => s.poets.map((p) => p.id))).size;
 const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
 const marked: number[] = token ? (await asUser(token, '/api/library/marks')).data.poets ?? [] : [];
 const card = (p: Poet) => `poet-card${marked.includes(p.id) ? ' mark-bm' : ''}`;
+import Bayt from '../components/Bayt.astro';
 ---
 <Base>
-  <section class="hero">
-    <img class="hero-logo" src="/logo/turanj.svg" width="120" height="120" alt="" />
-    <h1>اردو کا کلاسیکی ادب</h1>
-    <p>{ud(count)} شعرا و ادبا · ویکی ماخذ کے عوامی ملکیت متون</p>
+  <section class="masthead">
+    <img class="masthead-logo" src="/logo/turanj.svg" width="220" height="220" alt="" />
+    <h1><span class="name">دیوان</span><Bayt /><span class="tagline">اردو کا کلاسیکی ادب</span></h1>
   </section>
+  <p class="hero-count">{ud(count)} شعرا و ادبا · ویکی ماخذ کے عوامی ملکیت متون</p>
 
   {sections.length === 0 && <p class="muted">مواد تیار کیا جا رہا ہے۔ براہِ کرم کچھ دیر بعد دوبارہ تشریف لائیں۔</p>}
 
