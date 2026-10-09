@@ -154,7 +154,7 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .masthead-text { display: flex; flex-direction: column; align-items: center; }
 /* the headline between two couplet lines, like a framed verse; the logo already says دیوان */
 .masthead h1 { margin: 0; font-family: 'Noto Nastaliq Urdu', serif; font-weight: 700; color: var(--action); font-size: clamp(1.7rem, 6vw, 3.2rem); line-height: 2;
-  margin-top: -.25em; padding-bottom: .2em; } /* Nastaliq: room above the ink, the ink hangs below the box */
+  padding-top: .2em; padding-bottom: .2em; } /* Nastaliq hangs below its box: room above and below keeps it clear of the couplet lines */
 .masthead h1::after { display: none; }
 /* the couplet line: half-lines in the palette's blue, the ✤ in vermilion */
 .bayt { display: block; width: clamp(160px, 80%, 320px); height: auto; margin: 6px auto; }
