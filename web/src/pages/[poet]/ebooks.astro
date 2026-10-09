@@ -20,7 +20,7 @@ const mayAdd = token && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user
   && (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data.ebooks;
 import Icon from '../../components/Icon.astro';
 ---
-<Base title={`ای بکس · ${page.poet.nickname}`}>
+<Base title={`ای بکس · ${page.poet.nickname}`} description={`${page.poet.nickname} کی ای بکس: پی ڈی ایف، ای پب اور یونیکوڈ متن`}>
   <nav class="crumbs"><a href={page.poet.url}>{page.poet.nickname}</a></nav>
   <h1>ای بکس</h1>
   {mayAdd && <p class="center"><a class="btn primary" href={`/mod/ebook/new?poet=${page.poet.id}`}><Icon name="plus" size={18} /> ای بک شامل کریں</a></p>}

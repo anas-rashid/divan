@@ -20,7 +20,8 @@ const marks = token && b.published && b.kind === 'pdf' ? (await asUser(token, `/
 const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size / 1024)))} KB` : `${ud((b.size / 1048576).toFixed(1))} MB`;
 import Icon from '../../components/Icon.astro';
 ---
-<Base title={`${b.title} · ${b.poet}`}>
+<Base title={`${b.title} · ${b.poet}`} author={b.poet} ogType="book" description={`${b.title}: ${b.poet}${b.coauthors.length ? '، ' + b.coauthors.map((c: any) => c.name).join('، ') : ''} کی کتاب، ${KIND[b.kind]} میں`}
+  jsonld={{ '@context': 'https://schema.org', '@type': 'Book', name: b.title, inLanguage: 'ur', author: [b.poet, ...b.coauthors.map((c: any) => c.name)].map((name) => ({ '@type': 'Person', name })) }}>
   <nav class="crumbs"><a href={b.poet_url}>{b.poet}</a> » <a href={`${b.poet_url}/ebooks?kind=${b.kind}`}>ای بکس</a></nav>
   <h1>{b.title}</h1>
   {!b.published && <p class="form-error center">یہ کتاب ابھی جائزے میں ہے؛ صرف موڈریٹر دیکھ سکتے ہیں۔</p>}
