@@ -113,8 +113,11 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
       // (e.g. the author filter): whichever was focused last
       let target = q;
       document.addEventListener('focusin', (e) => { if (e.target.matches?.('[data-urdu]')) target = e.target; });
+      // a page may redraw its boxes (e.g. the home sections editor): find the box again by its id
+      const live = () => (target.isConnected ? target : (target = (target.id && document.getElementById(target.id)) || q));
       const typed = () => target.dispatchEvent(new Event('input', { bubbles: true })); // so suggestions update
       const insert = (text) => {
+        live();
         // rich editors (the content editor) take typed text through the browser's own editing command
         if (target.isContentEditable) { target.focus(); document.execCommand('insertText', false, text); return; }
         const s = target.selectionStart ?? target.value.length, e = target.selectionEnd ?? target.value.length;
@@ -125,6 +128,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         const b = ev.target.closest('button'); if (!b) return;
         if (b.dataset.act === 'shift') { shift = !shift; render(); return; }
         if (b.dataset.act === 'bs') {
+          live();
           if (target.isContentEditable) { target.focus(); document.execCommand('delete'); return; }
           const s = target.selectionStart, e = target.selectionEnd;
           target.setRangeText('', s === e ? Math.max(0, s - 1) : s, e, 'end'); target.focus(); typed();

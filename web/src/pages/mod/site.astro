@@ -59,6 +59,22 @@ const centuries = Object.fromEntries(Array.from({ length: 16 }, (_, c) => [c, ce
         const b = document.createElement('button'); b.type = 'button'; b.className = 'tool'; b.textContent = label; b.title = title;
         b.onclick = () => { fn(); draw(); }; return b;
       };
+      // a box with the Urdu keyboard and Roman typing buttons inside it, as in search (Base.astro handles them)
+      const KB = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>';
+      // a redrawn box shows the keyboard/Roman state only if it is the box being typed in
+      let typing = '';
+      host.addEventListener('focusin', (e) => { const t = e.target as HTMLElement; if (t.matches('input[data-urdu]')) typing = t.id; });
+      const pressed = (header: string, id: string) => (id === typing && document.getElementById(header)?.getAttribute('aria-pressed')) || 'false';
+      const keyed = (input: HTMLInputElement, id: string, cls = '') => {
+        input.id = id; input.setAttribute('data-urdu', '');
+        const wrap = document.createElement('div'); wrap.className = `in-box-field ${cls}`;
+        const rom = document.createElement('button'); rom.type = 'button'; rom.className = 'in-box rom'; rom.textContent = 'اب';
+        rom.title = 'رومن حروف سے اردو'; rom.dataset.urduRom = id; rom.setAttribute('aria-pressed', pressed('rom-toggle', id));
+        const kb = document.createElement('button'); kb.type = 'button'; kb.className = 'in-box'; kb.innerHTML = KB;
+        kb.title = 'اردو کی بورڈ'; kb.setAttribute('aria-label', 'اردو کی بورڈ'); kb.dataset.urduKb = id; kb.setAttribute('aria-pressed', pressed('kb-toggle', id));
+        wrap.append(input, rom, kb);
+        return wrap;
+      };
       const move = (xs: any[], i: number, d: number) => { const j = i + d; if (j >= 0 && j < xs.length) [xs[i], xs[j]] = [xs[j], xs[i]]; };
       const SORTS: [string, string][] = [['manual', 'دستی'], ['alpha', 'حروفِ تہجی'], ['timeline', 'زمانی']];
 
@@ -66,7 +82,7 @@ const centuries = Object.fromEntries(Array.from({ length: 16 }, (_, c) => [c, ce
         host.replaceChildren(...state.map((s, i) => {
           const box = document.createElement('fieldset'); box.className = 'site-section';
           const head = document.createElement('div'); head.className = 'site-head';
-          const title = document.createElement('input'); title.value = s.title; title.setAttribute('data-urdu', '');
+          const title = document.createElement('input'); title.value = s.title;
           title.placeholder = s.century === null ? 'حصے کا نام' : data.centuries[s.century]; title.setAttribute('aria-label', 'حصے کا نام');
           title.oninput = () => (s.title = title.value);
           const sort = document.createElement('select'); sort.className = 'tool'; sort.setAttribute('aria-label', 'ترتیب');
@@ -74,17 +90,17 @@ const centuries = Object.fromEntries(Array.from({ length: 16 }, (_, c) => [c, ce
           sort.onchange = () => { s.sort = sort.value; draw(); };
           const kind = document.createElement('small'); kind.className = 'muted';
           kind.textContent = s.century === null ? `منتخب شعرا (${s.poets.length})` : `صدی: ${data.centuries[s.century]}`;
-          head.append(title, sort, kind,
+          head.append(keyed(title, `site-title-${i}`, 'site-title'), sort, kind,
             btn('↑', 'حصہ اوپر', () => move(state, i, -1)), btn('↓', 'حصہ نیچے', () => move(state, i, 1)),
             btn('ہٹائیں', 'یہ حصہ ہٹائیں', () => { if (confirm('یہ حصہ ہٹا دیں؟')) state.splice(i, 1); }));
           box.append(head);
-          if (s.century === null) box.append(poetList(s));
+          if (s.century === null) box.append(poetList(s, i));
           return box;
         }));
       }
 
       // a chosen-poets section: its poets (↑ ↓ ✕ when sorted by hand) and a name box to add one
-      function poetList(s: any) {
+      function poetList(s: any, i: number) {
         const wrap = document.createElement('div');
         const ol = document.createElement('ol'); ol.className = 'site-poets';
         s.poets.forEach((id: number, j: number) => {
@@ -94,16 +110,17 @@ const centuries = Object.fromEntries(Array.from({ length: 16 }, (_, c) => [c, ce
           ol.append(li);
         });
         const find = document.createElement('div'); find.className = 'author-find';
-        const box = document.createElement('input'); box.setAttribute('data-urdu', ''); box.placeholder = 'شاعر یا ادیب کا نام لکھ کر شامل کریں'; box.autocomplete = 'off';
+        const box = document.createElement('input'); box.placeholder = 'شاعر یا ادیب کا نام لکھ کر شامل کریں'; box.autocomplete = 'off';
         const list = document.createElement('div'); list.className = 'author-suggest'; list.hidden = true;
         box.oninput = () => {
           const t = norm(box.value.trim());
           const hits = t ? data.poets.filter((p: any) => !s.poets.includes(p.id) && norm(p.name).includes(t)).slice(0, 10) : [];
-          list.replaceChildren(...hits.map((p: any) => btn(p.name, 'شامل کریں', () => s.poets.push(p.id))));
+          // after adding, the (redrawn) name box keeps the focus for the next name
+          list.replaceChildren(...hits.map((p: any) => btn(p.name, 'شامل کریں', () => { s.poets.push(p.id); setTimeout(() => document.getElementById(`site-find-${i}`)?.focus()); })));
           list.hidden = !hits.length;
         };
         box.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); (list.querySelector('button') as HTMLButtonElement | null)?.click(); } };
-        find.append(box, list);
+        find.append(keyed(box, `site-find-${i}`), list);
         wrap.append(ol, find);
         return wrap;
       }
