@@ -136,6 +136,7 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
   .poet-card.mark-bm::after { top: 10px; left: 8px; }
 }
 .hero { text-align: center; }
+.hero-logo { display: block; width: clamp(84px, 22vw, 120px); height: auto; margin: 4px auto 0; filter: drop-shadow(0 2px 6px rgb(0 0 0 / .12)); }
 .hero p { margin: 0; }
 
 /* poet / category */
