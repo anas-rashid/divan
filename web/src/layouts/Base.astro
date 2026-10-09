@@ -196,6 +196,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
         ',':'،', '.':'۔', '?':'؟', ';':'؛',
       };
       const q = document.getElementById('q'), kb = document.getElementById('kb'), kbBtn = document.getElementById('kb-toggle'), romBtn = document.getElementById('rom-toggle');
+      const kbHome = [kb.parentElement, kb.nextSibling]; // the keyboard's place in the header
       let shift = false;
       const key = (ch) => ch ? `<button type="button" data-ch="${ch}">${ch}</button>` : '';
       const render = () => {
@@ -242,9 +243,17 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can 
       document.addEventListener('click', (e) => {
         const b = e.target.closest('[data-urdu-kb], [data-urdu-rom]'); if (!b) return;
         target = document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom)?.querySelector('[contenteditable]') ?? document.getElementById(b.dataset.urduKb ?? b.dataset.urduRom);
+        // in an open dialog (the note box) the header can't be reached: the keyboard moves under the box, and back when it closes
+        const box = b.dataset.urduKb && target.closest('dialog');
+        if (box) target.closest('.in-box-field')?.after(kb); else if (b.dataset.urduKb) kbHome[0].insertBefore(kb, kbHome[1]);
         (b.dataset.urduKb ? kbBtn : romBtn).click();
         b.setAttribute('aria-pressed', (b.dataset.urduKb ? kbBtn : romBtn).getAttribute('aria-pressed'));
       });
+      document.addEventListener('close', (ev) => { // a dialog closing takes nothing of the header's with it
+        if (!ev.target.contains?.(kb)) return;
+        kb.hidden = true; kbBtn.setAttribute('aria-pressed', 'false'); kbHome[0].insertBefore(kb, kbHome[1]);
+        ev.target.querySelectorAll('[data-urdu-kb]').forEach((x) => x.setAttribute('aria-pressed', 'false'));
+      }, true);
       document.addEventListener('keydown', (ev) => {
         if (!ev.target.matches?.('[data-urdu]')) return;
         if (romBtn.getAttribute('aria-pressed') !== 'true' || ev.ctrlKey || ev.metaKey || ev.altKey) return;

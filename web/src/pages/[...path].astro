@@ -148,12 +148,13 @@ import Icon from '../components/Icon.astro';
         {blocks.map((b) => {
           const cn = noteOf(b.c), any = cn || notes.some((n) => n.couplet === b.c);
           // the bookmark, and beside it the note glyph (shown when this couplet or a phrase in it has a note)
-          const bm = <>
+          const bm = <span class="c-tools">
             <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں"
               data-confirm={cn ? 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔' : undefined} />
-            <button type="button" class="sh" data-c={b.c} aria-label="تصویر بنا کر بھیجیں" title="تصویر بنا کر بھیجیں" />
-            <button type="button" class="nt" data-c={b.c} aria-pressed={String(!!any)} aria-label={any ? 'نوٹ' : 'نوٹ لکھیں'} title={cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'} />
-          </>;
+            <button type="button" class="nt" data-for={b.c} aria-pressed={String(!!any)} aria-label={any ? 'نوٹ' : 'نوٹ لکھیں'} title={cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'} />
+            <button type="button" class="sh" data-for={b.c} aria-label="بھیجیں" title="تصویر بنا کر بھیجیں" />
+            <button type="button" class="dl" data-for={b.c} aria-label="تصویر ڈاؤن لوڈ کریں" title="تصویر ڈاؤن لوڈ کریں" />
+          </span>;
           const lm = lineMarks(b.c, b.lines);
           return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}<Tags tags={coupletTags(b.c)} /></div>
             : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>
@@ -164,7 +165,11 @@ import Icon from '../components/Icon.astro';
       <dialog class="ask note-box" id="note-box" aria-labelledby="note-for">
         <form method="dialog">
           <p id="note-for" class="note-for"></p>
-          <textarea name="note" rows="4" maxlength="1000" placeholder="آپ کا نوٹ…" aria-label="نوٹ" data-urdu></textarea>
+          <div class="in-box-field note-field">
+            <textarea id="note-text" name="note" rows="4" maxlength="1000" dir="auto" placeholder="آپ کا نوٹ، کسی بھی زبان میں…" aria-label="نوٹ" data-urdu></textarea>
+            <button type="button" class="in-box rom" data-urdu-rom="note-text" aria-pressed="false" aria-label="رومن حروف سے اردو" title="رومن حروف سے اردو ٹائپنگ (dil → دل)">اب</button>
+            <button type="button" class="in-box" data-urdu-kb="note-text" aria-pressed="false" aria-label="اردو کی بورڈ" title="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button>
+          </div>
           <ul class="note-others" hidden></ul>
           <div class="ask-actions">
             <button class="btn primary" value="save">محفوظ کریں</button><button class="btn" value="">بند کریں</button>
@@ -224,10 +229,10 @@ import Icon from '../components/Icon.astro';
       box.showModal(); text.focus();
     };
     const mark = (couplet: number) => { // the glyph follows the notes on this couplet
-      const nt = document.querySelector(`.nt[data-c="${couplet}"]`); if (!nt) return;
+      const nt = document.querySelector(`.nt[data-for="${couplet}"]`); if (!nt) return;
       const cn = notes.find((n) => n.couplet === couplet && !n.phrase)?.note, any = notes.some((n) => n.couplet === couplet);
       nt.setAttribute('aria-pressed', String(any)); nt.setAttribute('title', cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں');
-      const bm = document.querySelector(`[data-c="${couplet}"] > .bm, p[data-c="${couplet}"] > .bm`) as HTMLElement | null;
+      const bm = document.querySelector(`#c${couplet} .bm`) as HTMLElement | null;
       if (bm) { if (cn) { bm.setAttribute('aria-pressed', 'true'); bm.dataset.confirm = 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔'; } else delete bm.dataset.confirm; }
     };
     box.addEventListener('close', async () => {
@@ -245,14 +250,14 @@ import Icon from '../components/Icon.astro';
     });
     document.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
-      const nt = t.closest('.nt') as HTMLElement | null; if (nt) return open(Number(nt.dataset.c), null);
+      const nt = t.closest('.nt') as HTMLElement | null; if (nt) return open(Number(nt.dataset.for), null);
       const ph = t.closest('.bmk[data-phrase]') as HTMLElement | null;
       if (ph && !getSelection()?.toString().trim()) { const p = JSON.parse(ph.dataset.phrase!); open(p.couplet, p.phrase); }
     });
     document.addEventListener('keydown', (e) => { const ph = (e.target as HTMLElement).closest?.('.bmk[data-phrase]') as HTMLElement | null;
       if (ph && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); const p = JSON.parse(ph.dataset.phrase!); open(p.couplet, p.phrase); } });
     // share a couplet as an image: a square card (frame, logo, the lines, the poet), drawn here and handed to the share sheet
-    const share = async (c: number) => {
+    const share = async (c: number, download = false) => {
       const [poet, title] = (document.querySelector('[data-cite]') as HTMLElement).dataset.cite!.split('، ');
       const prose = !!document.querySelector(`p.para[data-c="${c}"]`);
       const lines = linesOf(c), S = 1080, cv = document.createElement('canvas'); cv.width = cv.height = S;
@@ -290,10 +295,14 @@ import Icon from '../components/Icon.astro';
       const blob: Blob = await new Promise((done) => cv.toBlob((b) => done(b!), 'image/png'));
       const file = new File([blob], `divan-${poemId}-${c + 1}.png`, { type: 'image/png' });
       const url = `${location.origin}${location.pathname}#c${c}`;
+      if (download) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); (window as any).toast('تصویر ڈاؤن لوڈ ہو گئی'); return; }
+      // the share menu: with the picture where the browser can share files, otherwise the couplet and its link; never a download
+      const text = `${lines.join('\n')}\n— ${poet}`;
       if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], text: url }).catch(() => {});
-      else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); (window as any).toast('تصویر ڈاؤن لوڈ ہو گئی'); }
+      else if (navigator.share) await navigator.share({ title: document.title, text, url }).catch(() => {});
+      else { try { await navigator.clipboard.writeText(`${text}\n${url}`); (window as any).toast('یہ براؤزر شیئر نہیں کر سکتا: شعر اور لنک کاپی ہو گئے'); } catch { (window as any).toast('شیئر نہیں ہو سکا', 'error'); } }
     };
-    document.addEventListener('click', (e) => { const sh = (e.target as HTMLElement).closest('.sh') as HTMLElement | null; if (sh) share(Number(sh.dataset.c)); });
+    document.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('.sh, .dl') as HTMLElement | null; if (b) share(Number(b.dataset.for), b.classList.contains('dl')); });
     document.addEventListener('divan:note', (e) => { const { couplet, phrase } = (e as CustomEvent).detail; open(couplet, phrase); });
   }
 </script>
