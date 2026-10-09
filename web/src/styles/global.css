@@ -862,3 +862,25 @@ p, li { text-wrap: pretty; }
   .site-footer .wrap { grid-template-columns: 1fr; }
   .footer-bar { justify-content: center; text-align: center; }
 }
+
+/* ── phones ── */
+/* e-book format tabs: one line each; the English in brackets only where there is room */
+.ebook-tabs a { white-space: nowrap; }
+@media (max-width: 560px) {
+  .ebook-tabs { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+  .ebook-tabs a span[lang] { display: none; }
+}
+/* touch screens have no hover: a couplet's tools show when it is tapped (the couplet is lightly marked); a set bookmark
+   or note stays visible; couplets without either do not keep room for the row */
+@media (hover: none) {
+  .c-tools > button { opacity: 0; pointer-events: none; }
+  .c-tools > button[aria-pressed='true'], .is-active > .c-tools > button { opacity: 1; pointer-events: auto; }
+  .poem .couplet.is-active, .poem .para.is-active, .poem .single.is-active { background: color-mix(in srgb, var(--accent) 14%, transparent); border-radius: var(--r-sm); }
+  .poem .couplet:not(.is-active):not(:has(.c-tools [aria-pressed='true'])) { padding-bottom: 6px; }
+  .poem .para:not(.is-active):not(:has(.c-tools [aria-pressed='true'])), .poem .single:not(.is-active):not(:has(.c-tools [aria-pressed='true'])) { margin-bottom: 10px; }
+}
+/* phones: the header slides away while scrolling down and comes back on the way up (a transform: nothing below jumps) */
+@media (max-width: 640px) {
+  .site-header { transition: transform .25s ease, box-shadow .2s, background .2s; }
+  :root[data-header-hidden] .site-header { transform: translateY(-100%); box-shadow: none; }
+}

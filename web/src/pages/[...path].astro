@@ -305,6 +305,15 @@ import Icon from '../components/Icon.astro';
       else { try { await navigator.clipboard.writeText(`${text}\n${url}`); (window as any).toast('یہ براؤزر شیئر نہیں کر سکتا: شعر اور لنک کاپی ہو گئے'); } catch { (window as any).toast('شیئر نہیں ہو سکا', 'error'); } }
     };
     document.addEventListener('click', (e) => { const b = (e.target as HTMLElement).closest('.sh, .dl') as HTMLElement | null; if (b) share(Number(b.dataset.for), b.classList.contains('dl')); });
+    // touch screens: tapping a couplet shows its tools (and hides the last one's); links, buttons and selections are left alone
+    if (matchMedia('(hover: none)').matches) document.querySelector('.poem')?.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      if (t.closest('a, button, .bmk') || getSelection()?.toString().trim()) return;
+      const block = t.closest('.couplet, .para, .single'); if (!block) return;
+      const was = block.classList.contains('is-active');
+      document.querySelectorAll('.poem .is-active').forEach((x) => x.classList.remove('is-active'));
+      if (!was) block.classList.add('is-active');
+    });
     document.addEventListener('divan:note', (e) => { const { couplet, phrase } = (e as CustomEvent).detail; open(couplet, phrase); });
   }
 </script>
