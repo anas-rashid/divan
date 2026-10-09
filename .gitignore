@@ -1,4 +1,4 @@
-node_modules/
+node_modules   # folders or links (a link was once committed by mistake)
 dist/
 .astro/
 .env
