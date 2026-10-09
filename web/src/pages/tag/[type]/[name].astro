@@ -10,7 +10,7 @@ if (!res) return new Response(null, { status: 404, statusText: 'Not found' });
 const { tag, categories, works, ebooks = [] } = res;
 const count = categories.length + works.length + ebooks.length;
 ---
-<Base title={`${tag.type}: ${tag.name}`}>
+<Base title={`${tag.type}: ${tag.name}`} description={`${tag.type} «${tag.name}»: ${ud(count)} شاعر، کتابیں، تخلیقات اور اشعار`}>
   <h1><small class="muted">{tag.type}:</small> {tag.name}</h1>
   <p class="center muted">{ud(count)} جگہ · <a href={`/search?q=${encodeURIComponent(`tag:"${tag.name}"`)}`}>تلاش میں دیکھیں</a> · <a href="/tags">تمام ٹیگ</a></p>
   {categories.length > 0 && (

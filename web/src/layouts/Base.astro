@@ -5,13 +5,16 @@ import '@fontsource/noto-naskh-arabic/700.css';
 import '@fontsource/noto-nastaliq-urdu/400.css';
 import '@fontsource/noto-nastaliq-urdu/700.css';
 import '../styles/global.css';
-interface Props { title?: string; description?: string; q?: string; author?: string; jsonld?: object }
+interface Props { title?: string; description?: string; q?: string; author?: string; jsonld?: object; ogType?: string }
 // author and jsonld describe a work for search engines and the browser's own reader view
-const { title, description = 'اردو کا کلاسیکی ادب', q = '', author, jsonld } = Astro.props;
+const { title, description = 'اردو کا کلاسیکی ادب', q = '', author, jsonld, ogType = 'website' } = Astro.props;
+// one address per page for search engines: the public origin, no query (?hl=, ?font=, ?kind= are views of the same page)
+const canonical = siteUrl(Astro.url) + Astro.url.pathname;
 const fullTitle = title ? `${title} · ${brand.name}` : `${brand.name} · ${brand.tagline}`;
 import Icon from '../components/Icon.astro';
 import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can turn its rays
 import { brand } from '../lib/brand';
+import { siteUrl } from '../lib/site-url';
 ---
 <!doctype html>
 <html lang="ur-PK" dir="rtl">
@@ -20,6 +23,7 @@ import { brand } from '../lib/brand';
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={`${brand.name}: نئی تبدیلیاں`} href="/rss.xml" />
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
@@ -29,11 +33,11 @@ import { brand } from '../lib/brand';
     <meta name="theme-color" content="#14120f" media="(prefers-color-scheme: dark)" />
     <!-- link previews (WhatsApp, Facebook, X, Slack): the logo and headline -->
     <meta property="og:site_name" content={brand.name} />
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="ur_PK" />
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.url.origin).href} />
+    <meta property="og:url" content={canonical} />
     <meta property="og:image" content={new URL('/og-image.png', Astro.url.origin).href} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />

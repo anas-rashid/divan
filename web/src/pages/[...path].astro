@@ -88,10 +88,21 @@ const ebookCount = page.type === 'poet' ? ((await api<any[]>(`/api/ebooks?poet=$
 const tagTarget = page.type === 'poem' ? `work/${poemId}` : `category/${page.category?.id}`;
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
+// for search engines and link previews: a work's opening lines, a poet's intro, a book's contents (#83)
+const clip = (t: string) => (t.length > 160 ? t.slice(0, 159) + '…' : t);
+const description = clip(page.type === 'poem' ? `${blocks[0]?.lines.join(' / ') ?? page.poem.title} (${page.poet.nickname})`
+  : page.type === 'poet' ? page.poet.description || `${page.poet.nickname}: کلام، کتابیں اور ای بکس`
+  : `${page.category.title} · ${page.poet.nickname}: ${page.poems?.length ? `${ud(page.poems.length)} تخلیقات` : `${ud(page.children?.length ?? 0)} حصے`}`);
+const here = siteUrl(Astro.url) + url, poetLd = { '@type': 'Person', name: page.poet?.nickname, url: siteUrl(Astro.url) + (crumbs[0]?.url ?? '') };
+const jsonld = { '@context': 'https://schema.org', inLanguage: 'ur', url: here, ...(
+  page.type === 'poem' ? { '@type': 'CreativeWork', name: page.poem.title, author: poetLd, isPartOf: crumbs.at(-1)?.title }
+  : page.type === 'poet' ? { ...poetLd, url: here, description: page.poet.description || undefined }
+  : { '@type': 'CollectionPage', name: page.category.title, author: poetLd }) };
+import { siteUrl } from '../lib/site-url';
 import Icon from '../components/Icon.astro';
 import TagsBox from '../components/TagsBox.astro';
 ---
-<Base author={page.poet?.nickname} jsonld={page.type === 'poem' ? { '@context': 'https://schema.org', '@type': 'CreativeWork', name: page.poem.title, inLanguage: 'ur', author: { '@type': 'Person', name: page.poet.nickname }, isPartOf: crumbs.at(-1)?.title, url: Astro.url.href.split('?')[0] } : undefined} title={page.type === 'poem' ? `${page.poem.title} · ${page.poet.nickname}` : title} description={page.type === 'poet' ? page.poet.description?.slice(0, 160) : undefined}>
+<Base author={page.poet?.nickname} jsonld={jsonld} title={page.type === 'poem' ? `${page.poem.title} · ${page.poet.nickname}` : title} description={description} ogType={page.type === 'poem' ? 'article' : 'website'}>
   {page.type !== 'poet' && (
     <nav class="crumbs">
       {crumbs.map((c: any, i: number) => (
