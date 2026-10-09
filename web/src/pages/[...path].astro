@@ -151,6 +151,7 @@ import Icon from '../components/Icon.astro';
           const bm = <>
             <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں"
               data-confirm={cn ? 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔' : undefined} />
+            <button type="button" class="sh" data-c={b.c} aria-label="تصویر بنا کر بھیجیں" title="تصویر بنا کر بھیجیں" />
             <button type="button" class="nt" data-c={b.c} aria-pressed={String(!!any)} aria-label={any ? 'نوٹ' : 'نوٹ لکھیں'} title={cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'} />
           </>;
           const lm = lineMarks(b.c, b.lines);
@@ -202,7 +203,8 @@ import Icon from '../components/Icon.astro';
     let at: { couplet: number; phrase: string | null } = { couplet: 0, phrase: null };
     const post = (body: object) => fetch('/api/library', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then((r) => (r.status === 401 ? (location.href = '/signin?next=' + encodeURIComponent(location.pathname), null) : r.ok ? r.json() : null));
-    const lineOf = (c: number) => [...document.querySelectorAll(`[data-c="${c}"] p, p[data-c="${c}"]`)].map((p) => p.textContent!.trim()).join(' / ');
+    const linesOf = (c: number) => [...document.querySelectorAll(`[data-c="${c}"] > p:not(.tag-chips), p[data-c="${c}"]`)].map((p) => p.textContent!.replace(/\s+/g, ' ').trim());
+    const lineOf = (c: number) => linesOf(c).join(' / ');
     const open = (couplet: number, phrase: string | null) => {
       if (!signedIn) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
       at = { couplet, phrase };
@@ -246,6 +248,44 @@ import Icon from '../components/Icon.astro';
     });
     document.addEventListener('keydown', (e) => { const ph = (e.target as HTMLElement).closest?.('.bmk[data-phrase]') as HTMLElement | null;
       if (ph && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); const p = JSON.parse(ph.dataset.phrase!); open(p.couplet, p.phrase); } });
+    // share a couplet as an image: a square card (frame, logo, the lines, the poet), drawn here and handed to the share sheet
+    const share = async (c: number) => {
+      const [poet, title] = (document.querySelector('[data-cite]') as HTMLElement).dataset.cite!.split('، ');
+      const prose = !!document.querySelector(`p.para[data-c="${c}"]`);
+      const lines = linesOf(c), S = 1080, cv = document.createElement('canvas'); cv.width = cv.height = S;
+      const g = cv.getContext('2d')!; // the card is always on paper, whatever the page's palette
+      await Promise.all(['700 60px "Noto Nastaliq Urdu"', '400 34px "Noto Naskh Arabic"'].map((f) => document.fonts.load(f, lines.join(' '))));
+      g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, S, S);
+      g.strokeStyle = '#b88828'; g.lineWidth = 18; g.strokeRect(9, 9, S - 18, S - 18); g.lineWidth = 3; g.strokeRect(40, 40, S - 80, S - 80);
+      const logo = new Image(); logo.src = '/logo/turanj.svg'; await logo.decode().catch(() => {});
+      if (logo.complete) g.drawImage(logo, S / 2 - 70, 80, 140, 140);
+      g.direction = 'rtl'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      // the lines: one per misra; prose wraps; the size shrinks until everything fits the card
+      let size = 72, rows: string[] = [];
+      const wrap = (t: string, w: number) => { const out: string[] = []; let row = '';
+        for (const word of t.split(' ')) { const next = row ? row + ' ' + word : word; if (g.measureText(next).width > w && row) { out.push(row); row = word; } else row = next; }
+        return row ? [...out, row] : out; };
+      for (; size >= 30; size -= 2) {
+        g.font = `700 ${size}px "Noto Nastaliq Urdu"`;
+        rows = lines.flatMap((l) => wrap(l, S - 200));
+        // verse keeps each misra on one line (prose wraps); Nastaliq is tall: lines 2.6 sizes apart leave room for the ✤ between misras
+        if ((prose || rows.length === lines.length) && rows.length * size * 2.6 <= 560) break;
+      }
+      const lh = size * 2.6, top = 250 + (560 - rows.length * lh) / 2;
+      g.fillStyle = '#17130f'; rows.forEach((r, i) => g.fillText(r, S / 2, top + lh * (i + .5)));
+      // the couplet line (as on the home page) between the verse and the poet: two tapering half-lines and a ✤
+      const y = S - 260, half = (from: number, to: number) => { g.beginPath(); g.moveTo(from, y); g.quadraticCurveTo((from + to) / 2, y - 6, to, y - 4); g.lineTo(to, y + 4); g.quadraticCurveTo((from + to) / 2, y + 6, from, y); g.fill(); };
+      g.fillStyle = '#1f4e79'; half(S / 2 - 30, S / 2 - 230); half(S / 2 + 30, S / 2 + 230);
+      g.fillStyle = '#bf3f2a'; g.font = '700 34px "Noto Naskh Arabic"'; g.fillText('✤', S / 2, y + 7);
+      g.fillStyle = '#bf3f2a'; g.font = '700 40px "Noto Nastaliq Urdu"'; g.fillText(poet, S / 2, S - 190);
+      g.fillStyle = '#635543'; g.font = '400 30px "Noto Naskh Arabic"'; g.fillText(`${title} · دیوان`, S / 2, S - 120);
+      const blob: Blob = await new Promise((done) => cv.toBlob((b) => done(b!), 'image/png'));
+      const file = new File([blob], `divan-${poemId}-${c + 1}.png`, { type: 'image/png' });
+      const url = `${location.origin}${location.pathname}#c${c}`;
+      if (navigator.canShare?.({ files: [file] })) await navigator.share({ files: [file], text: url }).catch(() => {});
+      else { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); (window as any).toast('تصویر ڈاؤن لوڈ ہو گئی'); }
+    };
+    document.addEventListener('click', (e) => { const sh = (e.target as HTMLElement).closest('.sh') as HTMLElement | null; if (sh) share(Number(sh.dataset.c)); });
     document.addEventListener('divan:note', (e) => { const { couplet, phrase } = (e as CustomEvent).detail; open(couplet, phrase); });
   }
 </script>
