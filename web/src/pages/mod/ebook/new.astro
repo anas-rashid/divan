@@ -1,0 +1,53 @@
+---
+// Add an e-book to a poet (moderators with the e-books permission for that poet): a file (PDF, EPUB, TXT, DOCX up to
+// 100 MB) or an archive.org link, with its title, source and copyright; it goes for review like any other change
+import Base from '../../../layouts/Base.astro';
+import ModNav from '../../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../../lib/auth';
+import { api } from '../../../lib/api';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
+const token = Astro.cookies.get(COOKIE)!.value, API = process.env.API_URL ?? 'http://127.0.0.1:4100';
+const poetId = Number(Astro.url.searchParams.get('poet')) || 0;
+const page = poetId ? await api(`/api/page?url=${encodeURIComponent(`/p${poetId}`)}`) : null;
+const may = page && ['mod-l2', 'mod-l1', 'admin'].includes(me.role) && (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data.ebooks;
+let error = '';
+if (may && Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const fields = { poet: poetId, title: f.get('title'), source: f.get('source'), licence: f.get('licence'), note: f.get('note') };
+  const upload = f.get('file') as File | null, archive = String(f.get('archive') ?? '').trim();
+  let body: object | null = null;
+  if (archive) body = { ...fields, archive };
+  else if (upload && upload.size) {
+    const res = await fetch(`${API}/api/mod/ebooks/upload?poet=${poetId}&name=${encodeURIComponent(upload.name)}`, {
+      method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/octet-stream' }, body: upload.stream(), duplex: 'half',
+    } as RequestInit);
+    const up = await res.json().catch(() => ({}));
+    if (res.ok) body = { ...fields, file: up.file }; else error = up.error ?? 'فائل اپ لوڈ نہیں ہوئی';
+  } else error = 'فائل چنیں یا archive.org کا ربط دیں';
+  if (body) {
+    const r = await asUser(token, '/api/mod/ebooks', body);
+    if (r.ok) return Astro.redirect(`/mod/rev/${r.data.revision}`);
+    error = r.data.error ?? 'کچھ غلط ہو گیا';
+  }
+}
+---
+<Base title="ای بک شامل کریں">
+  <h1>ای بک شامل کریں</h1>
+  <ModNav />
+  {!may ? <p class="form-error center" role="alert">اس شاعر کی ای بکس شامل کرنے کی اجازت نہیں۔</p> : (
+    <form method="post" enctype="multipart/form-data" class="account-form ebook-form">
+      <p class="center">شاعر: <a href={page.poet.url}>{page.poet.nickname}</a></p>
+      {error && <p class="form-error" role="alert">{error}</p>}
+      <label>عنوان<input name="title" required maxlength="300" data-urdu /></label>
+      <label>فائل (PDF، EPUB، TXT یا DOCX؛ زیادہ سے زیادہ ۱۰۰ میگا بائٹ)<input type="file" name="file" accept=".pdf,.epub,.txt,.docx,application/pdf,application/epub+zip,text/plain" /></label>
+      <label>یا archive.org کا ربط<input name="archive" dir="ltr" placeholder="https://archive.org/details/…" /></label>
+      <label>ماخذ<input name="source" maxlength="300" data-urdu placeholder="مثلاً: ناشر، سال، کتب خانہ" /></label>
+      <label>حقوق / اجازت<input name="licence" maxlength="300" data-urdu placeholder="مثلاً: عوامی ملکیت، مصنف کی اجازت سے" /></label>
+      <label>تفصیل<textarea name="note" rows="3" maxlength="2000" data-urdu></textarea></label>
+      <p class="muted note">کتاب جائزے کے بعد شاعر کے صفحے پر «ای بکس» میں نظر آئے گی۔ جائزہ لینے والے حقوق کی تصدیق کرتے ہیں۔</p>
+      <button>اپ لوڈ کریں</button>
+    </form>
+  )}
+</Base>

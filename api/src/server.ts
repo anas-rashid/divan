@@ -21,6 +21,7 @@ import { libraryRoutes } from './library.ts';
 import { moderationRoutes } from './moderation.ts';
 import { siteRoutes } from './site.ts';
 import { tagRoutes, pageTags } from './tags.ts';
+import { ebookRoutes } from './ebooks.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -173,7 +174,13 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
                 WHERE ${textWhere} GROUP BY t.id ORDER BY n DESC, t.nickname LIMIT 40`, textParams),
     poetIds.length ? pool.query('SELECT id, url, nickname FROM poets WHERE id = ANY($1) ORDER BY nickname', [poetIds]) : { rows: [] },
   ]);
-  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results, ...names, tags: tagRows, searchedTags: tagNames,
+  // e-books whose title (or text, for text books) has the words, on the first page (trigram index)
+  const ebooks = page === 1 && patterns.length && !tagNames.length ? (await pool.query(
+    `SELECT b.id, b.title, b.kind, t.nickname AS poet, t.url AS poet_url FROM ebooks b JOIN poets t ON t.id = b.poet_id
+     WHERE b.published AND ${patterns.map((_, i) => `b.search_text ILIKE $${i + 1}`).join(' AND ')}
+     ${poetIds.length ? `AND b.poet_id = ANY($${patterns.length + 1})` : ''} ORDER BY b.title LIMIT 20`,
+    poetIds.length ? [...patterns, poetIds] : patterns)).rows : [];
+  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results, ...names, tags: tagRows, searchedTags: tagNames, ebooks,
     authors: authors.rows, selected: selected.rows };
 });
 
@@ -191,6 +198,7 @@ libraryRoutes(app);
 moderationRoutes(app);
 siteRoutes(app);
 tagRoutes(app);
+ebookRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });
