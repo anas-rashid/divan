@@ -270,7 +270,7 @@ import Icon from '../../../components/Icon.astro';
     if (host && source) {
       const { editor, meta } = createEditor(host, source.value);
       const rows = document.getElementById('meta-rows')!;
-      const KNOWN = ['عنوان', 'شاعر', 'مصنف', 'صنف', 'ردیف', 'قافیہ', 'بحر', 'ماخذ', 'ماخذ_ربط'];
+      const KNOWN = ['عنوان', 'شاعر', 'مصنف', 'صنف', 'ردیف', 'قافیہ', 'بحر', 'ماخذ', 'ماخذ_لنک'];
       const row = (k = '', v = '') => {
         const r = document.createElement('div'); r.className = 'meta-row';
         r.innerHTML = '<input class="meta-k" list="meta-keys" aria-label="معلومات کا نام"><input class="meta-v" data-urdu aria-label="قدر"><button type="button" class="tool" title="ہٹائیں" aria-label="ہٹائیں"><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>';
