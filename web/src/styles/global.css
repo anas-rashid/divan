@@ -92,10 +92,10 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 .wordmark .logo { width: clamp(52px, 13vw, 72px); height: auto; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .15)); overflow: visible; }
 /* on hover the two layers of rays turn opposite ways; the blue disc and the word stay still */
 .logo .rays-long, .logo .rays-short { transform-box: fill-box; transform-origin: center; }
-.wordmark:hover .rays-long, .wordmark:focus-visible .rays-long { animation: rays 9s linear infinite; }
-.wordmark:hover .rays-short, .wordmark:focus-visible .rays-short { animation: rays 9s linear infinite reverse; }
+:is(.wordmark:hover, .wordmark:focus-visible, .masthead-logo:hover) .rays-long { animation: rays 9s linear infinite; }
+:is(.wordmark:hover, .wordmark:focus-visible, .masthead-logo:hover) .rays-short { animation: rays 9s linear infinite reverse; }
 @keyframes rays { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .wordmark .logo g { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .logo g { animation: none !important; } }
 .search-form { flex: 1; min-width: 0; display: flex; position: relative; }
 .search-form input { background: var(--surface-sunken); }
 .search-form input { flex: 1; min-width: 0; padding: 4px 14px; padding-inline-end: 116px; } /* min-width 0: shrinks instead of pushing past the icons */
