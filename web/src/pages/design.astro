@@ -1,0 +1,105 @@
+---
+// Design system reference (dev only): the real tokens and components from global.css, so it cannot drift.
+// Switch palette, light/dark and font from the header's display settings.
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+if (import.meta.env.PROD) return new Response(null, { status: 404 });
+const colours = [
+  ['surfaces', ['surface-page', 'surface-raised', 'surface-poem', 'surface-sunken']],
+  ['text and lines', ['text', 'text-muted', 'link', 'heading', 'border', 'line']],
+  ['brand and accent', ['brand', 'accent', 'accent-soft', 'active', 'focus']],
+  ['roles', ['action', 'action-ink', 'ok', 'danger']],
+] as const;
+const sizes = ['xs', 'sm', 'md', 'lg', 'xl', '2xl'];
+const radii = ['sm', 'md', 'lg', 'pill'];
+---
+<Base title="ڈیزائن">
+  <h1>ڈیزائن سسٹم</h1>
+  <p class="muted">رنگ، خط اور روشنی اوپر کی ترتیبات سے بدلیں</p>
+
+  <section class="ds">
+    <h2>رنگ</h2>
+    {colours.map(([group, names]) => (
+      <div class="ds-row">
+        <span class="ds-label" lang="en">{group}</span>
+        {names.map((n) => <span class="ds-swatch" style={`--c: var(--${n})`}><i></i><code lang="en">--{n}</code></span>)}
+      </div>
+    ))}
+
+    <h2>خط</h2>
+    {sizes.map((s) => <p class="ds-type" style={`font-size: var(--fs-${s})`}><code lang="en">--fs-{s}</code> دل ہی تو ہے نہ سنگ و خشت درد سے بھر نہ آئے کیوں</p>)}
+
+    <h2>گولائی</h2>
+    <div class="ds-row">{radii.map((r) => <span class="ds-radius" style={`border-radius: var(--r-${r})`}><code lang="en">--r-{r}</code></span>)}</div>
+
+    <h2>بٹن</h2>
+    <div class="ds-row">
+      <button class="btn">عام</button>
+      <button class="btn primary">محفوظ کریں</button>
+      <button class="btn ok"><Icon name="check" size={16} /> منظور</button>
+      <button class="btn danger"><Icon name="trash" size={16} /> حذف</button>
+      <button class="btn" disabled>بند</button>
+      <a class="icon-btn" href="#" title="ترتیبات" aria-label="ترتیبات"><Icon name="settings" /></a>
+      <a class="icon-btn small" href="#" title="ترمیم" aria-label="ترمیم"><Icon name="edit" size={16} /></a>
+      <a class="icon-btn danger" href="#" title="لاگ آؤٹ" aria-label="لاگ آؤٹ"><Icon name="logout" /></a>
+    </div>
+    <div class="ds-row">
+      <button class="save">محفوظ کریں</button>
+      <button class="save" aria-pressed="true">محفوظ شدہ</button>
+      <button class="wordbook">ذخیرۂ الفاظ</button>
+      <button class="wordbook" aria-pressed="true">ذخیرۂ الفاظ</button>
+      <button class="tool">عام</button>
+      <button class="tool" aria-pressed="true">چنا ہوا</button>
+    </div>
+
+    <h2>ایڈیٹر</h2>
+    <div class="toolbar" role="toolbar" aria-label="ایڈیٹر"><button type="button" class="tool" title="نیا شعر" aria-label="نیا شعر"><Icon name="couplet" size={18} /></button><button type="button" class="tool" title="پیراگراف" aria-label="پیراگراف"><Icon name="para" size={18} /></button><button type="button" class="tool" title="باب کا عنوان" aria-label="باب کا عنوان"><Icon name="h2" size={18} /></button><button type="button" class="tool" title="ذیلی عنوان" aria-label="ذیلی عنوان"><Icon name="h3" size={18} /></button><span class="sep"></span><button type="button" class="tool" title="لغت کا ربط" aria-label="لغت کا ربط"><Icon name="dict" size={18} /></button><button type="button" class="tool" title="حاشیہ" aria-label="حاشیہ"><Icon name="note" size={18} /></button><button type="button" class="tool" title="نسخہ" aria-label="نسخہ"><Icon name="variant" size={18} /></button><span class="sep"></span><button type="button" class="tool" title="واپس" aria-label="واپس"><Icon name="undo" size={18} /></button><button type="button" class="tool" title="دوبارہ" aria-label="دوبارہ"><Icon name="redo" size={18} /></button><button type="button" class="tool" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button><span class="sep"></span><button type="button" class="tool" title="کوڈ" aria-label="کوڈ"><Icon name="code" size={18} /></button><span class="sep"></span><button type="button" class="tool" title="اوپر" aria-label="اوپر"><Icon name="up" size={18} /></button><button type="button" class="tool" title="نیچے" aria-label="نیچے"><Icon name="down" size={18} /></button><button type="button" class="tool" title="ہٹائیں" aria-label="ہٹائیں"><Icon name="close" size={18} /></button><span class="sep"></span><button type="button" class="tool">مطلع</button><button type="button" class="tool" aria-pressed="true">مقطع</button></div>
+
+    <h2>چپس اور نشان</h2>
+    <p class="tag-chips"><a class="tag-chip" href="#">عشق <small>۱۲</small></a><a class="tag-chip" href="#">فراق <small>۴</small></a></p>
+    <div class="author-chips">
+      <label class="chip"><input type="checkbox" checked /> غالب <small>۲۳۴</small></label>
+      <label class="chip"><input type="checkbox" /> میر <small>۱۲۰</small></label>
+    </div>
+    <p class="center">
+      <span class="status s-submitted">جمع شدہ</span><span class="status s-approved">منظور شدہ</span>
+      <span class="status s-published">شائع شدہ</span><span class="status s-returned">واپس</span>
+    </p>
+
+    <h2>خانے</h2>
+    <form class="account-form" onsubmit="return false">
+      <label>نام <input value="مرزا غالب" /></label>
+      <label>تعارف <textarea rows="2">دل ہی تو ہے</textarea></label>
+      <p class="form-error">غلط پاس ورڈ</p>
+      <p class="form-done">محفوظ ہو گیا</p>
+    </form>
+
+    <h2>کارڈ</h2>
+    <div class="cards"><a class="card" href="#">دیوانِ غالب <small>۲۳۴</small></a><a class="card" href="#">خطوط</a></div>
+    <div class="poets"><a class="poet-card" href="#"><span class="name">مرزا غالب</span><small>۱۷۹۷ – ۱۸۶۹</small></a></div>
+    <div class="century"><h2>بارہویں صدی ہجری</h2></div>
+
+    <h2>شعر</h2>
+    <div class="poem">
+      <div class="couplet"><p>دل ہی تو ہے نہ سنگ و خشت درد سے بھر نہ آئے کیوں</p><p>روئیں گے ہم ہزار بار کوئی ہمیں ستائے کیوں</p></div>
+      <div class="couplet" data-mark="مطلع"><p>دیر نہیں حرم نہیں در نہیں آستاں نہیں</p><p>بیٹھے ہیں رہ گزر پہ ہم <span class="takhallus">غالب</span> ہمیں اٹھائے کیوں</p></div>
+    </div>
+    <div class="poem-nav"><a class="icon-btn" href="#" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a><a class="icon-btn" href="#" title="اگلا" aria-label="اگلا"><Icon name="next" /></a></div>
+
+    <h2>تلاش</h2>
+    <div class="result"><a href="#">غزل ۱۲</a><span class="snippet"><p>دل ہی تو ہے نہ <mark>سنگ</mark> و خشت</p></span></div>
+    <div class="pager"><span class="pages"><a href="#">۱</a><span class="current">۲</span><a href="#">۳</a></span></div>
+  </section>
+</Base>
+
+<style is:global>
+  .ds h2 { margin-top: 32px; }
+  .ds-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 10px 0; }
+  .ds-label { width: 9em; color: var(--text-muted); font: var(--fs-sm) system-ui, sans-serif; }
+  .ds-swatch { display: inline-flex; flex-direction: column; align-items: center; gap: 4px; }
+  .ds-swatch i { width: 64px; height: 40px; border-radius: var(--r-sm); background: var(--c); box-shadow: 0 0 0 1px var(--border); }
+  .ds code, .ds-type code { font: var(--fs-xs) ui-monospace, monospace; color: var(--text-muted); direction: ltr; }
+  .ds-type { margin: 4px 0; display: flex; gap: 16px; align-items: baseline; }
+  .ds-type code { width: 6em; flex: none; }
+  .ds-radius { width: 90px; height: 56px; display: grid; place-items: center; border: 1.5px solid var(--border); background: var(--surface-raised); }
+</style>

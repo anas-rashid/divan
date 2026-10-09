@@ -51,7 +51,7 @@ import Icon from '../../components/Icon.astro';
         <button type="button" class="icon-btn pdf-prev" title="پچھلا صفحہ" aria-label="پچھلا صفحہ"><Icon name={b.direction === 'ltr' ? 'next' : 'prev'} /></button>
         <span>صفحہ <input class="pdf-page" type="number" min="1" value="1" aria-label="صفحہ نمبر" /> از <span class="pdf-total">…</span></span>
         <button type="button" class="icon-btn pdf-next" title="اگلا صفحہ" aria-label="اگلا صفحہ"><Icon name={b.direction === 'ltr' ? 'prev' : 'next'} /></button>
-        <button type="button" class="icon-btn pdf-full" title="پوری اسکرین (F)" aria-label="پوری اسکرین"><Icon name="full" /></button>
+        <button type="button" class="icon-btn pdf-full" title="پوری اسکرین (F)" aria-label="پوری اسکرین"><Icon name="full" class="i-enter" /><Icon name="exitfull" class="i-exit" /></button>
         {b.published && <button type="button" class="save pdf-mark" aria-pressed="false">صفحہ محفوظ کریں</button>}
       </nav>
       <p class="tag-chips pdf-marks" hidden></p>
@@ -64,7 +64,7 @@ import Icon from '../../components/Icon.astro';
   {b.kind === 'epub' && (
     <>
       <div id="epub-view" class="ebook-frame" data-src={file}></div>
-      <nav class="poem-nav"><button type="button" class="mod-edit-btn" id="epub-prev">‹ پچھلا صفحہ</button><button type="button" class="mod-edit-btn" id="epub-next">اگلا صفحہ ›</button></nav>
+      <nav class="poem-nav"><button type="button" class="icon-btn" id="epub-prev" title="پچھلا صفحہ" aria-label="پچھلا صفحہ"><Icon name="prev" /></button><button type="button" class="icon-btn" id="epub-next" title="اگلا صفحہ" aria-label="اگلا صفحہ"><Icon name="next" /></button></nav>
     </>
   )}
   <script>

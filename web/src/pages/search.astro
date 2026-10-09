@@ -1,6 +1,7 @@
 ---
 // Search: poets/writers by name and books/chapters by title (first page), then the content results, paged
 import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
 import Seg from '../components/Seg.astro';
 import Tags from '../components/Tags.astro';
 import { api } from '../lib/api';
@@ -42,7 +43,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
           <div class="poets">
             {res.poets.map((p: any) => (
               <div class="poet-result">
-                <a class="poet-card" href={p.url}><Seg s={hl(p.nickname)} /><small>{years(p)}</small></a>
+                <a class="poet-card" href={p.url}><span class="name"><Seg s={hl(p.nickname)} /></span><small>{years(p)}</small></a>
                 <a class="muted small" href={link(1, [p.id])}>{ud(p.works)} کلام میں «{q}»</a>
               </div>
             ))}
@@ -122,13 +123,13 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
         ))}
         {pages > 1 && (
           <nav class="pager" aria-label="صفحات">
-            {pageNo > 1 ? <a href={link(pageNo - 1)} rel="prev">‹ پچھلا</a> : <span />}
+            {pageNo > 1 ? <a class="icon-btn" href={link(pageNo - 1)} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a> : <span />}
             <span class="pages">
               {numbers.map((n) => n === null ? <span class="gap">…</span>
                 : n === pageNo ? <span class="current" aria-current="page">{ud(n)}</span>
                 : <a href={link(n)}>{ud(n)}</a>)}
             </span>
-            {pageNo < pages ? <a href={link(pageNo + 1)} rel="next">اگلا ›</a> : <span />}
+            {pageNo < pages ? <a class="icon-btn" href={link(pageNo + 1)} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a> : <span />}
           </nav>
         )}
       </section>
