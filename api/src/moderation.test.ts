@@ -124,6 +124,25 @@ test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permi
     const hist = (await call('GET', `/api/mod/work/${poem.id}`, undefined, l1.token)).json();
     assert.deepEqual(hist.history.filter((h: any) => h.version).map((h: any) => h.version), [2, 1]);
     assert.ok((await call('GET', '/api/mod/log', undefined, l2.token)).json().entries.length >= 10);
+
+    // version history (#51): compare any two versions, bring an old one back through the pipeline, filter the log
+    const cmp = (await call('GET', `/api/mod/compare/work/${poem.id}`, undefined, l2.token)).json();
+    assert.deepEqual([cmp.a, cmp.b, cmp.changes], [1, 2, 2], 'by default the latest version against the one before');
+    assert.ok(cmp.diff.some((d: any) => d.op === '+' && d.text.includes('(ترمیم دوم)')));
+    const v0 = (await call('GET', `/api/mod/compare/work/${poem.id}?a=0&b=2`, undefined, l2.token)).json();
+    assert.ok(v0.diff.some((d: any) => d.op === '-' && d.text === misra), 'version 0 is the Wikisource text');
+    assert.equal((await call('GET', `/api/mod/compare/work/${poem.id}?a=7`, undefined, l2.token)).statusCode, 404);
+    assert.equal((await call('POST', `/api/mod/revert/work/${poem.id}`, { version: 0 }, other.token)).statusCode, 403, 'outside the grant');
+    assert.equal((await call('POST', `/api/mod/revert/work/${poem.id}`, { version: 2 }, l2.token)).statusCode, 400, 'already the current version');
+    const back = (await call('POST', `/api/mod/revert/work/${poem.id}`, { version: 0 }, l2.token)).json().id;
+    const br = (await call('GET', `/api/mod/revisions/${back}`, undefined, l2.token)).json();
+    assert.deepEqual([br.revision.status, br.revision.base_version, br.revision.summary], ['draft', 2, 'ویکی ماخذ کا متن واپس لایا']);
+    assert.ok(br.diff.some((d: any) => d.op === '+' && d.text === misra), 'the draft brings the old line back');
+    assert.deepEqual(br.events.map((e: any) => e.action), ['created', 'reverted']);
+    assert.deepEqual((await call('POST', `/api/mod/revisions/${back}/submit`, {}, l2.token)).json().status, 'submitted', 'then reviewed like any edit');
+    const mine = (await call('GET', `/api/mod/log?who=l2-${run}&action=reverted`, undefined, l1.token)).json().entries;
+    assert.deepEqual(mine.map((e: any) => e.revision), [back], 'log filtered by person and step');
+    assert.equal((await call('GET', `/api/mod/log?who=l2-${run}&kind=order`, undefined, l1.token)).json().entries.length, 0);
   } finally {
     // restore the work and remove the test people and their revisions
     await pool.query('DELETE FROM verses WHERE poem_id = $1', [poem.id]);

@@ -412,6 +412,10 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .timeline li { margin: 4px 0; }
 .mod-h { text-align: center; color: var(--brand); }
 .inline-form { display: inline; }
+.version-tools { display: flex; flex-wrap: wrap; gap: 8px 12px; justify-content: center; align-items: center; margin: 10px 0; }
+.add-key, .del-key { font-weight: 700; padding: 0 6px; border-radius: 4px; }
+.add-key { background: color-mix(in srgb, var(--ok) 14%, transparent); }
+.del-key { background: color-mix(in srgb, var(--danger) 12%, transparent); }
 /* a page's action row (save, edit, history, tags): spaced as one row of buttons, wrapping on phones */
 .center:has(> .save) { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 8px; }
 .mod-history { font-size: .85rem; margin-inline-start: 6px; }

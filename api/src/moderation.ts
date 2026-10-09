@@ -23,7 +23,10 @@
 //   POST /api/mod/tags/:kind/:id/draft       start (or reopen) my tagging draft
 //   POST /api/mod/revisions/:id/save         {content, summary}
 //   POST /api/mod/revisions/:id/:action      submit | approve | return | reject | publish  {comment}
-//   GET  /api/mod/log?page=                  who did what, newest first
+//   GET  /api/mod/log?page=&who=&kind=&action=   who did what, newest first; filtered by person, kind of change, step
+//   GET  /api/mod/compare/:entity/:id?a=&b=  two published versions of a work, order or tags and their diff (0 = the
+//                                            Wikisource text before Divan's first version)
+//   POST /api/mod/revert/:entity/:id         {version}: a draft that brings back that version, through the pipeline
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { sessionUser } from './auth.ts';
@@ -107,8 +110,7 @@ async function actions(u: any, r: any) {
 
 async function publish(r: any, u: any, comment?: string) {
   const order = r.entity === 'order', tags = r.entity.startsWith('tags-'), ebook = r.entity === 'ebook';
-  const cur = order ? await currentOrder(r.entity_id) : tags ? await currentTags(tagKind(r), r.entity_id)
-    : ebook ? await currentEbook(r.entity_id) : await current(r.entity_id);
+  const cur = await currentOf(r.entity, r.entity_id);
   if (!cur) throw Object.assign(new Error('کلام نہیں ملا'), { code: 404 });
   if (cur.version !== r.base_version)
     throw Object.assign(new Error('اس دوران اس کا نیا ورژن شائع ہو چکا ہے۔ مسودہ واپس بھیج کر تازہ متن پر دوبارہ بنوائیں۔'), { code: 409 });
@@ -160,6 +162,20 @@ async function publish(r: any, u: any, comment?: string) {
   // ponytail: radif/matla/maqta and the contents order are recomputed by the next daily export + import
   await event(r.id, u, 'published', comment);
   return version;
+}
+
+// what an entity is now (its latest published version), for any kind of revision
+const currentOf = (entity: string, id: number): Promise<any> => entity === 'order' ? currentOrder(id)
+  : entity.startsWith('tags-') ? currentTags(tagKind({ entity }), id) : entity === 'ebook' ? currentEbook(id) : current(id);
+// the kinds of change with versions to compare and bring back (an e-book's details are a one-off)
+const VERSIONED = ['work', 'order', 'tags-work', 'tags-category'];
+// a published version's content; version 0 is what the first Divan draft started from (the Wikisource text)
+async function versionText(entity: string, id: number, v: number, cur: { version: number; content: string }) {
+  if (v === cur.version) return cur.content;
+  const { rows } = await pool.query(v
+    ? `SELECT content FROM revisions WHERE entity = $1 AND entity_id = $2 AND status = 'published' AND version = $3`
+    : `SELECT base_content AS content FROM revisions WHERE entity = $1 AND entity_id = $2 AND base_version = 0 AND $3 = 0 ORDER BY id LIMIT 1`, [entity, id, v]);
+  return rows[0]?.content as string | undefined;
 }
 
 const identityOf = (p: any) => identity({ id: Number(p.id), name: publicName(p) });
@@ -358,14 +374,53 @@ export function moderationRoutes(app: FastifyInstance) {
     }
   });
 
-  app.get<{ Querystring: { page?: string } }>('/api/mod/log', async (req, reply) => {
+  app.get<{ Querystring: { page?: string; who?: string; kind?: string; action?: string } }>('/api/mod/log', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
-    const page = Math.max(1, Number(req.query.page) || 1);
+    const page = Math.max(1, Number(req.query.page) || 1), { who, kind, action } = req.query;
+    // filters: a person (part of their address), a kind of change (tags covers both), a step; empty = all
     const { rows } = await pool.query(
       `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.entity, r.version, ${TARGET_TITLE} AS title, ${TARGET_URL} AS url
        FROM revision_events e JOIN revisions r ON r.id = e.revision_id ${TARGET}
        WHERE r.entity IN ${ENTITIES} AND ${CHANGED}
-       ORDER BY e.at DESC, e.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`);
+         AND ($1 = '' OR e.actor_email ILIKE '%' || $1 || '%') AND ($2 = '' OR r.entity = $2 OR r.entity LIKE $2 || '-%') AND ($3 = '' OR e.action = $3)
+       ORDER BY e.at DESC, e.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`, [who?.trim() ?? '', kind ?? '', action ?? '']);
     return { page, entries: rows.map((r) => ({ ...r, revision: Number(r.revision) })) };
+  });
+
+  app.get<{ Params: { entity: string; id: string }; Querystring: { a?: string; b?: string } }>('/api/mod/compare/:entity/:id', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const { entity } = req.params, id = Number(req.params.id) || 0;
+    const cur = VERSIONED.includes(entity) ? await currentOf(entity, id) : null;
+    if (!cur) return reply.code(404).send({ error: 'نہیں ملا' });
+    const pick = (q: string | undefined, d: number) => (q === undefined || q === '' ? d : Number(q));
+    const a = pick(req.query.a, Math.max(0, cur.version - 1)), b = pick(req.query.b, cur.version);
+    const [ta, tb] = await Promise.all([a, b].map((v) => Number.isInteger(v) && v >= 0 && v <= cur.version ? versionText(entity, id, v, cur) : undefined));
+    if (ta === undefined || tb === undefined) return reply.code(404).send({ error: 'یہ ورژن نہیں ملا' });
+    const target = cur.poem ?? cur.cat ?? cur.target, diff = diffLines(ta, tb);
+    return { entity, id, title: target.title, url: target.url, version: cur.version, a, b, diff, changes: changed(diff),
+      may: { revert: await mayChange(u, { entity, entity_id: id }) } };
+  });
+
+  app.post<{ Params: { entity: string; id: string }; Body: { version?: number } }>('/api/mod/revert/:entity/:id', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const { entity } = req.params, id = Number(req.params.id) || 0, v = Number(req.body?.version);
+    const cur = VERSIONED.includes(entity) ? await currentOf(entity, id) : null;
+    if (!cur) return reply.code(404).send({ error: 'نہیں ملا' });
+    if (!(await mayChange(u, { entity, entity_id: id }))) return reply.code(403).send({ error: 'اس میں تبدیلی کی اجازت نہیں' });
+    const content = Number.isInteger(v) && v >= 0 && v < cur.version ? await versionText(entity, id, v, cur) : undefined;
+    if (content === undefined) return reply.code(400).send({ error: 'یہ ورژن واپس نہیں لایا جا سکتا' });
+    if (content === cur.content) return reply.code(400).send({ error: 'یہ ورژن موجودہ ورژن جیسا ہی ہے' });
+    // the reverted text goes into my open draft (or a new one) and then through review like any edit
+    const summary = v ? `ورژن ${v} واپس لایا` : 'ویکی ماخذ کا متن واپس لایا';
+    const open = (await pool.query(
+      `SELECT id FROM revisions WHERE entity = $1 AND entity_id = $2 AND author_id = $3 AND status IN ('draft', 'returned') LIMIT 1`, [entity, id, u.id])).rows[0];
+    const revId = open ? Number(open.id) : Number((await pool.query(
+      `INSERT INTO revisions (entity, entity_id, base_version, base_content, content, status, author_id, author_email)
+       VALUES ($1, $2, $3, $4, $4, 'draft', $5, $6) RETURNING id`, [entity, id, cur.version, cur.content, u.id, u.email])).rows[0].id);
+    if (!open) await event(revId, u, 'created');
+    await pool.query(`UPDATE revisions SET content = $2, summary = $3, base_version = $4, base_content = $5, updated_at = now() WHERE id = $1`,
+      [revId, content, summary, cur.version, cur.content]);
+    await event(revId, u, 'reverted', summary);
+    return { id: revId };
   });
 }
