@@ -115,6 +115,8 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 main { padding: 16px 0 48px; }
 h1, h2 { line-height: 1.6; margin: .2em 0 .4em; font-weight: 700; text-align: center; color: var(--heading); }
 h1 { font-size: clamp(1.3rem, 5vw, var(--fs-2xl)); }
+/* Nastaliq titles: its tall letters (ک، گ، ط) and deep descents need room, or they reach into the path line above */
+:root.nastaliq h1.lit { line-height: 2.4; margin-top: .6em; }
 h1::after { content: ''; display: block; width: 140px; height: 2px; background: var(--brand); margin: 8px auto 0; }
 
 /* Ganjoor's gold pill headings and links (.century / .part-title-block) */
@@ -578,9 +580,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .display-panel p { margin: 6px 0 4px; color: var(--text-muted); font-size: .8rem; }
 .display-panel .seg { display: flex; gap: 4px; }
 .display-panel button { flex: 1; gap: 4px; padding: 2px 6px; border-radius: var(--r-md); }
-.display-panel .weight { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; font-size: .8rem; color: var(--text-muted); }
+.display-panel .weight { display: grid; grid-template-columns: 6.5em 1fr; align-items: center; gap: 8px; margin: 6px 0 2px; font-size: .8rem; color: var(--text-muted); } /* the same label width, so both sliders are the same length */
 .display-panel .weight span { white-space: nowrap; }
-.display-panel .weight input { flex: 1; min-width: 0; accent-color: var(--action); }
+.display-panel .weight input { width: 100%; min-width: 0; margin: 0; accent-color: var(--action); }
 .display-panel .weight:has(input:disabled) { opacity: .5; }
 .display-panel .f-nastaliq { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.2; }
 .display-panel .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
@@ -684,6 +686,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
   font: var(--fs-sm)/1.8 var(--font-ui); animation: toast-in .25s ease-out; }
 .toast::before { content: '✓  '; color: var(--ok); font-weight: 700; }
 .toast.error::before { content: '!  '; color: var(--danger); }
+.toast.info::before { content: 'ⓘ  '; color: var(--accent); }
 .toast.out { animation: toast-out .3s ease-in forwards; }
 @keyframes toast-in { from { opacity: 0; transform: translateY(14px); } }
 @keyframes toast-out { to { opacity: 0; transform: translateY(14px); } }
