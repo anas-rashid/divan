@@ -215,3 +215,24 @@ CREATE TABLE IF NOT EXISTS entity_tags (
     PRIMARY KEY (tag_id, entity, entity_id, couplet)
 );
 CREATE INDEX IF NOT EXISTS entity_tags_target ON entity_tags(entity, entity_id);
+-- e-books (api/src/ebooks.ts): PDF, EPUB and text files kept in the file store by content hash, or archive.org
+-- items; listed on the poet's page once a moderator's upload is approved (revisions entity 'ebook').
+CREATE TABLE IF NOT EXISTS ebooks (
+    id          serial PRIMARY KEY,
+    poet_id     integer NOT NULL REFERENCES poets(id) ON DELETE CASCADE,
+    title       text NOT NULL,
+    kind        text NOT NULL CHECK (kind IN ('pdf', 'epub', 'text', 'archive')),
+    file        text,                            -- '<sha256>.<ext>' in the file store (DIVAN_FILES_DIR)
+    archive_id  text,                            -- archive.org identifier
+    size        bigint,
+    source      text,                            -- where it comes from
+    licence     text,                            -- copyright / permission, as stated by the uploader
+    note        text,
+    search_text text NOT NULL DEFAULT '',        -- normalised title, and the text of text books
+    published   boolean NOT NULL DEFAULT false,
+    created_by  bigint REFERENCES users(id) ON DELETE SET NULL,
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    CHECK ((kind = 'archive') = (archive_id IS NOT NULL) AND (kind = 'archive') = (file IS NULL))
+);
+CREATE INDEX IF NOT EXISTS ebooks_poet ON ebooks(poet_id) WHERE published;
+CREATE INDEX IF NOT EXISTS ebooks_search ON ebooks USING gin (search_text gin_trgm_ops);

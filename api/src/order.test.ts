@@ -36,10 +36,10 @@ test('arranging: its own permission; L2 reorders, L1 approves, admin publishes t
     const grant = (m: any, actions: string[]) =>
       pool.query(`INSERT INTO grants (user_id, scope, scope_id, content, actions) VALUES ($1, 'category', $2, '{works}', $3)`, [m.id, cat.id, actions]);
     await grant(l2, ['edit']);
-    assert.deepEqual((await call('GET', `/api/mod/can?category=${cat.id}`, undefined, l2.token)).json(), { arrange: false, tags: false }, 'editing is not arranging');
+    assert.deepEqual((await call('GET', `/api/mod/can?category=${cat.id}`, undefined, l2.token)).json(), { arrange: false, tags: false, ebooks: false }, 'editing is not arranging');
     assert.equal((await call('POST', `/api/mod/order/${cat.id}/draft`, undefined, l2.token)).statusCode, 403);
     await grant(l2, ['arrange']); await grant(l1, ['arrange']);
-    assert.deepEqual((await call('GET', `/api/mod/can?category=${cat.id}`, undefined, l2.token)).json(), { arrange: true, tags: false });
+    assert.deepEqual((await call('GET', `/api/mod/can?category=${cat.id}`, undefined, l2.token)).json(), { arrange: true, tags: false, ebooks: false });
 
     const { id } = (await call('POST', `/api/mod/order/${cat.id}/draft`, undefined, l2.token)).json();
     const cur = (await call('GET', `/api/mod/order/${cat.id}`, undefined, l2.token)).json();

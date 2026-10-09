@@ -61,6 +61,14 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
         </section>
       )}
 
+      {res.ebooks?.length > 0 && (
+        <section class="search-group">
+          <h2>ای بکس <small class="muted">{ud(res.ebooks.length)}</small></h2>
+          <ul class="book-results">
+            {res.ebooks.map((b: any) => <li><a href={`/ebook/${b.id}`}><Seg s={hl(b.title)} /></a> · <a class="muted" href={b.poet_url}>{b.poet}</a></li>)}
+          </ul>
+        </section>
+      )}
       {res.tags?.length > 0 && (
         <section class="search-group">
           <h2>ٹیگ <small class="muted">{ud(res.tags.length)}</small></h2>

@@ -15,6 +15,10 @@
   },
   "dependencies": {
     "fastify": "^5.12.5",
+    "mammoth": "^1.13.0",
     "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "jszip": "^3.10.2"
   }
 }

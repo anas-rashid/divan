@@ -17,6 +17,7 @@
     "@tiptap/extension-text": "^3.31.4",
     "@tiptap/extensions": "^3.31.4",
     "@tiptap/pm": "^3.31.4",
-    "astro": "^7.3.8"
+    "astro": "^7.3.8",
+    "epubjs": "^0.3.93"
   }
 }

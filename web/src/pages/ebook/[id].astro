@@ -1,0 +1,48 @@
+---
+// One e-book: PDF in the browser's own viewer, EPUB with epub.js, text as text, archive.org in its embedded reader
+import Base from '../../layouts/Base.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { api } from '../../lib/api';
+import { ud } from '../../lib/urdu';
+
+const id = Number(Astro.params.id) || 0, token = Astro.cookies.get(COOKIE)?.value;
+const b = token ? (await asUser(token, `/api/ebook/${id}`)).data : await api(`/api/ebook/${id}`);
+if (!b?.id) return new Response(null, { status: 404, statusText: 'Not found' });
+const file = `/ebooks/file/${b.id}`;
+const KIND: Record<string, string> = { pdf: 'PDF', epub: 'EPUB', text: 'متن', archive: 'آرکائیو' };
+const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size / 1024)))} KB` : `${ud((b.size / 1048576).toFixed(1))} MB`;
+---
+<Base title={`${b.title} · ${b.poet}`}>
+  <nav class="crumbs"><a href={b.poet_url}>{b.poet}</a> » <a href={`${b.poet_url}#ebooks`}>ای بکس</a></nav>
+  <h1>{b.title}</h1>
+  {!b.published && <p class="form-error center">یہ کتاب ابھی جائزے میں ہے؛ صرف موڈریٹر دیکھ سکتے ہیں۔</p>}
+  <p class="center muted">
+    {KIND[b.kind]}{mb && <> · {mb}</>}{b.source && <> · ماخذ: {b.source}</>}{b.licence && <> · {b.licence}</>}
+    {b.file && <> · <a href={file} download>ڈاؤن لوڈ</a></>}
+    {b.kind === 'archive' && <> · <a href={`https://archive.org/details/${b.archive_id}`}>archive.org پر</a></>}
+  </p>
+  {b.note && <p class="intro">{b.note}</p>}
+
+  {b.kind === 'pdf' && <iframe class="ebook-frame" src={file} title={b.title}></iframe>}
+  {b.kind === 'archive' && <iframe class="ebook-frame" src={`https://archive.org/embed/${b.archive_id}`} title={b.title} allowfullscreen></iframe>}
+  {b.kind === 'text' && <article class="ebook-text" dir="auto">{b.text}</article>}
+  {b.kind === 'epub' && (
+    <>
+      <div id="epub-view" class="ebook-frame" data-src={file}></div>
+      <nav class="poem-nav"><button type="button" class="mod-edit-btn" id="epub-prev">‹ پچھلا صفحہ</button><button type="button" class="mod-edit-btn" id="epub-next">اگلا صفحہ ›</button></nav>
+    </>
+  )}
+  <script>
+    // EPUB: epub.js pages through the book (right-to-left books turn the other way)
+    const view = document.getElementById('epub-view');
+    if (view) {
+      const { default: ePub } = await import('epubjs');
+      const book = ePub(view.dataset.src!, { openAs: 'epub' });
+      const rendition = book.renderTo(view, { width: '100%', height: '100%', spread: 'none' });
+      rendition.display();
+      document.getElementById('epub-prev')!.onclick = () => rendition.prev();
+      document.getElementById('epub-next')!.onclick = () => rendition.next();
+      document.addEventListener('keydown', (e) => { if (e.key === 'ArrowLeft') rendition.next(); if (e.key === 'ArrowRight') rendition.prev(); });
+    }
+  </script>
+</Base>
