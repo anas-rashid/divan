@@ -56,6 +56,8 @@ import { siteUrl } from '../lib/site-url';
         if (localStorage.getItem('divan-font') === 'nastaliq') document.documentElement.classList.add('nastaliq');
         const w = localStorage.getItem('divan-weight'); // Naskh's weight (400-700), heavier for small screens
         if (w) document.documentElement.style.setProperty('--naskh-weight', w);
+        const z = localStorage.getItem('divan-size'); // text size in % (100 by default), every page scales with it
+        if (z) document.documentElement.style.setProperty('--text-size', z + '%');
         const t = localStorage.getItem('divan-theme');
         if (t) document.documentElement.dataset.theme = t;
         const pal = localStorage.getItem('divan-palette'); // sepia when unset
@@ -96,6 +98,8 @@ import { siteUrl } from '../lib/site-url';
               <div class="seg"><button type="button" data-font="naskh">نسخ</button><button type="button" data-font="nastaliq" class="f-nastaliq">نستعلیق</button></div>
               <label class="weight"><span>نسخ کی موٹائی</span>
                 <input type="range" min="400" max="700" step="100" value="400" data-weight aria-label="نسخ کی موٹائی" /></label>
+              <label class="weight"><span>حروف کا سائز</span>
+                <input type="range" min="90" max="150" step="10" value="100" data-size aria-label="حروف کا سائز" /></label>
               <p>رنگ</p>
               <div class="swatches">
                 {[['', 'سپیا', '#fbf6ea', '#bf3f2a'], ['teal', 'فیروزی', '#e2f0ee', '#0b4f6c'], ['lapis', 'نیلگوں', '#e6ebf8', '#1d3b8b'],
@@ -189,6 +193,7 @@ import { siteUrl } from '../lib/site-url';
         panel.querySelectorAll('[data-font]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.font === on.font)));
         weight.value = root.style.getPropertyValue('--naskh-weight') || '400';
         weight.disabled = on.font === 'nastaliq'; // Nastaliq comes in regular and bold only
+        size.value = parseInt(root.style.getPropertyValue('--text-size')) || '100';
         panel.querySelectorAll('[data-palette]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.palette === on.palette)));
         panel.querySelectorAll('[data-theme-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themePick === on.theme)));
         panel.querySelectorAll('[data-digits]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.digits === (root.dataset.digits ?? ''))));
@@ -197,6 +202,11 @@ import { siteUrl } from '../lib/site-url';
       weight.addEventListener('input', () => {
         if (weight.value === '400') root.style.removeProperty('--naskh-weight'); else root.style.setProperty('--naskh-weight', weight.value);
         store('divan-weight', weight.value === '400' ? '' : weight.value);
+      });
+      const size = panel.querySelector('[data-size]');
+      size.addEventListener('input', () => {
+        if (size.value === '100') root.style.removeProperty('--text-size'); else root.style.setProperty('--text-size', size.value + '%');
+        store('divan-size', size.value === '100' ? '' : size.value);
       });
       panel.addEventListener('click', (e) => {
         const b = e.target.closest('button'); if (!b) return;
