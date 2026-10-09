@@ -16,6 +16,7 @@ import { nameMatches } from './search.ts';
 import { lookup, PUNCT } from './dictionary.ts';
 import { authRoutes } from './auth.ts';
 import { adminRoutes } from './admin.ts';
+import { statsRoutes } from './stats.ts';
 import { permissionRoutes } from './permissions.ts';
 import { libraryRoutes } from './library.ts';
 import { moderationRoutes } from './moderation.ts';
@@ -220,6 +221,7 @@ siteRoutes(app);
 tagRoutes(app);
 ebookRoutes(app);
 feedRoutes(app);
+statsRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });

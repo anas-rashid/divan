@@ -89,7 +89,7 @@ export async function sessionUser(req: FastifyRequest) {
 }
 
 const LOOPBACK = ['127.0.0.1', '::1', '::ffff:127.0.0.1'];
-const fromSite = (req: FastifyRequest) => {
+export const fromSite = (req: FastifyRequest) => {
   const key = process.env.DIVAN_SITE_KEY;
   if (!key) return LOOPBACK.includes(req.ip);
   const given = Buffer.from(String(req.headers['x-site-key'] ?? '')), want = Buffer.from(key);

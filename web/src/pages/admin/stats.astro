@@ -1,0 +1,85 @@
+---
+// Admin: statistics (#86): readers (page views and visitors per day, top pages, where they came from), moderation
+// (steps taken, by whom, waiting) and accounts. Counts only: nothing here identifies a reader (see /privacy).
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+import { ROLE } from '../../lib/roles';
+import { EVENT } from '../../lib/mod';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/admin/stats');
+if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
+const days = [7, 30, 90, 365].includes(Number(Astro.url.searchParams.get('days'))) ? Number(Astro.url.searchParams.get('days')) : 30;
+const s = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/stats?days=${days}`)).data;
+const sum = (k: 'views' | 'visitors') => s.daily.reduce((n: number, d: any) => n + d[k], 0);
+const max = Math.max(1, ...s.daily.map((d: any) => d.views));
+const LIB: Record<string, string> = { poet: 'شاعر', category: 'کتابیں', poem: 'کلام', couplet: 'اشعار', phrase: 'ٹکڑے', word: 'الفاظ', page: 'صفحات' };
+const label = (d: string) => ud(d.slice(5).replace('-', '/'));
+---
+<Base title="ایڈمن: اعداد و شمار">
+  <h1>ایڈمن</h1>
+  <AdminNav current="stats" />
+  <nav class="stats-range" aria-label="مدت">
+    {[7, 30, 90, 365].map((d) => <a href={`?days=${d}`} aria-current={d === days ? 'page' : undefined} class="chip">{d === 365 ? 'ایک سال' : `${ud(d)} دن`}</a>)}
+  </nav>
+  <nav class="stat-tiles" aria-label="خلاصہ">
+    <div class="stat"><strong>{ud(sum('views'))}</strong><span>صفحات دیکھے گئے</span></div>
+    <div class="stat"><strong>{ud(sum('visitors'))}</strong><span>قارئین (روزانہ کا مجموعہ)</span></div>
+    <div class="stat"><strong>{ud(s.accounts.new)}</strong><span>نئے اکاؤنٹ</span></div>
+    <div class="stat"><strong>{ud(s.moderation.actions.find((a: any) => a.action === 'published')?.n ?? 0)}</strong><span>اشاعتیں</span></div>
+  </nav>
+
+  <section class="lib-section">
+    <h2>روزانہ</h2>
+    <div class="bars" role="img" aria-label={`روزانہ صفحات: ${s.daily.map((d: any) => `${label(d.day)} ${ud(d.views)}`).join('، ')}`}>
+      {s.daily.map((d: any) => (
+        <div class="bar" title={`${label(d.day)}: ${ud(d.views)} صفحات، ${ud(d.visitors)} قارئین`}>
+          <span style={`height:${(d.views / max) * 100}%`}></span><i style={`height:${(d.visitors / max) * 100}%`}></i>
+        </div>
+      ))}
+    </div>
+    <p class="muted center"><span class="key-views"></span> صفحات · <span class="key-visitors"></span> قارئین · {label(s.daily[0].day)} تا {label(s.daily.at(-1).day)}</p>
+  </section>
+
+  <div class="stats-grid">
+    <section class="lib-section">
+      <h2>سب سے زیادہ پڑھے گئے</h2>
+      {s.pages.length ? <table class="admin-table"><tbody>
+        {s.pages.map((p: any) => <tr><td><a href={p.path}>{p.title ?? p.path}</a></td><td>{ud(p.views)}</td></tr>)}
+      </tbody></table> : <p class="muted">ابھی کچھ نہیں۔</p>}
+    </section>
+    <section class="lib-section">
+      <h2>کہاں سے آئے</h2>
+      {s.referrers.length ? <table class="admin-table"><tbody>
+        {s.referrers.map((r: any) => <tr><td><bdi dir="ltr">{r.host}</bdi></td><td>{ud(r.n)}</td></tr>)}
+      </tbody></table> : <p class="muted">ابھی کچھ نہیں (سیدھے آنے والے یہاں نہیں گنے جاتے)۔</p>}
+    </section>
+    <section class="lib-section">
+      <h2>موڈریشن</h2>
+      <p>جائزے کے منتظر: <strong>{ud(s.moderation.waiting.submitted ?? 0)}</strong> · اشاعت کے منتظر: <strong>{ud(s.moderation.waiting.approved ?? 0)}</strong>
+        · کل شائع شدہ ورژن: {ud(s.content.versions)}</p>
+      <table class="admin-table"><tbody>
+        {s.moderation.actions.map((a: any) => <tr><td>{EVENT[a.action] ?? a.action}</td><td>{ud(a.n)}</td></tr>)}
+      </tbody></table>
+      {s.moderation.people.length > 0 && <>
+        <h3>سب سے زیادہ کام</h3>
+        <table class="admin-table"><thead><tr><th>موڈریٹر</th><th>قدم</th><th>اشاعتیں</th></tr></thead><tbody>
+          {s.moderation.people.map((p: any) => <tr><td><bdi dir="ltr">{p.email}</bdi></td><td>{ud(p.n)}</td><td>{ud(p.published)}</td></tr>)}
+        </tbody></table>
+      </>}
+    </section>
+    <section class="lib-section">
+      <h2>اکاؤنٹ اور محفوظ شدہ</h2>
+      <p>اس مدت میں لاگ ان کرنے والے: <strong>{ud(s.accounts.signed_in)}</strong></p>
+      <table class="admin-table"><tbody>
+        {Object.entries(s.accounts.roles).map(([r, n]: any) => <tr><td>{ROLE[r] ?? r}</td><td>{ud(n)}</td></tr>)}
+        {Object.entries(s.library).map(([k, n]: any) => <tr><td>محفوظ: {LIB[k] ?? k}</td><td>{ud(n)}</td></tr>)}
+        <tr><td>ای بکس</td><td>{ud(s.content.ebooks)}</td></tr>
+        <tr><td>ٹیگ</td><td>{ud(s.content.tags)}</td></tr>
+      </tbody></table>
+    </section>
+  </div>
+  <p class="muted center">ان اعداد میں کسی قاری کی شناخت نہیں: نہ کوکی، نہ پتا محفوظ ہوتا ہے (<a href="/privacy">رازداری</a>)۔</p>
+</Base>

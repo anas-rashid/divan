@@ -253,3 +253,9 @@ ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS coauthor_ids integer[] NOT NULL DEFA
 CREATE INDEX IF NOT EXISTS ebooks_coauthors ON ebooks USING gin (coauthor_ids);
 ALTER TABLE entity_tags DROP CONSTRAINT IF EXISTS entity_tags_entity_check;
 ALTER TABLE entity_tags ADD CONSTRAINT entity_tags_entity_check CHECK (entity IN ('category', 'work', 'ebook'));
+
+-- visitor statistics (api/src/stats.ts, #86): counts only; no cookies, no addresses. A visitor is a hash of their
+-- address and browser with a salt that lives one day in memory, so it cannot be traced back or followed across days.
+CREATE TABLE IF NOT EXISTS stat_views (day date NOT NULL, path text NOT NULL, views integer NOT NULL DEFAULT 0, PRIMARY KEY (day, path));
+CREATE TABLE IF NOT EXISTS stat_visitors (day date NOT NULL, h text NOT NULL, PRIMARY KEY (day, h));
+CREATE TABLE IF NOT EXISTS stat_referrers (day date NOT NULL, host text NOT NULL, n integer NOT NULL DEFAULT 0, PRIMARY KEY (day, host));
