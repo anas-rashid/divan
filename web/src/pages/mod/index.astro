@@ -13,7 +13,9 @@ if (!me) return Astro.redirect('/signin?next=/mod');
 if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صرف موڈریٹرز کے لیے', { status: 403 });
 const token = Astro.cookies.get(COOKIE)!.value, showLog = Astro.url.searchParams.has('log');
 const queue = showLog ? null : (await asUser(token, '/api/mod/queue')).data;
-const log = showLog ? (await asUser(token, '/api/mod/log')).data : null;
+// the log filtered by person, kind of change and step (#51)
+const f = Object.fromEntries(['who', 'kind', 'action'].map((k) => [k, Astro.url.searchParams.get(k) ?? '']));
+const log = showLog ? (await asUser(token, `/api/mod/log?${new URLSearchParams(f)}`)).data : null;
 // what kind of change a row is (a work's text needs no label)
 const KIND: Record<string, string> = { order: 'ترتیب: ', 'tags-category': 'ٹیگ: ', 'tags-work': 'ٹیگ: ', ebook: 'ای بک: ' };
 // each kind of change has its icon; each event its tone on the timeline
@@ -52,6 +54,21 @@ const groups = queue ? [
       )}
     </section>
   ))}
+  {log && (
+    <form method="get" class="version-tools" aria-label="ریکارڈ چھانیں">
+      <input type="hidden" name="log" />
+      <input type="search" name="who" value={f.who} placeholder="کس نے (ای میل)" aria-label="کس نے" dir="auto" />
+      <select name="kind" aria-label="کس چیز میں">
+        {[['', 'سب تبدیلیاں'], ['work', 'متن'], ['order', 'ترتیب'], ['tags', 'ٹیگ'], ['ebook', 'ای بکس']].map(([v, t]) => <option value={v} selected={f.kind === v}>{t}</option>)}
+      </select>
+      <select name="action" aria-label="کیا کیا">
+        <option value="">ہر قدم</option>
+        {Object.entries(EVENT).map(([v, t]) => <option value={v} selected={f.action === v}>{t}</option>)}
+      </select>
+      <button>دکھائیں</button>
+    </form>
+  )}
+  {log && log.entries.length === 0 && <p class="muted center">اس چھانٹی میں کچھ نہیں۔</p>}
   {log && (
     <ol class="timeline">
       {log.entries.map((e: any) => (

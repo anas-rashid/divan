@@ -1,0 +1,36 @@
+---
+// A work's, arrangement's or tags' versions (#51): compare any two published versions, see what each one changed
+// (فرق), and from there bring an old one back. Version 0 is the Wikisource text before Divan's first version.
+import { STATUS, when } from '../lib/mod';
+import { ud } from '../lib/urdu';
+interface Props { entity: string; id: number; history: any[]; version: number; empty: string }
+const { entity, id, history, version, empty } = Astro.props;
+const base = `/mod/compare/${entity}/${id}`;
+const versions = Array.from({ length: version + 1 }, (_, v) => v);
+const label = (v: number) => (v ? `ورژن ${ud(v)}` : 'ویکی ماخذ');
+---
+{version > 0 && (
+  <form method="get" action={base} class="version-tools">
+    <label>ورژن <select name="a">{versions.map((v) => <option value={v} selected={v === version - 1}>{label(v)}</option>)}</select></label>
+    <label>اور <select name="b">{versions.map((v) => <option value={v} selected={v === version}>{label(v)}</option>)}</select></label>
+    <button>موازنہ کریں</button>
+  </form>
+)}
+<table class="admin-table">
+  <thead><tr><th>ورژن</th><th>حالت</th><th>خلاصہ</th><th>لکھنے والے</th><th>جائزہ</th><th>اشاعت</th><th>تاریخ</th><th></th></tr></thead>
+  <tbody>
+    {history.map((h: any) => (
+      <tr>
+        <td><a href={`/mod/rev/${h.id}`}>{h.version ? ud(h.version) : '—'}</a></td>
+        <td><span class={`status s-${h.status}`}>{STATUS[h.status]}</span></td>
+        <td>{h.summary}</td>
+        <td><bdi dir="ltr">{h.author_email}</bdi></td>
+        <td><bdi dir="ltr">{h.reviewer_email ?? ''}</bdi></td>
+        <td><bdi dir="ltr">{h.publisher_email ?? ''}</bdi></td>
+        <td><bdi dir="ltr">{when(h.published_at ?? h.created_at)}</bdi></td>
+        <td>{h.version && <a href={`${base}?a=${h.version - 1}&b=${h.version}`}>فرق</a>}</td>
+      </tr>
+    ))}
+  </tbody>
+</table>
+{history.length === 0 && <p class="muted center">{empty}</p>}

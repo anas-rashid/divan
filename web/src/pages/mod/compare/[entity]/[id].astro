@@ -1,0 +1,43 @@
+---
+// Two published versions side by side as a diff (#51); "یہ ورژن واپس لائیں" makes a draft of the older one, which then
+// goes through review like any edit
+import Base from '../../../../layouts/Base.astro';
+import ModNav from '../../../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../../../lib/auth';
+import { ud } from '../../../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
+const token = Astro.cookies.get(COOKIE)!.value, { entity, id } = Astro.params;
+let error = '';
+if (Astro.request.method === 'POST') {
+  const r = await asUser(token, `/api/mod/revert/${entity}/${id}`, { version: Number((await Astro.request.formData()).get('version')) });
+  if (r.ok) return Astro.redirect(`/mod/rev/${r.data.id}`);
+  error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+const res = await asUser(token, `/api/mod/compare/${entity}/${id}${Astro.url.search}`);
+if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
+const { title, url, version, a, b, diff, changes, may } = res.data;
+const label = (v: number) => (v ? `ورژن ${ud(v)}` : 'ویکی ماخذ کا متن');
+const HISTORY: Record<string, string> = { work: `/mod/work/${id}`, order: `/mod/order/${id}`, 'tags-work': `/mod/tags/work/${id}`, 'tags-category': `/mod/tags/category/${id}` };
+const older = Math.min(a, b);
+---
+<Base title={`موازنہ: ${title}`}>
+  <h1>{title}</h1>
+  <ModNav />
+  <p class="center"><a href={url}>صفحہ</a> · <a href={HISTORY[entity]}>تاریخچہ</a> · موجودہ: {label(version)}</p>
+  <p class="center"><span class="del-key">−</span> {label(a)} <span class="add-key">+</span> {label(b)} · {ud(changes)} سطریں بدلیں</p>
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {changes === 0 ? <p class="muted center">دونوں ورژن ایک جیسے ہیں۔</p> : (
+    <div class="diff" dir="rtl">
+      {diff.map((d: any) => d.op === '=' ? null : <div class={d.op === '+' ? 'add' : 'del'}><span>{d.op === '+' ? '+' : '−'}</span>{d.text || ' '}</div>)}
+    </div>
+  )}
+  {may.revert && older < version && (
+    <form method="post" class="center">
+      <input type="hidden" name="version" value={older} />
+      <button class="save-like">{label(older)} واپس لائیں</button>
+      <p class="muted">ایک مسودہ بنے گا جو عام ترمیم کی طرح جائزے اور اشاعت سے گزرے گا۔</p>
+    </form>
+  )}
+</Base>

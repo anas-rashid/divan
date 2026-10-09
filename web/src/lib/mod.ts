@@ -4,6 +4,6 @@ export const STATUS: Record<string, string> = {
 };
 export const EVENT: Record<string, string> = {
   created: 'مسودہ بنایا', saved: 'محفوظ کیا', submitted: 'جائزے کے لیے بھیجا', approved: 'منظور کیا', returned: 'واپس بھیجا',
-  rejected: 'مسترد کیا', published: 'شائع کیا',
+  rejected: 'مسترد کیا', published: 'شائع کیا', reverted: 'پرانا ورژن واپس لایا',
 };
 export const when = (d: string) => new Date(d).toISOString().slice(0, 16).replace('T', ' ');
