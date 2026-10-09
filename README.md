@@ -79,4 +79,4 @@ v2 is reaching parity with Ganjoor's features in phases: reading, accounts, comm
 
 ## License
 
-GPL-3.0 (see `LICENSE`). Texts are public domain; the divan-data compilation is CC BY-SA 4.0 (Urdu Wikisource and Wikipedia contributors).
+GPL-3.0 (see `LICENSE`), with additional terms under its section 7 (see `NOTICE`): keep the attribution "Based on Divan by Anas Rashid", mark modified versions as different, and do not use Divan's name and logos for your own public site ([TRADEMARKS.md](TRADEMARKS.md); set your own in `web/src/lib/brand.ts`). Texts are public domain; the divan-data compilation is CC BY-SA 4.0 (Urdu Wikisource and Wikipedia contributors, and Divan).

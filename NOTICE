@@ -1,0 +1,25 @@
+Divan (دیوان)
+Copyright (C) 2026 Anas Rashid and Divan contributors
+
+This program is free software under the GNU General Public License version 3 (see LICENSE), with the
+additional terms below, which the GPL allows in its section 7. They apply to the code written for Divan by its
+authors. (The earlier .NET code at the tag dotnet-final is a fork of GanjoorService and stays under that
+project's licence; these terms do not apply to it.)
+
+Additional terms under section 7 of the GNU GPL version 3
+
+1. Attribution (section 7(b)). If you convey this work or a work based on it, keep this attribution in the
+   Appropriate Legal Notices it displays (for a website: its about page or footer):
+       "Based on Divan (https://git.anasrashid.net/anas/divan) by Anas Rashid, under the GNU GPL v3."
+
+2. Origin (section 7(c)). A modified version must be marked as different from the original, and must not
+   be presented as Divan, or as made, approved or endorsed by Divan or its authors.
+
+3. Names and logos (section 7(e)). This licence grants no rights under trademark law to the names, logos
+   and other brand features of Divan, listed in TRADEMARKS.md: among them the name دیوان / Divan for this
+   project and site, the shamsa and ترنج logos and icons, the tagline "ایک پاکستانی کی طرف سے، پاکستان کے
+   لیے", and the masthead and share-card designs. A modified version made available to the public must use
+   its own name and logo (see "Making your own site" in TRADEMARKS.md).
+
+The texts shown on the site are in the public domain; the Divan data is CC BY-SA 4.0 (see the divan-data
+repository). These terms concern only the software and Divan's brand.
