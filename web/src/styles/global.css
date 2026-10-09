@@ -115,6 +115,8 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 main { padding: 16px 0 48px; }
 h1, h2 { line-height: 1.6; margin: .2em 0 .4em; font-weight: 700; text-align: center; color: var(--heading); }
 h1 { font-size: clamp(1.3rem, 5vw, var(--fs-2xl)); }
+/* Nastaliq titles: its tall letters (ک، گ، ط) and deep descents need room, or they reach into the path line above */
+:root.nastaliq h1.lit { line-height: 2.4; margin-top: .6em; }
 h1::after { content: ''; display: block; width: 140px; height: 2px; background: var(--brand); margin: 8px auto 0; }
 
 /* Ganjoor's gold pill headings and links (.century / .part-title-block) */
