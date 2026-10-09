@@ -2,20 +2,12 @@
 import Base from '../layouts/Base.astro';
 import { api } from '../lib/api';
 import { asUser, COOKIE } from '../lib/auth';
-import { centuryOf, centuryName, yearLines, ud } from '../lib/urdu';
+import { centuryName, yearLines, ud } from '../lib/urdu';
 
-type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null; pin_order: number | null };
-const poets = (await api<Poet[]>('/api/poets')) ?? [];
-
-// group by Hijri century of birth (poets without a known year last)
-const groups = new Map<number | null, Poet[]>();
-for (const p of poets) {
-  const c = centuryOf(p.birth_year_ah);
-  if (!groups.has(c)) groups.set(c, []);
-  groups.get(c)!.push(p);
-}
-const ordered = [...groups.entries()].sort(([a], [b]) => (a ?? 99) - (b ?? 99));
-const pinned = poets.filter((p) => p.pin_order).sort((a, b) => a.pin_order! - b.pin_order!);
+type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null };
+// the home page sections, as arranged by moderators with the site permission (api/src/site.ts)
+const sections = (await api<{ id: number; title: string | null; century: number | null; poets: Poet[] }[]>('/api/home')) ?? [];
+const count = new Set(sections.flatMap((s) => s.poets.map((p) => p.id))).size;
 // poets whose works hold the signed-in reader's favourites or bookmarks
 const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
 const marked: number[] = token ? (await asUser(token, '/api/library/marks')).data.poets ?? [] : [];
@@ -24,27 +16,16 @@ const card = (p: Poet) => `poet-card${marked.includes(p.id) ? ' mark-bm' : ''}`;
 <Base>
   <section class="hero">
     <h1>اردو کی کلاسیکی شاعری اور نثر</h1>
-    <p>{ud(poets.length)} شعرا و ادبا · ویکی ماخذ کے عوامی ملکیت متون</p>
+    <p>{ud(count)} شعرا و ادبا · ویکی ماخذ کے عوامی ملکیت متون</p>
   </section>
 
-  {poets.length === 0 && <p class="muted">مواد تیار کیا جا رہا ہے۔ براہِ کرم کچھ دیر بعد دوبارہ تشریف لائیں۔</p>}
+  {sections.length === 0 && <p class="muted">مواد تیار کیا جا رہا ہے۔ براہِ کرم کچھ دیر بعد دوبارہ تشریف لائیں۔</p>}
 
-  {pinned.length > 0 && (
+  {sections.map((s) => (
     <section class="century">
-      <h2>مقبول شعرا</h2>
+      <h2>{s.title ?? centuryName(s.century || null)}</h2>
       <div class="poets">
-        {pinned.map((p) => (
-          <a class={card(p)} href={p.url} title={p.nickname}><span class="name">{p.nickname}</span>{yearLines(p).map((y) => <small>{y}</small>)}</a>
-        ))}
-      </div>
-    </section>
-  )}
-
-  {ordered.map(([century, list]) => (
-    <section class="century">
-      <h2>{centuryName(century)}</h2>
-      <div class="poets">
-        {list.map((p) => (
+        {s.poets.map((p) => (
           <a class={card(p)} href={p.url} title={p.nickname}>
             <span class="name">{p.nickname}</span>
             {yearLines(p).map((y) => <small>{y}</small>)}

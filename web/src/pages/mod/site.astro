@@ -1,0 +1,120 @@
+---
+// Home page sections (site permission): rename, add, remove and reorder sections; choose and order the poets of a
+// chosen-poets section (e.g. مقبول شعرا); sort a section by hand, alphabetically or by timeline. Saved all at once.
+import Base from '../../layouts/Base.astro';
+import ModNav from '../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { centuryName } from '../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
+const token = Astro.cookies.get(COOKIE)!.value;
+let error = '', done = '';
+if (Astro.request.method === 'POST') {
+  let sections: unknown = null;
+  try { sections = JSON.parse(String((await Astro.request.formData()).get('layout'))); } catch {}
+  const r = await asUser(token, '/api/mod/site', { sections });
+  if (r.ok) done = 'سرورق محفوظ ہو گیا';
+  else error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+const res = await asUser(token, '/api/mod/site');
+const centuries = Object.fromEntries(Array.from({ length: 16 }, (_, c) => [c, centuryName(c || null)]));
+---
+<Base title="سرورق کے حصے">
+  <h1>سرورق کے حصے</h1>
+  <ModNav current="site" />
+  {!res.ok ? <p class="form-error center" role="alert">{res.data.error ?? 'یہ صفحہ دیکھنے کی اجازت نہیں'}</p> : (
+    <>
+      {error && <p class="form-error" role="alert">{error}</p>}
+      {done && <p class="form-done" role="status">{done} · <a href="/">سرورق دیکھیں</a></p>}
+      <p class="muted center">
+        حصوں کے نام بدلیں، ↑ ↓ سے ان کی جگہ بدلیں، اور ہر حصے کی ترتیب چنیں: دستی، حروفِ تہجی یا زمانی (پیدائش کے سال سے)۔
+        صدی کے حصے میں اس صدی میں پیدا ہونے والے تمام شعرا خود آتے ہیں؛ «منتخب شعرا» کے حصے میں آپ شعرا چن کر ترتیب دیتے ہیں۔
+      </p>
+      <form method="post" id="site-form">
+        <div id="sections"></div>
+        <p class="filter-actions">
+          <button type="button" class="tool" id="add-list">+ منتخب شعرا کا حصہ</button>
+          <select id="add-century" class="tool" aria-label="صدی کا حصہ">
+            <option value="">+ صدی کا حصہ</option>
+            {Object.entries(centuries).map(([c, name]) => <option value={c}>{name}</option>)}
+          </select>
+        </p>
+        <input type="hidden" name="layout" id="layout" />
+        <p class="filter-actions"><button>محفوظ کریں</button> <a href="/">سرورق</a></p>
+      </form>
+      <script type="application/json" id="site-data" set:html={JSON.stringify({ ...res.data, centuries })} />
+    </>
+  )}
+  <script>
+    // the layout lives in `state`; every change redraws the list (a few hundred elements at most)
+    const el = document.getElementById('site-data');
+    if (el) {
+      const data = JSON.parse(el.textContent!);
+      const names = new Map<number, string>(data.poets.map((p: any) => [p.id, p.name]));
+      const state: any[] = data.sections.map((s: any) => ({ title: s.title ?? '', century: s.century, sort: s.sort, poets: [...s.poets] }));
+      const host = document.getElementById('sections')!;
+      const norm = (s: string) => s.normalize('NFC').replace(/[ً-ْٰٔ]/g, '').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[هۂ]/g, 'ہ');
+      const btn = (label: string, title: string, fn: () => void) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'tool'; b.textContent = label; b.title = title;
+        b.onclick = () => { fn(); draw(); }; return b;
+      };
+      const move = (xs: any[], i: number, d: number) => { const j = i + d; if (j >= 0 && j < xs.length) [xs[i], xs[j]] = [xs[j], xs[i]]; };
+      const SORTS: [string, string][] = [['manual', 'دستی'], ['alpha', 'حروفِ تہجی'], ['timeline', 'زمانی']];
+
+      function draw() {
+        host.replaceChildren(...state.map((s, i) => {
+          const box = document.createElement('fieldset'); box.className = 'site-section';
+          const head = document.createElement('div'); head.className = 'site-head';
+          const title = document.createElement('input'); title.value = s.title; title.setAttribute('data-urdu', '');
+          title.placeholder = s.century === null ? 'حصے کا نام' : data.centuries[s.century]; title.setAttribute('aria-label', 'حصے کا نام');
+          title.oninput = () => (s.title = title.value);
+          const sort = document.createElement('select'); sort.className = 'tool'; sort.setAttribute('aria-label', 'ترتیب');
+          for (const [v, l] of SORTS) if (v !== 'manual' || s.century === null) sort.append(new Option(l, v, false, s.sort === v));
+          sort.onchange = () => { s.sort = sort.value; draw(); };
+          const kind = document.createElement('small'); kind.className = 'muted';
+          kind.textContent = s.century === null ? `منتخب شعرا (${s.poets.length})` : `صدی: ${data.centuries[s.century]}`;
+          head.append(title, sort, kind,
+            btn('↑', 'حصہ اوپر', () => move(state, i, -1)), btn('↓', 'حصہ نیچے', () => move(state, i, 1)),
+            btn('ہٹائیں', 'یہ حصہ ہٹائیں', () => { if (confirm('یہ حصہ ہٹا دیں؟')) state.splice(i, 1); }));
+          box.append(head);
+          if (s.century === null) box.append(poetList(s));
+          return box;
+        }));
+      }
+
+      // a chosen-poets section: its poets (↑ ↓ ✕ when sorted by hand) and a name box to add one
+      function poetList(s: any) {
+        const wrap = document.createElement('div');
+        const ol = document.createElement('ol'); ol.className = 'site-poets';
+        s.poets.forEach((id: number, j: number) => {
+          const li = document.createElement('li'); li.append(names.get(id) ?? String(id));
+          if (s.sort === 'manual') li.append(btn('↑', 'اوپر', () => move(s.poets, j, -1)), btn('↓', 'نیچے', () => move(s.poets, j, 1)));
+          li.append(btn('✕', 'ہٹائیں', () => s.poets.splice(j, 1)));
+          ol.append(li);
+        });
+        const find = document.createElement('div'); find.className = 'author-find';
+        const box = document.createElement('input'); box.setAttribute('data-urdu', ''); box.placeholder = 'شاعر یا ادیب کا نام لکھ کر شامل کریں'; box.autocomplete = 'off';
+        const list = document.createElement('div'); list.className = 'author-suggest'; list.hidden = true;
+        box.oninput = () => {
+          const t = norm(box.value.trim());
+          const hits = t ? data.poets.filter((p: any) => !s.poets.includes(p.id) && norm(p.name).includes(t)).slice(0, 10) : [];
+          list.replaceChildren(...hits.map((p: any) => btn(p.name, 'شامل کریں', () => s.poets.push(p.id))));
+          list.hidden = !hits.length;
+        };
+        box.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); (list.querySelector('button') as HTMLButtonElement | null)?.click(); } };
+        find.append(box, list);
+        wrap.append(ol, find);
+        return wrap;
+      }
+
+      document.getElementById('add-list')!.onclick = () => { state.push({ title: '', century: null, sort: 'manual', poets: [] }); draw(); host.lastElementChild?.querySelector('input')?.focus(); };
+      const addC = document.getElementById('add-century') as HTMLSelectElement;
+      addC.onchange = () => { if (addC.value !== '') state.push({ title: '', century: Number(addC.value), sort: 'timeline', poets: [] }); addC.value = ''; draw(); };
+      document.getElementById('site-form')!.addEventListener('submit', () => {
+        (document.getElementById('layout') as HTMLInputElement).value = JSON.stringify(state);
+      });
+      draw();
+    }
+  </script>
+</Base>
