@@ -67,7 +67,11 @@
 :root:not(.nastaliq) body { font-weight: var(--naskh-weight, 400); }
 /* text size from the display settings: everything is in rem, so the whole page scales (90%-150%) */
 html { font-size: var(--text-size, 100%); }
-body { margin: 0; background: var(--surface-page); color: var(--text); font-family: var(--font); line-height: 1.9; }
+body { margin: 0; background: var(--surface-page); color: var(--text); font-family: var(--font-ui); line-height: 1.9; }
+/* The rule: the interface (menus, buttons, forms, paths, footers, admin and moderation) is always Naskh, compact and
+   calm; the reading font (Naskh or Nastaliq, the reader's choice) is only for the literature: verses and prose, work,
+   book and poet titles, contents lists, intros, excerpts, the editor and its preview. */
+.lit, .poem, .preview, .snippet, .intro, .toc, .lib-couplet, .ebook-text, .dv-editor, .masthead-text, .radif-head { font-family: var(--font); }
 :where(a) { color: var(--link); text-decoration: none; }
 :where(a):hover { color: var(--active); }
 .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
@@ -185,7 +189,7 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .couplet p { margin: 0; width: fit-content; max-width: 100%; justify-self: end; text-align: center; }
 .couplet[data-mark]::before { content: attr(data-mark); grid-column: 1 / -1; justify-self: center; font-size: .72rem; line-height: 1.6; color: var(--brand); border: 1px solid var(--line); border-radius: 999px; padding: 0 10px; margin-bottom: 2px; }
 .takhallus { color: var(--brand); }
-.radif { text-align: center; margin-top: -6px; }
+.radif { text-align: center; margin-top: 8px; }
 .radif-head { text-align: center; font-size: 1.05rem; color: var(--brand); margin: 22px 0 4px; }
 .couplet p + p { justify-self: start; }
 .couplet::after { content: '✤'; grid-column: 1 / -1; text-align: center; color: var(--brand); font-size: .72rem; opacity: .75; line-height: 1.2; }
