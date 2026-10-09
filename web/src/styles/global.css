@@ -644,3 +644,93 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .account-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .danger-zone { margin-top: 14px; padding-top: 12px; border-top: 1px dashed color-mix(in srgb, var(--danger) 40%, transparent); }
 .danger-zone p { margin: 0 0 6px; }
+
+/* ── motion: purposeful and short; all of it off when the reader's device asks for reduced motion ── */
+/* page to page: a cross-fade, the logo stays put */
+@view-transition { navigation: auto; }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+.wordmark .logo { view-transition-name: logo; }
+/* the confirm dialog */
+.ask { border: 1.5px solid var(--border); border-radius: var(--r-lg); padding: 18px 22px 14px; max-width: min(420px, 92vw); background: var(--surface-raised); color: var(--text);
+  box-shadow: var(--shadow-lg); font-family: var(--font-ui); }
+.ask::backdrop { background: rgb(0 0 0 / .35); backdrop-filter: blur(2px); }
+.ask p { margin: 0 0 14px; line-height: 1.9; }
+.ask-actions { display: flex; gap: 8px; justify-content: flex-start; }
+.ask[open] { animation: pop-in .18s ease-out; }
+@keyframes pop-in { from { opacity: 0; transform: scale(.96) translateY(6px); } }
+/* toasts: bottom centre, above everything */
+.toasts { position: fixed; inset-inline: 0; bottom: 20px; z-index: 50; display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none; }
+.toast { margin: 0; padding: 8px 18px; border-radius: var(--r-pill); background: var(--text); color: var(--surface-page); box-shadow: var(--shadow-lg);
+  font: var(--fs-sm)/1.8 var(--font-ui); animation: toast-in .25s ease-out; }
+.toast::before { content: '✓  '; color: var(--ok); font-weight: 700; }
+.toast.error::before { content: '!  '; color: var(--danger); }
+.toast.out { animation: toast-out .3s ease-in forwards; }
+@keyframes toast-in { from { opacity: 0; transform: translateY(14px); } }
+@keyframes toast-out { to { opacity: 0; transform: translateY(14px); } }
+/* errors stay by the form and nudge once */
+.form-error:not(:empty) { animation: nudge .4s ease-in-out; }
+@keyframes nudge { 25% { transform: translateX(-5px); } 50% { transform: translateX(5px); } 75% { transform: translateX(-3px); } }
+/* a submitted button is busy until the page answers */
+[aria-busy='true'] { position: relative; color: transparent !important; pointer-events: none; }
+[aria-busy='true']::after { content: ''; position: absolute; inset: 0; margin: auto; width: 1em; height: 1em; border-radius: 50%;
+  border: 2px solid var(--text-muted); border-top-color: transparent; animation: spin .7s linear infinite; }
+.btn.primary[aria-busy='true']::after { border-color: var(--action-ink); border-top-color: transparent; }
+@keyframes spin { to { transform: rotate(360deg); } }
+/* reading: the couplets rise in, one after another, on first load */
+.poem > .couplet, .poem > .para { animation: rise .45s ease-out both; }
+.poem > .couplet:nth-of-type(2), .poem > .para:nth-of-type(2) { animation-delay: 45ms; }
+.poem > .couplet:nth-of-type(3), .poem > .para:nth-of-type(3) { animation-delay: 90ms; }
+.poem > .couplet:nth-of-type(4), .poem > .para:nth-of-type(4) { animation-delay: 135ms; }
+.poem > .couplet:nth-of-type(5), .poem > .para:nth-of-type(5) { animation-delay: 180ms; }
+.poem > .couplet:nth-of-type(6), .poem > .para:nth-of-type(6) { animation-delay: 225ms; }
+.poem > .couplet:nth-of-type(7), .poem > .para:nth-of-type(7) { animation-delay: 270ms; }
+.poem > .couplet:nth-of-type(8), .poem > .para:nth-of-type(8) { animation-delay: 315ms; }
+.poem > .couplet:nth-of-type(9), .poem > .para:nth-of-type(9) { animation-delay: 360ms; }
+.poem > .couplet:nth-of-type(10), .poem > .para:nth-of-type(10) { animation-delay: 405ms; }
+.poem > .couplet:nth-of-type(11), .poem > .para:nth-of-type(11) { animation-delay: 450ms; }
+.poem > .couplet:nth-of-type(12), .poem > .para:nth-of-type(12) { animation-delay: 495ms; }
+.poem > .couplet:nth-of-type(13), .poem > .para:nth-of-type(13) { animation-delay: 540ms; }
+.poem > .couplet:nth-of-type(14), .poem > .para:nth-of-type(14) { animation-delay: 585ms; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } }
+/* saving: the bookmark gives a small pop when it fills */
+.save[aria-pressed='true']::before, .bm[aria-pressed='true']::before, .wordbook[aria-pressed='true'] { animation: pop .35s ease-out; }
+@keyframes pop { 40% { transform: scale(1.35); } }
+/* the word sidebar slides in (on phones it rises from the bottom) */
+.dict { transition: transform .25s ease-out, opacity .25s; }
+@starting-style { .dict { transform: translateX(-100%); opacity: 0; } }
+@media (max-width: 700px) { @starting-style { .dict { transform: translateY(100%); } } }
+/* menus and folding sections open smoothly */
+.display-menu[open] .display-panel { animation: pop-in .16s ease-out; transform-origin: top left; }
+:root { interpolate-size: allow-keywords; }
+details::details-content { transition: block-size .25s, content-visibility .25s allow-discrete; overflow: clip; }
+/* headings break into even lines */
+h1, h2, h3, .ask p { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; transition: none !important; }
+}
+.ask .btn.danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+/* notes: a glyph below each couplet's bookmark (outline: write a note; filled gold: this couplet or a phrase in it has one) */
+:root { --nt-outline: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21%2015a2%202%200%200%201-2%202H7l-4%204V5a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202z' fill='none' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M7 8h10M7 12h6' stroke='black' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); --nt-filled: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21%2015a2%202%200%200%201-2%202H7l-4%204V5a2%202%200%200%201%202-2h14a2%202%200%200%201%202%202z' fill='black' stroke='black' stroke-width='2' stroke-linejoin='round'/%3E%3Cpath d='M7 8h10M7 12h6' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E"); }
+.nt { position: absolute; inset-inline-end: -26px; top: calc(.5em + 26px); width: 20px; height: 20px; padding: 0; border: 0; background: none; cursor: pointer;
+  opacity: 0; transition: opacity .15s; }
+.nt::before { content: ''; display: block; width: 17px; height: 17px; margin: auto; background-color: var(--text-muted);
+  -webkit-mask: var(--nt-outline) center / contain no-repeat; mask: var(--nt-outline) center / contain no-repeat; }
+.nt[aria-pressed='true'] { opacity: 1; }
+.nt[aria-pressed='true']::before { background-color: var(--accent); -webkit-mask-image: var(--nt-filled); mask-image: var(--nt-filled); animation: pop .35s ease-out; }
+.couplet:hover .nt, .poem .para:hover .nt, .poem .single:hover .nt, .nt:focus-visible { opacity: 1; }
+@media (hover: none) { .nt { opacity: .55; } .nt[aria-pressed='true'] { opacity: 1; } }
+@media (max-width: 700px) { .nt { inset-inline-end: -4px; top: 26px; } }
+/* a highlighted phrase with a note: the note glyph instead of the bookmark */
+.bmk.has-note::after { background-color: var(--accent); -webkit-mask-image: var(--nt-filled); mask-image: var(--nt-filled); }
+.bmk:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+/* the note box */
+.note-box { width: min(480px, 92vw); }
+.note-for { font-size: var(--fs-md); color: var(--text-muted); max-height: 6.5em; overflow: auto; }
+.note-box textarea { width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.9; margin-bottom: 10px; }
+.note-others { list-style: none; margin: 0 0 10px; padding: 8px 0 0; border-top: 1px dashed var(--line); }
+.note-others button { all: unset; display: block; cursor: pointer; font-size: var(--fs-sm); color: var(--text-muted); padding: 2px 0; }
+.note-others button:hover { color: var(--active); }
+.ask-actions { flex-wrap: wrap; }
+.note-box .note-clear { margin-inline-start: auto; }

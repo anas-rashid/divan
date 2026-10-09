@@ -6,6 +6,8 @@
 //   GET  /api/library/marks                    which works, books/sections and poets hold the reader's saved items
 //   POST /api/library/toggle  {kind, poetId?, categoryId?, poemId?, couplet?, phrase?, word?}   -> {saved, id?}
 //   POST /api/library/:id/note {note}
+//   POST /api/library/note {poemId, couplet, phrase?, note}  a note on a couplet or a phrase in it: bookmarks it if needed; an empty
+//                                              note clears the note and keeps the bookmark  -> {saved, note}
 //   POST /api/library/:id/delete
 // kind: poet {poetId} | category {categoryId} (a book or chapter) | poem {poemId} | couplet {poemId, couplet} | phrase {poemId, couplet, phrase} (part of a
 //       couplet or paragraph) | word {word, poemId?, couplet?} (dictionary word) | page {ebookId, page} (a page of an e-book)
@@ -21,6 +23,14 @@ export const cleanPhrase = (p: unknown) => {
   const s = String(p ?? '').normalize('NFC').replace(/\u0614/g, '').replace(/\s+/g, ' ').trim();
   return s.length >= 2 && s.length <= 300 ? s : null;
 };
+
+// a phrase must be in its couplet or paragraph (its lines, or across its two misras); null when it is
+async function phraseIn(poemId: number, couplet: number, phrase: string) {
+  const text = (await pool.query('SELECT string_agg(text, $3 ORDER BY vorder) AS t FROM verses WHERE poem_id = $1 AND couplet = $2', [poemId, couplet, ' '])).rows[0]?.t;
+  if (!text) return { status: 404, error: 'نہیں ملا' };
+  if (!text.normalize('NFC').replace(/\u0614/g, '').replace(/\s+/g, ' ').includes(phrase)) return { status: 400, error: 'یہ عبارت اس شعر میں نہیں' };
+  return null;
+}
 
 async function reader(req: FastifyRequest, reply: FastifyReply) {
   const u = await sessionUser(req);
@@ -107,13 +117,14 @@ export function libraryRoutes(app: FastifyInstance) {
     }
     const poet = Number(req.query.poet) || 0, category = Number(req.query.category) || 0, poem = Number(req.query.poem) || 0;
     const { rows } = await pool.query(
-      `SELECT kind, couplet, phrase FROM library WHERE user_id = $1 AND ((kind = 'poet' AND poet_id = $2)
+      `SELECT kind, couplet, phrase, note FROM library WHERE user_id = $1 AND ((kind = 'poet' AND poet_id = $2)
          OR (kind = 'category' AND category_id = $3) OR (kind IN ('poem', 'couplet', 'phrase') AND poem_id = $4))`,
       [u.id, poet, category, poem]);
     return {
       poet: rows.some((r) => r.kind === 'poet'), category: rows.some((r) => r.kind === 'category'), poem: rows.some((r) => r.kind === 'poem'),
       couplets: rows.filter((r) => r.kind === 'couplet').map((r) => r.couplet),
       phrases: rows.filter((r) => r.kind === 'phrase').map((r) => ({ couplet: r.couplet, phrase: r.phrase })),
+      notes: rows.filter((r) => r.note && (r.kind === 'couplet' || r.kind === 'phrase')).map((r) => ({ couplet: r.couplet, phrase: r.phrase, note: r.note })),
     };
   });
 
@@ -170,9 +181,8 @@ export function libraryRoutes(app: FastifyInstance) {
       const phrase = cleanPhrase(b.phrase);
       if (!phrase || !poemId || couplet == null) return reply.code(400).send({ error: 'عبارت منتخب کریں' });
       // the phrase must be in that couplet or paragraph (its lines, or across its two misras)
-      const text = (await pool.query('SELECT string_agg(text, $3 ORDER BY vorder) AS t FROM verses WHERE poem_id = $1 AND couplet = $2', [poemId, couplet, ' '])).rows[0]?.t;
-      if (!text) return reply.code(404).send({ error: 'نہیں ملا' });
-      if (!text.normalize('NFC').replace(/\u0614/g, '').replace(/\s+/g, ' ').includes(phrase)) return reply.code(400).send({ error: 'یہ عبارت اس شعر میں نہیں' });
+      const where = await phraseIn(poemId, couplet, phrase);
+      if (where) return reply.code(where.status).send({ error: where.error });
       const args = [u.id, poemId, couplet, phrase];
       if ((await pool.query(`DELETE FROM library WHERE user_id = $1 AND kind = 'phrase' AND poem_id = $2 AND couplet = $3 AND phrase = $4 RETURNING id`, args)).rowCount)
         return { saved: false };
@@ -194,6 +204,28 @@ export function libraryRoutes(app: FastifyInstance) {
     const { rows } = await pool.query(
       'INSERT INTO library (user_id, kind, poet_id, category_id, poem_id, couplet) VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT DO NOTHING RETURNING id', args);
     return { saved: true, id: rows[0] ? Number(rows[0].id) : undefined };
+  });
+
+  app.post<{ Body: { poemId?: number; couplet?: number; phrase?: string; note?: string } }>('/api/library/note', async (req, reply) => {
+    const u = await reader(req, reply); if (!u) return;
+    const b = req.body ?? {}, poemId = Number(b.poemId) || 0, couplet = Number.isInteger(b.couplet) ? b.couplet! : null;
+    const note = String(b.note ?? '').normalize('NFC').trim().slice(0, 1000) || null;
+    if (!poemId || couplet == null) return reply.code(400).send({ error: 'شعر منتخب کریں' });
+    let kind = 'couplet', match = `kind = 'couplet' AND poem_id = $2 AND couplet = $3`, args: unknown[] = [u.id, poemId, couplet];
+    if (b.phrase != null) {
+      const phrase = cleanPhrase(b.phrase);
+      if (!phrase) return reply.code(400).send({ error: 'عبارت منتخب کریں' });
+      const where = await phraseIn(poemId, couplet, phrase);
+      if (where) return reply.code(where.status).send({ error: where.error });
+      kind = 'phrase'; match = `kind = 'phrase' AND poem_id = $2 AND couplet = $3 AND phrase = $4`; args.push(phrase);
+    } else if (!(await pool.query('SELECT 1 FROM verses WHERE poem_id = $1 AND couplet = $2 LIMIT 1', [poemId, couplet])).rowCount) {
+      return reply.code(404).send({ error: 'نہیں ملا' });
+    }
+    const n = args.length + 1;
+    if ((await pool.query(`UPDATE library SET note = $${n} WHERE user_id = $1 AND ${match} RETURNING id`, [...args, note])).rowCount) return { saved: true, note };
+    if (!note) return { saved: false, note: null }; // nothing saved and nothing to write
+    await pool.query(`INSERT INTO library (user_id, kind, poem_id, couplet, phrase, note) VALUES ($1, '${kind}', $2, $3, ${kind === 'phrase' ? '$4' : 'NULL'}, $${n})`, [...args, note]);
+    return { saved: true, note };
   });
 
   app.post<{ Params: { id: string }; Body: { note?: string } }>('/api/library/:id/note', async (req, reply) => {

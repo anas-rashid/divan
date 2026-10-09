@@ -55,10 +55,24 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   const book = (await pool.query(`SELECT id FROM categories WHERE url = '/p266/ghazal'`)).rows[0].id;
   assert.ok(marks.categories.includes(book) && marks.poets.includes(266));
   // state for a page
-  assert.deepEqual((await call('GET', `/api/library/state?poet=266&category=${ghazals}&poem=${poem}`, undefined, t)).json(), { poet: true, category: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }] });
+  assert.deepEqual((await call('GET', `/api/library/state?poet=266&category=${ghazals}&poem=${poem}`, undefined, t)).json(), { poet: true, category: true, poem: true, couplets: [0, 2], phrases: [{ couplet: 0, phrase: lines0[0].split(' ').slice(0, 3).join(' ') }, { couplet: 0, phrase: across }], notes: [] });
 
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('وصال'), undefined, t)).json(), { word: true });
   assert.deepEqual((await call('GET', '/api/library/state?word=' + encodeURIComponent('ہجر'), undefined, t)).json(), { word: false });
+  // notes on a couplet and on a phrase: saving a note bookmarks it; an empty note keeps the bookmark
+  const note = (body: object, tk = t) => call('POST', '/api/library/note', body, tk);
+  assert.deepEqual((await note({ poemId: poem, couplet: 2, note: '  پہلا نوٹ ' })).json(), { saved: true, note: 'پہلا نوٹ' });
+  assert.deepEqual((await note({ poemId: poem, couplet: 1, note: 'نیا' })).json(), { saved: true, note: 'نیا' }, 'not bookmarked yet: bookmarked with the note');
+  const ph = lines0[0].split(' ').slice(0, 3).join(' ');
+  assert.equal((await note({ poemId: poem, couplet: 0, phrase: ph, note: 'عبارت پر' })).json().saved, true);
+  assert.equal((await note({ poemId: poem, couplet: 0, phrase: 'یہ عبارت یہاں نہیں', note: 'x' })).statusCode, 400);
+  assert.equal((await note({ poemId: poem, couplet: 9999, note: 'x' })).statusCode, 404);
+  assert.equal((await note({ poemId: poem, couplet: 1, note: 'x' }, other.token)).json().saved, true, "another reader's note is their own");
+  const st = (await call('GET', `/api/library/state?poem=${poem}`, undefined, t)).json();
+  assert.deepEqual(st.notes.map((n: any) => [n.couplet, n.phrase, n.note]).sort(), [[0, ph, 'عبارت پر'], [1, null, 'نیا'], [2, null, 'پہلا نوٹ']].sort());
+  assert.deepEqual((await note({ poemId: poem, couplet: 1, note: '' })).json(), { saved: true, note: null }, 'cleared, still bookmarked');
+  assert.equal((await toggle({ kind: 'couplet', poemId: poem, couplet: 1 })).json().saved, false);
+  assert.deepEqual((await note({ poemId: poem, couplet: 1, note: '' })).json(), { saved: false, note: null }, 'nothing to clear');
   // toggling again removes
   assert.equal((await toggle({ kind: 'couplet', poemId: poem, couplet: 2 })).json().saved, false);
 

@@ -53,7 +53,10 @@ const token = Astro.locals.user ? Astro.cookies.get(COOKIE)?.value : undefined;
 const poetId = page.poet?.id, poemId = page.type === 'poem' ? page.poem.id : undefined;
 const categoryId = page.type === 'category' ? page.category.id : undefined;
 const saved = token ? (await asUser(token, `/api/library/state?poet=${poetId ?? ''}&category=${categoryId ?? ''}&poem=${poemId ?? ''}`)).data
-  : { poet: false, category: false, poem: false, couplets: [], phrases: [] };
+  : { poet: false, category: false, poem: false, couplets: [], phrases: [], notes: [] };
+// the reader's notes on this work: on a couplet (phrase null) or on a bookmarked phrase in it
+const notes: { couplet: number; phrase: string | null; note: string }[] = saved.notes ?? [];
+const noteOf = (c: number) => notes.find((n) => n.couplet === c && !n.phrase)?.note;
 // on contents pages: which works are bookmarked or hold bookmarks, and which books/chapters do
 const marks = token && page.type !== 'poem' ? (await asUser(token, '/api/library/marks')).data : { poems: {}, categories: [] };
 const glyph = (poemId: number) => (marks.poems[poemId]?.fav ? ' mark-fav' : '') + (marks.poems[poemId]?.bm ? ' mark-bm' : '');
@@ -61,7 +64,8 @@ const glyph = (poemId: number) => (marks.poems[poemId]?.fav ? ' mark-fav' : '') 
 const lineMarks = (c: number, lines: string[]) => {
   const out: Mark[][] = lines.map(() => []);
   for (const p of saved.phrases.filter((x: any) => x.couplet === c)) {
-    const save = JSON.stringify({ kind: 'phrase', poemId, couplet: c, phrase: p.phrase });
+    const note = notes.find((n) => n.couplet === c && n.phrase === p.phrase)?.note;
+    const save = JSON.stringify({ kind: 'phrase', poemId, couplet: c, phrase: p.phrase, note });
     phraseParts(lines, p.phrase).forEach((part, i) => part && out[i].push({ part, save }));
   }
   return out;
@@ -142,14 +146,32 @@ import Icon from '../components/Icon.astro';
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {
-          const bm = <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں" />;
+          const cn = noteOf(b.c), any = cn || notes.some((n) => n.couplet === b.c);
+          // the bookmark, and beside it the note glyph (shown when this couplet or a phrase in it has a note)
+          const bm = <>
+            <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں"
+              data-confirm={cn ? 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔' : undefined} />
+            <button type="button" class="nt" data-c={b.c} aria-pressed={String(!!any)} aria-label={any ? 'نوٹ' : 'نوٹ لکھیں'} title={cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'} />
+          </>;
           const lm = lineMarks(b.c, b.lines);
           return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}<Tags tags={coupletTags(b.c)} /></div>
             : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>
             : <p class="single" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>;
         })}
       </article>
-      <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے۔</p>
+      <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے؛ کسی عبارت پر نوٹ بھی لکھ سکتے ہیں۔</p>
+      <dialog class="ask note-box" id="note-box" aria-labelledby="note-for">
+        <form method="dialog">
+          <p id="note-for" class="note-for"></p>
+          <textarea name="note" rows="4" maxlength="1000" placeholder="آپ کا نوٹ…" aria-label="نوٹ" data-urdu></textarea>
+          <ul class="note-others" hidden></ul>
+          <div class="ask-actions">
+            <button class="btn primary" value="save">محفوظ کریں</button><button class="btn" value="">بند کریں</button>
+            <button class="btn danger note-clear" value="clear">نوٹ ہٹائیں</button><button class="btn note-unmark" value="unmark">ہائی لائٹ ہٹائیں</button>
+          </div>
+        </form>
+      </dialog>
+      <script type="application/json" id="notes-data" set:html={JSON.stringify({ poemId, notes, phrases: saved.phrases, signedIn: !!token })} />
       <nav class="poem-nav">
         {page.prev && <a class="icon-btn" href={page.prev} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
         {page.next && <a class="icon-btn" href={page.next} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
@@ -168,3 +190,62 @@ import Icon from '../components/Icon.astro';
   )}
   {re && <script is:inline>document.querySelector('.poem mark')?.scrollIntoView({ block: 'center' });</script>}
 </Base>
+
+<script>
+  // notes on couplets and phrases: the glyph beside a couplet's bookmark, a highlighted phrase, or نوٹ in the selection menu
+  // open one box; saving a note bookmarks the couplet or phrase (the API does both)
+  const data = document.getElementById('notes-data');
+  if (data) {
+    const { poemId, notes, phrases, signedIn } = JSON.parse(data.textContent!) as { poemId: number; notes: { couplet: number; phrase: string | null; note: string }[]; phrases: { couplet: number; phrase: string }[]; signedIn: boolean };
+    const box = document.getElementById('note-box') as HTMLDialogElement, text = box.querySelector('textarea')!;
+    const others = box.querySelector('.note-others') as HTMLUListElement;
+    let at: { couplet: number; phrase: string | null } = { couplet: 0, phrase: null };
+    const post = (body: object) => fetch('/api/library', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
+      .then((r) => (r.status === 401 ? (location.href = '/signin?next=' + encodeURIComponent(location.pathname), null) : r.ok ? r.json() : null));
+    const lineOf = (c: number) => [...document.querySelectorAll(`[data-c="${c}"] p, p[data-c="${c}"]`)].map((p) => p.textContent!.trim()).join(' / ');
+    const open = (couplet: number, phrase: string | null) => {
+      if (!signedIn) { location.href = '/signin?next=' + encodeURIComponent(location.pathname); return; }
+      at = { couplet, phrase };
+      const mine = notes.find((n) => n.couplet === couplet && n.phrase === phrase);
+      box.querySelector('#note-for')!.textContent = phrase ? `«${phrase}»` : lineOf(couplet);
+      text.value = mine?.note ?? '';
+      (box.querySelector('.note-clear') as HTMLElement).hidden = !mine;
+      (box.querySelector('.note-unmark') as HTMLElement).hidden = !phrases.some((p) => p.couplet === couplet && p.phrase === phrase); // only a highlighted phrase
+      // a couplet's box also lists the notes on phrases in it; pressing one opens that note
+      const inIt = phrase ? [] : notes.filter((n) => n.couplet === couplet && n.phrase);
+      others.hidden = !inIt.length;
+      others.replaceChildren(...inIt.map((n) => { const li = document.createElement('li'); const b = document.createElement('button'); b.type = 'button';
+        b.textContent = `«${n.phrase}»: ${n.note}`; b.onclick = () => { box.close(); open(couplet, n.phrase); }; li.append(b); return li; }));
+      box.showModal(); text.focus();
+    };
+    const mark = (couplet: number) => { // the glyph follows the notes on this couplet
+      const nt = document.querySelector(`.nt[data-c="${couplet}"]`); if (!nt) return;
+      const cn = notes.find((n) => n.couplet === couplet && !n.phrase)?.note, any = notes.some((n) => n.couplet === couplet);
+      nt.setAttribute('aria-pressed', String(any)); nt.setAttribute('title', cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں');
+      const bm = document.querySelector(`[data-c="${couplet}"] > .bm, p[data-c="${couplet}"] > .bm`) as HTMLElement | null;
+      if (bm) { if (cn) { bm.setAttribute('aria-pressed', 'true'); bm.dataset.confirm = 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔'; } else delete bm.dataset.confirm; }
+    };
+    box.addEventListener('close', async () => {
+      const act = box.returnValue, { couplet, phrase } = at;
+      if (!act) return;
+      if (act === 'unmark') { if (await post({ kind: 'phrase', poemId, couplet, phrase })) location.reload(); return; }
+      const note = act === 'clear' ? '' : text.value.trim();
+      const d = await post({ note, poemId, couplet, ...(phrase ? { phrase } : {}) });
+      if (!d) return (window as any).toast('نوٹ محفوظ نہیں ہو سکا', 'error');
+      if (phrase) { location.reload(); return; } // a phrase's highlight and note glyph are drawn by the page
+      const i = notes.findIndex((n) => n.couplet === couplet && !n.phrase);
+      if (i >= 0) notes.splice(i, 1);
+      if (d.note) notes.push({ couplet, phrase: null, note: d.note });
+      mark(couplet); (window as any).toast(d.note ? 'نوٹ محفوظ ہو گیا' : 'نوٹ ہٹا دیا');
+    });
+    document.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const nt = t.closest('.nt') as HTMLElement | null; if (nt) return open(Number(nt.dataset.c), null);
+      const ph = t.closest('.bmk[data-phrase]') as HTMLElement | null;
+      if (ph && !getSelection()?.toString().trim()) { const p = JSON.parse(ph.dataset.phrase!); open(p.couplet, p.phrase); }
+    });
+    document.addEventListener('keydown', (e) => { const ph = (e.target as HTMLElement).closest?.('.bmk[data-phrase]') as HTMLElement | null;
+      if (ph && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); const p = JSON.parse(ph.dataset.phrase!); open(p.couplet, p.phrase); } });
+    document.addEventListener('divan:note', (e) => { const { couplet, phrase } = (e as CustomEvent).detail; open(couplet, phrase); });
+  }
+</script>

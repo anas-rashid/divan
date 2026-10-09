@@ -10,7 +10,8 @@ export const POST: APIRoute = async ({ request, cookies, url }) => {
   if (origin && new URL(origin).host !== url.host) return json({ error: 'forbidden' }, 403);
   const token = cookies.get(COOKIE)?.value;
   if (!token) return json({ error: 'لاگ ان کریں' }, 401);
-  const r = await asUser(token, '/api/library/toggle', await request.json().catch(() => ({})));
+  const body = await request.json().catch(() => ({}));
+  const r = await asUser(token, 'note' in body ? '/api/library/note' : '/api/library/toggle', body); // {note, poemId, couplet, phrase?}: a note
   return json(r.data, r.status);
 };
 
