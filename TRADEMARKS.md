@@ -31,7 +31,7 @@ they identify this project and its site, so that readers know what is Divan and 
 2. Replace the logo files listed above with your own, and the logo in the header (`web/src/layouts/Base.astro`)
    and home page (`web/src/pages/index.astro`).
 3. Rewrite the about page (`web/src/pages/about.astro`) for your project, keeping the attribution
-   "Based on Divan by Anas Rashid" from [NOTICE](NOTICE).
+   "Based on Divan by Muhammad Anas Rashid" from [NOTICE](NOTICE).
 4. Update `web/public/site.webmanifest`.
 
 Questions or permission requests: open an issue on the Divan repository.
