@@ -1,0 +1,18 @@
+---
+// صفحہ نہیں ملا: any address that is not a page, and pages that answer "not found" (a missing poet, work or book)
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+Astro.response.status = 404;
+---
+<Base title="صفحہ نہیں ملا">
+  <section class="error-page">
+    <p class="error-code" aria-hidden="true">۴۰۴</p>
+    <h1>یہ صفحہ نہیں ملا</h1>
+    <p class="muted">ہو سکتا ہے پتہ بدل گیا ہو یا اس میں کوئی غلطی ہو۔ اوپر کے خانے میں تلاش کیجیے، یا یہاں سے شروع کیجیے:</p>
+    <p class="error-links">
+      <a class="btn primary" href="/"><Icon name="home" size={18} /> سرورق</a>
+      <a class="btn" href="/search"><Icon name="search" size={18} /> تلاش</a>
+      <a class="btn" href="/tags"><Icon name="tag" size={18} /> ٹیگ</a>
+    </p>
+  </section>
+</Base>

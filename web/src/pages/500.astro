@@ -1,0 +1,16 @@
+---
+// کچھ غلط ہو گیا: an error in the site; nothing internal is shown (the error is in the server's log, see /health)
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+<Base title="کچھ غلط ہو گیا">
+  <section class="error-page">
+    <p class="error-code" aria-hidden="true">!</p>
+    <h1>معذرت، کچھ غلط ہو گیا</h1>
+    <p class="muted">یہ ہماری طرف کی خرابی ہے اور درج ہو گئی ہے۔ تھوڑی دیر بعد صفحہ دوبارہ کھولیے۔</p>
+    <p class="error-links">
+      <a class="btn primary" href="javascript:location.reload()"><Icon name="undo" size={18} /> دوبارہ کوشش کریں</a>
+      <a class="btn" href="/"><Icon name="home" size={18} /> سرورق</a>
+    </p>
+  </section>
+</Base>
