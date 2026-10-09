@@ -19,7 +19,8 @@ const res = await asUser(token, `/api/mod/compare/${entity}/${id}${Astro.url.sea
 if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
 const { title, url, version, a, b, diff, changes, may } = res.data;
 const label = (v: number) => (v ? `ورژن ${ud(v)}` : 'ویکی ماخذ کا متن');
-const HISTORY: Record<string, string> = { work: `/mod/work/${id}`, order: `/mod/order/${id}`, 'tags-work': `/mod/tags/work/${id}`, 'tags-category': `/mod/tags/category/${id}` };
+const HISTORY: Record<string, string> = { work: `/mod/work/${id}`, order: `/mod/order/${id}`, 'tags-work': `/mod/tags/work/${id}`, 'tags-category': `/mod/tags/category/${id}`,
+  poet: `/mod/details/poet/${id}`, book: `/mod/details/book/${id}` };
 const older = Math.min(a, b);
 ---
 <Base title={`موازنہ: ${title}`}>
