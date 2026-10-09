@@ -84,8 +84,9 @@ async function current(poemId: number) {
 const TARGET = `LEFT JOIN poems p ON r.entity IN ('work', 'tags-work') AND p.id = r.entity_id
   LEFT JOIN categories c ON r.entity IN ('order', 'tags-category') AND c.id = r.entity_id
   LEFT JOIN ebooks b ON r.entity = 'ebook' AND b.id = r.entity_id`;
-const TITLE = `coalesce(p.title, c.title, b.title)`, URL = `coalesce(p.url, c.url, '/ebook/' || b.id)`;
-const TARGET_COLS = `${TITLE} AS work_title, ${URL} AS work_url`;
+// (not named URL: that would hide the global URL used for the default divan-data folder)
+const TARGET_TITLE = `coalesce(p.title, c.title, b.title)`, TARGET_URL = `coalesce(p.url, c.url, '/ebook/' || b.id)`;
+const TARGET_COLS = `${TARGET_TITLE} AS work_title, ${TARGET_URL} AS work_url`;
 
 async function revision(id: number) {
   return (await pool.query(`SELECT r.*, ${TARGET_COLS} FROM revisions r ${TARGET} WHERE r.id = $1 AND r.entity IN ${ENTITIES}`, [id])).rows[0];
@@ -180,7 +181,7 @@ export function moderationRoutes(app: FastifyInstance) {
     const u = await moderator(req, reply); if (!u) return;
     const { rows } = await pool.query(
       `SELECT r.id, r.entity, r.entity_id, r.status, r.summary, r.author_id, r.author_email, r.reviewer_email, r.updated_at,
-              ${TITLE} AS title, ${URL} AS url
+              ${TARGET_TITLE} AS title, ${TARGET_URL} AS url
        FROM revisions r ${TARGET}
        WHERE r.entity IN ${ENTITIES} AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned') AND ${CHANGED}))
        ORDER BY r.updated_at DESC LIMIT 300`, [u.id]);
@@ -361,7 +362,7 @@ export function moderationRoutes(app: FastifyInstance) {
     const u = await moderator(req, reply); if (!u) return;
     const page = Math.max(1, Number(req.query.page) || 1);
     const { rows } = await pool.query(
-      `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.entity, r.version, ${TITLE} AS title, ${URL} AS url
+      `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.entity, r.version, ${TARGET_TITLE} AS title, ${TARGET_URL} AS url
        FROM revision_events e JOIN revisions r ON r.id = e.revision_id ${TARGET}
        WHERE r.entity IN ${ENTITIES} AND ${CHANGED}
        ORDER BY e.at DESC, e.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`);
