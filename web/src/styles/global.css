@@ -63,6 +63,8 @@
 :root.nastaliq { --font: 'Libron', 'Noto Nastaliq Urdu', var(--font-ui); --verse-lh: 2.7; }
 
 * { box-sizing: border-box; }
+/* Naskh's weight from the display settings (400 by default; heavier reads better on small screens) */
+:root:not(.nastaliq) body { font-weight: var(--naskh-weight, 400); }
 body { margin: 0; background: var(--surface-page); color: var(--text); font-family: var(--font); line-height: 1.9; }
 :where(a) { color: var(--link); text-decoration: none; }
 :where(a):hover { color: var(--active); }
@@ -563,6 +565,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .display-panel p { margin: 6px 0 4px; color: var(--text-muted); font-size: .8rem; }
 .display-panel .seg { display: flex; gap: 4px; }
 .display-panel button { flex: 1; gap: 4px; padding: 2px 6px; border-radius: var(--r-md); }
+.display-panel .weight { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; font-size: .8rem; color: var(--text-muted); }
+.display-panel .weight input { flex: 1; accent-color: var(--action); }
+.display-panel .weight:has(input:disabled) { opacity: .5; }
 .display-panel .f-nastaliq { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.2; }
 .display-panel .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
 .display-panel .swatches button { flex-direction: column; font-size: .7rem; padding: 4px 2px; }
