@@ -805,3 +805,27 @@ p, li { text-wrap: pretty; }
 .note-edit textarea { width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.9; background: var(--surface-page); }
 .note-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
 .note-delete { position: absolute; top: 10px; left: 12px; margin: 0; }
+
+/* ── reading mode: the text, the breadcrumbs and the logo; nothing else. On readable pages only (poems, books, poets),
+   kept across pages until switched off from the ✕ in the header ── */
+.byline, .reading-exit { display: none; }
+:root[data-reading]:has([data-readable]) {
+  .site-header .search-form, .site-header .toggles, .site-header .kb, .site-footer, .center:has(> .save), .c-tools, .tag-chips,
+  .hint, .hl-note, .divan-edit, .source, .dict { display: none !important; }
+  .reading-exit { display: inline-flex; margin-inline-start: auto; }
+  .site-header .wrap { flex-wrap: nowrap; padding-top: 10px; }
+  .wordmark .logo { width: 44px; }
+  main { max-width: 760px; padding-top: 4px; }
+  .crumbs { font-size: var(--fs-sm); }
+  .byline { display: block; text-align: center; margin: -4px 0 14px; color: var(--brand); font-family: 'Noto Nastaliq Urdu', serif; line-height: 2; }
+  .poem { background: none; border: 0; box-shadow: none; padding-inline: 0; }
+  .couplet, .poem .single { font-size: 1.28rem; }
+  .poem .para { font-size: 1.15rem; }
+  .couplet:hover { background: none; }
+  .intro { background: none; border: 0; padding-inline: 0; }
+}
+@media print { /* printing is reading too: the text and its source */
+  .site-header .search-form, .site-header .toggles, .site-footer, .center:has(> .save), .c-tools, .tag-chips, .hint, .poem-nav, .dict, .toasts { display: none !important; }
+  .byline { display: block; text-align: center; }
+  .poem { background: none; border: 0; }
+}
