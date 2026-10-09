@@ -151,8 +151,8 @@ import Icon from '../components/Icon.astro';
       </article>
       <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے۔</p>
       <nav class="poem-nav">
-        {page.prev && <a href={page.prev} rel="prev">‹ پچھلا</a>}
-        {page.next && <a href={page.next} rel="next">اگلا ›</a>}
+        {page.prev && <a class="icon-btn" href={page.prev} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
+        {page.next && <a class="icon-btn" href={page.next} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
       </nav>
       {page.divan && (
         <p class="source divan-edit">

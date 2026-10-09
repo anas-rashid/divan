@@ -80,7 +80,7 @@ import Icon from '../../../components/Icon.astro';
             <span class="in-box-field tag-name-box"><input class="tag-name" id={`tag-name-${i}`} list="tag-names" value={t.name} maxlength="60" data-urdu aria-label="ٹیگ کا نام" placeholder="ٹیگ کا نام" />
               <button type="button" class="in-box rom" data-urdu-rom={`tag-name-${i}`} aria-pressed="false" title="رومن حروف سے اردو">اب</button>
               <button type="button" class="in-box" data-urdu-kb={`tag-name-${i}`} aria-pressed="false" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg></button></span>
-            <button type="button" class="tool" data-remove title="ہٹائیں">✕</button>
+            <button type="button" class="tool" data-remove title="ہٹائیں" aria-label="ہٹائیں"><Icon name="close" size={18} /></button>
           </div>)}
       </div>
       <template id="tag-row">{[{ couplet: 0, type: 'موضوع', name: '' }].map((t, i) => <div class="tag-row">
@@ -89,7 +89,7 @@ import Icon from '../../../components/Icon.astro';
             <span class="in-box-field tag-name-box"><input class="tag-name" id={`tag-name-${i}`} list="tag-names" value={t.name} maxlength="60" data-urdu aria-label="ٹیگ کا نام" placeholder="ٹیگ کا نام" />
               <button type="button" class="in-box rom" data-urdu-rom={`tag-name-${i}`} aria-pressed="false" title="رومن حروف سے اردو">اب</button>
               <button type="button" class="in-box" data-urdu-kb={`tag-name-${i}`} aria-pressed="false" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg></button></span>
-            <button type="button" class="tool" data-remove title="ہٹائیں">✕</button>
+            <button type="button" class="tool" data-remove title="ہٹائیں" aria-label="ہٹائیں"><Icon name="close" size={18} /></button>
           </div>)}</template>
       <datalist id="tag-names">{knownTags.map((n) => <option value={n} />)}</datalist>
       <p><button type="button" class="tool" id="tag-add">+ ٹیگ</button></p>
@@ -108,10 +108,10 @@ import Icon from '../../../components/Icon.astro';
           <li draggable="true" data-line={it.line}>
             <span class="order-title">{it.title}</span>
             <span class="order-tools">
-              <button type="button" class="tool" data-move="top" title="سب سے اوپر">اول</button>
-              <button type="button" class="tool" data-move="up" title="اوپر">↑</button>
-              <button type="button" class="tool" data-move="down" title="نیچے">↓</button>
-              <button type="button" class="tool" data-move="bottom" title="سب سے نیچے">آخر</button>
+              <button type="button" class="tool" data-move="top" title="سب سے اوپر" aria-label="سب سے اوپر"><Icon name="top" size={18} /></button>
+              <button type="button" class="tool" data-move="up" title="اوپر" aria-label="اوپر"><Icon name="up" size={18} /></button>
+              <button type="button" class="tool" data-move="down" title="نیچے" aria-label="نیچے"><Icon name="down" size={18} /></button>
+              <button type="button" class="tool" data-move="bottom" title="سب سے نیچے" aria-label="سب سے نیچے"><Icon name="bottom" size={18} /></button>
             </span>
           </li>
         ))}
@@ -133,25 +133,25 @@ import Icon from '../../../components/Icon.astro';
         <fieldset class="meta-fields"><legend>کلام کا خاکہ</legend><div id="meta-rows"></div>
           <button type="button" id="meta-add" class="tool">+ معلومات</button></fieldset>
         <div class="toolbar" role="toolbar" aria-label="ایڈیٹر">
-          <button type="button" class="tool" data-cmd="couplet" title="نیا شعر (دو مصرعے)">شعر</button>
-          <button type="button" class="tool" data-cmd="para" title="نثر کا نیا پیراگراف">پیراگراف</button>
-          <button type="button" class="tool" data-cmd="h2" title="باب کا عنوان">باب کا عنوان</button>
-          <button type="button" class="tool" data-cmd="h3" title="ذیلی عنوان">ذیلی عنوان</button>
+          <button type="button" class="tool" data-cmd="couplet" title="نیا شعر (دو مصرعے)" aria-label="نیا شعر (دو مصرعے)"><Icon name="couplet" size={18} /></button>
+          <button type="button" class="tool" data-cmd="para" title="نثر کا نیا پیراگراف" aria-label="نثر کا نیا پیراگراف"><Icon name="para" size={18} /></button>
+          <button type="button" class="tool" data-cmd="h2" title="باب کا عنوان" aria-label="باب کا عنوان"><Icon name="h2" size={18} /></button>
+          <button type="button" class="tool" data-cmd="h3" title="ذیلی عنوان" aria-label="ذیلی عنوان"><Icon name="h3" size={18} /></button>
           <span class="sep"></span>
           <button type="button" class="tool" data-cmd="label" data-label="مطلع">مطلع</button>
           <button type="button" class="tool" data-cmd="label" data-label="حسن مطلع">حسن مطلع</button>
           <button type="button" class="tool" data-cmd="label" data-label="مقطع">مقطع</button>
           <span class="sep"></span>
-          <button type="button" class="tool" data-cmd="dict" title="منتخب لفظ کو لغت سے جوڑیں">لغت کا ربط</button>
-          <button type="button" class="tool" data-cmd="note" title="حاشیہ لگائیں">حاشیہ</button>
-          <button type="button" class="tool" data-cmd="variant" title="نسخوں کا فرق">نسخہ</button>
+          <button type="button" class="tool" data-cmd="dict" title="منتخب لفظ کو لغت سے جوڑیں" aria-label="منتخب لفظ کو لغت سے جوڑیں"><Icon name="dict" size={18} /></button>
+          <button type="button" class="tool" data-cmd="note" title="حاشیہ لگائیں" aria-label="حاشیہ لگائیں"><Icon name="note" size={18} /></button>
+          <button type="button" class="tool" data-cmd="variant" title="نسخوں کا فرق" aria-label="نسخوں کا فرق"><Icon name="variant" size={18} /></button>
           <span class="sep"></span>
-          <button type="button" class="tool" data-cmd="undo" title="پچھلی تبدیلی واپس">واپس</button>
-          <button type="button" class="tool" data-cmd="redo" title="تبدیلی دوبارہ">دوبارہ</button>
-          <button type="button" class="tool" data-urdu-rom="dv-editor-host" title="رومن حروف سے اردو">اب</button>
-          <button type="button" class="tool" data-urdu-kb="dv-editor-host" title="اردو کی بورڈ">کی بورڈ</button>
+          <button type="button" class="tool" data-cmd="undo" title="پچھلی تبدیلی واپس" aria-label="پچھلی تبدیلی واپس"><Icon name="undo" size={18} /></button>
+          <button type="button" class="tool" data-cmd="redo" title="تبدیلی دوبارہ" aria-label="تبدیلی دوبارہ"><Icon name="redo" size={18} /></button>
+          <button type="button" class="tool" data-urdu-rom="dv-editor-host" title="رومن حروف سے اردو" aria-label="رومن حروف سے اردو">اب</button>
+          <button type="button" class="tool" data-urdu-kb="dv-editor-host" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button>
           <span class="sep"></span>
-          <button type="button" class="tool" data-cmd="code" aria-pressed="false" title="ساتھ ساتھ دیوان متن (کوڈ) دیکھیں">کوڈ</button>
+          <button type="button" class="tool" data-cmd="code" aria-pressed="false" title="ساتھ ساتھ دیوان متن (کوڈ) دیکھیں" aria-label="ساتھ ساتھ دیوان متن (کوڈ) دیکھیں"><Icon name="code" size={18} /></button>
         </div>
         <div class="editor-split">
           <div id="dv-editor-host"></div>
@@ -273,7 +273,7 @@ import Icon from '../../../components/Icon.astro';
       const KNOWN = ['عنوان', 'شاعر', 'مصنف', 'صنف', 'ردیف', 'قافیہ', 'بحر', 'ماخذ', 'ماخذ_ربط'];
       const row = (k = '', v = '') => {
         const r = document.createElement('div'); r.className = 'meta-row';
-        r.innerHTML = '<input class="meta-k" list="meta-keys" aria-label="معلومات کا نام"><input class="meta-v" data-urdu aria-label="قدر"><button type="button" class="tool" aria-label="ہٹائیں">✕</button>';
+        r.innerHTML = '<input class="meta-k" list="meta-keys" aria-label="معلومات کا نام"><input class="meta-v" data-urdu aria-label="قدر"><button type="button" class="tool" title="ہٹائیں" aria-label="ہٹائیں"><svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>';
         (r.children[0] as HTMLInputElement).value = k; (r.children[1] as HTMLInputElement).value = v;
         (r.children[2] as HTMLButtonElement).onclick = () => r.remove();
         rows.append(r);

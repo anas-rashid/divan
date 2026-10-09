@@ -57,7 +57,7 @@ export async function pdfReader(root: HTMLElement) {
   const full = root.querySelector<HTMLButtonElement>('.pdf-full')!;
   const toggle = () => (document.fullscreenElement ? document.exitFullscreen() : root.requestFullscreen()).catch(() => {});
   full.onclick = toggle;
-  document.addEventListener('fullscreenchange', () => { full.title = document.fullscreenElement === root ? 'پوری اسکرین سے واپس (F)' : 'پوری اسکرین (F)'; show(page); });
+  document.addEventListener('fullscreenchange', () => { const on = document.fullscreenElement === root; full.title = on ? 'پوری اسکرین سے واپس (F)' : 'پوری اسکرین (F)'; full.setAttribute('aria-label', on ? 'پوری اسکرین سے واپس' : 'پوری اسکرین'); show(page); });
   // a click on the half the book turns towards goes forward
   pagesBox.onclick = (e) => { const left = e.clientX < pagesBox.getBoundingClientRect().left + pagesBox.clientWidth / 2; step(left === rtl ? 1 : -1); };
   document.addEventListener('keydown', (e) => {

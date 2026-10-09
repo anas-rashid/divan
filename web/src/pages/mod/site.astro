@@ -55,8 +55,12 @@ const centuries = Object.fromEntries(Array.from({ length: 16 }, (_, c) => [c, ce
       const state: any[] = data.sections.map((s: any) => ({ title: s.title ?? '', century: s.century, sort: s.sort, poets: [...s.poets] }));
       const host = document.getElementById('sections')!;
       const norm = (s: string) => s.normalize('NFC').replace(/[ً-ْٰٔ]/g, '').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[هۂ]/g, 'ہ');
+      // arrows, ✕ and ہٹائیں are drawn as icons (the same Lucide paths as Icon.astro); the words stay as tooltip and label
+      const ICON: Record<string, string> = { '↑': '<path d="m5 12 7-7 7 7"/><path d="M12 19V5"/>', '↓': '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>', '✕': '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>', 'ہٹائیں': '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>' };
       const btn = (label: string, title: string, fn: () => void) => {
-        const b = document.createElement('button'); b.type = 'button'; b.className = 'tool'; b.textContent = label; b.title = title;
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'tool'; b.title = title;
+        if (ICON[label]) { b.innerHTML = `<svg class="icon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[label]}</svg>`; b.setAttribute('aria-label', title); }
+        else b.textContent = label;
         b.onclick = () => { fn(); draw(); }; return b;
       };
       // a box with the Urdu keyboard and Roman typing buttons inside it, as in search (Base.astro handles them)

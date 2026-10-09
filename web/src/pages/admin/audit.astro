@@ -1,6 +1,7 @@
 ---
 // Admin: audit log of admin actions
 import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { ud } from '../../lib/urdu';
@@ -38,9 +39,9 @@ const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T
   </table>
   {pages > 1 && (
     <nav class="pager">
-      {page > 1 && <a href={`/admin/audit?page=${page - 1}`}>‹ پچھلا</a>}
+      {page > 1 && <a class="icon-btn" href={`/admin/audit?page=${page - 1}`} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
       <span class="muted">صفحہ {ud(page)} از {ud(pages)}</span>
-      {page < pages && <a href={`/admin/audit?page=${page + 1}`}>اگلا ›</a>}
+      {page < pages && <a class="icon-btn" href={`/admin/audit?page=${page + 1}`} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
     </nav>
   )}
 </Base>
