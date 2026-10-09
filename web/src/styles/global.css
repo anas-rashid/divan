@@ -89,8 +89,13 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 .site-header .wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding-top: 12px; }
 .wordmark { display: flex; flex: none; }
 /* the logo: the shamsa with دیوان inside, sized with the viewport */
-.wordmark .logo { width: clamp(52px, 13vw, 72px); height: auto; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .15)); transition: transform .3s; }
-.wordmark:hover .logo { transform: rotate(8deg); }
+.wordmark .logo { width: clamp(52px, 13vw, 72px); height: auto; filter: drop-shadow(0 1px 3px rgb(0 0 0 / .15)); overflow: visible; }
+/* on hover the two layers of rays turn opposite ways; the blue disc and the word stay still */
+.logo .rays-long, .logo .rays-short { transform-box: fill-box; transform-origin: center; }
+.wordmark:hover .rays-long, .wordmark:focus-visible .rays-long { animation: rays 9s linear infinite; }
+.wordmark:hover .rays-short, .wordmark:focus-visible .rays-short { animation: rays 9s linear infinite reverse; }
+@keyframes rays { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .wordmark .logo g { animation: none !important; } }
 .search-form { flex: 1; min-width: 0; display: flex; position: relative; }
 .search-form input { background: var(--surface-sunken); }
 .search-form input { flex: 1; min-width: 0; padding: 4px 14px; padding-inline-end: 116px; } /* min-width 0: shrinks instead of pushing past the icons */
