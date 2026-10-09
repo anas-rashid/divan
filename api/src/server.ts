@@ -19,6 +19,7 @@ import { adminRoutes } from './admin.ts';
 import { permissionRoutes } from './permissions.ts';
 import { libraryRoutes } from './library.ts';
 import { moderationRoutes } from './moderation.ts';
+import { siteRoutes } from './site.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -165,6 +166,7 @@ adminRoutes(app);
 permissionRoutes(app);
 libraryRoutes(app);
 moderationRoutes(app);
+siteRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });

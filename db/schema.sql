@@ -187,3 +187,15 @@ CREATE TABLE IF NOT EXISTS revision_events (       -- who did what: created, sav
 );
 CREATE INDEX IF NOT EXISTS revision_events_revision ON revision_events(revision_id);
 CREATE INDEX IF NOT EXISTS revision_events_at ON revision_events(at DESC);
+-- home page sections (api/src/site.ts), edited by moderators with the 'site' permission. A section either lists
+-- chosen poets (poets, in order) or every poet born in a Hijri century (century; 0 = year unknown). Sorting:
+-- manual (the list's order; a century section lists its chosen poets first), alpha (Urdu alphabetical) or
+-- timeline (by birth year). title NULL = the default name (the century's name).
+CREATE TABLE IF NOT EXISTS home_sections (
+    id       serial PRIMARY KEY,
+    position integer NOT NULL,
+    title    text,
+    century  integer,
+    sort     text NOT NULL DEFAULT 'manual' CHECK (sort IN ('manual', 'alpha', 'timeline')),
+    poets    integer[] NOT NULL DEFAULT '{}'
+);
