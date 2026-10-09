@@ -1,0 +1,20 @@
+---
+// Every tag (#52), by type, most used first
+import Base from '../layouts/Base.astro';
+import { api } from '../lib/api';
+import { ud } from '../lib/urdu';
+
+const TYPES = ['موضوع', 'صنف', 'بحر', 'شخصیت', 'مقام', 'دور', 'ٹیگ'];
+const tags = ((await api<{ type: string; name: string; n: number }[]>('/api/tags')) ?? []);
+const groups = TYPES.map((t) => [t, tags.filter((x) => x.type === t)] as const).filter(([, xs]) => xs.length);
+---
+<Base title="ٹیگ">
+  <h1>ٹیگ</h1>
+  {groups.length === 0 && <p class="muted center">ابھی کوئی ٹیگ نہیں۔</p>}
+  {groups.map(([type, xs]) => (
+    <section class="search-group">
+      <h2>{type} <small class="muted">{ud(xs.length)}</small></h2>
+      <p class="tag-chips">{xs.map((t) => <a class="tag-chip" href={`/tag/${encodeURIComponent(t.type)}/${encodeURIComponent(t.name)}`}>{t.name} <small>{ud(t.n)}</small></a>)}</p>
+    </section>
+  ))}
+</Base>

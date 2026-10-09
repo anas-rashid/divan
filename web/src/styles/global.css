@@ -404,3 +404,14 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .site-poets .tool { min-width: 1.6em; padding: 0 4px; margin-inline-start: 4px; font-size: .85rem; }
 .site-section .author-find { position: relative; max-width: 26em; }
 .site-section .author-find input { width: 100%; font: inherit; padding: 2px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); }
+/* tags (#52) */
+.tag-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin: 6px 0; }
+.tag-chip { font-size: .85rem; padding: 0 10px; border: 1px solid var(--gold-light); border-radius: 999px; background: var(--inner); color: var(--ink); text-decoration: none; }
+.tag-chip small { color: var(--muted); }
+.tag-chip:hover { border-color: var(--brand); color: var(--brand); }
+.couplet .tag-chips { grid-column: 1 / -1; justify-content: center; margin: 2px 0 0; }
+.couplet .tag-chip { font-size: .75rem; }
+.tag-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 6px 0; }
+.tag-row .tag-name-box { flex: 1 1 12em; }
+.tag-row .tag-name { width: 100%; font: inherit; padding: 2px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); }
+.tag-preview { display: flex; align-items: center; justify-content: center; gap: 6px; }

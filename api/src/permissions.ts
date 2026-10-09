@@ -13,7 +13,7 @@ import { audit, requireAdmin } from './admin.ts';
 
 export const MODERATORS = ['mod-l2', 'mod-l1'] as const;
 export const SCOPES = ['all', 'poet', 'category', 'poem'] as const;
-export const CONTENT = ['poets', 'books', 'works', 'dictionary', 'site'] as const; // site: the home page sections (site.ts)
+export const CONTENT = ['poets', 'books', 'works', 'dictionary', 'site', 'tags'] as const; // site: the home page sections (site.ts); tags (tags.ts)
 export const ACTIONS = ['create', 'edit', 'delete', 'arrange'] as const;
 export type Action = (typeof ACTIONS)[number];
 export type Content = (typeof CONTENT)[number];

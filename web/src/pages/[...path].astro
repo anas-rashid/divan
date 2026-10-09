@@ -2,6 +2,7 @@
 // Poet (/p238), category (/p238/shaeri/c641) and poem (/p238/shaeri/c641/sh6556) pages
 import Base from '../layouts/Base.astro';
 import Seg from '../components/Seg.astro';
+import Tags from '../components/Tags.astro';
 import { api } from '../lib/api';
 import { asUser, COOKIE } from '../lib/auth';
 import { phraseParts, phraseRe } from '../lib/phrases';
@@ -70,8 +71,13 @@ const label = (on: unknown) => (on ? 'محفوظ شدہ' : 'محفوظ کریں'
 const modCan = token && poemId && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '')
   ? (await asUser(token, `/api/mod/can?poem=${poemId}`)).data : { edit: false };
 // on poet and book/section pages, moderators with the arrange permission get "ترتیب دیں" (#41)
-const arrange = token && page.type !== 'poem' && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '')
-  && (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data.arrange;
+const catCan = token && page.type !== 'poem' && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '')
+  ? (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data : {};
+const arrange = catCan.arrange, tagCan = page.type === 'poem' ? modCan.tags : catCan.tags;
+// tags (#52): the page's own, and each couplet's (tags count couplets from 1, verses from 0)
+const pageTags = (page.tags ?? []).filter((t: any) => !t.couplet);
+const coupletTags = (c: number) => (page.tags ?? []).filter((t: any) => t.couplet === c + 1);
+const tagTarget = page.type === 'poem' ? `work/${poemId}` : `category/${page.category?.id}`;
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
 ---
@@ -87,17 +93,19 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
   {page.type === 'poet' && (
     <>
       <h1>{page.poet.name}</h1>
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="یہ شاعر محفوظ کریں">{label(saved.poet)}</button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn">ترتیب دیں</button></form>
-        <a class="mod-history" href={`/mod/order/${page.category.id}`}>ترتیب کا تاریخچہ</a></>}</p>
+      <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="یہ شاعر محفوظ کریں">{label(saved.poet)}</button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn">ترتیب دیں</button></form>
+        <a class="mod-history" href={`/mod/order/${page.category.id}`}>ترتیب کا تاریخچہ</a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn">ٹیگ</button></form></>}</div>
       <p class="muted">{years(page.poet)}</p>
+      <Tags tags={pageTags} />
       {page.poet.description && <div class="intro">{page.poet.description}</div>}
     </>
   )}
   {page.type === 'category' && (
     <>
       <h1>{page.category.title}</h1>
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'category', categoryId: page.category.id })} aria-pressed={String(!!saved.category)} title="یہ کتاب یا باب محفوظ کریں">{label(saved.category)}</button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn">ترتیب دیں</button></form>
-        <a class="mod-history" href={`/mod/order/${page.category.id}`}>ترتیب کا تاریخچہ</a></>}</p>
+      <Tags tags={pageTags} />
+      <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'category', categoryId: page.category.id })} aria-pressed={String(!!saved.category)} title="یہ کتاب یا باب محفوظ کریں">{label(saved.category)}</button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn">ترتیب دیں</button></form>
+        <a class="mod-history" href={`/mod/order/${page.category.id}`}>ترتیب کا تاریخچہ</a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn">ٹیگ</button></form></>}</div>
     </>
   )}
 
@@ -123,15 +131,16 @@ const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? pa
           «{hlq}» نمایاں · <a href={`/search?q=${encodeURIComponent(hlq)}`}>تلاش کے نتائج</a> · <a href={url}>نشان ہٹائیں</a>
         </p>
       )}
-      <p class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="یہ کلام محفوظ کریں">{label(saved.poem)}</button>
+      <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="یہ کلام محفوظ کریں">{label(saved.poem)}</button>
         {modCan.edit && <> <form method="post" action={`/mod/work/${poemId}`} class="inline-form"><button class="mod-edit-btn">ترمیم کریں</button></form>
-          <a class="mod-history" href={`/mod/work/${poemId}`}>تاریخچہ</a></>}</p>
+          <a class="mod-history" href={`/mod/work/${poemId}`}>تاریخچہ</a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn">ٹیگ</button></form></>}</div>
+      <Tags tags={pageTags} />
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <article class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {
           const bm = <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں" />;
           const lm = lineMarks(b.c, b.lines);
-          return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}</div>
+          return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}<Tags tags={coupletTags(b.c)} /></div>
             : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>
             : <p class="single" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>;
         })}

@@ -1,0 +1,47 @@
+---
+// A page's tags (#52): its current tags, published versions and drafts; "ٹیگ لگائیں" starts a draft
+import Base from '../../../../layouts/Base.astro';
+import ModNav from '../../../../components/ModNav.astro';
+import Tags from '../../../../components/Tags.astro';
+import { asUser, COOKIE } from '../../../../lib/auth';
+import { STATUS, when } from '../../../../lib/mod';
+import { ud } from '../../../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
+const token = Astro.cookies.get(COOKIE)!.value, { kind, id } = Astro.params;
+let error = '';
+if (Astro.request.method === 'POST') {
+  const r = await asUser(token, `/api/mod/tags/${kind}/${id}/draft`, {});
+  if (r.ok) return Astro.redirect(`/mod/rev/${r.data.id}`);
+  error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+const res = await asUser(token, `/api/mod/tags/${kind}/${id}`);
+if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
+const { target, version, content, history, may } = res.data;
+const current = content.split('\n').filter(Boolean).map((l: string) => { const [, type, name] = l.replace(/^شعر \d+ › /, '').match(/^([^:]+):\s*(.+)$/) ?? []; return { type, name }; });
+---
+<Base title={`ٹیگ: ${target.title}`}>
+  <h1>ٹیگ: {target.title}</h1>
+  <ModNav />
+  <p class="center"><a href={target.url}>صفحہ</a> · {version ? `موجودہ ٹیگ: ورژن ${ud(version)}` : 'ابھی کوئی شائع شدہ ٹیگ نہیں'}</p>
+  <Tags tags={current} />
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {may.tags && <form method="post" class="center"><button class="save-like">ٹیگ لگائیں</button></form>}
+  <table class="admin-table">
+    <thead><tr><th>ورژن</th><th>حالت</th><th>خلاصہ</th><th>لکھنے والے</th><th>جائزہ</th><th>اشاعت</th><th>تاریخ</th></tr></thead>
+    <tbody>
+      {history.map((h: any) => (
+        <tr>
+          <td><a href={`/mod/rev/${h.id}`}>{h.version ? ud(h.version) : '—'}</a></td>
+          <td><span class={`status s-${h.status}`}>{STATUS[h.status]}</span></td>
+          <td>{h.summary}</td>
+          <td><bdi dir="ltr">{h.author_email}</bdi></td>
+          <td><bdi dir="ltr">{h.reviewer_email ?? ''}</bdi></td>
+          <td><bdi dir="ltr">{h.publisher_email ?? ''}</bdi></td>
+          <td><bdi dir="ltr">{when(h.published_at ?? h.created_at)}</bdi></td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</Base>

@@ -6,6 +6,8 @@ import { asUser, COOKIE } from '../../../lib/auth';
 import { STATUS, EVENT, when } from '../../../lib/mod';
 import { ud } from '../../../lib/urdu';
 import DivanPreview from '../../../components/DivanPreview.astro';
+import Tags from '../../../components/Tags.astro';
+import { api } from '../../../lib/api';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
@@ -26,21 +28,59 @@ const { revision: rev, diff, changes, events, may } = res.data;
 // an arrangement (#41) lists a book/section's items, one per line: "<url part> <title>"
 const order = rev.entity === 'order';
 const items = order ? rev.content.split('\n').filter(Boolean).map((l: string) => ({ line: l, title: l.slice(l.indexOf(' ') + 1) })) : [];
+// tagging (#52): one row per tag; a work's tags may be on one couplet (counted from 1)
+const tagging = rev.entity.startsWith('tags-'), tagKind = rev.entity.slice(5);
+const TAG_TYPES = ['موضوع', 'صنف', 'بحر', 'شخصیت', 'مقام', 'دور', 'ٹیگ'];
+const tagRows = tagging ? rev.content.split('\n').filter(Boolean).map((l: string) => {
+  const m = l.match(/^(?:شعر (\d+) › )?([^:]+):\s*(.+)$/); return { couplet: Number(m?.[1] ?? 0), type: m?.[2] ?? 'ٹیگ', name: m?.[3] ?? l };
+}) : [];
+const couplets = tagging && tagKind === 'work' ? (await asUser(token, `/api/mod/tags/work/${rev.entity_id}`)).data.couplets ?? 0 : 0;
+const knownTags = tagging ? ((await api<{ name: string }[]>('/api/tags')) ?? []).map((t) => t.name) : [];
 const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیجیں'], ['reject', 'مسترد کریں'], ['publish', 'شائع کریں']] as const).filter(([a]) => may[a]);
 ---
 <Base title={`مسودہ: ${rev.work_title}`}>
-  <h1>{order && 'ترتیب: '}{rev.work_title}</h1>
+  <h1>{order && 'ترتیب: '}{tagging && 'ٹیگ: '}{rev.work_title}</h1>
   <ModNav />
   <p class="center">
     <span class={`status s-${rev.status}`}>{STATUS[rev.status]}</span>
     · <bdi dir="ltr">{rev.author_email}</bdi>
     · {rev.base_version ? `ورژن ${ud(rev.base_version)} سے` : 'ویکی ماخذ کے متن سے'}
-    · <a href={rev.work_url}>{order ? 'حصہ' : 'کلام'}</a> · <a href={`/mod/${order ? 'order' : 'work'}/${rev.entity_id}`}>تاریخچہ</a>
+    · <a href={rev.work_url}>{order ? 'حصہ' : tagging ? 'صفحہ' : 'کلام'}</a> · <a href={tagging ? `/mod/tags/${tagKind}/${rev.entity_id}` : `/mod/${order ? 'order' : 'work'}/${rev.entity_id}`}>تاریخچہ</a>
   </p>
   {error && <p class="form-error" role="alert">{error}</p>}
   {done && <p class="form-done" role="status">{done}</p>}
 
-  {may.save && order ? (
+  {may.save && tagging ? (
+    <form method="post" class="mod-edit">
+      <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu placeholder="مثلاً: موضوعات اور شخصیات کے ٹیگ" /></label>
+      <p class="muted note">ہر ٹیگ کی قسم چنیں اور نام لکھیں۔{couplets > 0 && ' ٹیگ پورے کلام پر یا کسی ایک شعر پر لگ سکتا ہے۔'} پہلے سے موجود نام تجویز ہوتے ہیں۔</p>
+      <div id="tag-rows">
+        {tagRows.map((t: any, i: number) => <div class="tag-row">
+            {couplets > 0 && <select class="tool tag-couplet" aria-label="کہاں"><option value="0">پورا کلام</option>{Array.from({ length: couplets }, (_, i) => <option value={i + 1} selected={t.couplet === i + 1}>شعر {ud(i + 1)}</option>)}</select>}
+            <select class="tool tag-type" aria-label="قسم">{TAG_TYPES.map((x) => <option selected={x === t.type}>{x}</option>)}</select>
+            <span class="in-box-field tag-name-box"><input class="tag-name" id={`tag-name-${i}`} list="tag-names" value={t.name} maxlength="60" data-urdu aria-label="ٹیگ کا نام" placeholder="ٹیگ کا نام" />
+              <button type="button" class="in-box rom" data-urdu-rom={`tag-name-${i}`} aria-pressed="false" title="رومن حروف سے اردو">اب</button>
+              <button type="button" class="in-box" data-urdu-kb={`tag-name-${i}`} aria-pressed="false" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg></button></span>
+            <button type="button" class="tool" data-remove title="ہٹائیں">✕</button>
+          </div>)}
+      </div>
+      <template id="tag-row">{[{ couplet: 0, type: 'موضوع', name: '' }].map((t, i) => <div class="tag-row">
+            {couplets > 0 && <select class="tool tag-couplet" aria-label="کہاں"><option value="0">پورا کلام</option>{Array.from({ length: couplets }, (_, i) => <option value={i + 1} selected={t.couplet === i + 1}>شعر {ud(i + 1)}</option>)}</select>}
+            <select class="tool tag-type" aria-label="قسم">{TAG_TYPES.map((x) => <option selected={x === t.type}>{x}</option>)}</select>
+            <span class="in-box-field tag-name-box"><input class="tag-name" id={`tag-name-${i}`} list="tag-names" value={t.name} maxlength="60" data-urdu aria-label="ٹیگ کا نام" placeholder="ٹیگ کا نام" />
+              <button type="button" class="in-box rom" data-urdu-rom={`tag-name-${i}`} aria-pressed="false" title="رومن حروف سے اردو">اب</button>
+              <button type="button" class="in-box" data-urdu-kb={`tag-name-${i}`} aria-pressed="false" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg></button></span>
+            <button type="button" class="tool" data-remove title="ہٹائیں">✕</button>
+          </div>)}</template>
+      <datalist id="tag-names">{knownTags.map((n) => <option value={n} />)}</datalist>
+      <p><button type="button" class="tool" id="tag-add">+ ٹیگ</button></p>
+      <textarea name="content" id="tag-content" hidden>{rev.content}</textarea>
+      <div class="filter-actions">
+        <button name="act" value="save">محفوظ کریں</button>
+        <button name="act" value="submit">{me.role === 'admin' ? 'محفوظ کر کے شائع کریں' : me.role === 'mod-l1' ? 'محفوظ کر کے اشاعت کے لیے بھیجیں' : 'محفوظ کر کے جائزے کے لیے بھیجیں'}</button>
+      </div>
+    </form>
+  ) : may.save && order ? (
     <form method="post" class="mod-edit">
       <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu placeholder="مثلاً: غزلیں مطبوعہ دیوان کی ترتیب میں" /></label>
       <p class="muted note">کسی چیز کو کھینچ کر اس کی جگہ رکھیں، یا ↑ ↓ سے ایک جگہ اوپر نیچے کریں؛ «اول» سب سے اوپر، «آخر» سب سے نیچے۔</p>
@@ -121,7 +161,9 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
 
   <section class="lib-section">
     <h2>پیش نظارہ</h2>
-    {order ? <ol class="toc">{items.map((it: any) => <li>{it.title}</li>)}</ol> : <DivanPreview text={rev.content} />}
+    {order ? <ol class="toc">{items.map((it: any) => <li>{it.title}</li>)}</ol>
+      : tagging ? (tagRows.length ? tagRows.map((t: any) => <div class="tag-preview">{t.couplet > 0 && <small class="muted">شعر {ud(t.couplet)}:</small>}<Tags tags={[t]} /></div>) : <p class="muted center">کوئی ٹیگ نہیں</p>)
+      : <DivanPreview text={rev.content} />}
   </section>
 
   {acts.length > 0 && (
@@ -140,6 +182,28 @@ const acts = ([['approve', 'منظور کریں'], ['return', 'واپس بھیج
     </ol>
   </section>
   <script>
+    // tagging: rows -> the hidden text ("شعر 3 › موضوع: عشق"), on every change and before saving
+    const rowsBox = document.getElementById('tag-rows');
+    const tagText = document.getElementById('tag-content') as HTMLTextAreaElement | null;
+    if (rowsBox && tagText) {
+      const sync = () => {
+        tagText.value = [...rowsBox.querySelectorAll('.tag-row')].map((r) => {
+          const c = Number((r.querySelector('.tag-couplet') as HTMLSelectElement | null)?.value ?? 0);
+          const type = (r.querySelector('.tag-type') as HTMLSelectElement).value, name = (r.querySelector('.tag-name') as HTMLInputElement).value.trim();
+          return name ? `${c ? `شعر ${c} › ` : ''}${type}: ${name}` : '';
+        }).filter(Boolean).join('\n');
+      };
+      rowsBox.addEventListener('input', sync); rowsBox.addEventListener('change', sync);
+      rowsBox.addEventListener('click', (e) => { if ((e.target as HTMLElement).closest('[data-remove]')) { (e.target as HTMLElement).closest('.tag-row')!.remove(); sync(); } });
+      document.getElementById('tag-add')!.onclick = () => {
+        const row = (document.getElementById('tag-row') as HTMLTemplateElement).content.firstElementChild!.cloneNode(true) as HTMLElement;
+        // a fresh id for the new name box, so its keyboard buttons point at it
+        const nid = `tag-name-new-${Date.now()}`;
+        row.querySelector('.tag-name')!.id = nid; row.querySelectorAll('[data-urdu-rom], [data-urdu-kb]').forEach((b) => b.setAttribute(b.hasAttribute('data-urdu-rom') ? 'data-urdu-rom' : 'data-urdu-kb', nid));
+        rowsBox.append(row); (row.querySelector('.tag-name') as HTMLInputElement).focus();
+      };
+      tagText.form!.addEventListener('submit', sync);
+    }
     // arranging: drag an item, or move it with the buttons; the hidden text follows the list
     const list = document.getElementById('order-list');
     const text = document.getElementById('order-content') as HTMLTextAreaElement | null;

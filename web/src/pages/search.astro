@@ -2,6 +2,7 @@
 // Search: poets/writers by name and books/chapters by title (first page), then the content results, paged
 import Base from '../layouts/Base.astro';
 import Seg from '../components/Seg.astro';
+import Tags from '../components/Tags.astro';
 import { api } from '../lib/api';
 import { ud, years, highlighter, parts, excerpt } from '../lib/urdu';
 
@@ -30,7 +31,7 @@ const numbers = (() => {
 const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.total, pageNo * res.pageSize) : 0;
 ---
 <Base title={q ? `تلاش: ${q}` : 'تلاش'} q={q}>
-  {!q && <p class="muted">اوپر کے خانے میں شاعر کا نام، شعر، لفظ یا عبارت لکھیں۔ پوری عبارت کے لیے اسے "…" میں لکھیں۔</p>}
+  {!q && <p class="muted">اوپر کے خانے میں شاعر کا نام، شعر، لفظ یا عبارت لکھیں۔ پوری عبارت کے لیے اسے "…" میں لکھیں۔ کسی ٹیگ والا کلام: <bdi>ٹیگ:عشق</bdi> (نام میں فاصلہ ہو تو <bdi>ٹیگ:"حب الوطنی"</bdi>)۔ <a href="/tags">تمام ٹیگ</a></p>}
   {res && (
     <>
       <h1>تلاش: {q}</h1>
@@ -57,6 +58,13 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
               <li><a href={b.url}><Seg s={hl(b.title)} /></a> · <a class="muted" href={b.poet_url}>{b.poet}</a> <small class="muted">({ud(b.works)})</small></li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {res.tags?.length > 0 && (
+        <section class="search-group">
+          <h2>ٹیگ <small class="muted">{ud(res.tags.length)}</small></h2>
+          <Tags tags={res.tags} />
         </section>
       )}
 

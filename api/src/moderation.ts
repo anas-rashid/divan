@@ -10,7 +10,8 @@
 // and updates the site.
 // If another version was published after the draft started, publishing is refused until the draft is redone.
 // Arranging a book or section (order.ts, entity 'order') uses the same revisions, steps and publishing; it needs
-// the separate 'arrange' permission.
+// the separate 'arrange' permission. Tagging (tags.ts, entity 'tags-category' / 'tags-work') likewise, with the 'tags'
+// permission.
 //   GET  /api/mod/can?poem=                  what the reader may do on a work
 //   GET  /api/mod/queue                      my drafts, drafts to review, drafts to publish
 //   GET  /api/mod/work/:id                   a work's current text and its history
@@ -18,6 +19,8 @@
 //   GET  /api/mod/revisions/:id              a revision, its diff against the version it started from, its events
 //   GET  /api/mod/order/:id                  a book/section's current order and its history
 //   POST /api/mod/order/:id/draft            start (or reopen) my arrangement draft
+//   GET  /api/mod/tags/:kind/:id             a book/section's (kind category) or work's tags and their history
+//   POST /api/mod/tags/:kind/:id/draft       start (or reopen) my tagging draft
 //   POST /api/mod/revisions/:id/save         {content, summary}
 //   POST /api/mod/revisions/:id/:action      submit | approve | return | reject | publish  {comment}
 //   GET  /api/mod/log?page=                  who did what, newest first
@@ -31,6 +34,7 @@ import { normalise } from './urdu.ts';
 import { diffLines, changed } from './diff.ts';
 import { commit, identity } from './git.ts';
 import { currentOrder, checkOrder, applyOrder, writeOrder, orderSlugs } from './order.ts';
+import { currentTags, checkTags, applyTags, writeTags, parseTags, tagsText, type Tag, type TagTarget } from './tags.ts';
 import { publicName } from './auth.ts';
 
 const dataDir = () => process.env.DIVAN_DATA_DIR ?? new URL('../../../divan-data', import.meta.url).pathname;
@@ -38,8 +42,12 @@ const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
 const mayEdit = (u: any, poemId: number) => can(u, 'edit', 'works', { poemId });
 const mayArrange = async (u: any, categoryId: number) =>
   (await can(u, 'arrange', 'works', { categoryId })) || (await can(u, 'arrange', 'books', { categoryId }));
-// may change what this revision changes (a work's text, or a book/section's order); reviewing needs L1 or admin
-const mayChange = (u: any, r: { entity: string; entity_id: number }) => (r.entity === 'order' ? mayArrange : mayEdit)(u, r.entity_id);
+const mayTag = (u: any, kind: TagTarget, id: number) => can(u, 'edit', 'tags', kind === 'work' ? { poemId: id } : { categoryId: id });
+// may change what this revision changes (a work's text, a book/section's order, tags); reviewing needs L1 or admin
+const mayChange = (u: any, r: { entity: string; entity_id: number }) =>
+  r.entity === 'order' ? mayArrange(u, r.entity_id) : r.entity.startsWith('tags-') ? mayTag(u, tagKind(r), r.entity_id) : mayEdit(u, r.entity_id);
+const tagKind = (r: { entity: string }) => r.entity.slice('tags-'.length) as TagTarget;
+const ENTITIES = `('work', 'order', 'tags-category', 'tags-work')`;
 const mayReview = async (u: any, r: { entity: string; entity_id: number }) => ['mod-l1', 'admin'].includes(u?.role) && (await mayChange(u, r));
 const OPEN = ['draft', 'returned'];
 // a draft whose text is still the text it started from is not shown anywhere (opening the editor is not a change)
@@ -69,12 +77,12 @@ async function current(poemId: number) {
 }
 
 // what a revision changes: a work, or a book/section's order (work_title/work_url name either)
-const TARGET = `LEFT JOIN poems p ON r.entity = 'work' AND p.id = r.entity_id
-  LEFT JOIN categories c ON r.entity = 'order' AND c.id = r.entity_id`;
+const TARGET = `LEFT JOIN poems p ON r.entity IN ('work', 'tags-work') AND p.id = r.entity_id
+  LEFT JOIN categories c ON r.entity IN ('order', 'tags-category') AND c.id = r.entity_id`;
 const TARGET_COLS = `coalesce(p.title, c.title) AS work_title, coalesce(p.url, c.url) AS work_url`;
 
 async function revision(id: number) {
-  return (await pool.query(`SELECT r.*, ${TARGET_COLS} FROM revisions r ${TARGET} WHERE r.id = $1 AND r.entity IN ('work', 'order')`, [id])).rows[0];
+  return (await pool.query(`SELECT r.*, ${TARGET_COLS} FROM revisions r ${TARGET} WHERE r.id = $1 AND r.entity IN ${ENTITIES}`, [id])).rows[0];
 }
 
 // what this person may do with this revision now
@@ -91,16 +99,16 @@ async function actions(u: any, r: any) {
 }
 
 async function publish(r: any, u: any, comment?: string) {
-  const order = r.entity === 'order';
-  const cur = order ? await currentOrder(r.entity_id) : await current(r.entity_id);
+  const order = r.entity === 'order', tags = r.entity.startsWith('tags-');
+  const cur = order ? await currentOrder(r.entity_id) : tags ? await currentTags(tagKind(r), r.entity_id) : await current(r.entity_id);
   if (!cur) throw Object.assign(new Error('کلام نہیں ملا'), { code: 404 });
   if (cur.version !== r.base_version)
     throw Object.assign(new Error('اس دوران اس کا نیا ورژن شائع ہو چکا ہے۔ مسودہ واپس بھیج کر تازہ متن پر دوبارہ بنوائیں۔'), { code: 409 });
   // the section's contents may have changed since (a new work from the sync): the arrangement must be redone
-  const stale = order && (await checkOrder(r.entity_id, r.content));
+  const stale = order ? await checkOrder(r.entity_id, r.content) : tags ? await checkTags(tagKind(r), r.entity_id, r.content) : null;
   if (stale) throw Object.assign(new Error(`اس دوران اس حصے کی چیزیں بدل گئی ہیں: ${stale}`), { code: 409 });
-  const doc = order ? null : parse(r.content), verses = doc ? toVerses(doc) : [];
-  const title = 'cat' in cur ? `ترتیب: ${cur.cat.title}` : doc!.meta['عنوان'] || cur.poem.title;
+  const doc = order || tags ? null : parse(r.content), verses = doc ? toVerses(doc) : [];
+  const title = 'cat' in cur ? `ترتیب: ${cur.cat.title}` : 'target' in cur ? `ٹیگ: ${cur.target.title}` : doc!.meta['عنوان'] || cur.poem.title;
   const version = cur.version + 1, at = new Date().toISOString();
   // who did it, by public name (divan-data is public: never email addresses)
   const people = async (id: unknown) => id ? (await pool.query('SELECT id, full_name FROM users WHERE id = $1', [id])).rows[0] ?? null : null;
@@ -109,6 +117,7 @@ async function publish(r: any, u: any, comment?: string) {
   const credits = { by: who(author)?.name ?? 'موڈریٹر', reviewedBy: who(reviewer)?.name ?? null, publishedBy: publicName(u) };
   // divan-data first (the published record, committed to git), then the site's database
   const files = 'cat' in cur ? [await writeOrder(dataDir(), cur.cat.url, r.content)]
+    : 'target' in cur ? [await writeTags(dataDir(), cur.target.url, r.content)]
     : await writeOwned(dataDir(), cur.poem.url, r.content, { ...credits, at, version, revision: Number(r.id) });
   const trailers = [`Divan-Revision: ${r.id}`, `Divan-Version: ${version}`,
     ...(reviewer ? [`Reviewed-by: ${identityOf(reviewer)}`] : []), `Approved-by: ${identityOf(u)}`];
@@ -120,6 +129,7 @@ async function publish(r: any, u: any, comment?: string) {
     await client.query(`UPDATE revisions SET status = 'published', version = $2, publisher_email = $3, published_at = $4, commit = $5, credits = $6, updated_at = now()
                         WHERE id = $1`, [r.id, version, u.email, at, sha, credits]);
     if (order) await applyOrder(client, r.entity_id, r.content);
+    else if (tags) await applyTags(client, tagKind(r), r.entity_id, r.content);
     else {
       await client.query('UPDATE poems SET title = $2, search_text = $3 WHERE id = $1',
         [r.entity_id, title, normalise([title, ...verses.map((v) => v.Text)].join(' '))]);
@@ -146,9 +156,10 @@ export function moderationRoutes(app: FastifyInstance) {
   // ?poem= on a work page; ?category= on a poet or book/section page (arrange)
   app.get<{ Querystring: { poem?: string; category?: string } }>('/api/mod/can', async (req) => {
     const u = await sessionUser(req), poemId = Number(req.query.poem) || 0, categoryId = Number(req.query.category) || 0;
-    if (!isModerator(u)) return { edit: false, review: false, publish: false, arrange: false };
-    if (categoryId) return { arrange: await mayArrange(u, categoryId) };
-    return { edit: await mayEdit(u, poemId), review: await mayReview(u, { entity: 'work', entity_id: poemId }), publish: u.role === 'admin' };
+    if (!isModerator(u)) return { edit: false, review: false, publish: false, arrange: false, tags: false };
+    if (categoryId) return { arrange: await mayArrange(u, categoryId), tags: await mayTag(u, 'category', categoryId) };
+    return { edit: await mayEdit(u, poemId), review: await mayReview(u, { entity: 'work', entity_id: poemId }), publish: u.role === 'admin',
+      tags: await mayTag(u, 'work', poemId) };
   });
 
   app.get('/api/mod/queue', async (req, reply) => {
@@ -157,7 +168,7 @@ export function moderationRoutes(app: FastifyInstance) {
       `SELECT r.id, r.entity, r.entity_id, r.status, r.summary, r.author_id, r.author_email, r.reviewer_email, r.updated_at,
               coalesce(p.title, c.title) AS title, coalesce(p.url, c.url) AS url
        FROM revisions r ${TARGET}
-       WHERE r.entity IN ('work', 'order') AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned') AND ${CHANGED}))
+       WHERE r.entity IN ${ENTITIES} AND (r.status IN ('submitted', 'approved') OR (r.author_id = $1 AND r.status IN ('draft', 'returned') AND ${CHANGED}))
        ORDER BY r.updated_at DESC LIMIT 300`, [u.id]);
     const strip = ({ author_id, ...r }: any) => ({ ...r, id: Number(r.id) });
     const review = [];
@@ -226,6 +237,37 @@ export function moderationRoutes(app: FastifyInstance) {
     return { id: Number(rows[0].id) };
   });
 
+  app.get<{ Params: { kind: string; id: string } }>('/api/mod/tags/:kind/:id', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const kind = req.params.kind as TagTarget;
+    if (kind !== 'work' && kind !== 'category') return reply.code(404).send({ error: 'نہیں ملا' });
+    const cur = await currentTags(kind, Number(req.params.id) || 0);
+    if (!cur) return reply.code(404).send({ error: 'نہیں ملا' });
+    const { rows } = await pool.query(
+      `SELECT id, version, base_version, status, summary, author_email, reviewer_email, publisher_email, created_at, published_at
+       FROM revisions r WHERE entity = $1 AND entity_id = $2 AND ${CHANGED} ORDER BY coalesce(published_at, created_at) DESC`, [`tags-${kind}`, cur.target.id]);
+    return { kind, target: cur.target, version: cur.version, content: cur.content, couplets: cur.couplets,
+      history: rows.map((r) => ({ ...r, id: Number(r.id) })), may: { tags: await mayTag(u, kind, cur.target.id) } };
+  });
+
+  app.post<{ Params: { kind: string; id: string } }>('/api/mod/tags/:kind/:id/draft', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const kind = req.params.kind as TagTarget, id = Number(req.params.id) || 0;
+    if (kind !== 'work' && kind !== 'category') return reply.code(404).send({ error: 'نہیں ملا' });
+    if (!(await mayTag(u, kind, id))) return reply.code(403).send({ error: 'یہاں ٹیگ لگانے کی اجازت نہیں' });
+    const open = (await pool.query(
+      `SELECT id FROM revisions WHERE entity = $1 AND entity_id = $2 AND author_id = $3 AND status IN ('draft', 'returned') LIMIT 1`, [`tags-${kind}`, id, u.id])).rows[0];
+    if (open) return { id: Number(open.id) };
+    const cur = await currentTags(kind, id);
+    if (!cur) return reply.code(404).send({ error: 'نہیں ملا' });
+    const { rows } = await pool.query(
+      `INSERT INTO revisions (entity, entity_id, base_version, base_content, content, status, author_id, author_email)
+       VALUES ($1, $2, $3, $4, $4, 'draft', $5, $6) RETURNING id`,
+      [`tags-${kind}`, id, cur.version, cur.content, u.id, u.email]);
+    await event(rows[0].id, u, 'created');
+    return { id: Number(rows[0].id) };
+  });
+
   app.get<{ Params: { id: string } }>('/api/mod/revisions/:id', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
     const r = await revision(Number(req.params.id) || 0);
@@ -245,14 +287,14 @@ export function moderationRoutes(app: FastifyInstance) {
     if (!r) return reply.code(404).send({ error: 'مسودہ نہیں ملا' });
     if (!(await actions(u, r)).save) return reply.code(403).send({ error: 'یہ مسودہ اب محفوظ نہیں کیا جا سکتا' });
     const content = String(req.body?.content ?? '').replace(/\r\n?/g, '\n');
-    if (r.entity === 'order') {
-      const bad = await checkOrder(r.entity_id, content);
+    if (r.entity === 'order' || r.entity.startsWith('tags-')) {
+      const bad = r.entity === 'order' ? await checkOrder(r.entity_id, content) : await checkTags(tagKind(r), r.entity_id, content);
       if (bad) return reply.code(400).send({ error: bad });
     } else if (!toVerses(parse(content)).length) return reply.code(400).send({ error: 'متن میں کوئی شعر یا پیراگراف نہیں' });
     if (content.length > 500_000) return reply.code(400).send({ error: 'متن بہت لمبا ہے' });
     // no change from the text it started from (compared as Divan text, so layout-only differences don't count):
     // a plain draft is dropped rather than kept
-    const norm = (t: string) => (r.entity === 'order' ? orderSlugs(t).join('\n') : toText(parse(t)));
+    const norm = (t: string) => (r.entity === 'order' ? orderSlugs(t).join('\n') : r.entity.startsWith('tags-') ? tagsText(parseTags(t) as Tag[]) : toText(parse(t)));
     const same = norm(content) === norm(r.base_content);
     if (same && r.status === 'draft') {
       await pool.query('DELETE FROM revisions WHERE id = $1', [r.id]);
@@ -305,7 +347,7 @@ export function moderationRoutes(app: FastifyInstance) {
     const { rows } = await pool.query(
       `SELECT e.at, e.actor_email, e.action, e.comment, r.id AS revision, r.entity, r.version, coalesce(p.title, c.title) AS title, coalesce(p.url, c.url) AS url
        FROM revision_events e JOIN revisions r ON r.id = e.revision_id ${TARGET}
-       WHERE r.entity IN ('work', 'order') AND ${CHANGED}
+       WHERE r.entity IN ${ENTITIES} AND ${CHANGED}
        ORDER BY e.at DESC, e.id DESC LIMIT 50 OFFSET ${(page - 1) * 50}`);
     return { page, entries: rows.map((r) => ({ ...r, revision: Number(r.revision) })) };
   });

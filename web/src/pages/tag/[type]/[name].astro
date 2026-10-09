@@ -1,0 +1,37 @@
+---
+// A tag's page (#52): the poets, books/chapters, works and couplets carrying it
+import Base from '../../../layouts/Base.astro';
+import { api } from '../../../lib/api';
+import { ud } from '../../../lib/urdu';
+
+const { type = '', name = '' } = Astro.params;
+const res = await api(`/api/tag?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}`);
+if (!res) return new Response(null, { status: 404, statusText: 'Not found' });
+const { tag, categories, works } = res;
+const count = categories.length + works.length;
+---
+<Base title={`${tag.type}: ${tag.name}`}>
+  <h1><small class="muted">{tag.type}:</small> {tag.name}</h1>
+  <p class="center muted">{ud(count)} جگہ · <a href={`/search?q=${encodeURIComponent(`tag:"${tag.name}"`)}`}>تلاش میں دیکھیں</a> · <a href="/tags">تمام ٹیگ</a></p>
+  {categories.length > 0 && (
+    <section class="search-group">
+      <h2>شعرا، کتابیں اور ابواب</h2>
+      <ul class="book-results">
+        {categories.map((c: any) => <li><a href={c.url}>{c.is_poet ? c.poet : c.title}</a>{!c.is_poet && <> · <a class="muted" href={c.poet_url}>{c.poet}</a></>}</li>)}
+      </ul>
+    </section>
+  )}
+  {works.length > 0 && (
+    <section class="search-group">
+      <h2>کلام</h2>
+      {works.map((w: any) => (
+        <div class="result">
+          <a href={w.url}>{w.title}</a> · <a class="muted" href={w.poet_url}>{w.poet}</a>
+          {w.couplets.map((c: any) => (
+            <a class="snippet" href={`${w.url}#c${c.anchor}`}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
+          ))}
+        </div>
+      ))}
+    </section>
+  )}
+</Base>
