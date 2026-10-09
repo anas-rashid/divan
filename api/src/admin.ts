@@ -1,7 +1,8 @@
 // Admin panel API (admins only). No email server yet, so password resets are done here on a reader's
 // request: a temporary password is generated, shown to the admin once, and the reader's sessions end.
 // Every action is written to audit_log. Moderators' grants: permissions.ts.
-//   GET  /api/admin/users?q=&page=           users (search by email), newest first
+//   GET  /api/admin/users?q=&role=&page=     users (search by email or name; role: a role or 'disabled'), newest first,
+//                                            with counts per role and each moderator's number of grants
 //   POST /api/admin/users/:id/password       -> {password} (temporary, shown once)
 //   POST /api/admin/users/:id/disable        {disabled: boolean}
 //   POST /api/admin/users/:id/role           {role: 'reader' | 'mod-l2' | 'mod-l1' | 'admin'}
@@ -33,18 +34,28 @@ export const audit = (actor: any, action: string, target: any, detail?: object) 
     [actor?.id ?? null, actor?.email ?? 'server', action, target?.id ?? null, target?.email ?? null, detail ?? null]);
 
 export function adminRoutes(app: FastifyInstance) {
-  app.get<{ Querystring: { q?: string; page?: string } }>('/api/admin/users', async (req, reply) => {
+  app.get<{ Querystring: { q?: string; role?: string; page?: string } }>('/api/admin/users', async (req, reply) => {
     if (!(await requireAdmin(req, reply))) return;
     const q = (req.query.q ?? '').trim().toLowerCase(), page = Math.max(1, Number(req.query.page) || 1);
     const like = '%' + q.replace(/[\\%_]/g, (c) => '\\' + c) + '%';
-    const [count, rows] = await Promise.all([
-      pool.query('SELECT count(*)::int AS n FROM users WHERE email LIKE $1', [like]),
+    const role = req.query.role ?? '';
+    // the role filter: one role, or 'disabled' (any role); anything else lists everyone
+    const where = `(u.email LIKE $1 OR lower(coalesce(u.full_name, '')) LIKE $1)` +
+      (role === 'disabled' ? ' AND u.disabled_at IS NOT NULL' : ['reader', 'mod-l2', 'mod-l1', 'admin'].includes(role) ? ' AND u.role = $2' : '');
+    const args = ['reader', 'mod-l2', 'mod-l1', 'admin'].includes(role) ? [like, role] : [like];
+    const [count, rows, counts] = await Promise.all([
+      pool.query(`SELECT count(*)::int AS n FROM users u WHERE ${where}`, args),
       pool.query(
-        `SELECT u.id, u.email, u.role, u.created_at, u.disabled_at, max(s.created_at) AS last_sign_in
-         FROM users u LEFT JOIN sessions s ON s.user_id = u.id WHERE u.email LIKE $1
-         GROUP BY u.id ORDER BY u.created_at DESC LIMIT ${PAGE} OFFSET ${(page - 1) * PAGE}`, [like]),
+        `SELECT u.id, u.email, u.full_name, u.role, u.created_at, u.disabled_at,
+           (SELECT max(s.created_at) FROM sessions s WHERE s.user_id = u.id) AS last_sign_in,
+           (SELECT count(*)::int FROM grants g WHERE g.user_id = u.id) AS grants
+         FROM users u WHERE ${where} ORDER BY u.created_at DESC LIMIT ${PAGE} OFFSET ${(page - 1) * PAGE}`, args),
+      pool.query(`SELECT u.role, count(*)::int AS n, count(u.disabled_at)::int AS disabled FROM users u
+         WHERE u.email LIKE $1 OR lower(coalesce(u.full_name, '')) LIKE $1 GROUP BY u.role`, [like]),
     ]);
-    return { total: count.rows[0].n, page, pageSize: PAGE, users: rows.rows.map((r) => ({ ...r, id: Number(r.id) })) };
+    const by: Record<string, number> = { all: 0, disabled: 0 };
+    for (const r of counts.rows) { by[r.role] = r.n; by.all += r.n; by.disabled += r.disabled; }
+    return { total: count.rows[0].n, page, pageSize: PAGE, counts: by, users: rows.rows.map((r) => ({ ...r, id: Number(r.id) })) };
   });
 
   // one target user, never the acting admin themself for actions that could lock them out

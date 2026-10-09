@@ -1,0 +1,9 @@
+---
+// The couplet line (from the logo concepts): two half-lines tapering outward from a ✤. Decorative; coloured by the palette.
+const s = 13, petal = `M0,0 C${.45 * s},${-.35 * s} ${.25 * s},${-.9 * s} 0,${-s} C${-.25 * s},${-.9 * s} ${-.45 * s},${-.35 * s} 0,0Z`;
+const misra = (a: number, b: number, y = 16, h = 6) => `M${a},${y} Q${(a + b) / 2},${y - h * .9} ${b},${y - h / 2} L${b},${y + h / 2} Q${(a + b) / 2},${y + h * .9} ${a},${y}Z`;
+---
+<svg class="bayt" viewBox="0 0 280 32" aria-hidden="true">
+  <path class="misra" d={misra(124, 4)} /><path class="misra" d={misra(156, 276)} />
+  <g class="gul">{[45, 135, 225, 315].map((a) => <path transform={`translate(140 16) rotate(${a})`} d={petal} />)}<circle class="hole" cx="140" cy="16" r={s * .16} /></g>
+</svg>

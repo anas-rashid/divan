@@ -1,78 +1,150 @@
 ---
-// Admin: one moderator's permissions (grants)
+// Admin: one user. Their role, their permissions (grants, for moderators) and account actions, each in its own section.
 import Base from '../../../layouts/Base.astro';
+import Icon from '../../../components/Icon.astro';
 import AdminNav from '../../../components/AdminNav.astro';
+import { api } from '../../../lib/api';
 import { asUser, COOKIE } from '../../../lib/auth';
-import { ROLE, SCOPE, CONTENT, ACTION } from '../../../lib/roles';
+import { ud } from '../../../lib/urdu';
+import { ROLE, ROLE_HINT, SCOPE, CONTENT, ACTION, ago } from '../../../lib/roles';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect(`/signin?next=${Astro.url.pathname}`);
 if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
 const token = Astro.cookies.get(COOKIE)!.value, id = Number(Astro.params.id) || 0;
+const poets: any[] = (await api('/api/poets')) ?? [];
 
-let error = '', done = '';
+let error = '', done = '', tempPassword = '';
 if (Astro.request.method === 'POST') {
-  const f = await Astro.request.formData();
-  const r = f.get('act') === 'revoke'
-    ? await asUser(token, `/api/admin/grants/${Number(f.get('grant'))}/delete`, {})
-    : await asUser(token, `/api/admin/users/${id}/grants`, {
-        scope: f.get('scope'), target: f.get('target'), content: f.getAll('content'), actions: f.getAll('actions'),
-      });
-  r.ok ? (done = f.get('act') === 'revoke' ? 'اجازت واپس لے لی گئی' : 'اجازت دے دی گئی') : (error = r.data.error ?? 'کچھ غلط ہو گیا');
+  const f = await Astro.request.formData(), act = String(f.get('act'));
+  let target = String(f.get('target') ?? '').trim();
+  // a poet may be picked by name; the API takes a page link
+  const byName = poets.find((p) => p.name === target || p.nickname === target);
+  if (byName) target = byName.url;
+  const r = act === 'reset' ? await asUser(token, `/api/admin/users/${id}/password`, {})
+    : act === 'disable' || act === 'enable' ? await asUser(token, `/api/admin/users/${id}/disable`, { disabled: act === 'disable' })
+    : act === 'role' ? await asUser(token, `/api/admin/users/${id}/role`, { role: f.get('role') })
+    : act === 'delete' ? await asUser(token, `/api/admin/users/${id}/delete`, {})
+    : act === 'revoke' ? await asUser(token, `/api/admin/grants/${Number(f.get('grant'))}/delete`, {})
+    : act === 'grant' ? await asUser(token, `/api/admin/users/${id}/grants`, { scope: f.get('scope'), target, content: f.getAll('content'), actions: f.getAll('actions') })
+    : { ok: false, data: { error: 'نامعلوم عمل' } };
+  if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
+  else if (act === 'delete') return Astro.redirect('/admin');
+  else if (act === 'reset') tempPassword = r.data.password;
+  else done = { disable: 'اکاؤنٹ معطل کر دیا گیا', enable: 'اکاؤنٹ بحال کر دیا گیا', role: 'کردار بدل دیا گیا', revoke: 'اجازت واپس لے لی گئی', grant: 'اجازت دے دی گئی' }[act] ?? '';
 }
 const res = await asUser(token, `/api/admin/users/${id}/grants`);
 if (res.status === 404) return new Response('صارف نہیں ملا', { status: 404 });
 const { user, grants } = res.data;
-const isMod = user.role.startsWith('mod-');
+const isMod = user.role.startsWith('mod-'), self = user.id === me.id;
+const initial = [...(user.full_name || user.email)][0]?.toUpperCase();
 ---
-<Base title="ایڈمن: اجازتیں">
-  <h1>اجازتیں</h1>
+<Base title={`ایڈمن: ${user.full_name || user.email}`}>
   <AdminNav current="users" />
-  <p class="center"><bdi dir="ltr">{user.email}</bdi> · {ROLE[user.role] ?? user.role}</p>
+  <p class="back"><a href="/admin"><Icon name="prev" size={16} /> صارفین</a></p>
+
+  <header class="user-head">
+    <span class="avatar big" data-role={user.role} aria-hidden="true">{initial}</span>
+    <div>
+      <h1>{user.full_name || <bdi dir="ltr">{user.email}</bdi>}</h1>
+      {user.full_name && <bdi class="email" dir="ltr">{user.email}</bdi>}
+      <p class="tags">
+        <span class="badge" data-role={user.role}>{ROLE[user.role] ?? user.role}</span>
+        {user.disabled_at && <span class="badge danger">معطل</span>}
+        {self && <span class="badge plain">آپ</span>}
+      </p>
+      <p class="muted small-line">شمولیت {ago(user.created_at)} · آخری لاگ ان {ago(user.last_sign_in)}</p>
+    </div>
+  </header>
+
   {error && <p class="form-error" role="alert">{error}</p>}
   {done && <p class="form-done" role="status">{done}</p>}
-  {!isMod && <p class="muted center">اجازتیں صرف موڈریٹرز کو دی جا سکتی ہیں۔ پہلے <a href="/admin">صارفین</a> میں کردار بدلیں۔</p>}
-
-  {grants.length > 0 && (
-    <table class="admin-table">
-      <thead><tr><th>دائرہ</th><th>مواد</th><th>اعمال</th><th></th></tr></thead>
-      <tbody>
-        {grants.map((g: any) => (
-          <tr>
-            <td>{SCOPE[g.scope]}{g.label && <>: {g.url ? <a href={g.url}>{g.label}</a> : g.label}</>}{g.poet && g.scope !== 'poet' && <small class="muted"> ({g.poet})</small>}</td>
-            <td>{g.content.map((c: string) => CONTENT[c]).join('، ')}</td>
-            <td>{g.actions.map((a: string) => ACTION[a]).join('، ')}</td>
-            <td>
-              <form method="post" onsubmit="return confirm('یہ اجازت واپس لیں؟')">
-                <input type="hidden" name="grant" value={g.id} />
-                <button name="act" value="revoke" class="danger">واپس لیں</button>
-              </form>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+  {tempPassword && (
+    <div class="temp-password" role="status">
+      <p>عارضی پاس ورڈ (صرف ایک بار دکھایا جا رہا ہے):</p>
+      <p><code dir="ltr">{tempPassword}</code></p>
+      <p class="muted">یہ پاس ورڈ صارف کو دیں؛ وہ لاگ ان کر کے اپنے اکاؤنٹ کے صفحے سے اسے بدل لیں۔</p>
+    </div>
   )}
+
+  <section class="panel">
+    <h2>کردار</h2>
+    {self ? <p class="muted">اپنا کردار خود نہیں بدل سکتے۔</p> : (
+      <form method="post" class="role-pick" onsubmit={`return confirm(${JSON.stringify(isMod ? 'کردار بدلیں؟ موڈریٹر نہ رہنے پر اس کی اجازتیں ختم ہو جائیں گی۔' : 'کردار بدلیں؟')})`}>
+        <input type="hidden" name="act" value="role" />
+        {Object.entries(ROLE).map(([k, v]) => (
+          <button class="btn" name="role" value={k} aria-pressed={k === user.role ? 'true' : 'false'} disabled={k === user.role}>
+            <span class="badge" data-role={k}>{v}</span><small>{ROLE_HINT[k]}</small>
+          </button>
+        ))}
+      </form>
+    )}
+  </section>
 
   {isMod && (
-    <form method="post" class="account-form grant-form">
-      <h2>نئی اجازت</h2>
-      <label>دائرہ
-        <select name="scope" required>
-          {Object.entries(SCOPE).map(([k, v]) => <option value={k}>{v}</option>)}
-        </select>
-      </label>
-      <label>شاعر، کتاب یا کلام کا لنک (دائرہ "تمام" کے لیے خالی)
-        <input name="target" dir="ltr" placeholder="/p266   /p266/ghazal   /p266/ghazal/sh7870" />
-      </label>
-      <fieldset><legend>مواد</legend>
-        {Object.entries(CONTENT).map(([k, v]) => <label class="check"><input type="checkbox" name="content" value={k} /> {v}</label>)}
-      </fieldset>
-      <fieldset><legend>اعمال</legend>
-        {Object.entries(ACTION).map(([k, v]) => <label class="check"><input type="checkbox" name="actions" value={k} /> {v}</label>)}
-      </fieldset>
-      <p class="muted note">لغت کی اجازت صرف "تمام" دائرے میں دی جا سکتی ہے۔</p>
-      <button name="act" value="grant">اجازت دیں</button>
-    </form>
+    <section class="panel">
+      <h2>اجازتیں <small class="muted">{ud(grants.length)}</small></h2>
+      {grants.length === 0 && <p class="muted">ابھی کوئی اجازت نہیں: یہ موڈریٹر کچھ نہیں بدل سکتا۔ نیچے سے اجازت دیں۔</p>}
+      <ul class="grants">
+        {grants.map((g: any) => (
+          <li class="grant">
+            <div>
+              <p class="grant-scope"><strong>{SCOPE[g.scope]}</strong>{g.label && <>: {g.url ? <a href={g.url}>{g.label}</a> : g.label}</>}{g.poet && g.scope !== 'poet' && <small class="muted"> ({g.poet})</small>}</p>
+              <p class="tag-chips">{g.content.map((c: string) => <span class="badge plain">{CONTENT[c]}</span>)}<span class="sep" aria-hidden="true"></span>{g.actions.map((a: string) => <span class="badge" data-role="mod-l2">{ACTION[a]}</span>)}</p>
+            </div>
+            <form method="post" onsubmit="return confirm('یہ اجازت واپس لیں؟')">
+              <input type="hidden" name="grant" value={g.id} />
+              <button class="icon-btn small danger" name="act" value="revoke" title="اجازت واپس لیں" aria-label="اجازت واپس لیں"><Icon name="trash" size={16} /></button>
+            </form>
+          </li>
+        ))}
+      </ul>
+
+      <details class="new-grant" open={grants.length === 0}>
+        <summary class="btn primary"><Icon name="plus" size={16} /> نئی اجازت</summary>
+        <form method="post" class="grant-form">
+          <input type="hidden" name="act" value="grant" />
+          <fieldset><legend>کہاں</legend>
+            <div class="chips">{Object.entries(SCOPE).map(([k, v], i) => <label class="chip"><input type="radio" name="scope" value={k} checked={i === 1} required /> {v}</label>)}</div>
+          </fieldset>
+          <label class="target">کون سا
+            <input name="target" list="poet-names" placeholder="شاعر کا نام، یا کتاب / کلام کا لنک" autocomplete="off" />
+            <small class="muted">شاعر نام سے چنیں؛ کتاب یا کلام کے لیے اس صفحے کا لنک دیں (جیسے <bdi dir="ltr">/p266/ghazal</bdi>)</small>
+          </label>
+          <datalist id="poet-names">{poets.map((p) => <option value={p.nickname || p.name} />)}</datalist>
+          <fieldset><legend>کیا</legend>
+            <div class="chips">{Object.entries(CONTENT).map(([k, v]) => <label class="chip"><input type="checkbox" name="content" value={k} /> {v}</label>)}</div>
+            <small class="muted">لغت صرف "تمام شعرا" کے ساتھ</small>
+          </fieldset>
+          <fieldset><legend>کون سے کام</legend>
+            <div class="chips">{Object.entries(ACTION).map(([k, v]) => <label class="chip"><input type="checkbox" name="actions" value={k} checked={k === 'edit'} /> {v}</label>)}</div>
+          </fieldset>
+          <p><button class="btn primary"><Icon name="check" size={16} /> اجازت دیں</button></p>
+        </form>
+      </details>
+    </section>
   )}
+  {!isMod && !self && <p class="muted center small-line">اجازتیں موڈریٹرز کے لیے ہیں: اوپر سے کردار "موڈریٹر" کریں۔</p>}
+
+  <section class="panel">
+    <h2>اکاؤنٹ</h2>
+    <div class="account-actions">
+      <form method="post" onsubmit="return confirm('اس صارف کا پاس ورڈ ری سیٹ کریں؟ اس کے سب سیشن ختم ہو جائیں گے۔')">
+        <button class="btn" name="act" value="reset"><Icon name="key" size={16} /> پاس ورڈ ری سیٹ</button>
+      </form>
+      {!self && (
+        <form method="post">
+          {user.disabled_at
+            ? <button class="btn ok" name="act" value="enable"><Icon name="undo" size={16} /> بحال کریں</button>
+            : <button class="btn" name="act" value="disable"><Icon name="ban" size={16} /> معطل کریں</button>}
+        </form>
+      )}
+    </div>
+    {!self && (
+      <form method="post" class="danger-zone" onsubmit="return confirm('یہ اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔ جاری رکھیں؟')">
+        <p class="muted small-line">اکاؤنٹ اور اس کا تمام ڈیٹا (محفوظ شدہ، ذخیرۂ الفاظ) مستقل طور پر حذف۔ واپسی ممکن نہیں۔</p>
+        <button class="btn danger" name="act" value="delete"><Icon name="trash" size={16} /> اکاؤنٹ حذف کریں</button>
+      </form>
+    )}
+  </section>
 </Base>

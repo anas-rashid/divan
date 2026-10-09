@@ -1,101 +1,72 @@
 ---
-// Admin: users. Password resets happen here on a reader's request (no email server yet).
+// Admin: users. A list to find people (search, role filter); everything about one user is on their page (/admin/user/<id>).
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { ud } from '../../lib/urdu';
-import { ROLE } from '../../lib/roles';
+import { ROLE, ago } from '../../lib/roles';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/admin');
 if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
 const token = Astro.cookies.get(COOKIE)!.value;
 
-let error = '', done = '', tempPassword = '', tempFor = '';
-if (Astro.request.method === 'POST') {
-  const f = await Astro.request.formData();
-  const id = String(f.get('id')), email = String(f.get('email') ?? '');
-  const act = String(f.get('act'));
-  const r = act === 'reset' ? await asUser(token, `/api/admin/users/${id}/password`, {})
-    : act === 'disable' || act === 'enable' ? await asUser(token, `/api/admin/users/${id}/disable`, { disabled: act === 'disable' })
-    : act === 'role' ? await asUser(token, `/api/admin/users/${id}/role`, { role: f.get('role') })
-    : act === 'delete' ? await asUser(token, `/api/admin/users/${id}/delete`, {})
-    : { ok: false, data: { error: 'نامعلوم عمل' } };
-  if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
-  else if (act === 'reset') [tempPassword, tempFor] = [r.data.password, email];
-  else done = { disable: 'اکاؤنٹ معطل کر دیا گیا', enable: 'اکاؤنٹ بحال کر دیا گیا', role: 'کردار بدل دیا گیا', delete: 'اکاؤنٹ حذف کر دیا گیا' }[act] + ` (${email})`;
-}
-
-const q = Astro.url.searchParams.get('q') ?? '', page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
-const list = (await asUser(token, `/api/admin/users?q=${encodeURIComponent(q)}&page=${page}`)).data;
+const q = Astro.url.searchParams.get('q') ?? '', role = Astro.url.searchParams.get('role') ?? '';
+const page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
+const list = (await asUser(token, `/api/admin/users?q=${encodeURIComponent(q)}&role=${encodeURIComponent(role)}&page=${page}`)).data;
 const pages = Math.ceil(list.total / list.pageSize);
-const date = (d: string | null) => (d ? ud(new Date(d).toISOString().slice(0, 10)) : '—');
-const link = (n: number) => `/admin?q=${encodeURIComponent(q)}&page=${n}`;
+const link = (o: { role?: string; page?: number }) => {
+  const p = new URLSearchParams();
+  if (q) p.set('q', q);
+  const r = o.role ?? role; if (r) p.set('role', r);
+  if ((o.page ?? 1) > 1) p.set('page', String(o.page));
+  return `/admin${p.size ? '?' + p : ''}`;
+};
+const FILTERS: [string, string][] = [['', 'سب'], ['admin', ROLE.admin], ['mod-l1', ROLE['mod-l1']], ['mod-l2', ROLE['mod-l2']], ['reader', ROLE.reader], ['disabled', 'معطل']];
+const initial = (u: any) => [...(u.full_name || u.email)][0]?.toUpperCase();
 ---
 <Base title="ایڈمن: صارفین">
   <h1>ایڈمن</h1>
   <AdminNav current="users" />
-  {error && <p class="form-error" role="alert">{error}</p>}
-  {done && <p class="form-done" role="status">{done}</p>}
-  {tempPassword && (
-    <div class="temp-password" role="status">
-      <p><bdi dir="ltr">{tempFor}</bdi> کا عارضی پاس ورڈ (صرف ایک بار دکھایا جا رہا ہے):</p>
-      <p><code dir="ltr">{tempPassword}</code></p>
-      <p class="muted">یہ پاس ورڈ صارف کو دیں؛ وہ لاگ ان کر کے اپنے اکاؤنٹ کے صفحے سے اسے بدل لیں۔</p>
-    </div>
-  )}
 
   <form method="get" class="admin-search">
-    <input type="search" name="q" value={q} placeholder="ای میل سے تلاش" dir="ltr" />
-    <button type="submit">تلاش</button>
+    {role && <input type="hidden" name="role" value={role} />}
+    <span class="field-icon"><Icon name="search" size={18} /></span>
+    <input type="search" name="q" value={q} placeholder="نام یا ای میل" aria-label="نام یا ای میل سے تلاش" />
   </form>
-  <p class="muted center">{ud(list.total)} صارفین</p>
+  <nav class="role-filter" aria-label="کردار">
+    {FILTERS.map(([k, v]) => (
+      <a class="chip" href={link({ role: k })} aria-current={k === role ? 'page' : undefined}>{v} <small>{ud(list.counts?.[k || 'all'] ?? 0)}</small></a>
+    ))}
+  </nav>
 
-  <table class="admin-table">
-    <thead><tr><th>ای میل</th><th>کردار</th><th>شمولیت</th><th>آخری لاگ ان</th><th>حالت</th><th>اقدامات</th></tr></thead>
-    <tbody>
-      {list.users.map((u: any) => (
-        <tr class={u.disabled_at ? 'disabled' : ''}>
-          <td><bdi dir="ltr">{u.email}</bdi>{u.id === me.id && <small> (آپ)</small>}</td>
-          <td>{ROLE[u.role] ?? u.role}{u.role.startsWith('mod-') && <> · <a href={`/admin/user/${u.id}`}>اجازتیں</a></>}</td>
-          <td>{date(u.created_at)}</td>
-          <td>{date(u.last_sign_in)}</td>
-          <td>{u.disabled_at ? 'معطل' : 'فعال'}</td>
-          <td class="actions">
-            <form method="post" onsubmit="return confirm('اس صارف کا پاس ورڈ ری سیٹ کریں؟')">
-              <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
-              <button name="act" value="reset">پاس ورڈ ری سیٹ</button>
-            </form>
-            {u.id !== me.id && (
-              <>
-                <form method="post">
-                  <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
-                  <button name="act" value={u.disabled_at ? 'enable' : 'disable'}>{u.disabled_at ? 'بحال کریں' : 'معطل کریں'}</button>
-                </form>
-                <form method="post" class="role-form">
-                  <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
-                  <select name="role" aria-label="کردار">
-                    {Object.entries(ROLE).map(([k, v]) => <option value={k} selected={k === u.role}>{v}</option>)}
-                  </select>
-                  <button name="act" value="role">کردار بدلیں</button>
-                </form>
-                <form method="post" onsubmit="return confirm('یہ اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔ جاری رکھیں؟')">
-                  <input type="hidden" name="id" value={u.id} /><input type="hidden" name="email" value={u.email} />
-                  <button name="act" value="delete" class="danger">حذف</button>
-                </form>
-              </>
-            )}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
+  {list.users.length === 0 && <p class="muted center">کوئی صارف نہیں ملا</p>}
+  <ul class="user-list">
+    {list.users.map((u: any) => (
+      <li class:list={['user-row', { disabled: u.disabled_at }]}>
+        <a href={`/admin/user/${u.id}`}>
+          <span class="avatar" data-role={u.role} aria-hidden="true">{initial(u)}</span>
+          <span class="who">
+            <span class="name" dir={u.full_name ? undefined : 'ltr'}>{u.full_name || u.email}{u.id === me.id && <small class="muted"> (آپ)</small>}</span>
+            {u.full_name && <bdi class="email" dir="ltr">{u.email}</bdi>}
+          </span>
+          <span class="tags">
+            <span class="badge" data-role={u.role}>{ROLE[u.role] ?? u.role}</span>
+            {u.role.startsWith('mod-') && <span class:list={['badge', 'plain', { warn: !u.grants }]} title="اجازتیں">{u.grants ? `${ud(u.grants)} اجازتیں` : 'کوئی اجازت نہیں'}</span>}
+            {u.disabled_at && <span class="badge danger">معطل</span>}
+          </span>
+          <span class="seen muted" title="آخری لاگ ان">{ago(u.last_sign_in)}</span>
+          <Icon name="chevron" size={18} class="go" />
+        </a>
+      </li>
+    ))}
+  </ul>
   {pages > 1 && (
     <nav class="pager">
-      {page > 1 && <a class="icon-btn" href={link(page - 1)} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
+      {page > 1 && <a class="icon-btn" href={link({ page: page - 1 })} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
       <span class="muted">صفحہ {ud(page)} از {ud(pages)}</span>
-      {page < pages && <a class="icon-btn" href={link(page + 1)} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
+      {page < pages && <a class="icon-btn" href={link({ page: page + 1 })} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
     </nav>
   )}
 </Base>
