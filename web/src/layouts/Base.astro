@@ -566,7 +566,17 @@ import { brand } from '../lib/brand';
       (() => {
         const root = document.documentElement, header = document.querySelector('.site-header');
         new ResizeObserver(() => root.style.setProperty('--header-h', header.offsetHeight + 'px')).observe(header);
-        const mark = () => (scrollY > 8 ? (root.dataset.scrolled = '') : delete root.dataset.scrolled);
+        // phones: the header steps aside while scrolling down and returns on the way up (not while it is in use)
+        const phone = matchMedia('(max-width: 640px)');
+        let last = scrollY;
+        const mark = () => {
+          scrollY > 8 ? (root.dataset.scrolled = '') : delete root.dataset.scrolled;
+          const busy = header.contains(document.activeElement) || header.querySelector('details[open]') || !document.getElementById('kb').hidden;
+          if (!phone.matches || busy || scrollY < header.offsetHeight) delete root.dataset.headerHidden;
+          else if (scrollY > last + 6) root.dataset.headerHidden = '';
+          else if (scrollY < last - 6) delete root.dataset.headerHidden;
+          if (Math.abs(scrollY - last) > 6) last = scrollY;
+        };
         addEventListener('scroll', mark, { passive: true }); mark();
       })();
     </script>
