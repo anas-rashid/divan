@@ -847,8 +847,7 @@ p, li { text-wrap: pretty; }
 .footer-brand { display: flex; align-items: flex-start; gap: 14px; }
 .footer-logo { flex: none; display: block; }
 .footer-logo img { display: block; width: 64px; height: 64px; }
-.footer-name { margin: 0; font: 700 1.7rem/1.7 'Noto Nastaliq Urdu', serif; color: var(--brand); }
-.footer-tagline { margin: 0; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2; color: var(--action); }
+.footer-tagline { margin: 4px 0 0; font: 700 1.15rem/2.2 'Noto Nastaliq Urdu', serif; color: var(--action); } /* the logo says دیوان; the tagline beside it */
 .made-in { margin: 8px 0 0; display: flex; align-items: center; gap: 8px; font-family: 'Noto Nastaliq Urdu', serif; font-size: .9rem; line-height: 2; color: var(--text); }
 .made-in .flag { flex: none; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .15); }
 .footer-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
