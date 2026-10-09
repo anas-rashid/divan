@@ -36,6 +36,7 @@ if (Astro.request.method === 'POST') {
   }
 }
 const since = new Date(user.created_at);
+import Icon from '../components/Icon.astro';
 ---
 <Base title="میرا اکاؤنٹ">
   <h1>{user.full_name || 'میرا اکاؤنٹ'}</h1>
@@ -49,12 +50,12 @@ const since = new Date(user.created_at);
     <input type="hidden" name="act" value="profile" />
     <label>پورا نام<input name="full_name" value={user.full_name} maxlength="100" dir="auto" autocomplete="name" /></label>
     <label>تعارف<textarea name="bio" maxlength="1000" rows="4" dir="auto">{user.bio}</textarea></label>
-    <button type="submit">محفوظ کریں</button>
+    <button type="submit" class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
   </form>
 
   <form method="post" class="account-form">
     <input type="hidden" name="act" value="signout" />
-    <button type="submit">لاگ آؤٹ</button>
+    <button type="submit" class="btn danger"><Icon name="logout" size={18} /> لاگ آؤٹ</button>
   </form>
 
   <form method="post" class="account-form">
@@ -63,7 +64,7 @@ const since = new Date(user.created_at);
     <label>موجودہ پاس ورڈ<input type="password" name="current" required autocomplete="current-password" dir="ltr" /></label>
     <label>نیا پاس ورڈ<input type="password" name="next" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
     <label>نیا پاس ورڈ دوبارہ<input type="password" name="next2" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
-    <button type="submit">پاس ورڈ بدلیں</button>
+    <button type="submit" class="btn"><Icon name="key" size={18} /> پاس ورڈ بدلیں</button>
   </form>
 
   <form method="post" class="account-form danger">
@@ -71,6 +72,6 @@ const since = new Date(user.created_at);
     <p class="muted">اکاؤنٹ اور اس کا تمام ڈیٹا مستقل طور پر حذف ہو جائے گا۔</p>
     <input type="hidden" name="act" value="delete" />
     <label>پاس ورڈ<input type="password" name="password" required autocomplete="current-password" dir="ltr" /></label>
-    <button type="submit">اکاؤنٹ مستقل طور پر ختم کریں</button>
+    <button type="submit" class="btn danger"><Icon name="trash" size={18} /> اکاؤنٹ مستقل طور پر ختم کریں</button>
   </form>
 </Base>

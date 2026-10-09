@@ -1,5 +1,5 @@
 ---
-// نشانات: the reader's bookmarks (poets, books/chapters, works, couplets, phrases), each with its full path in
+// محفوظ شدہ: the reader's saved books/chapters, works, couplets, phrases and e-book pages, each with its full path in
 // the site (poet » book » chapter » work) and a link to the couplet. The word book is separate: /words.
 import Base from '../layouts/Base.astro';
 import { asUser, COOKIE } from '../lib/auth';
@@ -17,7 +17,7 @@ if (Astro.request.method === 'POST') {
   return Astro.redirect(`/library#i${id}`, 303);
 }
 const lib = (await asUser(token, '/api/library')).data;
-const total = lib.poets.length + lib.categories.length + lib.poems.length + lib.couplets.length + lib.phrases.length + (lib.pages?.length ?? 0);
+const total = lib.categories.length + lib.poems.length + lib.couplets.length + lib.phrases.length + (lib.pages?.length ?? 0);
 // a bookmarked phrase shown inside its couplet: [before, phrase, after] per line
 const marked = (lines: string[], phrase: string) => phraseParts(lines, phrase).map((part, i) => {
   if (!part) return [lines[i], '', ''];
@@ -26,28 +26,19 @@ const marked = (lines: string[], phrase: string) => phraseParts(lines, phrase).m
 });
 const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != null ? `#c${item.poem.couplet}` : ''}` : '#');
 ---
-<Base title="نشانات">
-  <h1>{me.full_name || 'نشانات'}</h1>
+<Base title="محفوظ شدہ">
+  <h1>{me.full_name || 'محفوظ شدہ'}</h1>
   {me.bio && <p class="profile-bio">{me.bio}</p>}
   <LibraryNav current="bookmarks" />
-  <p class="muted center">{ud(total)} نشانات</p>
+  <p class="muted center">{ud(total)} محفوظ شدہ</p>
 
   {total === 0 && (
-    <p class="muted center">ابھی کچھ محفوظ نہیں۔ کسی شاعر، کتاب، باب یا کلام پر "محفوظ کریں" دبائیں، کسی شعر کے ساتھ والا نشان دبائیں، یا کوئی عبارت منتخب کر کے "محفوظ کریں" دبائیں۔</p>
-  )}
-
-  {lib.poets.length > 0 && (
-    <section class="lib-section">
-      <h2>نشان زد شعرا</h2>
-      <div class="poets">
-        {lib.poets.map((p: any) => p.poet && <a class="poet-card" id={`i${p.id}`} href={p.poet.url}>{p.poet.name}</a>)}
-      </div>
-    </section>
+    <p class="muted center">ابھی کچھ محفوظ نہیں۔ کسی کتاب، باب یا کلام پر "محفوظ کریں" دبائیں، کسی شعر کے ساتھ والا نشان دبائیں، یا کوئی عبارت منتخب کر کے "محفوظ کریں" دبائیں۔</p>
   )}
 
   {lib.categories.length > 0 && (
     <section class="lib-section">
-      <h2>نشان زد کتابیں اور ابواب</h2>
+      <h2>محفوظ کتابیں اور ابواب</h2>
       <ul class="lib-list">
         {lib.categories.map((c: any) => (
           <li id={`i${c.id}`}>
@@ -64,7 +55,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
 
   {lib.poems.length > 0 && (
     <section class="lib-section">
-      <h2>نشان زد کلام</h2>
+      <h2>محفوظ کلام</h2>
       <ul class="lib-list">
         {lib.poems.map((p: any) => (
           <li id={`i${p.id}`}>
@@ -81,7 +72,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
 
   {lib.couplets.length > 0 && (
     <section class="lib-section">
-      <h2>نشان زد اشعار</h2>
+      <h2>محفوظ اشعار</h2>
       <ul class="lib-list">
         {lib.couplets.map((c: any) => (
           <li id={`i${c.id}`}>
@@ -103,7 +94,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
 
   {lib.phrases.length > 0 && (
     <section class="lib-section">
-      <h2>نشان زد عبارتیں</h2>
+      <h2>محفوظ عبارتیں</h2>
       <ul class="lib-list">
         {lib.phrases.map((p: any) => (
           <li id={`i${p.id}`}>

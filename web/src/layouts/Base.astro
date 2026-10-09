@@ -8,6 +8,7 @@ import '../styles/global.css';
 interface Props { title?: string; description?: string; q?: string }
 const { title, description = 'اردو کی کلاسیکی شاعری اور نثر', q = '' } = Astro.props;
 const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو کی کلاسیکی شاعری اور نثر';
+import Icon from '../components/Icon.astro';
 ---
 <!doctype html>
 <html lang="ur-PK" dir="rtl">
@@ -18,7 +19,7 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script is:inline>
-      // font + theme choice applied before paint (Naskh and system theme by default)
+      // font, palette and light/dark applied before paint (Naskh, sepia and the system's light/dark by default)
       try {
         // ?font=nastaliq|naskh in the URL sets the choice (shareable links)
         const f = new URLSearchParams(location.search).get('font');
@@ -26,6 +27,9 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         if (localStorage.getItem('divan-font') === 'nastaliq') document.documentElement.classList.add('nastaliq');
         const t = localStorage.getItem('divan-theme');
         if (t) document.documentElement.dataset.theme = t;
+        const pal = localStorage.getItem('divan-palette'); // sepia when unset
+        if (pal) document.documentElement.dataset.palette = pal;
+        if (document.cookie.includes('divan-digits=latn')) document.documentElement.dataset.digits = 'latn'; // Western numerals
       } catch (e) {}
     </script>
   </head>
@@ -43,17 +47,43 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
           </button>
         </form>
-        <div class="toggles">
-          {Astro.locals.user?.role === 'admin' && <a class="account-link" href="/admin">ایڈمن</a>}
-          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="account-link" href="/mod">موڈریشن</a>}
-          {Astro.locals.user && <a class="account-link" href="/library">نشانات</a>}
-          {Astro.locals.user && <a class="account-link" href="/words">ذخیرۂ الفاظ</a>}
+        <nav class="toggles" aria-label="سائٹ">
+          {Astro.locals.user?.role === 'admin' && <a class="icon-btn" href="/admin" title="ایڈمن" aria-label="ایڈمن"><Icon name="admin" /></a>}
+          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="icon-btn" href="/mod" title="موڈریشن" aria-label="موڈریشن"><Icon name="edit" /></a>}
+          {Astro.locals.user && <a class="icon-btn" href="/library" title="محفوظ شدہ" aria-label="محفوظ شدہ"><Icon name="bookmark" /></a>}
+          {Astro.locals.user && <a class="icon-btn" href="/words" title="ذخیرۂ الفاظ" aria-label="ذخیرۂ الفاظ"><span class="glyph-icon"><Icon name="words" /><span aria-hidden="true">ع</span></span></a>}
           {Astro.locals.user
-            ? <a class="account-link" href="/account" title={Astro.locals.user.email}>{Astro.locals.user.full_name.split(' ')[0] || 'اکاؤنٹ'}</a>
-            : <a class="account-link" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`}>لاگ ان</a>}
-          <button type="button" id="font-toggle" aria-label="خط بدلیں">نسخ</button>
-          <button type="button" id="theme-toggle" aria-label="روشن یا تاریک">◐</button>
-        </div>
+            ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
+            : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
+          <details class="display-menu">
+            <summary class="icon-btn" title="خط اور رنگ" aria-label="خط اور رنگ"><Icon name="settings" /></summary>
+            <div class="display-panel">
+              <p>خط</p>
+              <div class="seg"><button type="button" data-font="naskh">نسخ</button><button type="button" data-font="nastaliq" class="f-nastaliq">نستعلیق</button></div>
+              <p>رنگ</p>
+              <div class="swatches">
+                {[['', 'سپیا', '#fbf6ea', '#bf3f2a'], ['teal', 'فیروزی', '#e2f0ee', '#0b4f6c'], ['lapis', 'نیلگوں', '#e6ebf8', '#1d3b8b'],
+                  ['green', 'سبز', '#e5eede', '#1f5d3a'], ['rose', 'گلابی', '#f5e6ea', '#6b2c5e']].map(([v, name, a, b]) => (
+                  <button type="button" data-palette={v} title={name} aria-label={name} style={`--a: ${a}; --b: ${b}`}><span></span>{name}</button>
+                ))}
+              </div>
+              <p>ہندسے</p>
+              <div class="seg"><button type="button" data-digits="">۱۲۳ مشرقی</button><button type="button" data-digits="latn">123 مغربی</button></div>
+              <p>روشنی</p>
+              <div class="seg">
+                <button type="button" data-theme-pick="light"><Icon name="sun" size={16} /> روشن</button>
+                <button type="button" data-theme-pick="dark"><Icon name="moon" size={16} /> تاریک</button>
+                <button type="button" data-theme-pick=""><Icon name="theme" size={16} /> خودکار</button>
+              </div>
+            </div>
+          </details>
+          {Astro.locals.user && (
+            <form method="post" action="/account" class="inline-form">
+              <input type="hidden" name="act" value="signout" />
+              <button class="icon-btn danger" title="لاگ آؤٹ" aria-label="لاگ آؤٹ"><Icon name="logout" /></button>
+            </form>
+          )}
+        </nav>
       </div>
       <div id="kb" class="wrap kb" hidden></div>
     </header>
@@ -87,14 +117,41 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
     </footer>
     <script is:inline>
       const root = document.documentElement;
-      const fontBtn = document.getElementById('font-toggle');
-      const label = () => (fontBtn.textContent = root.classList.contains('nastaliq') ? 'نستعلیق' : 'نسخ');
-      label();
-      fontBtn.onclick = () => {
-        root.classList.toggle('nastaliq');
-        try { localStorage.setItem('divan-font', root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh'); } catch (e) {}
-        label();
+      // display settings: reading font, colour palette, light/dark/automatic; each choice is remembered
+      const panel = document.querySelector('.display-menu');
+      const store = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
+      const marks = () => {
+        const on = { font: root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh', palette: root.dataset.palette ?? '', theme: root.dataset.theme ?? '' };
+        panel.querySelectorAll('[data-font]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.font === on.font)));
+        panel.querySelectorAll('[data-palette]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.palette === on.palette)));
+        panel.querySelectorAll('[data-theme-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themePick === on.theme)));
+        panel.querySelectorAll('[data-digits]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.digits === (root.dataset.digits ?? ''))));
       };
+      panel.addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.font) { root.classList.toggle('nastaliq', b.dataset.font === 'nastaliq'); store('divan-font', b.dataset.font); }
+        if (b.dataset.palette != null) { if (b.dataset.palette) root.dataset.palette = b.dataset.palette; else delete root.dataset.palette; store('divan-palette', b.dataset.palette); }
+        if (b.dataset.digits != null) {
+          // numerals: a cookie, so the server sends pages with them; switching back to Eastern reloads the page
+          document.cookie = `divan-digits=${b.dataset.digits}; path=/; max-age=${b.dataset.digits ? 31536000 : 0}; samesite=lax`;
+          if (!b.dataset.digits) { delete root.dataset.digits; location.reload(); return; }
+          root.dataset.digits = 'latn'; westernDigits(document.body);
+        }
+        if (b.dataset.themePick != null) { if (b.dataset.themePick) root.dataset.theme = b.dataset.themePick; else delete root.dataset.theme; store('divan-theme', b.dataset.themePick); }
+        marks();
+
+      });
+      document.addEventListener('click', (e) => { if (panel.open && !panel.contains(e.target)) panel.open = false; }); // close when clicking elsewhere
+      // Western numerals also in what scripts add later (word sidebar, page numbers, suggestions)
+      function westernDigits(node) {
+      const walk = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
+      for (let t = walk.nextNode(); t; t = walk.nextNode()) if (/[۰-۹]/.test(t.data)) t.data = t.data.replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x6f0));
+      }
+      new MutationObserver((list) => {
+      if (root.dataset.digits !== 'latn') return;
+      for (const m of list) for (const n of m.addedNodes) n.nodeType === 3 ? westernDigits(n.parentNode) : n.nodeType === 1 && westernDigits(n);
+      }).observe(document.body, { childList: true, subtree: true });
+      marks();
       // Urdu on-screen keyboard, Gboard/Windows Urdu layout
       const BASE = [[...'طصھدٹپتبجح'], [...'مورنلہاکی'], [...'قفےسشغع']];
       const SHIFT = [['ظ','ض','ذ','ڈ','ث','ّ','ۃ','ـ','چ','خ'], ['ژ','ز','ڑ','ں','ۂ','ء','آ','گ',''], ['','','ۓ','','ؤ','ئ','']];
@@ -396,11 +453,6 @@ const fullTitle = title ? `${title} · دیوان` : 'دیوان · اردو ک�
         if (!menu.hidden) hideMenu(); else if (!dict.hidden) closeDict();
       });
 
-      document.getElementById('theme-toggle').onclick = () => {
-        const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-        root.dataset.theme = dark ? 'light' : 'dark';
-        try { localStorage.setItem('divan-theme', root.dataset.theme); } catch (e) {}
-      };
     </script>
   </body>
 </html>

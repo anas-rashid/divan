@@ -3,4 +3,4 @@
 const { s } = Astro.props as { s: [string, string, string?][] };
 ---
 {s.map(([t, k, d]) => (k === 'mark' ? <mark>{t}</mark> : k === 'pen' ? <span class="takhallus">{t}</span>
-  : k === 'bmk' ? <span class="bmk" data-save={d} data-confirm="یہ نشان ہٹائیں؟" title="نشان زدہ عبارت (ہٹانے کے لیے دبائیں)">{t}</span> : t))}
+  : k === 'bmk' ? <span class="bmk" data-save={d} data-confirm="یہ عبارت محفوظ شدہ سے ہٹائیں؟" title="محفوظ شدہ عبارت (ہٹانے کے لیے دبائیں)">{t}</span> : t))}
