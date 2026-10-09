@@ -580,9 +580,9 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .display-panel p { margin: 6px 0 4px; color: var(--text-muted); font-size: .8rem; }
 .display-panel .seg { display: flex; gap: 4px; }
 .display-panel button { flex: 1; gap: 4px; padding: 2px 6px; border-radius: var(--r-md); }
-.display-panel .weight { display: flex; align-items: center; gap: 8px; margin: 6px 0 2px; font-size: .8rem; color: var(--text-muted); }
+.display-panel .weight { display: grid; grid-template-columns: 6.5em 1fr; align-items: center; gap: 8px; margin: 6px 0 2px; font-size: .8rem; color: var(--text-muted); } /* the same label width, so both sliders are the same length */
 .display-panel .weight span { white-space: nowrap; }
-.display-panel .weight input { flex: 1; min-width: 0; accent-color: var(--action); }
+.display-panel .weight input { width: 100%; min-width: 0; margin: 0; accent-color: var(--action); }
 .display-panel .weight:has(input:disabled) { opacity: .5; }
 .display-panel .f-nastaliq { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.2; }
 .display-panel .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
