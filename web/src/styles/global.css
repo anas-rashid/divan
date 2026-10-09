@@ -723,6 +723,7 @@ p, li { text-wrap: pretty; }
 @media (hover: none) { .nt { opacity: .55; } .nt[aria-pressed='true'] { opacity: 1; } }
 @media (max-width: 700px) { .nt { inset-inline-end: -4px; top: 26px; } }
 /* a highlighted phrase with a note: the note glyph instead of the bookmark */
+.bmk.note-only { background: none; text-decoration-color: var(--accent); } /* a note without a bookmark: underline only */
 .bmk.has-note::after { background-color: var(--accent); -webkit-mask-image: var(--nt-filled); mask-image: var(--nt-filled); }
 .bmk:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 /* the note box */
@@ -794,3 +795,13 @@ p, li { text-wrap: pretty; }
 .dl:hover::before { background-color: var(--active); }
 .couplet:hover .dl, .poem .para:hover .dl, .poem .single:hover .dl, .dl:focus-visible { opacity: 1; }
 @media (hover: none) { .dl { opacity: .55; } }
+/* the notes page: one card per note, the couplet with the noted phrase marked, the note editable in place */
+.note-list { list-style: none; padding: 0; max-width: 760px; margin: 12px auto; display: flex; flex-direction: column; gap: 12px; }
+.note-card { position: relative; padding: 10px 16px 12px; border: 1px solid var(--border); border-radius: var(--r-lg); background: var(--surface-raised); }
+.note-card header { display: flex; align-items: center; gap: 8px; padding-inline-end: 40px; }
+.note-card .crumbs { text-align: start; margin: 0; font-size: var(--fs-xs); flex: 1; }
+.note-card .lib-couplet { margin: 6px 0 8px; }
+.note-card mark { background: var(--accent-soft); box-shadow: inset 0 -2px var(--accent); }
+.note-edit textarea { width: 100%; box-sizing: border-box; resize: vertical; line-height: 1.9; background: var(--surface-page); }
+.note-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.note-delete { position: absolute; top: 10px; left: 12px; margin: 0; }

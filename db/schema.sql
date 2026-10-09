@@ -239,7 +239,9 @@ CREATE INDEX IF NOT EXISTS ebooks_search ON ebooks USING gin (search_text gin_tr
 ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS cover text;   -- cover image '<sha256>.jpg|png|webp' in the file store
 -- library: bookmarked pages of e-books (kind 'page': ebook_id, page)
 ALTER TABLE library ADD COLUMN IF NOT EXISTS ebook_id integer;
-ALTER TABLE library ADD COLUMN IF NOT EXISTS page integer;   -- kinds: see library_kind_check above
+ALTER TABLE library ADD COLUMN IF NOT EXISTS page integer;
+-- a couplet or phrase can hold a note without being bookmarked (bookmarked false: a note only)
+ALTER TABLE library ADD COLUMN IF NOT EXISTS bookmarked boolean NOT NULL DEFAULT true;   -- kinds: see library_kind_check above
 -- e-book details (owner request): language, reading direction, the writer's name as printed, co-authors (names;
 -- coauthor_ids = those who are poets on the site, so the book is listed on their pages too). Extra tags are
 -- entity_tags with entity 'ebook'.

@@ -3,7 +3,8 @@
 // a bookmarked phrase opens its note when pressed (the poem page's note box), where it can also be removed
 const { s } = Astro.props as { s: [string, string, string?][] };
 const noteOf = (d?: string) => (d ? (JSON.parse(d).note as string | undefined) : undefined);
+const noteOnly = (d?: string) => !!d && !!JSON.parse(d).noteOnly; // a phrase with a note but no bookmark
 ---
 {s.map(([t, k, d]) => (k === 'mark' ? <mark>{t}</mark> : k === 'pen' ? <span class="takhallus">{t}</span>
-  : k === 'bmk' ? <span class:list={['bmk', { 'has-note': noteOf(d) }]} data-phrase={d} role="button" tabindex="0"
+  : k === 'bmk' ? <span class:list={['bmk', { 'has-note': noteOf(d), 'note-only': noteOnly(d) }]} data-phrase={d} role="button" tabindex="0"
       title={noteOf(d) ? `نوٹ: ${noteOf(d)}` : 'محفوظ شدہ عبارت: نوٹ لکھیں یا ہٹائیں'}>{t}</span> : t))}

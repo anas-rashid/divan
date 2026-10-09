@@ -63,9 +63,11 @@ const glyph = (poemId: number) => (marks.poems[poemId]?.fav ? ' mark-fav' : '') 
 // the marked part of each line of a block, for its bookmarked phrases
 const lineMarks = (c: number, lines: string[]) => {
   const out: Mark[][] = lines.map(() => []);
-  for (const p of saved.phrases.filter((x: any) => x.couplet === c)) {
+  const noteOnly = notes.filter((n) => n.couplet === c && n.phrase && !saved.phrases.some((p: any) => p.couplet === c && p.phrase === n.phrase))
+    .map((n) => ({ couplet: c, phrase: n.phrase, noteOnly: true }));
+  for (const p of [...saved.phrases.filter((x: any) => x.couplet === c), ...noteOnly]) {
     const note = notes.find((n) => n.couplet === c && n.phrase === p.phrase)?.note;
-    const save = JSON.stringify({ kind: 'phrase', poemId, couplet: c, phrase: p.phrase, note });
+    const save = JSON.stringify({ kind: 'phrase', poemId, couplet: c, phrase: p.phrase, note, noteOnly: p.noteOnly });
     phraseParts(lines, p.phrase).forEach((part, i) => part && out[i].push({ part, save }));
   }
   return out;
@@ -149,8 +151,7 @@ import Icon from '../components/Icon.astro';
           const cn = noteOf(b.c), any = cn || notes.some((n) => n.couplet === b.c);
           // the bookmark, and beside it the note glyph (shown when this couplet or a phrase in it has a note)
           const bm = <span class="c-tools">
-            <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں"
-              data-confirm={cn ? 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔' : undefined} />
+            <button type="button" class="bm" data-save={bookmark(b.c)} aria-pressed={String(saved.couplets.includes(b.c))} aria-label="شعر محفوظ کریں" />
             <button type="button" class="nt" data-for={b.c} aria-pressed={String(!!any)} aria-label={any ? 'نوٹ' : 'نوٹ لکھیں'} title={cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'} />
             <button type="button" class="sh" data-for={b.c} aria-label="بھیجیں" title="تصویر بنا کر بھیجیں" />
             <button type="button" class="dl" data-for={b.c} aria-label="تصویر ڈاؤن لوڈ کریں" title="تصویر ڈاؤن لوڈ کریں" />
@@ -202,7 +203,7 @@ import Icon from '../components/Icon.astro';
   import nq400 from '@fontsource/noto-nastaliq-urdu/files/noto-nastaliq-urdu-arabic-400-normal.woff2?url';
   let cardFonts: Promise<unknown> | null = null;
   // notes on couplets and phrases: the glyph beside a couplet's bookmark, a highlighted phrase, or نوٹ in the selection menu
-  // open one box; saving a note bookmarks the couplet or phrase (the API does both)
+  // open one box; a note never bookmarks (bookmarks are the bookmark button's)
   const data = document.getElementById('notes-data');
   if (data) {
     const { poemId, notes, phrases, signedIn } = JSON.parse(data.textContent!) as { poemId: number; notes: { couplet: number; phrase: string | null; note: string }[]; phrases: { couplet: number; phrase: string }[]; signedIn: boolean };
@@ -231,9 +232,7 @@ import Icon from '../components/Icon.astro';
     const mark = (couplet: number) => { // the glyph follows the notes on this couplet
       const nt = document.querySelector(`.nt[data-for="${couplet}"]`); if (!nt) return;
       const cn = notes.find((n) => n.couplet === couplet && !n.phrase)?.note, any = notes.some((n) => n.couplet === couplet);
-      nt.setAttribute('aria-pressed', String(any)); nt.setAttribute('title', cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں');
-      const bm = document.querySelector(`#c${couplet} .bm`) as HTMLElement | null;
-      if (bm) { if (cn) { bm.setAttribute('aria-pressed', 'true'); bm.dataset.confirm = 'شعر محفوظ شدہ سے ہٹائیں؟ اس پر آپ کا نوٹ بھی ہٹ جائے گا۔'; } else delete bm.dataset.confirm; }
+      nt.setAttribute('aria-pressed', String(any)); nt.setAttribute('title', cn ? `نوٹ: ${cn}` : any ? 'اس شعر کی عبارتوں پر نوٹ' : 'نوٹ لکھیں'); // the bookmark is separate
     };
     box.addEventListener('close', async () => {
       const act = box.returnValue, { couplet, phrase } = at;
