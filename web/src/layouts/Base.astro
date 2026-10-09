@@ -19,7 +19,7 @@ import Icon from '../components/Icon.astro';
     <meta name="description" content={description} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script is:inline>
-      // font + theme choice applied before paint (Naskh and system theme by default)
+      // font, palette and light/dark applied before paint (Naskh, sepia and the system's light/dark by default)
       try {
         // ?font=nastaliq|naskh in the URL sets the choice (shareable links)
         const f = new URLSearchParams(location.search).get('font');
@@ -27,6 +27,8 @@ import Icon from '../components/Icon.astro';
         if (localStorage.getItem('divan-font') === 'nastaliq') document.documentElement.classList.add('nastaliq');
         const t = localStorage.getItem('divan-theme');
         if (t) document.documentElement.dataset.theme = t;
+        const pal = localStorage.getItem('divan-palette'); // sepia when unset
+        if (pal) document.documentElement.dataset.palette = pal;
       } catch (e) {}
     </script>
   </head>
@@ -52,10 +54,26 @@ import Icon from '../components/Icon.astro';
           {Astro.locals.user
             ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
             : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
-          <label class="font-pick" title="خط"><Icon name="font" size={18} /><select id="font-select" aria-label="خط">
-            <option value="naskh">نسخ</option><option value="nastaliq">نستعلیق</option>
-          </select></label>
-          <button type="button" class="icon-btn" id="theme-toggle" aria-label="روشن یا تاریک" title="روشن یا تاریک"><Icon name="theme" /></button>
+          <details class="display-menu">
+            <summary class="icon-btn" title="خط اور رنگ" aria-label="خط اور رنگ"><Icon name="settings" /></summary>
+            <div class="display-panel">
+              <p>خط</p>
+              <div class="seg"><button type="button" data-font="naskh">نسخ</button><button type="button" data-font="nastaliq" class="f-nastaliq">نستعلیق</button></div>
+              <p>رنگ</p>
+              <div class="swatches">
+                {[['', 'سپیا', '#fbf6ea', '#bf3f2a'], ['teal', 'فیروزی', '#e2f0ee', '#0b4f6c'], ['lapis', 'نیلگوں', '#e6ebf8', '#1d3b8b'],
+                  ['green', 'سبز', '#e5eede', '#1f5d3a'], ['rose', 'گلابی', '#f5e6ea', '#6b2c5e']].map(([v, name, a, b]) => (
+                  <button type="button" data-palette={v} title={name} aria-label={name} style={`--a: ${a}; --b: ${b}`}><span></span>{name}</button>
+                ))}
+              </div>
+              <p>روشنی</p>
+              <div class="seg">
+                <button type="button" data-theme-pick="light"><Icon name="sun" size={16} /> روشن</button>
+                <button type="button" data-theme-pick="dark"><Icon name="moon" size={16} /> تاریک</button>
+                <button type="button" data-theme-pick=""><Icon name="theme" size={16} /> خودکار</button>
+              </div>
+            </div>
+          </details>
           {Astro.locals.user && (
             <form method="post" action="/account" class="inline-form">
               <input type="hidden" name="act" value="signout" />
@@ -96,13 +114,24 @@ import Icon from '../components/Icon.astro';
     </footer>
     <script is:inline>
       const root = document.documentElement;
-      // the reading font, picked from a list (each name shown in its own font)
-      const fontPick = document.getElementById('font-select');
-      fontPick.value = root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh';
-      fontPick.onchange = () => {
-        root.classList.toggle('nastaliq', fontPick.value === 'nastaliq');
-        try { localStorage.setItem('divan-font', fontPick.value); } catch (e) {}
+      // display settings: reading font, colour palette, light/dark/automatic; each choice is remembered
+      const panel = document.querySelector('.display-menu');
+      const store = (k, v) => { try { v ? localStorage.setItem(k, v) : localStorage.removeItem(k); } catch (e) {} };
+      const marks = () => {
+        const on = { font: root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh', palette: root.dataset.palette ?? '', theme: root.dataset.theme ?? '' };
+        panel.querySelectorAll('[data-font]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.font === on.font)));
+        panel.querySelectorAll('[data-palette]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.palette === on.palette)));
+        panel.querySelectorAll('[data-theme-pick]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themePick === on.theme)));
       };
+      panel.addEventListener('click', (e) => {
+        const b = e.target.closest('button'); if (!b) return;
+        if (b.dataset.font) { root.classList.toggle('nastaliq', b.dataset.font === 'nastaliq'); store('divan-font', b.dataset.font); }
+        if (b.dataset.palette != null) { if (b.dataset.palette) root.dataset.palette = b.dataset.palette; else delete root.dataset.palette; store('divan-palette', b.dataset.palette); }
+        if (b.dataset.themePick != null) { if (b.dataset.themePick) root.dataset.theme = b.dataset.themePick; else delete root.dataset.theme; store('divan-theme', b.dataset.themePick); }
+        marks();
+      });
+      document.addEventListener('click', (e) => { if (panel.open && !panel.contains(e.target)) panel.open = false; }); // close when clicking elsewhere
+      marks();
       // Urdu on-screen keyboard, Gboard/Windows Urdu layout
       const BASE = [[...'طصھدٹپتبجح'], [...'مورنلہاکی'], [...'قفےسشغع']];
       const SHIFT = [['ظ','ض','ذ','ڈ','ث','ّ','ۃ','ـ','چ','خ'], ['ژ','ز','ڑ','ں','ۂ','ء','آ','گ',''], ['','','ۓ','','ؤ','ئ','']];
@@ -404,11 +433,6 @@ import Icon from '../components/Icon.astro';
         if (!menu.hidden) hideMenu(); else if (!dict.hidden) closeDict();
       });
 
-      document.getElementById('theme-toggle').onclick = () => {
-        const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
-        root.dataset.theme = dark ? 'light' : 'dark';
-        try { localStorage.setItem('divan-theme', root.dataset.theme); } catch (e) {}
-      };
     </script>
   </body>
 </html>

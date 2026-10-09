@@ -23,6 +23,20 @@
   --gold-subtle: #2a2418; --border: #9b7332; --brand: #d4553a; color-scheme: dark;
   --action: #7db3e8; --action-ink: #0d1520; --ok: #7cc47f; --danger: #f07a6e;
 }
+/* colour palettes (owner request): sepia (the default above) and four calmer colourful ones, each light and dark;
+   chosen in the display settings (data-palette on <html>); dark follows the system or the reader's choice */
+:root[data-palette='teal'] { --bg: #f2f8f7; --paper: #fcfefe; --poem: #e2f0ee; --inner: #e9f3f1; --nested: #d4e8e4; --ink: #0f1f1d; --muted: #4a615e; --lapis: #0b4f6c; --gold: #2a9d8f; --gold-light: #b6dad4; --gold-subtle: #e4f2ef; --border: #8db8b1; --brand: #c8553d; --action: #0b4f6c; }
+@media (prefers-color-scheme: dark) { :root[data-palette='teal']:not([data-theme='light']) { --bg: #0f1716; --paper: #121c1b; --poem: #152220; --inner: #1a2927; --nested: #20322f; --ink: #dcebe8; --muted: #8fa8a4; --lapis: #e6f4f2; --gold: #3fb5a5; --gold-light: #23413c; --gold-subtle: #172b28; --border: #2f7d72; --brand: #e07a5f; --action: #5cc2b3; --action-ink: #0c1514; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; } }
+:root[data-palette='teal'][data-theme='dark'] { --bg: #0f1716; --paper: #121c1b; --poem: #152220; --inner: #1a2927; --nested: #20322f; --ink: #dcebe8; --muted: #8fa8a4; --lapis: #e6f4f2; --gold: #3fb5a5; --gold-light: #23413c; --gold-subtle: #172b28; --border: #2f7d72; --brand: #e07a5f; --action: #5cc2b3; --action-ink: #0c1514; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; }
+:root[data-palette='lapis'] { --bg: #f3f5fb; --paper: #fdfdff; --poem: #e6ebf8; --inner: #ecf0f9; --nested: #dae1f3; --ink: #131a2e; --muted: #4e5772; --lapis: #1d3b8b; --gold: #c49a2c; --gold-light: #d8d0ad; --gold-subtle: #eef0f8; --border: #98a6c8; --brand: #b83254; --action: #1d3b8b; }
+@media (prefers-color-scheme: dark) { :root[data-palette='lapis']:not([data-theme='light']) { --bg: #10131c; --paper: #131724; --poem: #171c2c; --inner: #1c2235; --nested: #232a40; --ink: #e1e5f2; --muted: #98a0bb; --lapis: #eef1fb; --gold: #d4b25a; --gold-light: #2c3350; --gold-subtle: #1b2034; --border: #4b5c9a; --brand: #e0607e; --action: #8ea9ee; --action-ink: #0e1220; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; } }
+:root[data-palette='lapis'][data-theme='dark'] { --bg: #10131c; --paper: #131724; --poem: #171c2c; --inner: #1c2235; --nested: #232a40; --ink: #e1e5f2; --muted: #98a0bb; --lapis: #eef1fb; --gold: #d4b25a; --gold-light: #2c3350; --gold-subtle: #1b2034; --border: #4b5c9a; --brand: #e0607e; --action: #8ea9ee; --action-ink: #0e1220; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; }
+:root[data-palette='green'] { --bg: #f3f7f0; --paper: #fdfefb; --poem: #e5eede; --inner: #ecf3e7; --nested: #d9e6cf; --ink: #151f0f; --muted: #54614a; --lapis: #1f5d3a; --gold: #a8872e; --gold-light: #d7cea2; --gold-subtle: #eff1e1; --border: #9db38c; --brand: #b5452f; --action: #1f5d3a; }
+@media (prefers-color-scheme: dark) { :root[data-palette='green']:not([data-theme='light']) { --bg: #111611; --paper: #141a13; --poem: #182017; --inner: #1d271b; --nested: #243022; --ink: #e0e8d8; --muted: #9aa88e; --lapis: #eef5e8; --gold: #c9a94e; --gold-light: #2c3a27; --gold-subtle: #1c251a; --border: #4f7a45; --brand: #e0705a; --action: #84c79a; --action-ink: #0d150f; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; } }
+:root[data-palette='green'][data-theme='dark'] { --bg: #111611; --paper: #141a13; --poem: #182017; --inner: #1d271b; --nested: #243022; --ink: #e0e8d8; --muted: #9aa88e; --lapis: #eef5e8; --gold: #c9a94e; --gold-light: #2c3a27; --gold-subtle: #1c251a; --border: #4f7a45; --brand: #e0705a; --action: #84c79a; --action-ink: #0d150f; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; }
+:root[data-palette='rose'] { --bg: #fbf4f6; --paper: #fffcfd; --poem: #f5e6ea; --inner: #f8edf0; --nested: #eedbe0; --ink: #29141a; --muted: #6c5057; --lapis: #6b2c5e; --gold: #c27c88; --gold-light: #e7c8ce; --gold-subtle: #f7e8ec; --border: #c8a1a9; --brand: #b0304a; --action: #6b2c5e; }
+@media (prefers-color-scheme: dark) { :root[data-palette='rose']:not([data-theme='light']) { --bg: #181214; --paper: #1c1518; --poem: #22191c; --inner: #291e22; --nested: #31252a; --ink: #efe0e4; --muted: #b39aa1; --lapis: #fbeef2; --gold: #d792a0; --gold-light: #3e2a30; --gold-subtle: #2a1d21; --border: #8a5563; --brand: #ef6f86; --action: #e3a3c3; --action-ink: #1d1216; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; } }
+:root[data-palette='rose'][data-theme='dark'] { --bg: #181214; --paper: #1c1518; --poem: #22191c; --inner: #291e22; --nested: #31252a; --ink: #efe0e4; --muted: #b39aa1; --lapis: #fbeef2; --gold: #d792a0; --gold-light: #3e2a30; --gold-subtle: #2a1d21; --border: #8a5563; --brand: #ef6f86; --action: #e3a3c3; --action-ink: #1d1216; --ok: #7cc47f; --danger: #f07a6e; color-scheme: dark; }
 :root.nastaliq { --font: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', serif; --verse-lh: 2.7; }
 
 * { box-sizing: border-box; }
@@ -481,13 +495,23 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .icon { flex: none; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .icon-btn.small { width: 30px; height: 30px; }
-/* the font picker in the header: the icon and a list */
-.font-pick { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 4px 0 10px; border: 1.5px solid var(--border); border-radius: 999px;
-  background: var(--inner); color: var(--ink); cursor: pointer; }
-.font-pick:hover, .font-pick:focus-within { border-color: var(--brand); color: var(--brand); }
-.font-pick select { font: 400 .85rem/1.4 'Noto Naskh Arabic', serif; height: 28px; border: 0; background: transparent; color: inherit;
-  cursor: pointer; padding: 0 2px; } /* Naskh at a fixed height whatever the reading font (Nastaliq would spill out) */
-.font-pick select:focus { outline: none; }
+/* display settings in the header: a button and its panel (font, palette swatches, light/dark/automatic) */
+.display-menu { position: relative; }
+.display-menu > summary { list-style: none; }
+.display-menu > summary::-webkit-details-marker { display: none; }
+.display-menu[open] > summary { border-color: var(--brand); color: var(--brand); }
+.display-panel { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; width: 260px; padding: 10px 14px; border: 1.5px solid var(--border);
+  border-radius: 14px; background: var(--paper); box-shadow: 0 8px 24px rgb(0 0 0 / .18); font: 400 .9rem/1.8 'Noto Naskh Arabic', serif; color: var(--ink); }
+.display-panel p { margin: 6px 0 4px; color: var(--muted); font-size: .8rem; }
+.display-panel .seg { display: flex; gap: 4px; }
+.display-panel button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; flex: 1; font: inherit; font-size: .85rem; padding: 2px 6px;
+  border: 1.5px solid var(--border); border-radius: 10px; background: var(--inner); color: var(--ink); cursor: pointer; }
+.display-panel button[aria-pressed='true'] { border-color: var(--action); color: var(--action); font-weight: 700; }
+.display-panel .f-nastaliq { font-family: 'Noto Nastaliq Urdu', serif; line-height: 2.2; }
+.display-panel .swatches { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.display-panel .swatches button { flex-direction: column; font-size: .7rem; padding: 4px 2px; }
+.display-panel .swatches span { width: 22px; height: 22px; border-radius: 50%; background: linear-gradient(135deg, var(--a) 50%, var(--b) 50%);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / .2); }
 .glyph-icon { position: relative; display: inline-flex; }
 .glyph-icon > span { position: absolute; inset: 0 0 4px 2px; display: flex; align-items: center; justify-content: center;
   font: 700 11px/1 'Noto Naskh Arabic', serif; }
