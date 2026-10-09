@@ -193,6 +193,9 @@ import Icon from '../components/Icon.astro';
 </Base>
 
 <script>
+  import nq700 from '@fontsource/noto-nastaliq-urdu/files/noto-nastaliq-urdu-arabic-700-normal.woff2?url';
+  import nq400 from '@fontsource/noto-nastaliq-urdu/files/noto-nastaliq-urdu-arabic-400-normal.woff2?url';
+  let cardFonts: Promise<unknown> | null = null;
   // notes on couplets and phrases: the glyph beside a couplet's bookmark, a highlighted phrase, or نوٹ in the selection menu
   // open one box; saving a note bookmarks the couplet or phrase (the API does both)
   const data = document.getElementById('notes-data');
@@ -254,7 +257,12 @@ import Icon from '../components/Icon.astro';
       const prose = !!document.querySelector(`p.para[data-c="${c}"]`);
       const lines = linesOf(c), S = 1080, cv = document.createElement('canvas'); cv.width = cv.height = S;
       const g = cv.getContext('2d')!; // the card is always on paper, whatever the page's palette
-      await Promise.all(['700 60px "Noto Nastaliq Urdu"', '400 34px "Noto Naskh Arabic"'].map((f) => document.fonts.load(f, lines.join(' '))));
+      // the card's own Nastaliq faces, loaded here: the page may not have used bold Nastaliq yet, and a fallback font is
+      // wider (lines would wrap) and not Nastaliq
+      const NQ = '"Divan Card"';
+      if (!cardFonts) cardFonts = Promise.all([[nq700, '700'], [nq400, '400']].map(([url, weight]) => new FontFace('Divan Card', `url(${url})`, { weight }).load()
+        .then((f) => { document.fonts.add(f); })));
+      await cardFonts;
       g.fillStyle = '#fbf6ea'; g.fillRect(0, 0, S, S);
       g.strokeStyle = '#b88828'; g.lineWidth = 18; g.strokeRect(9, 9, S - 18, S - 18); g.lineWidth = 3; g.strokeRect(40, 40, S - 80, S - 80);
       const logo = new Image(); logo.src = '/logo/turanj.svg'; await logo.decode().catch(() => {});
@@ -265,8 +273,8 @@ import Icon from '../components/Icon.astro';
       const wrap = (t: string, w: number) => { const out: string[] = []; let row = '';
         for (const word of t.split(' ')) { const next = row ? row + ' ' + word : word; if (g.measureText(next).width > w && row) { out.push(row); row = word; } else row = next; }
         return row ? [...out, row] : out; };
-      for (; size >= 30; size -= 2) {
-        g.font = `700 ${size}px "Noto Nastaliq Urdu"`;
+      for (; size >= (prose ? 30 : 22); size -= 2) { // verse shrinks until each misra fits on one line
+        g.font = `700 ${size}px ${NQ}`;
         rows = lines.flatMap((l) => wrap(l, S - 200));
         // verse keeps each misra on one line (prose wraps); Nastaliq is tall: lines 2.6 sizes apart leave room for the ✤ between misras
         if ((prose || rows.length === lines.length) && rows.length * size * 2.6 <= 560) break;
@@ -277,8 +285,8 @@ import Icon from '../components/Icon.astro';
       const y = S - 260, half = (from: number, to: number) => { g.beginPath(); g.moveTo(from, y); g.quadraticCurveTo((from + to) / 2, y - 6, to, y - 4); g.lineTo(to, y + 4); g.quadraticCurveTo((from + to) / 2, y + 6, from, y); g.fill(); };
       g.fillStyle = '#1f4e79'; half(S / 2 - 30, S / 2 - 230); half(S / 2 + 30, S / 2 + 230);
       g.fillStyle = '#bf3f2a'; g.font = '700 34px "Noto Naskh Arabic"'; g.fillText('✤', S / 2, y + 7);
-      g.fillStyle = '#bf3f2a'; g.font = '700 40px "Noto Nastaliq Urdu"'; g.fillText(poet, S / 2, S - 190);
-      g.fillStyle = '#635543'; g.font = '400 30px "Noto Naskh Arabic"'; g.fillText(`${title} · دیوان`, S / 2, S - 120);
+      g.fillStyle = '#bf3f2a'; g.font = `700 40px ${NQ}`; g.fillText(poet, S / 2, S - 190);
+      g.fillStyle = '#635543'; g.font = `400 30px ${NQ}`; g.fillText(`${title} · دیوان`, S / 2, S - 115);
       const blob: Blob = await new Promise((done) => cv.toBlob((b) => done(b!), 'image/png'));
       const file = new File([blob], `divan-${poemId}-${c + 1}.png`, { type: 'image/png' });
       const url = `${location.origin}${location.pathname}#c${c}`;
