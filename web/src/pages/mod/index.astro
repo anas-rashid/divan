@@ -12,6 +12,8 @@ if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صر�
 const token = Astro.cookies.get(COOKIE)!.value, showLog = Astro.url.searchParams.has('log');
 const queue = showLog ? null : (await asUser(token, '/api/mod/queue')).data;
 const log = showLog ? (await asUser(token, '/api/mod/log')).data : null;
+// what kind of change a row is (a work's text needs no label)
+const KIND: Record<string, string> = { order: 'ترتیب: ', 'tags-category': 'ٹیگ: ', 'tags-work': 'ٹیگ: ', ebook: 'ای بک: ' };
 const groups = queue ? [
   ['میرے مسودے', queue.mine, 'ابھی کوئی مسودہ نہیں۔ کسی کلام کے صفحے پر "ترمیم کریں" سے شروع کریں۔'],
   ...(me.role !== 'mod-l2' ? [['جائزے کے منتظر', queue.review, 'جائزے کے لیے کچھ نہیں۔']] : []),
@@ -29,7 +31,7 @@ const groups = queue ? [
         <ul class="lib-list">
           {items.map((r) => (
             <li>
-              <a class="lib-title" href={`/mod/rev/${r.id}`}>{r.title}</a>
+              <a class="lib-title" href={`/mod/rev/${r.id}`}>{KIND[r.entity] ?? ''}{r.title}</a>
               <span class={`status s-${r.status}`}>{STATUS[r.status]}</span>
               <p class="muted small-line">{r.summary || 'بغیر خلاصہ'} · <bdi dir="ltr">{r.author_email}</bdi> · <bdi dir="ltr">{when(r.updated_at)}</bdi></p>
             </li>
@@ -47,7 +49,7 @@ const groups = queue ? [
             <td><bdi dir="ltr">{when(e.at)}</bdi></td>
             <td><bdi dir="ltr">{e.actor_email}</bdi></td>
             <td>{EVENT[e.action] ?? e.action}{e.version && e.action === 'published' ? ` (ورژن ${ud(e.version)})` : ''}</td>
-            <td><a href={`/mod/rev/${e.revision}`}>{e.title}</a></td>
+            <td><a href={`/mod/rev/${e.revision}`}>{KIND[e.entity] ?? ''}{e.title}</a></td>
             <td>{e.comment}</td>
           </tr>
         ))}
