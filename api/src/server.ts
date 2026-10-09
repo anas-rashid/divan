@@ -20,6 +20,7 @@ import { permissionRoutes } from './permissions.ts';
 import { libraryRoutes } from './library.ts';
 import { moderationRoutes } from './moderation.ts';
 import { siteRoutes } from './site.ts';
+import { tagRoutes, pageTags } from './tags.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 const PAGE_SIZE = 20;
@@ -71,7 +72,8 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
     const divan = e && { version: e.version, at: e.published_at, ...e.credits,
       commit_url: e.commit ? (process.env.DIVAN_DATA_COMMIT_URL ?? 'https://git.anasrashid.net/anas/divan-data/commit/{sha}').replace('{sha}', e.commit) : null };
     const { search_text, ...rest } = poem;
-    return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan };
+    return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan,
+      tags: await pageTags('work', poem.id) };
   }
 
   const cat = (await pool.query('SELECT * FROM categories WHERE url = $1', [url])).rows[0];
@@ -94,19 +96,29 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
     ]);
     return {
       type: cat.parent_id === null ? 'poet' : 'category',
-      category: cat, poet: poet.rows[0], breadcrumbs: crumbs, children: children.rows, poems: poems.rows,
+      category: cat, poet: poet.rows[0], breadcrumbs: crumbs, children: children.rows, poems: poems.rows, tags: await pageTags('category', cat.id),
     };
   }
   return reply.code(404).send({ error: 'not found' });
 });
 
 app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/search', async (req) => {
-  const patterns = likePatterns(req.query.q ?? '');
-  if (!patterns.length) return { total: 0, page: 1, pageSize: PAGE_SIZE, results: [], poets: [], books: [] };
+  // tag:عشق or ٹیگ:عشق (quotes for names with spaces) keeps works carrying the tag: on the work, one of its couplets,
+  // or its book/chapter; the rest of the query is text as before
+  const TAG = /(?:tag|ٹیگ):(?:"([^"]+)"|(\S+))/g;
+  const tagNames = [...new Set([...(req.query.q ?? '').matchAll(TAG)].map((m) => (m[1] ?? m[2]).trim()).filter(Boolean))].slice(0, 5);
+  const q = (req.query.q ?? '').replace(TAG, ' ').trim();
+  const patterns = likePatterns(q);
+  if (!patterns.length && !tagNames.length) return { total: 0, page: 1, pageSize: PAGE_SIZE, results: [], poets: [], books: [], tags: [] };
   const page = Math.max(1, Number(req.query.page) || 1);
   const params: unknown[] = [...patterns];
   const where = patterns.map((_, i) => `p.search_text ILIKE $${i + 1}`);
-  const textWhere = where.join(' AND ');
+  for (const name of tagNames) {
+    params.push(name);
+    where.push(`EXISTS (SELECT 1 FROM entity_tags e JOIN tags g ON g.id = e.tag_id WHERE g.name = $${params.length}
+      AND ((e.entity = 'work' AND e.entity_id = p.id) OR (e.entity = 'category' AND e.entity_id = p.category_id)))`);
+  }
+  const textWhere = where.join(' AND '), textParams = [...params];
   const poetIds = [...new Set(String(req.query.poet ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 50);
   if (poetIds.length) {
     params.push(poetIds);
@@ -114,7 +126,7 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
   }
   const sql = `FROM poems p JOIN poets t ON t.id = p.poet_id WHERE ${where.join(' AND ')}`;
   // several words: poems with them together as a phrase come first
-  const phrase = likePatterns(`"${req.query.q}"`)[0];
+  const phrase = likePatterns(`"${q}"`)[0] ?? '%';
   const [count, rows] = await Promise.all([
     pool.query(`SELECT count(*)::int AS n ${sql}`, params),
     pool.query(
@@ -125,15 +137,21 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
     ),
   ]);
   // snippet: the verse holding most of the terms, best the whole phrase (with its couplet partner), else the first line
-  const ts = terms(req.query.q ?? ''), whole = ts.join(' '), top = ts.length + (ts.length > 1 ? 1 : 0);
+  const ts = terms(q), whole = ts.join(' '), top = ts.length + (ts.length > 1 ? 1 : 0);
   const verses = await pool.query(
     'SELECT poem_id, position, couplet, text FROM verses WHERE poem_id = ANY($1) ORDER BY poem_id, vorder',
     [rows.rows.map((r) => r.id)],
   );
   const byPoem = Map.groupBy(verses.rows, (v) => v.poem_id);
+  // with tags and no words, a work's snippet is its tagged couplet
+  const tagged = tagNames.length && !ts.length ? (await pool.query(
+    `SELECT e.entity_id AS poem_id, min(e.couplet) AS couplet FROM entity_tags e JOIN tags g ON g.id = e.tag_id
+     WHERE e.entity = 'work' AND e.couplet > 0 AND g.name = ANY($1) AND e.entity_id = ANY($2) GROUP BY e.entity_id`,
+    [tagNames, rows.rows.map((r) => r.id)])).rows : [];
   const results = rows.rows.map(({ id, ...r }) => {
     const vs = byPoem.get(id) ?? [];
-    let best = vs[0], score = 0;
+    const tc = tagged.find((t) => t.poem_id === id)?.couplet;
+    let best = (tc && vs.find((v) => v.couplet === tc - 1)) || vs[0], score = 0; // tags count couplets from 1
     for (const v of vs) {
       const n = normalise(v.text), k = ts.filter((t) => n.includes(t)).length + (ts.length > 1 && n.includes(whole) ? 1 : 0);
       if (k > score) [best, score] = [v, k];
@@ -144,14 +162,19 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
     return { ...r, snippet: lines, prose: best?.position === 'Paragraph' };
   });
   // names and titles on the first page: poets/writers whose name has every word, books/chapters likewise
-  const names = page === 1 && !poetIds.length ? await nameMatches(ts) : { poets: [], books: [] };
+  const names = page === 1 && !poetIds.length && ts.length ? await nameMatches(ts) : { poets: [], books: [] };
+  // tags whose name has the words (first page), and the tags searched for
+  const tagRows = page === 1 && (ts.length || tagNames.length) ? (await pool.query(
+    `SELECT g.type, g.name, count(*)::int AS n FROM tags g JOIN entity_tags e ON e.tag_id = g.id GROUP BY g.id ORDER BY n DESC`)).rows
+    .filter((t) => tagNames.includes(t.name) || (ts.length && ts.every((w) => normalise(t.name).includes(w)))).slice(0, 20) : [];
   // which poets/writers the matching content comes from (whatever the poet filter), for narrowing down
   const [authors, selected] = await Promise.all([
     pool.query(`SELECT t.id, t.url, t.nickname, count(*)::int AS n FROM poems p JOIN poets t ON t.id = p.poet_id
-                WHERE ${textWhere} GROUP BY t.id ORDER BY n DESC, t.nickname LIMIT 40`, patterns),
+                WHERE ${textWhere} GROUP BY t.id ORDER BY n DESC, t.nickname LIMIT 40`, textParams),
     poetIds.length ? pool.query('SELECT id, url, nickname FROM poets WHERE id = ANY($1) ORDER BY nickname', [poetIds]) : { rows: [] },
   ]);
-  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results, ...names, authors: authors.rows, selected: selected.rows };
+  return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results, ...names, tags: tagRows, searchedTags: tagNames,
+    authors: authors.rows, selected: selected.rows };
 });
 
 // one word in Arabic script (Urdu, Persian, Arabic), as selected by a reader
@@ -167,6 +190,7 @@ permissionRoutes(app);
 libraryRoutes(app);
 moderationRoutes(app);
 siteRoutes(app);
+tagRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
 await app.listen({ port, host: process.env.HOST ?? '127.0.0.1' });

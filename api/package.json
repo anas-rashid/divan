@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node src/server.ts",
     "import": "node src/import.ts",
-    "test": "node --test src/*.test.ts",
+    "test": "node --test --test-concurrency=1 src/*.test.ts",
     "dict-sync": "node src/dict-sync.ts",
     "make-admin": "node src/admin-cli.ts"
   },

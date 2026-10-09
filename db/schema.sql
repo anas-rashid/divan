@@ -199,3 +199,19 @@ CREATE TABLE IF NOT EXISTS home_sections (
     sort     text NOT NULL DEFAULT 'manual' CHECK (sort IN ('manual', 'alpha', 'timeline')),
     poets    integer[] NOT NULL DEFAULT '{}'
 );
+-- tags (#52, api/src/tags.ts): typed labels on books/chapters (a poet's root category = the poet), works and
+-- couplets (couplet > 0). The published record is divan-data/divan/<url>.tags; the import reloads it.
+CREATE TABLE IF NOT EXISTS tags (
+    id   serial PRIMARY KEY,
+    type text NOT NULL,                          -- موضوع، صنف، بحر، شخصیت، مقام، دور، ٹیگ (free)
+    name text NOT NULL,
+    UNIQUE (type, name)
+);
+CREATE TABLE IF NOT EXISTS entity_tags (
+    tag_id    integer NOT NULL REFERENCES tags(id) ON DELETE CASCADE,
+    entity    text NOT NULL CHECK (entity IN ('category', 'work')),
+    entity_id integer NOT NULL,                  -- categories.id / poems.id
+    couplet   integer NOT NULL DEFAULT 0,        -- a work's couplet; 0 = the whole work or category
+    PRIMARY KEY (tag_id, entity, entity_id, couplet)
+);
+CREATE INDEX IF NOT EXISTS entity_tags_target ON entity_tags(entity, entity_id);

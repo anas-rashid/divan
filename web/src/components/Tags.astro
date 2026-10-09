@@ -1,0 +1,8 @@
+---
+// tag chips (#52): each links to its tag page
+const { tags } = Astro.props as { tags: { type: string; name: string }[] };
+const href = (t: { type: string; name: string }) => `/tag/${encodeURIComponent(t.type)}/${encodeURIComponent(t.name)}`;
+---
+{tags.length > 0 && (
+  <p class="tag-chips">{tags.map((t) => <a class="tag-chip" href={href(t)}><small>{t.type}</small> {t.name}</a>)}</p>
+)}

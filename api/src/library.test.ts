@@ -26,7 +26,9 @@ test('library: save and unsave poets, works, couplets and words; full paths; not
   const other = (await call('POST', '/api/auth/signup', { email: `lib2-${run}@divan.test`, password: 'pass-word-1' })).json();
   const t = me.token, toggle = (body: object, tk = t) => call('POST', '/api/library/toggle', body, tk);
 
-  const poem = (await pool.query(`SELECT p.id FROM poems p JOIN categories c ON c.id = p.category_id WHERE c.url = '/p266/ghazal' LIMIT 1`)).rows[0].id;
+  // a Ghalib ghazal with at least three couplets (the test bookmarks couplet 2)
+  const poem = (await pool.query(`SELECT p.id FROM poems p JOIN categories c ON c.id = p.category_id WHERE c.url = '/p266/ghazal'
+    AND EXISTS (SELECT 1 FROM verses v WHERE v.poem_id = p.id AND v.couplet >= 2) ORDER BY p.id LIMIT 1`)).rows[0].id;
 
   assert.equal((await call('GET', '/api/library')).statusCode, 401, 'signed out');
   assert.deepEqual((await toggle({ kind: 'poet', poetId: 266 })).json().saved, true);

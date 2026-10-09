@@ -48,7 +48,7 @@ test('pipeline: L2 drafts, L1 approves, admin publishes; returns, rejects, permi
 
     assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, reader.token)).statusCode, 403, 'readers cannot moderate');
     assert.equal((await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, other.token)).statusCode, 403, 'outside the grant');
-    assert.deepEqual((await call('GET', `/api/mod/can?poem=${poem.id}`, undefined, l2.token)).json(), { edit: true, review: false, publish: false });
+    assert.deepEqual((await call('GET', `/api/mod/can?poem=${poem.id}`, undefined, l2.token)).json(), { edit: true, review: false, publish: false, tags: false });
 
     // opening the editor is not a change: an unchanged draft is not listed, and saving it unchanged drops it
     const blank = (await call('POST', `/api/mod/work/${poem.id}/draft`, undefined, l2.token)).json().id;
