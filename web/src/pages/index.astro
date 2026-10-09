@@ -18,7 +18,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so its rays can 
 <Base>
   <section class="masthead">
     <Fragment set:html={logo.replace('<svg ', '<svg class="logo masthead-logo" aria-hidden="true" ')} />
-    <h1><span class="name">دیوان</span><Bayt /><span class="tagline">اردو کا کلاسیکی ادب</span></h1>
+    <div class="masthead-text"><Bayt /><h1>اردو کا کلاسیکی ادب</h1><Bayt /></div>
   </section>
   <p class="hero-count">{ud(count)} شعرا و ادبا · ویکی ماخذ کے عوامی ملکیت متون</p>
 
