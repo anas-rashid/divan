@@ -397,7 +397,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 /* home page sections editor (/mod/site) */
 .site-section { border: 1px solid var(--border); border-radius: 10px; background: var(--paper); margin: 10px 0; padding: 8px 12px; }
 .site-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
-.site-head input { flex: 1 1 14em; font: inherit; padding: 2px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); }
+.site-head .site-title { flex: 1 1 14em; }
+.site-head input { width: 100%; font: inherit; padding: 2px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--inner); color: var(--ink); }
 .site-poets { list-style: urdu; margin: 8px 0; padding-inline-start: 2.5em; columns: 2 16em; }
 .site-poets li { break-inside: avoid; }
 .site-poets .tool { min-width: 1.6em; padding: 0 4px; margin-inline-start: 4px; font-size: .85rem; }
