@@ -52,7 +52,9 @@ import Icon from '../components/Icon.astro';
           {Astro.locals.user
             ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
             : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
-          <button type="button" class="icon-btn" id="font-toggle" aria-label="خط بدلیں" title="خط: نسخ"><Icon name="font" /></button>
+          <label class="font-pick" title="خط"><Icon name="font" size={18} /><select id="font-select" aria-label="خط">
+            <option value="naskh" class="f-naskh">نسخ</option><option value="nastaliq" class="f-nastaliq">نستعلیق</option>
+          </select></label>
           <button type="button" class="icon-btn" id="theme-toggle" aria-label="روشن یا تاریک" title="روشن یا تاریک"><Icon name="theme" /></button>
           {Astro.locals.user && (
             <form method="post" action="/account" class="inline-form">
@@ -94,13 +96,12 @@ import Icon from '../components/Icon.astro';
     </footer>
     <script is:inline>
       const root = document.documentElement;
-      const fontBtn = document.getElementById('font-toggle');
-      const label = () => (fontBtn.title = `خط: ${root.classList.contains('nastaliq') ? 'نستعلیق' : 'نسخ'}`); // an icon; the name is in the tooltip
-      label();
-      fontBtn.onclick = () => {
-        root.classList.toggle('nastaliq');
-        try { localStorage.setItem('divan-font', root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh'); } catch (e) {}
-        label();
+      // the reading font, picked from a list (each name shown in its own font)
+      const fontPick = document.getElementById('font-select');
+      fontPick.value = root.classList.contains('nastaliq') ? 'nastaliq' : 'naskh';
+      fontPick.onchange = () => {
+        root.classList.toggle('nastaliq', fontPick.value === 'nastaliq');
+        try { localStorage.setItem('divan-font', fontPick.value); } catch (e) {}
       };
       // Urdu on-screen keyboard, Gboard/Windows Urdu layout
       const BASE = [[...'طصھدٹپتبجح'], [...'مورنلہاکی'], [...'قفےسشغع']];
