@@ -3,6 +3,7 @@
 // Switch palette, light/dark and font from the header's display settings.
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
+import TagsBox from '../components/TagsBox.astro';
 if (import.meta.env.PROD) return new Response(null, { status: 404 });
 const colours = [
   ['surfaces', ['surface-page', 'surface-raised', 'surface-poem', 'surface-sunken']],
@@ -71,6 +72,9 @@ const radii = ['sm', 'md', 'lg', 'pill'];
       <span class="status s-submitted">جمع شدہ</span><span class="status s-approved">منظور شدہ</span>
       <span class="status s-published">شائع شدہ</span><span class="status s-returned">واپس</span>
     </p>
+
+    <h2>ٹیگ (صفحے کے آخر میں)</h2>
+    <TagsBox tags={['عشق', 'فراق', 'وصال', 'تصوف', 'شراب', 'بہار', 'خزاں', 'دل', 'حسن', 'وفا', 'جفا', 'تقدیر', 'دنیا', 'موت', 'زندگی', 'یاد'].map((name, i) => ({ type: i % 3 ? 'موضوع' : 'صنف', name }))} />
 
     <h2>خانے</h2>
     <form class="account-form" onsubmit="return false">

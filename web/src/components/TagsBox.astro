@@ -1,12 +1,14 @@
 ---
-// a page's tags, folded away at the end of its content (#52): "ٹیگ" and how many; open to see the chips
-import Tags from './Tags.astro';
+// a page's tags at the end of its content (#52): «ٹیگ» and how many, at the start of the line; opened, the tags follow it
+// on the same line and wrap across the content's width. A visually hidden checkbox holds open/closed (no script needed)
 import { ud } from '../lib/urdu';
 const { tags } = Astro.props as { tags: { type: string; name: string }[] };
+const href = (t: { type: string; name: string }) => `/tag/${encodeURIComponent(t.type)}/${encodeURIComponent(t.name)}`;
 ---
 {tags.length > 0 && (
-  <details class="tags-box">
-    <summary>ٹیگ <small class="muted">{ud(tags.length)}</small></summary>
-    <Tags tags={tags} />
-  </details>
+  <div class="tags-box">
+    <input type="checkbox" id="tags-open" class="sr-only" />
+    <label for="tags-open" class="tags-toggle">ٹیگ <small class="muted">{ud(tags.length)}</small></label>
+    {tags.map((t) => <a class="tag-chip" href={href(t)}><small>{t.type}</small> {t.name}</a>)}
+  </div>
 )}
