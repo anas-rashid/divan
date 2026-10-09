@@ -13,6 +13,7 @@ export async function auth(path: string, opts: { token?: string; body?: object; 
       ...(opts.body && { 'content-type': 'application/json' }),
       ...(opts.token && { authorization: `Bearer ${opts.token}` }),
       ...(opts.ip && { 'x-client-ip': opts.ip }),
+      ...(process.env.DIVAN_SITE_KEY && { 'x-site-key': process.env.DIVAN_SITE_KEY }), // lets the API trust x-client-ip
     },
     body: opts.body ? JSON.stringify(opts.body) : undefined,
   });

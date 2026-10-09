@@ -1,7 +1,7 @@
 import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import Fastify from 'fastify';
-import { hashPassword, verifyPassword, normaliseEmail, validEmail, passwordProblem, limiter, authRoutes } from './auth.ts';
+import { hashPassword, verifyPassword, normaliseEmail, validEmail, passwordProblem, limiter, authRoutes, ip } from './auth.ts';
 import { pool } from './db.ts';
 
 after(() => pool.end());
@@ -25,6 +25,22 @@ test('rate limiter: max per window, then resets', () => {
   const allow = limiter(2, 1000);
   assert.deepEqual([allow('ip', 0), allow('ip', 1), allow('ip', 2), allow('other', 2)], [true, true, false, true]);
   assert.equal(allow('ip', 1001), true);
+});
+
+test('client address: x-client-ip is trusted only from the site, so a made-up one cannot dodge the limits', () => {
+  const req = (from: string, headers: Record<string, string>) => ({ ip: from, headers }) as any;
+  const saved = process.env.DIVAN_SITE_KEY;
+  try {
+    delete process.env.DIVAN_SITE_KEY; // local development: only this machine may pass an address
+    assert.equal(ip(req('127.0.0.1', { 'x-client-ip': '5.5.5.5' })), '5.5.5.5');
+    assert.equal(ip(req('203.0.113.9', { 'x-client-ip': '5.5.5.5' })), '203.0.113.9', 'a stranger is limited by their own address');
+    process.env.DIVAN_SITE_KEY = 'site-secret-1234';
+    assert.equal(ip(req('10.0.0.3', { 'x-client-ip': '5.5.5.5', 'x-site-key': 'site-secret-1234' })), '5.5.5.5', 'the site, with the key');
+    assert.equal(ip(req('10.0.0.3', { 'x-client-ip': '5.5.5.5', 'x-site-key': 'wrong' })), '10.0.0.3');
+    assert.equal(ip(req('127.0.0.1', { 'x-client-ip': '5.5.5.5' })), '127.0.0.1', 'with a key set, even this machine needs it');
+  } finally {
+    if (saved === undefined) delete process.env.DIVAN_SITE_KEY; else process.env.DIVAN_SITE_KEY = saved;
+  }
 });
 
 test('HTTP flow: sign up, sign in, wrong password, change password, delete', async () => {
