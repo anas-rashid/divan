@@ -13,7 +13,7 @@ type Verse = { Position: string; Text: string; CoupletIndex: number };
 // a work (ganjoor-data poem JSON) as Divan text: verse in <poem> (blank line between couplets, stanzas and
 // lines), prose as paragraphs
 export function fromPoem(poem: { Title: string; Verses: Verse[]; SourceUrl?: string }, meta: Record<string, string> = {}) {
-  const head = Object.entries({ عنوان: poem.Title, ...meta, ...(poem.SourceUrl && { ماخذ: 'ویکی ماخذ', ماخذ_ربط: poem.SourceUrl }) })
+  const head = Object.entries({ عنوان: poem.Title, ...meta, ...(poem.SourceUrl && { ماخذ: 'ویکی ماخذ', ماخذ_لنک: poem.SourceUrl }) })
     .map(([k, v]) => `| ${k} = ${v}`).join('\n');
   const units = new Map<number, Verse[]>();
   for (const v of poem.Verses) (units.get(v.CoupletIndex) ?? units.set(v.CoupletIndex, []).get(v.CoupletIndex)!).push(v);
