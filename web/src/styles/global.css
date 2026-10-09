@@ -845,7 +845,8 @@ p, li { text-wrap: pretty; }
 /* ── footer: the brand beside three groups of links across the page's width; licence and attribution in a thin bar ── */
 .site-footer .wrap { display: grid; grid-template-columns: minmax(300px, 1.2fr) 2fr; gap: 18px 40px; align-items: start; }
 .footer-brand { display: flex; flex-wrap: wrap; align-items: center; gap: 0 14px; }
-.footer-brand .made-in { flex-basis: 100%; margin-top: 14px; } /* its own line, below the logo and tagline */
+.footer-brand .made-in { flex-basis: 100%; margin-top: 14px; padding-inline-start: 5px; } /* its own line below the logo, starting at the
+   logo's visible edge (the medallion's solid lobes sit about 5px inside the image) */
 .footer-logo { flex: none; display: block; }
 .footer-logo img { display: block; width: 64px; height: 64px; }
 .footer-tagline { margin: 4px 0 0; font: 700 1.15rem/2.2 'Noto Nastaliq Urdu', serif; color: var(--action); } /* the logo says دیوان; the tagline beside it */
