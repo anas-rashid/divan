@@ -240,10 +240,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
   .search-form { order: 3; flex-basis: 100%; }
 }
 .site-header .kb:not([hidden]) { display: block; padding-bottom: 10px; } /* not the header's flex row */
-.kb div { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; margin-top: 4px; }
-.kb button { font-size: var(--fs-lg); min-width: 2.4em; padding: 2px 6px; background: var(--surface-raised); border-radius: var(--r-sm); }
-.kb .wide { min-width: 12em; }
-.kb .fn { min-width: 3.4em; background: var(--surface-sunken); }
+.kb { width: 100%; max-width: 640px; margin-inline: auto; box-sizing: border-box; } /* one keyboard everywhere (header, under a field, in a dialog, docked): */
+.kb div { display: flex; justify-content: center; gap: 4px; margin-top: 4px; } /* rows never wrap; a letter is a tenth of the row, */
+.kb button { flex: 0 1 calc((100% - 36px) / 10); min-width: 0; padding: 3px 0; font-size: var(--fs-lg); background: var(--surface-raised); border-radius: var(--r-sm); }
+.kb .fn { flex-basis: calc((100% - 36px) / 10 * 1.5); background: var(--surface-sunken); } /* shift and delete a bit wider, */
+.kb .wide { flex: 1 1 auto; } /* and the space bar takes the rest of its row, as on a phone */
 /* the content editor's keyboard: docked at the bottom of the window; the page keeps the writing line above it */
 .kb.kb-float { position: fixed; z-index: 40; inset-inline: 0; bottom: 0; margin: 0 auto; max-width: min(720px, 100vw); padding: 6px 10px 12px;
   background: var(--surface-raised); border: 1.5px solid var(--border); border-bottom: 0; border-radius: var(--r-lg) var(--r-lg) 0 0;
@@ -739,7 +740,6 @@ p, li { text-wrap: pretty; }
 .note-field .in-box { top: 20px; } /* at the first line of the box, not its middle */
 .note-field textarea { padding-left: 80px; } /* the buttons sit on the left whatever the note's language (the box follows what is typed) */
 .note-box .kb { padding: 0 0 10px; }
-.note-box .kb button { min-width: 2em; font-size: 1rem; }
 .note-others { list-style: none; margin: 0 0 10px; padding: 8px 0 0; border-top: 1px dashed var(--line); }
 .note-others button { all: unset; display: block; cursor: pointer; font-size: var(--fs-sm); color: var(--text-muted); padding: 2px 0; }
 .note-others button:hover { color: var(--active); }
