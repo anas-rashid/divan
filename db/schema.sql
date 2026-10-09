@@ -143,7 +143,7 @@ CREATE TABLE IF NOT EXISTS library (
 ALTER TABLE library ADD COLUMN IF NOT EXISTS phrase text;
 ALTER TABLE library DROP CONSTRAINT IF EXISTS library_kind_check;
 ALTER TABLE library ADD COLUMN IF NOT EXISTS category_id integer;
-ALTER TABLE library ADD CONSTRAINT library_kind_check CHECK (kind IN ('poet', 'category', 'poem', 'couplet', 'phrase', 'word'));
+ALTER TABLE library ADD CONSTRAINT library_kind_check CHECK (kind IN ('poet', 'category', 'poem', 'couplet', 'phrase', 'word', 'page'));
 DROP INDEX IF EXISTS library_items;
 DROP INDEX IF EXISTS library_places;
 CREATE UNIQUE INDEX IF NOT EXISTS library_bookmarks ON library (user_id, kind, coalesce(poet_id, 0), coalesce(category_id, 0), coalesce(poem_id, 0), coalesce(couplet, -1)) WHERE kind IN ('poet', 'category', 'poem', 'couplet');
@@ -236,3 +236,18 @@ CREATE TABLE IF NOT EXISTS ebooks (
 );
 CREATE INDEX IF NOT EXISTS ebooks_poet ON ebooks(poet_id) WHERE published;
 CREATE INDEX IF NOT EXISTS ebooks_search ON ebooks USING gin (search_text gin_trgm_ops);
+ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS cover text;   -- cover image '<sha256>.jpg|png|webp' in the file store
+-- library: bookmarked pages of e-books (kind 'page': ebook_id, page)
+ALTER TABLE library ADD COLUMN IF NOT EXISTS ebook_id integer;
+ALTER TABLE library ADD COLUMN IF NOT EXISTS page integer;   -- kinds: see library_kind_check above
+-- e-book details (owner request): language, reading direction, the writer's name as printed, co-authors (names;
+-- coauthor_ids = those who are poets on the site, so the book is listed on their pages too). Extra tags are
+-- entity_tags with entity 'ebook'.
+ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS writer text;
+ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT 'اردو';
+ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS direction text NOT NULL DEFAULT 'rtl' CHECK (direction IN ('rtl', 'ltr'));
+ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS coauthors text[] NOT NULL DEFAULT '{}';
+ALTER TABLE ebooks ADD COLUMN IF NOT EXISTS coauthor_ids integer[] NOT NULL DEFAULT '{}';
+CREATE INDEX IF NOT EXISTS ebooks_coauthors ON ebooks USING gin (coauthor_ids);
+ALTER TABLE entity_tags DROP CONSTRAINT IF EXISTS entity_tags_entity_check;
+ALTER TABLE entity_tags ADD CONSTRAINT entity_tags_entity_check CHECK (entity IN ('category', 'work', 'ebook'));

@@ -4,12 +4,17 @@
 // Files live in the file store (DIVAN_FILES_DIR) under their content hash, ab/cd/<sha256>.<ext>, so a file uploaded
 // twice is kept once; the database holds the details, indexed by poet and (trigram) by title and the text of text
 // books, so lists and search stay fast. An approved e-book's details (not the file) are committed to divan-data.
-// The details are a revision (entity 'ebook'), one per line: "عنوان: …", "ماخذ: …", "اجازت: …", "تفصیل: …".
+// The details are a revision (entity 'ebook'), one per line: عنوان، مصنف (as printed)، شریک مصنفین (names, comma
+// separated; those who are poets on the site are linked and the book is listed on their pages too)، زبان، سمت
+// (دائیں سے بائیں / بائیں سے دائیں: how the reader turns pages)، ٹیگ (extra tags, comma separated)، ماخذ، اجازت، تفصیل.
 //   POST /api/mod/ebooks/upload?poet=&name=   the file as the request body (up to 100 MB): {file, kind, size}
 //   POST /api/mod/ebooks                      {poet, title, file | archive, source, licence, note}: the e-book and its draft
 //   GET  /api/ebooks?poet=                    a poet's published e-books
 //   GET  /api/ebook/:id                       one e-book (unpublished: moderators only); the text of a text book
 //   GET  /api/ebook/:id/file                  its file
+//   POST /api/mod/ebooks/:id/cover             a cover image as the body (JPEG, PNG or WebP, up to 5 MB); the site makes
+//                                              one from a PDF's first page or an EPUB's own cover in the browser
+//   GET  /api/ebook/:id/cover                  the cover
 import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, open, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
@@ -25,9 +30,18 @@ import { normalise } from './urdu.ts';
 const MAX = 100 * 1024 * 1024;
 const store = () => process.env.DIVAN_FILES_DIR ?? new URL('../../../divan-files', import.meta.url).pathname;
 const pathOf = (file: string) => join(store(), file.slice(0, 2), file.slice(2, 4), file);
-const TYPES: Record<string, string> = { pdf: 'application/pdf', epub: 'application/epub+zip', txt: 'text/plain; charset=utf-8' };
-const KEYS = { title: 'عنوان', source: 'ماخذ', licence: 'اجازت', note: 'تفصیل' } as const;
-type Meta = { title: string; source: string; licence: string; note: string };
+const TYPES: Record<string, string> = { pdf: 'application/pdf', epub: 'application/epub+zip', txt: 'text/plain; charset=utf-8',
+  jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
+// an image's format from its first bytes
+const imageOf = (h: Buffer) => h[0] === 0xff && h[1] === 0xd8 ? 'jpg' : h.subarray(1, 4).toString() === 'PNG' ? 'png'
+  : h.subarray(0, 4).toString() === 'RIFF' && h.subarray(8, 12).toString() === 'WEBP' ? 'webp' : null;
+const KEYS = { title: 'عنوان', writer: 'مصنف', coauthors: 'شریک مصنفین', language: 'زبان', direction: 'سمت', tags: 'ٹیگ',
+  source: 'ماخذ', licence: 'اجازت', note: 'تفصیل' } as const;
+type Meta = Record<keyof typeof KEYS, string>;
+export const LANGUAGES = ['اردو', 'فارسی', 'عربی', 'انگریزی', 'ہندی', 'پنجابی', 'سندھی', 'پشتو', 'دیگر'];
+export const DIRECTIONS: Record<string, 'rtl' | 'ltr'> = { 'دائیں سے بائیں': 'rtl', 'بائیں سے دائیں': 'ltr' };
+const RTL_LANGS = ['اردو', 'فارسی', 'عربی', 'سندھی', 'پشتو'];
+const list = (s: string) => [...new Set(s.split(/[،,]/).map((x) => x.trim()).filter(Boolean))].slice(0, 30);
 const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
 export const mayUpload = (u: any, poetId: number) => can(u, 'create', 'ebooks', { poetId });
 
@@ -35,13 +49,31 @@ export const mayUpload = (u: any, poetId: number) => can(u, 'create', 'ebooks', 
 export const metaText = (m: Partial<Meta>) =>
   (Object.keys(KEYS) as (keyof Meta)[]).map((k) => `${KEYS[k]}: ${String(m[k] ?? '').replace(/\s+/g, ' ').trim()}`).join('\n');
 export function parseMeta(text: string): Meta | string {
-  const m: any = { title: '', source: '', licence: '', note: '' };
+  const m: any = Object.fromEntries(Object.keys(KEYS).map((k) => [k, '']));
   for (const line of text.split('\n')) {
     const i = line.indexOf(':'); if (i < 0) continue;
     const key = (Object.keys(KEYS) as (keyof Meta)[]).find((k) => KEYS[k] === line.slice(0, i).trim());
     if (key) m[key] = line.slice(i + 1).trim().slice(0, key === 'note' ? 2000 : 300);
   }
-  return m.title ? m : 'کتاب کا عنوان ضروری ہے';
+  if (!m.title) return 'کتاب کا عنوان ضروری ہے';
+  m.language ||= 'اردو';
+  if (!LANGUAGES.includes(m.language)) return `زبان ${LANGUAGES.join('، ')} میں سے ہو`;
+  m.direction ||= RTL_LANGS.includes(m.language) ? 'دائیں سے بائیں' : 'بائیں سے دائیں';
+  if (!DIRECTIONS[m.direction]) return 'سمت «دائیں سے بائیں» یا «بائیں سے دائیں» ہو';
+  if (list(m.tags).some((t) => t.length > 60)) return 'ٹیگ بہت لمبا ہے';
+  return m;
+}
+
+// co-authors who are poets on the site (by name or pen name, Urdu-normalised)
+async function poetsNamed(names: string[], db: { query: PoolClient['query'] } = pool) {
+  if (!names.length) return new Map<string, { id: number; url: string }>();
+  const { rows } = await db.query('SELECT id, url, name, nickname FROM poets');
+  const out = new Map<string, { id: number; url: string }>();
+  for (const n of names) {
+    const hit = rows.find((p) => normalise(p.nickname) === normalise(n) || normalise(p.name) === normalise(n));
+    if (hit) out.set(n, { id: hit.id, url: hit.url });
+  }
+  return out;
 }
 
 // archive.org: an item id, or a link to it
@@ -85,7 +117,10 @@ export async function currentEbook(id: number) {
     'SELECT b.*, t.url AS poet_url, t.nickname AS poet FROM ebooks b JOIN poets t ON t.id = b.poet_id WHERE b.id = $1', [id])).rows[0];
   if (!ebook) return null;
   const last = (await pool.query(`SELECT max(version) AS v FROM revisions WHERE entity = 'ebook' AND entity_id = $1 AND status = 'published'`, [id])).rows[0];
-  return { ebook, version: Number(last?.v ?? 0), content: ebook.published ? metaText(ebook) : '' };
+  const tags = (await pool.query(`SELECT t.name FROM entity_tags e JOIN tags t ON t.id = e.tag_id WHERE e.entity = 'ebook' AND e.entity_id = $1 ORDER BY t.name`, [id])).rows.map((r) => r.name);
+  const text = metaText({ ...ebook, coauthors: ebook.coauthors.join('، '), tags: tags.join('، '),
+    direction: Object.keys(DIRECTIONS).find((k) => DIRECTIONS[k] === ebook.direction) });
+  return { ebook, version: Number(last?.v ?? 0), content: ebook.published ? text : '' };
 }
 
 export const checkEbook = (text: string) => { const m = parseMeta(text); return typeof m === 'string' ? m : null; };
@@ -94,8 +129,20 @@ export const checkEbook = (text: string) => { const m = parseMeta(text); return 
 export async function applyEbook(client: PoolClient, id: number, text: string) {
   const m = parseMeta(text) as Meta;
   const b = (await client.query('SELECT kind, file FROM ebooks WHERE id = $1', [id])).rows[0];
-  await client.query('UPDATE ebooks SET title = $2, source = $3, licence = $4, note = $5, search_text = $6, published = true WHERE id = $1',
-    [id, m.title, m.source || null, m.licence || null, m.note || null, await searchText(m.title, b.kind, b.file)]);
+  const co = list(m.coauthors), linked = await poetsNamed(co, client);
+  await client.query(
+    `UPDATE ebooks SET title = $2, source = $3, licence = $4, note = $5, search_text = $6, writer = $7, language = $8, direction = $9,
+       coauthors = $10, coauthor_ids = $11, published = true WHERE id = $1`,
+    [id, m.title, m.source || null, m.licence || null, m.note || null,
+     await searchText([m.title, m.writer, ...co, ...list(m.tags)].join(' '), b.kind, b.file), m.writer || null, m.language,
+     DIRECTIONS[m.direction], co, [...new Set([...linked.values()].map((p) => p.id))]]);
+  // extra tags: free tags (ٹیگ), so tag pages list the book
+  await client.query(`DELETE FROM entity_tags WHERE entity = 'ebook' AND entity_id = $1`, [id]);
+  for (const name of list(m.tags)) {
+    const tagId = (await client.query(`INSERT INTO tags (type, name) VALUES ('ٹیگ', $1) ON CONFLICT (type, name) DO UPDATE SET name = EXCLUDED.name RETURNING id`, [name])).rows[0].id;
+    await client.query(`INSERT INTO entity_tags (tag_id, entity, entity_id) VALUES ($1, 'ebook', $2) ON CONFLICT DO NOTHING`, [tagId, id]);
+  }
+  await client.query('DELETE FROM tags t WHERE NOT EXISTS (SELECT 1 FROM entity_tags e WHERE e.tag_id = t.id)');
 }
 
 // divan-data/divan/<poet>/ebooks/<id>.txt: the details and where the file is (the file itself stays in the store)
@@ -150,7 +197,8 @@ export function ebookRoutes(app: FastifyInstance) {
     if (!u) return reply.code(401).send({ error: 'لاگ ان کریں' });
     const b = req.body ?? {}, poetId = Number(b.poet) || 0;
     if (!(await mayUpload(u, poetId))) return reply.code(403).send({ error: 'اس شاعر کی ای بکس شامل کرنے کی اجازت نہیں' });
-    const meta = parseMeta(metaText(b));
+    const meta = parseMeta(metaText({ ...b, coauthors: Array.isArray(b.coauthors) ? b.coauthors.join('، ') : b.coauthors,
+      direction: DIRECTIONS[b.direction] ? b.direction : b.direction === 'ltr' ? 'بائیں سے دائیں' : b.direction === 'rtl' ? 'دائیں سے بائیں' : '' }));
     if (typeof meta === 'string') return reply.code(400).send({ error: meta });
     let kind: string, file: string | null = null, archive: string | null = null, size: number | null = null;
     if (b.archive) {
@@ -169,9 +217,10 @@ export function ebookRoutes(app: FastifyInstance) {
     try {
       await client.query('BEGIN');
       const id = (await client.query(
-        `INSERT INTO ebooks (poet_id, title, kind, file, archive_id, size, source, licence, note, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
-        [poetId, meta.title, kind, file, archive, size, meta.source || null, meta.licence || null, meta.note || null, u.id])).rows[0].id;
+        `INSERT INTO ebooks (poet_id, title, kind, file, archive_id, size, source, licence, note, created_by, writer, language, direction, coauthors)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) RETURNING id`,
+        [poetId, meta.title, kind, file, archive, size, meta.source || null, meta.licence || null, meta.note || null, u.id,
+         meta.writer || null, meta.language, DIRECTIONS[meta.direction], list(meta.coauthors)])).rows[0].id;
       const rev = (await client.query(
         `INSERT INTO revisions (entity, entity_id, base_version, base_content, content, status, author_id, author_email, summary)
          VALUES ('ebook', $1, 0, '', $2, 'draft', $3, $4, $5) RETURNING id`, [id, content, u.id, u.email, 'نئی ای بک'])).rows[0].id;
@@ -187,7 +236,32 @@ export function ebookRoutes(app: FastifyInstance) {
   });
 
   app.get<{ Querystring: { poet?: string } }>('/api/ebooks', async (req) => (await pool.query(
-    `SELECT id, title, kind, size, source FROM ebooks WHERE poet_id = $1 AND published ORDER BY title`, [Number(req.query.poet) || 0])).rows);
+    `SELECT id, title, kind, size, source, cover IS NOT NULL AS has_cover, archive_id, language, poet_id <> $1 AS co
+     FROM ebooks WHERE (poet_id = $1 OR $1 = ANY(coauthor_ids)) AND published ORDER BY title`,
+    [Number(req.query.poet) || 0])).rows);
+
+  app.post<{ Params: { id: string } }>('/api/mod/ebooks/:id/cover', { bodyLimit: 5 * 1024 * 1024 }, async (req, reply) => {
+    const u = await sessionUser(req);
+    if (!u) return reply.code(401).send({ error: 'لاگ ان کریں' });
+    const b = (await pool.query('SELECT id, poet_id FROM ebooks WHERE id = $1', [Number(req.params.id) || 0])).rows[0];
+    if (!b) return reply.code(404).send({ error: 'کتاب نہیں ملی' });
+    if (!(await mayUpload(u, b.poet_id))) return reply.code(403).send({ error: 'اس کتاب کا سرورق بدلنے کی اجازت نہیں' });
+    const chunks: Buffer[] = [];
+    let size = 0;
+    for await (const c of req.body as AsyncIterable<Buffer>) {
+      size += c.length;
+      if (size > 5 * 1024 * 1024) return reply.code(413).send({ error: 'تصویر ۵ میگا بائٹ سے بڑی ہے' });
+      chunks.push(c);
+    }
+    const img = Buffer.concat(chunks), ext = imageOf(img);
+    if (!ext) return reply.code(415).send({ error: 'صرف JPEG، PNG یا WebP تصویر' });
+    const tmp = join(store(), 'tmp', randomUUID());
+    await mkdir(dirname(tmp), { recursive: true });
+    await writeFile(tmp, img);
+    const cover = await keep(tmp, ext);
+    await pool.query('UPDATE ebooks SET cover = $2 WHERE id = $1', [b.id, cover]);
+    return { cover };
+  });
 
   const ebook = async (req: FastifyRequest<{ Params: { id: string } }>, reply: FastifyReply) => {
     const b = (await pool.query(
@@ -199,16 +273,36 @@ export function ebookRoutes(app: FastifyInstance) {
   app.get<{ Params: { id: string } }>('/api/ebook/:id', async (req, reply) => {
     const b = await ebook(req, reply); if (!b) return;
     const { search_text, created_by, ...rest } = b;
-    return { ...rest, text: b.kind === 'text' ? (await textOf(b.file)).slice(0, 3_000_000) : undefined };
+    // co-authors: linked to their pages when they are poets on the site
+    const linked = await poetsNamed(b.coauthors);
+    const tags = (await pool.query(`SELECT t.type, t.name FROM entity_tags e JOIN tags t ON t.id = e.tag_id WHERE e.entity = 'ebook' AND e.entity_id = $1 ORDER BY t.name`, [b.id])).rows;
+    return { ...rest, coauthors: b.coauthors.map((name: string) => ({ name, url: linked.get(name)?.url ?? null })), tags,
+      text: b.kind === 'text' ? (await textOf(b.file)).slice(0, 3_000_000) : undefined };
+  });
+
+  app.get<{ Params: { id: string } }>('/api/ebook/:id/cover', async (req, reply) => {
+    const b = await ebook(req, reply); if (!b) return;
+    if (!b.cover) return reply.code(404).send({ error: 'سرورق نہیں' });
+    reply.header('content-type', TYPES[b.cover.split('.').pop()]).header('cache-control', b.published ? 'public, max-age=604800' : 'private, no-store');
+    return reply.send(createReadStream(pathOf(b.cover)));
   });
 
   app.get<{ Params: { id: string } }>('/api/ebook/:id/file', async (req, reply) => {
     const b = await ebook(req, reply); if (!b) return;
     if (!b.file) return reply.code(404).send({ error: 'اس کتاب کی فائل نہیں' });
-    const ext = b.file.split('.').pop();
-    reply.header('content-type', TYPES[ext]).header('content-length', String((await stat(pathOf(b.file))).size))
+    const ext = b.file.split('.').pop(), size = (await stat(pathOf(b.file))).size;
+    reply.header('content-type', TYPES[ext]).header('accept-ranges', 'bytes')
       .header('content-disposition', `inline; filename="divan-${b.id}.${ext}"`)
       .header('cache-control', b.published ? 'public, max-age=86400' : 'private, no-store');
+    // a byte range (the PDF reader asks for the pages it shows, not the whole file)
+    const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers.range ?? ''));
+    if (m && (m[1] || m[2])) {
+      const start = m[1] ? Number(m[1]) : Math.max(0, size - Number(m[2])), end = m[1] && m[2] ? Math.min(Number(m[2]), size - 1) : size - 1;
+      if (start > end || start >= size) return reply.code(416).header('content-range', `bytes */${size}`).send();
+      reply.code(206).header('content-range', `bytes ${start}-${end}/${size}`).header('content-length', String(end - start + 1));
+      return reply.send(createReadStream(pathOf(b.file), { start, end }));
+    }
+    reply.header('content-length', String(size));
     return reply.send(createReadStream(pathOf(b.file)));
   });
 }

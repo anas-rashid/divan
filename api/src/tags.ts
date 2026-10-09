@@ -126,13 +126,15 @@ export function tagRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { type?: string; name?: string } }>('/api/tag', async (req, reply) => {
     const tag = (await pool.query('SELECT id, type, name FROM tags WHERE type = $1 AND name = $2', [req.query.type ?? '', req.query.name ?? ''])).rows[0];
     if (!tag) return reply.code(404).send({ error: 'ٹیگ نہیں ملا' });
-    const [cats, works] = await Promise.all([
+    const [cats, works, ebooks] = await Promise.all([
       pool.query(`SELECT c.id, c.url, c.title, t.nickname AS poet, t.url AS poet_url, c.parent_id IS NULL AS is_poet
                   FROM entity_tags e JOIN categories c ON c.id = e.entity_id JOIN poets t ON t.id = c.poet_id
                   WHERE e.tag_id = $1 AND e.entity = 'category' ORDER BY t.birth_year_ah NULLS LAST, c.title`, [tag.id]),
       pool.query(`SELECT p.id, p.url, p.title, t.nickname AS poet, t.url AS poet_url, array_agg(e.couplet ORDER BY e.couplet) AS couplets
                   FROM entity_tags e JOIN poems p ON p.id = e.entity_id JOIN poets t ON t.id = p.poet_id
                   WHERE e.tag_id = $1 AND e.entity = 'work' GROUP BY p.id, t.id ORDER BY t.birth_year_ah NULLS LAST, p.title LIMIT 500`, [tag.id]),
+      pool.query(`SELECT b.id, b.title, b.kind, t.nickname AS poet, t.url AS poet_url FROM entity_tags e JOIN ebooks b ON b.id = e.entity_id
+                  JOIN poets t ON t.id = b.poet_id WHERE e.tag_id = $1 AND e.entity = 'ebook' AND b.published ORDER BY b.title`, [tag.id]),
     ]);
     // the tagged couplets' lines
     const pairs = works.rows.flatMap((w) => w.couplets.filter((c: number) => c > 0).map((c: number) => [w.id, c]));
@@ -141,7 +143,7 @@ export function tagRoutes(app: FastifyInstance) {
        WHERE (poem_id, couplet + 1) IN (SELECT * FROM unnest($1::int[], $2::int[])) GROUP BY poem_id, couplet`,
       [pairs.map((p) => p[0]), pairs.map((p) => p[1])])).rows : [];
     return {
-      tag, categories: cats.rows,
+      tag, categories: cats.rows, ebooks: ebooks.rows,
       works: works.rows.map((w) => ({ ...w, whole: w.couplets.includes(0),
         couplets: lines.filter((l) => l.poem_id === w.id).map((l) => ({ couplet: l.couplet + 1, anchor: l.couplet, lines: l.lines })) })),
     };

@@ -5,6 +5,7 @@ import Base from '../../../layouts/Base.astro';
 import ModNav from '../../../components/ModNav.astro';
 import { asUser, COOKIE } from '../../../lib/auth';
 import { api } from '../../../lib/api';
+import EbookFields from '../../../components/EbookFields.astro';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
@@ -15,7 +16,8 @@ const may = page && ['mod-l2', 'mod-l1', 'admin'].includes(me.role) && (await as
 let error = '';
 if (may && Astro.request.method === 'POST') {
   const f = await Astro.request.formData();
-  const fields = { poet: poetId, title: f.get('title'), source: f.get('source'), licence: f.get('licence'), note: f.get('note') };
+  const fields = Object.fromEntries(['title', 'writer', 'coauthors', 'language', 'direction', 'tags', 'source', 'licence', 'note'].map((k) => [k, f.get(k) ?? '']));
+  Object.assign(fields, { poet: poetId });
   const upload = f.get('file') as File | null, archive = String(f.get('archive') ?? '').trim();
   let body: object | null = null;
   if (archive) body = { ...fields, archive };
@@ -28,6 +30,11 @@ if (may && Astro.request.method === 'POST') {
   } else error = 'فائل چنیں یا archive.org کا ربط دیں';
   if (body) {
     const r = await asUser(token, '/api/mod/ebooks', body);
+    // the cover: made in the browser from the PDF's first page or the EPUB's cover, or the moderator's own image
+    const cover = f.get('cover') as File | null;
+    if (r.ok && cover && cover.size) await fetch(`${API}/api/mod/ebooks/${r.data.id}/cover`, {
+      method: 'POST', headers: { authorization: `Bearer ${token}`, 'content-type': 'application/octet-stream' }, body: await cover.arrayBuffer(),
+    });
     if (r.ok) return Astro.redirect(`/mod/rev/${r.data.revision}`);
     error = r.data.error ?? 'کچھ غلط ہو گیا';
   }
@@ -40,14 +47,33 @@ if (may && Astro.request.method === 'POST') {
     <form method="post" enctype="multipart/form-data" class="account-form ebook-form">
       <p class="center">شاعر: <a href={page.poet.url}>{page.poet.nickname}</a></p>
       {error && <p class="form-error" role="alert">{error}</p>}
-      <label>عنوان<input name="title" required maxlength="300" data-urdu /></label>
       <label>فائل (PDF، EPUB، TXT یا DOCX؛ زیادہ سے زیادہ ۱۰۰ میگا بائٹ)<input type="file" name="file" accept=".pdf,.epub,.txt,.docx,application/pdf,application/epub+zip,text/plain" /></label>
+      <label>سرورق (PDF کے پہلے صفحے یا EPUB کے سرورق سے خود بنتا ہے؛ چاہیں تو اپنی تصویر چنیں)
+        <input type="file" name="cover" accept="image/jpeg,image/png,image/webp" /></label>
+      <img class="cover-small" id="cover-preview" alt="سرورق" hidden />
       <label>یا archive.org کا ربط<input name="archive" dir="ltr" placeholder="https://archive.org/details/…" /></label>
-      <label>ماخذ<input name="source" maxlength="300" data-urdu placeholder="مثلاً: ناشر، سال، کتب خانہ" /></label>
-      <label>حقوق / اجازت<input name="licence" maxlength="300" data-urdu placeholder="مثلاً: عوامی ملکیت، مصنف کی اجازت سے" /></label>
-      <label>تفصیل<textarea name="note" rows="3" maxlength="2000" data-urdu></textarea></label>
+      <EbookFields v={{ writer: page.poet.nickname }} />
       <p class="muted note">کتاب جائزے کے بعد شاعر کے صفحے پر «ای بکس» میں نظر آئے گی۔ جائزہ لینے والے حقوق کی تصدیق کرتے ہیں۔</p>
       <button>اپ لوڈ کریں</button>
     </form>
   )}
+  <script>
+    import { makeCover } from '../../../lib/cover';
+    const form = document.querySelector<HTMLFormElement>('.ebook-form');
+    if (form) {
+      const book = form.querySelector<HTMLInputElement>('[name=file]')!, cover = form.querySelector<HTMLInputElement>('[name=cover]')!;
+      const preview = document.getElementById('cover-preview') as HTMLImageElement;
+      let own = false; // a picture the moderator chose themselves is never replaced
+      const showCover = (f: Blob) => { preview.src = URL.createObjectURL(f); preview.hidden = false; };
+      cover.addEventListener('change', () => { own = !!cover.files?.length; if (own) showCover(cover.files![0]); });
+      book.addEventListener('change', async () => {
+        const f = book.files?.[0], kind = f?.name.toLowerCase().endsWith('.pdf') ? 'pdf' : f?.name.toLowerCase().endsWith('.epub') ? 'epub' : null;
+        if (!f || !kind || own) return;
+        const blob = await makeCover(await f.arrayBuffer(), kind).catch(() => null);
+        if (!blob || own) return;
+        const dt = new DataTransfer(); dt.items.add(new File([blob], 'cover.jpg', { type: blob.type || 'image/jpeg' }));
+        cover.files = dt.files; showCover(blob);
+      });
+    }
+  </script>
 </Base>

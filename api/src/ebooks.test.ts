@@ -8,14 +8,18 @@ import Fastify from 'fastify';
 import JSZip from 'jszip';
 import { authRoutes } from './auth.ts';
 import { moderationRoutes } from './moderation.ts';
+import { libraryRoutes } from './library.ts';
 import { ebookRoutes, archiveId, parseMeta, metaText } from './ebooks.ts';
 import { pool } from './db.ts';
 
 after(() => pool.end());
 
 test('e-book details and archive.org links', () => {
-  assert.deepEqual(parseMeta(metaText({ title: 'کلیات اقبال', source: 'ریختہ نہیں', licence: 'عوامی ملکیت' })),
-    { title: 'کلیات اقبال', source: 'ریختہ نہیں', licence: 'عوامی ملکیت', note: '' });
+  const m = parseMeta(metaText({ title: 'کلیات اقبال', source: 'archive.org', licence: 'عوامی ملکیت' })) as any;
+  assert.deepEqual([m.title, m.source, m.licence, m.language, m.direction], ['کلیات اقبال', 'archive.org', 'عوامی ملکیت', 'اردو', 'دائیں سے بائیں']);
+  assert.equal((parseMeta(metaText({ title: 'Kulliyat', language: 'انگریزی' })) as any).direction, 'بائیں سے دائیں', 'English reads left to right');
+  assert.match(parseMeta(metaText({ title: 'x', language: 'لاطینی' })) as string, /زبان/);
+  assert.match(parseMeta(metaText({ title: 'x', direction: 'اوپر سے نیچے' })) as string, /سمت/);
   assert.match(parseMeta('ماخذ: کچھ') as string, /عنوان/);
   assert.equal(archiveId('https://archive.org/details/BaangEDara/page/n5'), 'BaangEDara');
   assert.equal(archiveId('kulliyat-e-iqbal_202001'), 'kulliyat-e-iqbal_202001');
@@ -28,7 +32,7 @@ test('e-books: upload permission, file kinds, pipeline, published list and files
   const git = (...a: string[]) => execFileSync('git', ['-C', data, ...a], { encoding: 'utf8' });
   git('init', '-q'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-q', '--allow-empty', '-m', 'start');
   const app = Fastify();
-  authRoutes(app); moderationRoutes(app); ebookRoutes(app);
+  authRoutes(app); moderationRoutes(app); ebookRoutes(app); libraryRoutes(app);
   const run = Date.now();
   const call = (method: string, url: string, body?: any, token?: string, type?: string) => app.inject({
     method: method as any, url, payload: body,
@@ -63,7 +67,8 @@ test('e-books: upload permission, file kinds, pipeline, published list and files
 
     // the e-book and its draft; not listed and not served until approved
     assert.equal((await call('POST', '/api/mod/ebooks', { poet: 238, file: up.file }, l2.token)).statusCode, 400, 'a title is required');
-    const made = (await call('POST', '/api/mod/ebooks', { poet: 238, file: up.file, title: `بانگ درا ${run}`, source: 'archive.org', licence: 'عوامی ملکیت' }, l2.token)).json();
+    const made = (await call('POST', '/api/mod/ebooks', { poet: 238, file: up.file, title: `بانگ درا ${run}`, source: 'archive.org', licence: 'عوامی ملکیت',
+      writer: 'علامہ محمد اقبال', coauthors: ['مرزا غالب', `نیا شاعر ${run}`], tags: `کلاسیکی-${run}، قومی-${run}`, language: 'اردو', direction: 'rtl' }, l2.token)).json();
     assert.ok(made.id && made.revision);
     assert.equal((await call('GET', `/api/ebook/${made.id}/file`)).statusCode, 404, 'not public yet');
     assert.equal((await call('GET', `/api/ebook/${made.id}/file`, undefined, l1.token)).statusCode, 200, 'reviewers can open it');
@@ -73,20 +78,50 @@ test('e-books: upload permission, file kinds, pipeline, published list and files
     assert.deepEqual((await call('POST', `/api/mod/revisions/${made.revision}/publish`, {}, admin.token)).json(), { status: 'published', version: 1 });
 
     assert.deepEqual((await call('GET', '/api/ebooks?poet=238')).json().map((b: any) => b.title), [`بانگ درا ${run}`]);
+    // co-authors: Ghalib is on the site (linked, and the book is listed on his page too); the new name is plain text
+    const shown = (await call('GET', `/api/ebook/${made.id}`)).json();
+    assert.deepEqual(shown.coauthors, [{ name: 'مرزا غالب', url: '/p266' }, { name: `نیا شاعر ${run}`, url: null }]);
+    assert.deepEqual([shown.writer, shown.language, shown.direction], ['علامہ محمد اقبال', 'اردو', 'rtl']);
+    assert.deepEqual(shown.tags.map((t: any) => t.name).sort(), [`قومی-${run}`, `کلاسیکی-${run}`]);
+    assert.ok((await call('GET', '/api/ebooks?poet=266')).json().some((b: any) => b.id === made.id && b.co), 'listed for the co-author');
     const file = await call('GET', `/api/ebook/${made.id}/file`);
     assert.equal(file.statusCode, 200); assert.equal(file.headers['content-type'], 'application/pdf'); assert.deepEqual(file.rawPayload, pdf);
+    const part = await app.inject({ method: 'GET', url: `/api/ebook/${made.id}/file`, headers: { range: 'bytes=0-7' } });
+    assert.equal(part.statusCode, 206); assert.equal(part.headers['content-range'], `bytes 0-7/${pdf.length}`); assert.equal(part.body, '%PDF-1.4');
+    assert.equal((await app.inject({ method: 'GET', url: `/api/ebook/${made.id}/file`, headers: { range: 'bytes=999999-' } })).statusCode, 416);
     const record = await readFile(join(data, 'divan', 'p238', 'ebooks', `${made.id}.txt`), 'utf8');
     assert.match(record, new RegExp(`عنوان: بانگ درا ${run}`)); assert.match(record, new RegExp(up.file));
     assert.match(git('log', '-1', '--format=%s'), /^ای بک: /);
     assert.ok((await pool.query(`SELECT 1 FROM ebooks WHERE id = $1 AND search_text LIKE '%بانگ درا%'`, [made.id])).rowCount, 'indexed for search');
+
+    // a cover image (the site makes it from the PDF's first page); only images, only with the permission
+    const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
+    assert.equal((await call('POST', `/api/mod/ebooks/${made.id}/cover`, Buffer.from('not an image'), l2.token, 'application/octet-stream')).statusCode, 415);
+    assert.match((await call('POST', `/api/mod/ebooks/${made.id}/cover`, png, l2.token, 'application/octet-stream')).json().cover, /\.png$/);
+    const cover = await call('GET', `/api/ebook/${made.id}/cover`);
+    assert.equal(cover.headers['content-type'], 'image/png'); assert.deepEqual(cover.rawPayload, png);
+    assert.equal((await call('GET', '/api/ebooks?poet=238')).json()[0].has_cover, true);
+
+    // readers bookmark pages of a published book in their library
+    const reader = await person('reader', 'reader');
+    const mark = (page: number, ebookId = made.id) => call('POST', '/api/library/toggle', { kind: 'page', ebookId, page }, reader.token);
+    assert.equal((await mark(12)).json().saved, true); assert.equal((await mark(3)).json().saved, true);
+    assert.deepEqual((await call('GET', `/api/library/state?ebook=${made.id}`, undefined, reader.token)).json(), { pages: [3, 12] });
+    assert.equal((await mark(3)).json().saved, false, 'pressed again: removed');
+    const lib = (await call('GET', '/api/library', undefined, reader.token)).json();
+    assert.deepEqual(lib.pages.map((p: any) => [p.page, p.ebook.title]), [[12, `بانگ درا ${run}`]]);
+    assert.equal((await mark(0)).statusCode, 400);
 
     // a text book serves its text; an archive.org item needs a real id
     const t = (await call('POST', '/api/mod/ebooks', { poet: 238, file: d.file, title: 'ٹیکسٹ' }, admin.token)).json();
     assert.match((await call('GET', `/api/ebook/${t.id}`, undefined, admin.token)).json().text, /دل ہی تو ہے/);
     assert.equal((await call('POST', '/api/mod/ebooks', { poet: 238, archive: 'https://example.com/x', title: 'x' }, admin.token)).statusCode, 400);
     const a = (await call('POST', '/api/mod/ebooks', { poet: 238, archive: 'https://archive.org/details/BaangEDara', title: 'آرکائیو' }, admin.token)).json();
+    assert.equal((await mark(1, a.id)).statusCode, 404, 'no bookmarks in a book under review');
     assert.equal((await call('GET', `/api/ebook/${a.id}`, undefined, admin.token)).json().archive_id, 'BaangEDara');
   } finally {
+    await pool.query(`DELETE FROM entity_tags WHERE entity = 'ebook' AND entity_id IN (SELECT id FROM ebooks WHERE created_by IN (SELECT id FROM users WHERE email LIKE $1))`, [`%-${run}@divan.test`]);
+    await pool.query('DELETE FROM tags t WHERE NOT EXISTS (SELECT 1 FROM entity_tags e WHERE e.tag_id = t.id)');
     await pool.query(`DELETE FROM ebooks WHERE created_by IN (SELECT id FROM users WHERE email LIKE $1)`, [`%-${run}@divan.test`]);
     await pool.query(`DELETE FROM revisions WHERE author_email LIKE $1`, [`%-${run}@divan.test`]);
     await pool.query('DELETE FROM users WHERE email LIKE $1', [`%-${run}@divan.test`]);

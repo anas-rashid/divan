@@ -1,19 +1,20 @@
 // Personal library (#24, #25): a reader's saved poets and works, bookmarked couplets and phrases, saved words.
 // JSON in and out with Bearer tokens, so the site and mobile apps (#44) use the same endpoints.
 //   GET  /api/library                          everything, each item with its path in the site
-//   GET  /api/library/state?poet=&category=&poem=&word=  what is saved on one page, or whether a word is in the word book
+//   GET  /api/library/state?poet=&category=&poem=&word=  what is saved on one page, or whether a word is in the word book;
+//                                              ?ebook= the bookmarked pages of an e-book
 //   GET  /api/library/marks                    which works, books/sections and poets hold the reader's saved items
 //   POST /api/library/toggle  {kind, poetId?, categoryId?, poemId?, couplet?, phrase?, word?}   -> {saved, id?}
 //   POST /api/library/:id/note {note}
 //   POST /api/library/:id/delete
 // kind: poet {poetId} | category {categoryId} (a book or chapter) | poem {poemId} | couplet {poemId, couplet} | phrase {poemId, couplet, phrase} (part of a
-//       couplet or paragraph) | word {word, poemId?, couplet?} (dictionary word)
+//       couplet or paragraph) | word {word, poemId?, couplet?} (dictionary word) | page {ebookId, page} (a page of an e-book)
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { sessionUser } from './auth.ts';
 import { PUNCT } from './dictionary.ts';
 
-const KINDS = ['poet', 'category', 'poem', 'couplet', 'phrase', 'word'] as const;
+const KINDS = ['poet', 'category', 'poem', 'couplet', 'phrase', 'word', 'page'] as const;
 
 // a bookmarked phrase: spaces collapsed, 2 to 300 characters
 export const cleanPhrase = (p: unknown) => {
@@ -65,9 +66,11 @@ export function libraryRoutes(app: FastifyInstance) {
   app.get('/api/library', async (req, reply) => {
     const u = await reader(req, reply); if (!u) return;
     const { rows } = await pool.query(
-      `SELECT l.id, l.kind, l.poet_id, l.category_id, l.poem_id, l.couplet, l.word, l.phrase, l.note, l.created_at,
-              pt.nickname AS poet_name, pt.url AS poet_url, pm.title AS poem_title, pm.url AS poem_url, pm.poet_id AS poem_poet
+      `SELECT l.id, l.kind, l.poet_id, l.category_id, l.poem_id, l.couplet, l.word, l.phrase, l.note, l.created_at, l.ebook_id, l.page,
+              pt.nickname AS poet_name, pt.url AS poet_url, pm.title AS poem_title, pm.url AS poem_url, pm.poet_id AS poem_poet,
+              eb.title AS ebook_title, ep.nickname AS ebook_poet, ep.url AS ebook_poet_url
        FROM library l LEFT JOIN poets pt ON pt.id = l.poet_id LEFT JOIN poems pm ON pm.id = l.poem_id
+         LEFT JOIN ebooks eb ON eb.id = l.ebook_id LEFT JOIN poets ep ON ep.id = eb.poet_id
        WHERE l.user_id = $1 ORDER BY l.created_at DESC, l.id DESC`, [u.id]);
     const poemIds = [...new Set(rows.filter((r) => r.poem_id).map((r) => r.poem_id))];
     const [crumbs, verses, chapters] = await Promise.all([
@@ -86,14 +89,18 @@ export function libraryRoutes(app: FastifyInstance) {
       poems: rows.filter((r) => r.kind === 'poem').map((r) => ({ ...item(r), poem: r.poem_url && where(r) })),
       couplets: rows.filter((r) => r.kind === 'couplet').map((r) => ({ ...item(r), poem: r.poem_url && where(r), lines: lines(r.poem_id, r.couplet) })),
       phrases: rows.filter((r) => r.kind === 'phrase').map((r) => ({ ...item(r), phrase: r.phrase, poem: r.poem_url && where(r), lines: lines(r.poem_id, r.couplet) })),
+      pages: rows.filter((r) => r.kind === 'page' && r.ebook_title).map((r) => ({
+        ...item(r), page: r.page, ebook: { id: r.ebook_id, title: r.ebook_title, poet: r.ebook_poet, poet_url: r.ebook_poet_url } })),
       words: rows.filter((r) => r.kind === 'word').map((r) => ({
         ...item(r), word: r.word, source: r.poem_url ? { ...where(r), lines: r.couplet != null ? lines(r.poem_id, r.couplet) : [] } : null,
       })),
     };
   });
 
-  app.get<{ Querystring: { poet?: string; category?: string; poem?: string; word?: string } }>('/api/library/state', async (req, reply) => {
+  app.get<{ Querystring: { poet?: string; category?: string; poem?: string; word?: string; ebook?: string } }>('/api/library/state', async (req, reply) => {
     const u = await reader(req, reply); if (!u) return;
+    if (req.query.ebook != null) return { pages: (await pool.query(
+      `SELECT page FROM library WHERE user_id = $1 AND kind = 'page' AND ebook_id = $2 ORDER BY page`, [u.id, Number(req.query.ebook) || 0])).rows.map((r) => r.page) };
     if (req.query.word != null) {
       const w = cleanWord(req.query.word);
       return { word: !!w && !!(await pool.query(`SELECT 1 FROM library WHERE user_id = $1 AND kind = 'word' AND word = $2`, [u.id, w])).rowCount };
@@ -148,6 +155,15 @@ export function libraryRoutes(app: FastifyInstance) {
       // the source couplet is kept only if it exists
       const src = poemId && couplet != null && (await pool.query('SELECT 1 FROM verses WHERE poem_id = $1 AND couplet = $2 LIMIT 1', [poemId, couplet])).rowCount ? [poemId, couplet] : [null, null];
       const { rows } = await pool.query(`INSERT INTO library (user_id, kind, word, poem_id, couplet) VALUES ($1, 'word', $2, $3, $4) RETURNING id`, [u.id, word, ...src]);
+      return { saved: true, id: Number(rows[0].id) };
+    }
+    if (kind === 'page') {
+      const ebookId = Number((b as any).ebookId) || 0, page = Number((b as any).page);
+      if (!Number.isInteger(page) || page < 1 || page > 100000) return reply.code(400).send({ error: 'صفحہ نمبر درست نہیں' });
+      if (!(await pool.query('SELECT 1 FROM ebooks WHERE id = $1 AND published', [ebookId])).rowCount) return reply.code(404).send({ error: 'کتاب نہیں ملی' });
+      if ((await pool.query(`DELETE FROM library WHERE user_id = $1 AND kind = 'page' AND ebook_id = $2 AND page = $3 RETURNING id`, [u.id, ebookId, page])).rowCount)
+        return { saved: false };
+      const { rows } = await pool.query(`INSERT INTO library (user_id, kind, ebook_id, page) VALUES ($1, 'page', $2, $3) RETURNING id`, [u.id, ebookId, page]);
       return { saved: true, id: Number(rows[0].id) };
     }
     if (kind === 'phrase') {

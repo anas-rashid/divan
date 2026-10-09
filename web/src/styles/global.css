@@ -196,6 +196,11 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .profile-bio { max-width: 520px; margin: 0 auto 12px; text-align: center; white-space: pre-line; }
 .account-form button { font: inherit; padding: 6px 14px; border: 1.5px solid var(--gold); border-radius: 10px; background: var(--inner); color: var(--ink); cursor: pointer; }
 .account-form button:hover { border-color: var(--brand); color: var(--brand); }
+/* boxes with the keyboard buttons inside them: full width, and the small in-box buttons keep their own look */
+.account-form .in-box-field { display: block; position: relative; }
+.account-form .in-box-field input { width: 100%; box-sizing: border-box; }
+.account-form .in-box { padding: 4px; border: 0; border-radius: 6px; background: none; color: var(--muted, currentColor); }
+.account-form .author-suggest button, .account-form .tag-chip { padding: 0 10px; border-radius: 999px; }
 .account-form.danger button { border-color: var(--brand); color: var(--brand); }
 .form-error { color: var(--brand); text-align: center; }
 .form-done { color: var(--gold); text-align: center; }
@@ -425,3 +430,30 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .eb-meta { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; max-width: 700px; margin: 0 auto; }
 .eb-meta dt { color: var(--muted); }
 .eb-meta dd { margin: 0; }
+/* e-books: tabs, cover grid, right-to-left PDF reader */
+.ebook-tabs a span[lang] { font-size: .8em; }
+.ebook-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 18px; margin: 16px 0; }
+.ebook-card { display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: var(--ink); text-align: center; }
+.ebook-card img, .ebook-plain { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); box-shadow: 0 2px 8px rgb(0 0 0 / .12); background: var(--inner); transition: transform .2s; }
+.ebook-card:hover img, .ebook-card:hover .ebook-plain { transform: translateY(-3px); }
+.ebook-plain { display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 12px; background: linear-gradient(160deg, var(--brand), #5a1e14); color: #fff; font-family: 'Noto Nastaliq Urdu', serif; line-height: 2; }
+.ebook-plain small { opacity: .8; }
+.ebook-title { font-size: .9rem; line-height: 1.6; }
+.cover-small { max-height: 120px; border-radius: 4px; border: 1px solid var(--border); vertical-align: middle; }
+.cover-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; }
+.pdf-reader { margin: 12px 0; }
+.pdf-bar { display: flex; justify-content: center; align-items: center; gap: 16px; margin-bottom: 8px; }
+.pdf-page { width: 4.5em; font: inherit; text-align: center; border: 1px solid var(--border); border-radius: 6px; background: var(--inner); color: var(--ink); }
+.pdf-pages { display: flex; justify-content: center; gap: 8px; min-height: 60vh; cursor: pointer; }
+.pdf-pages canvas { box-shadow: 0 2px 10px rgb(0 0 0 / .2); background: #fff; }
+.pdf-reader:fullscreen { background: var(--bg); padding: 10px; overflow: auto; }
+.pdf-reader:fullscreen .pdf-pages { min-height: calc(100vh - 70px); align-items: center; }
+.eb-row { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+.eb-dir { border: 1px solid var(--border); border-radius: 8px; padding: 2px 12px; display: flex; gap: 14px; }
+.eb-dir label { display: inline-flex; gap: 4px; align-items: center; }
+.eb-co { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.eb-co .tag-chips { justify-content: flex-start; }
+.eb-co .author-find { position: relative; display: block; }
+.eb-co .author-find input { width: 100%; }
+.eb-people { color: var(--muted); }
+.account-form.ebook-form, .mod-edit.account-form { max-width: 560px; }

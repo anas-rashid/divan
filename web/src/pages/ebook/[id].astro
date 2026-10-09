@@ -4,16 +4,23 @@ import Base from '../../layouts/Base.astro';
 import { asUser, COOKIE } from '../../lib/auth';
 import { api } from '../../lib/api';
 import { ud } from '../../lib/urdu';
+import Tags from '../../components/Tags.astro';
 
 const id = Number(Astro.params.id) || 0, token = Astro.cookies.get(COOKIE)?.value;
 const b = token ? (await asUser(token, `/api/ebook/${id}`)).data : await api(`/api/ebook/${id}`);
 if (!b?.id) return new Response(null, { status: 404, statusText: 'Not found' });
 const file = `/ebooks/file/${b.id}`;
 const KIND: Record<string, string> = { pdf: 'PDF', epub: 'EPUB', text: 'متن', archive: 'آرکائیو' };
+// moderators with the e-books permission for this poet can make or change the cover
+const poetPage = token ? await api(`/api/page?url=${encodeURIComponent(b.poet_url)}`) : null;
+const mayCover = token && poetPage && b.kind !== 'archive' && ['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '')
+  && (await asUser(token, `/api/mod/can?category=${poetPage.category.id}`)).data.ebooks;
+// the reader's bookmarked pages of this book
+const marks = token && b.published && b.kind === 'pdf' ? (await asUser(token, `/api/library/state?ebook=${b.id}`)).data.pages ?? [] : [];
 const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size / 1024)))} KB` : `${ud((b.size / 1048576).toFixed(1))} MB`;
 ---
 <Base title={`${b.title} · ${b.poet}`}>
-  <nav class="crumbs"><a href={b.poet_url}>{b.poet}</a> » <a href={`${b.poet_url}#ebooks`}>ای بکس</a></nav>
+  <nav class="crumbs"><a href={b.poet_url}>{b.poet}</a> » <a href={`${b.poet_url}/ebooks?kind=${b.kind}`}>ای بکس</a></nav>
   <h1>{b.title}</h1>
   {!b.published && <p class="form-error center">یہ کتاب ابھی جائزے میں ہے؛ صرف موڈریٹر دیکھ سکتے ہیں۔</p>}
   <p class="center muted">
@@ -21,9 +28,36 @@ const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size
     {b.file && <> · <a href={file} download>ڈاؤن لوڈ</a></>}
     {b.kind === 'archive' && <> · <a href={`https://archive.org/details/${b.archive_id}`}>archive.org پر</a></>}
   </p>
+  <p class="center eb-people">
+    {b.writer && <>مصنف: {b.writer}</>}
+    {b.coauthors?.length > 0 && <> · شریک مصنفین: {b.coauthors.map((c: any, i: number) => <>{i > 0 && '، '}{c.url ? <a href={c.url}>{c.name}</a> : c.name}</>)}</>}
+    · زبان: {b.language} · {b.direction === 'ltr' ? 'بائیں سے دائیں (LTR)' : 'دائیں سے بائیں (RTL)'}
+  </p>
+  <Tags tags={b.tags ?? []} />
   {b.note && <p class="intro">{b.note}</p>}
+  {mayCover && (
+    <p class="center cover-tools" data-id={b.id} data-kind={b.kind} data-src={file}>
+      {b.cover && <img class="cover-small" src={`/ebooks/cover/${b.id}`} alt="سرورق" />}
+      {(b.kind === 'pdf' || b.kind === 'epub') && <button type="button" class="mod-edit-btn" data-make>{b.kind === 'pdf' ? 'پہلے صفحے سے سرورق بنائیں' : 'کتاب کا سرورق لیں'}</button>}
+      <label class="mod-edit-btn">اپنی تصویر سرورق بنائیں<input type="file" accept="image/jpeg,image/png,image/webp" hidden data-own /></label>
+      <span class="muted" data-cover-status></span>
+    </p>
+  )}
 
-  {b.kind === 'pdf' && <iframe class="ebook-frame" src={file} title={b.title}></iframe>}
+  {b.kind === 'pdf' && (
+    <div class="pdf-reader" data-src={file} data-ebook={b.id} data-marks={JSON.stringify(marks)} dir={b.direction === 'ltr' ? 'ltr' : 'rtl'}>
+      <nav class="pdf-bar">
+        <button type="button" class="mod-edit-btn pdf-prev">‹ پچھلا</button>
+        <span>صفحہ <input class="pdf-page" type="number" min="1" value="1" aria-label="صفحہ نمبر" /> از <span class="pdf-total">…</span></span>
+        <button type="button" class="mod-edit-btn pdf-next">اگلا ›</button>
+        <button type="button" class="mod-edit-btn pdf-full" title="پوری اسکرین (F)">پوری اسکرین</button>
+        {b.published && <button type="button" class="save pdf-mark" aria-pressed="false">صفحہ محفوظ کریں</button>}
+      </nav>
+      <p class="tag-chips pdf-marks" hidden></p>
+      <div class="pdf-pages" title="بائیں طرف کلک: اگلا صفحہ"><p class="muted">کتاب کھل رہی ہے…</p></div>
+      <p class="muted center small-line" dir="rtl">{b.direction === 'ltr' ? '→ اگلا صفحہ · ← پچھلا صفحہ' : '← اگلا صفحہ · → پچھلا صفحہ'} · <a href={file} target="_blank" rel="noopener">نئی ٹیب میں کھولیں</a></p>
+    </div>
+  )}
   {b.kind === 'archive' && <iframe class="ebook-frame" src={`https://archive.org/embed/${b.archive_id}`} title={b.title} allowfullscreen></iframe>}
   {b.kind === 'text' && <article class="ebook-text" dir="auto">{b.text}</article>}
   {b.kind === 'epub' && (
@@ -33,6 +67,25 @@ const mb = !b.size ? '' : b.size < 1048576 ? `${ud(Math.max(1, Math.round(b.size
     </>
   )}
   <script>
+    // PDF: the right-to-left reader; covers made in the browser (lib/cover.ts)
+    import { pdfReader } from '../../lib/pdfreader';
+    import { makeCover, sendCover } from '../../lib/cover';
+    const reader = document.querySelector<HTMLElement>('.pdf-reader');
+    if (reader) pdfReader(reader).catch((e) => { reader.querySelector('.pdf-pages')!.textContent = 'کتاب نہیں کھل سکی: ' + e.message; });
+    const tools = document.querySelector<HTMLElement>('.cover-tools');
+    if (tools) {
+      const status = tools.querySelector('[data-cover-status]')!;
+      const save = async (blob: Blob | null) => {
+        if (!blob) { status.textContent = 'اس کتاب میں سرورق نہیں ملا'; return; }
+        status.textContent = 'محفوظ ہو رہا ہے…';
+        try { await sendCover(tools.dataset.id!, blob); location.reload(); } catch (e: any) { status.textContent = e.message; }
+      };
+      tools.querySelector<HTMLButtonElement>('[data-make]')?.addEventListener('click', async () => {
+        status.textContent = 'سرورق بن رہا ہے…';
+        save(await makeCover(await (await fetch(tools.dataset.src!)).arrayBuffer(), tools.dataset.kind as 'pdf' | 'epub').catch(() => null));
+      });
+      tools.querySelector<HTMLInputElement>('[data-own]')!.addEventListener('change', (e) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) save(f); });
+    }
     // EPUB: epub.js pages through the book (right-to-left books turn the other way)
     const view = document.getElementById('epub-view');
     if (view) {

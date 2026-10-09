@@ -1,0 +1,60 @@
+---
+// An e-book's details, for adding a book and for reviewing it: each input has a name (the upload form posts it)
+// and data-eb (the review form writes them into the revision text). Co-authors are picked from the site's
+// poets (linked) or typed as new names.
+import { api } from '../lib/api';
+
+const { v = {} } = Astro.props as { v?: Record<string, string> };
+const LANGUAGES = ['اردو', 'فارسی', 'عربی', 'انگریزی', 'ہندی', 'پنجابی', 'سندھی', 'پشتو', 'دیگر'];
+const poets = ((await api<any[]>('/api/poets')) ?? []).map((p) => p.nickname);
+const KB = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" stroke-linecap="round" stroke-width="2"/></svg>';
+const keys = (id: string) => `<button type="button" class="in-box rom" data-urdu-rom="${id}" aria-pressed="false" title="رومن حروف سے اردو">اب</button><button type="button" class="in-box" data-urdu-kb="${id}" aria-pressed="false" title="اردو کی بورڈ" aria-label="اردو کی بورڈ">${KB}</button>`;
+const direction = v.direction || (['انگریزی', 'ہندی'].includes(v.language) ? 'بائیں سے دائیں' : 'دائیں سے بائیں');
+---
+<label>عنوان<span class="in-box-field"><input id="eb-title" name="title" data-eb="title" value={v.title ?? ''} required maxlength="300" data-urdu /><Fragment set:html={keys('eb-title')} /></span></label>
+<label>مصنف کا نام (جیسا کتاب پر لکھا ہے)<span class="in-box-field"><input id="eb-writer" name="writer" data-eb="writer" value={v.writer ?? ''} maxlength="300" data-urdu /><Fragment set:html={keys('eb-writer')} /></span></label>
+<div class="eb-co">
+  <span>شریک مصنفین <small class="muted">(سائٹ پر موجود ہوں تو ان کے صفحے سے جڑ جاتے ہیں؛ نیا نام بھی لکھ سکتے ہیں)</small></span>
+  <p class="tag-chips eb-co-chips"></p>
+  <span class="in-box-field author-find"><input id="eb-co" placeholder="نام لکھیں، Enter سے شامل کریں" autocomplete="off" data-urdu /><Fragment set:html={keys('eb-co')} />
+    <span class="author-suggest" hidden></span></span>
+  <input type="hidden" name="coauthors" data-eb="coauthors" value={v.coauthors ?? ''} />
+  <script type="application/json" class="eb-poets" set:html={JSON.stringify(poets)} />
+</div>
+<div class="eb-row">
+  <label>زبان<select name="language" data-eb="language" class="tool">{LANGUAGES.map((l) => <option selected={l === (v.language || 'اردو')}>{l}</option>)}</select></label>
+  <fieldset class="eb-dir"><legend>پڑھنے کی سمت</legend>
+    {['دائیں سے بائیں', 'بائیں سے دائیں'].map((d) => <label><input type="radio" name="direction" data-eb="direction" value={d} checked={d === direction} /> {d} <span lang="en" dir="ltr">({d === 'دائیں سے بائیں' ? 'RTL' : 'LTR'})</span></label>)}
+  </fieldset>
+</div>
+<label>ٹیگ (کئی ہوں تو ، سے الگ کریں)<span class="in-box-field"><input id="eb-tags" name="tags" data-eb="tags" value={v.tags ?? ''} maxlength="500" data-urdu placeholder="مثلاً: نعت، کلاسیکی" /><Fragment set:html={keys('eb-tags')} /></span></label>
+<label>ماخذ<input name="source" data-eb="source" value={v.source ?? ''} maxlength="300" data-urdu placeholder="مثلاً: ناشر، سال، کتب خانہ" /></label>
+<label>حقوق / اجازت<input name="licence" data-eb="licence" value={v.licence ?? ''} maxlength="300" data-urdu placeholder="مثلاً: عوامی ملکیت، مصنف کی اجازت سے" /></label>
+<label>تفصیل<textarea name="note" data-eb="note" rows="3" maxlength="2000" data-urdu>{v.note ?? ''}</textarea></label>
+<script>
+  // co-author chips: suggestions from the site's poets; Enter adds what is typed (a new name)
+  for (const box of document.querySelectorAll<HTMLElement>('.eb-co')) {
+    const poets: string[] = JSON.parse(box.querySelector('.eb-poets')!.textContent!);
+    const hidden = box.querySelector<HTMLInputElement>('input[type=hidden]')!, input = box.querySelector<HTMLInputElement>('#eb-co')!;
+    const chips = box.querySelector<HTMLElement>('.eb-co-chips')!, list = box.querySelector<HTMLElement>('.author-suggest')!;
+    const norm = (s: string) => s.normalize('NFC').replace(/[ً-ْٰٔ]/g, '').replace(/[يى]/g, 'ی').replace(/ك/g, 'ک').replace(/[هۂ]/g, 'ہ');
+    let names = hidden.value.split(/[،,]/).map((s) => s.trim()).filter(Boolean);
+    const draw = () => {
+      hidden.value = names.join('، '); hidden.dispatchEvent(new Event('input', { bubbles: true }));
+      chips.replaceChildren(...names.map((n) => {
+        const c = document.createElement('button'); c.type = 'button'; c.className = 'tag-chip';
+        c.textContent = `${n}${poets.some((p) => norm(p) === norm(n)) ? '' : ' (نیا)'} ✕`; c.title = 'ہٹائیں';
+        c.onclick = () => { names = names.filter((x) => x !== n); draw(); }; return c;
+      }));
+    };
+    const add = (n: string) => { n = n.trim(); if (n && !names.includes(n)) names.push(n); input.value = ''; list.hidden = true; draw(); input.focus(); };
+    input.addEventListener('input', () => {
+      const t = norm(input.value.trim());
+      const hits = t ? poets.filter((p) => norm(p).includes(t) && !names.includes(p)).slice(0, 10) : [];
+      list.replaceChildren(...hits.map((p) => { const b = document.createElement('button'); b.type = 'button'; b.textContent = p; b.onclick = () => add(p); return b; }));
+      list.hidden = !hits.length;
+    });
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); add(input.value); } });
+    draw();
+  }
+</script>
