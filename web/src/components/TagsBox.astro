@@ -1,0 +1,12 @@
+---
+// a page's tags, folded away at the end of its content (#52): "ٹیگ" and how many; open to see the chips
+import Tags from './Tags.astro';
+import { ud } from '../lib/urdu';
+const { tags } = Astro.props as { tags: { type: string; name: string }[] };
+---
+{tags.length > 0 && (
+  <details class="tags-box">
+    <summary>ٹیگ <small class="muted">{ud(tags.length)}</small></summary>
+    <Tags tags={tags} />
+  </details>
+)}

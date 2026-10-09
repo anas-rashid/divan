@@ -89,6 +89,7 @@ const tagTarget = page.type === 'poem' ? `work/${poemId}` : `category/${page.cat
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
 const title = page.type === 'poem' ? page.poem.title : page.type === 'poet' ? page.poet.nickname : page.category.title;
 import Icon from '../components/Icon.astro';
+import TagsBox from '../components/TagsBox.astro';
 ---
 <Base author={page.poet?.nickname} jsonld={page.type === 'poem' ? { '@context': 'https://schema.org', '@type': 'CreativeWork', name: page.poem.title, inLanguage: 'ur', author: { '@type': 'Person', name: page.poet.nickname }, isPartOf: crumbs.at(-1)?.title, url: Astro.url.href.split('?')[0] } : undefined} title={page.type === 'poem' ? `${page.poem.title} · ${page.poet.nickname}` : title} description={page.type === 'poet' ? page.poet.description?.slice(0, 160) : undefined}>
   {page.type !== 'poet' && (
@@ -105,14 +106,12 @@ import Icon from '../components/Icon.astro';
       <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="یہ شاعر محفوظ کریں">{label(saved.poet)}</button><button type="button" class="icon-btn small" data-reading-toggle title="مطالعے کا انداز: صرف متن" aria-label="مطالعے کا انداز"><Icon name="dict" size={17} /></button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn"><Icon name="arrange" size={17} /> ترتیب دیں</button></form>
         <a class="icon-btn small" href={`/mod/order/${page.category.id}`} title="ترتیب کا تاریخچہ" aria-label="ترتیب کا تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}</div>
       <p class="muted">{years(page.poet)}</p>
-      <Tags tags={pageTags} />
       {page.poet.description && <div class="intro">{page.poet.description}</div>}
     </>
   )}
   {page.type === 'category' && (
     <>
       <h1 data-readable>{page.category.title}</h1>
-      <Tags tags={pageTags} />
       <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'category', categoryId: page.category.id })} aria-pressed={String(!!saved.category)} title="یہ کتاب یا باب محفوظ کریں">{label(saved.category)}</button><button type="button" class="icon-btn small" data-reading-toggle title="مطالعے کا انداز: صرف متن" aria-label="مطالعے کا انداز"><Icon name="dict" size={17} /></button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn"><Icon name="arrange" size={17} /> ترتیب دیں</button></form>
         <a class="icon-btn small" href={`/mod/order/${page.category.id}`} title="ترتیب کا تاریخچہ" aria-label="ترتیب کا تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}</div>
     </>
@@ -132,6 +131,7 @@ import Icon from '../components/Icon.astro';
       <ol class="toc">{g.poems.map((p: any) => <li><a class={glyph(p.id)} href={p.url}>{p.title}</a></li>)}</ol>
     </>
   ))}
+  {page.type !== 'poem' && <TagsBox tags={pageTags} />}
 
   {page.type === 'poem' && (
     <>
@@ -146,7 +146,6 @@ import Icon from '../components/Icon.astro';
       <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poem', poemId })} aria-pressed={String(!!saved.poem)} title="یہ کلام محفوظ کریں">{label(saved.poem)}</button><button type="button" class="icon-btn small" data-reading-toggle title="مطالعے کا انداز: صرف متن" aria-label="مطالعے کا انداز"><Icon name="dict" size={17} /></button>
         {modCan.edit && <> <form method="post" action={`/mod/work/${poemId}`} class="inline-form"><button class="mod-edit-btn"><Icon name="edit" size={17} /> ترمیم کریں</button></form>
           <a class="icon-btn small" href={`/mod/work/${poemId}`} title="تاریخچہ" aria-label="تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}</div>
-      <Tags tags={pageTags} />
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
       <div class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {
@@ -168,7 +167,6 @@ import Icon from '../components/Icon.astro';
         })}
       </div>
       </article>
-      <p class="muted hint">کسی لفظ کو منتخب کریں تو اس کے معنی اور تلفظ ساتھ نظر آئیں گے؛ کسی عبارت پر نوٹ بھی لکھ سکتے ہیں۔</p>
       <div id="c-menu" class="c-menu" popover role="menu" aria-label="شعر">
         <button type="button" role="menuitem" data-act="bm"><i class="g-bm" /><span>محفوظ کریں</span></button>
         <button type="button" role="menuitem" data-act="nt"><i class="g-nt" /><span>نوٹ</span></button>
@@ -191,6 +189,7 @@ import Icon from '../components/Icon.astro';
         </form>
       </dialog>
       <script type="application/json" id="notes-data" set:html={JSON.stringify({ poemId, notes, phrases: saved.phrases, signedIn: !!token })} />
+      <TagsBox tags={pageTags} />
       <nav class="poem-nav">
         {page.prev && <a class="icon-btn" href={page.prev} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
         {page.next && <a class="icon-btn" href={page.next} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
