@@ -195,6 +195,8 @@ mark { background: var(--accent-soft); color: inherit; border-radius: 3px; paddi
 .made-in .flag { flex: none; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .15); }
 .site-footer { border-top: 1.5px solid var(--border); padding: 20px 0 16px; margin-top: 16px; font-size: var(--fs-sm); color: var(--text-muted); background: var(--surface-raised); }
 /* footer: three labelled groups of links, each with an icon and a one-line note; external links marked */
+.footer-logo { display: block; width: fit-content; margin: 0 auto 14px; }
+.footer-logo img { display: block; width: 56px; height: 56px; }
 .footer-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 24px; max-width: 760px; margin: 0 auto; }
 .footer-links h2 { text-align: start; font-size: var(--fs-xs); font-weight: 700; color: var(--text-muted); letter-spacing: .02em; margin: 0 0 4px; }
 .footer-links h2::after { display: none; }

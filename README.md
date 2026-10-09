@@ -1,3 +1,5 @@
+<p align="center"><img src="web/public/logo/turanj.svg" width="140" alt="دیوان"></p>
+
 # دیوان · Divan
 
 An open-source site for reading and searching **classical Urdu poetry and prose**, in Urdu script (`ur-PK`). Content comes from [divan-data](https://github.com/anas-rashid/divan-data): public-domain texts from Urdu Wikisource, with short poet introductions from Urdu Wikipedia.
