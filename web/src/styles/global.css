@@ -118,6 +118,10 @@ mark { background: var(--gold-subtle); color: inherit; border-radius: 3px; paddi
 .hint { text-align: center; font-size: .8rem; margin: 0; }
 .pager { display: flex; gap: 12px; justify-content: center; margin-top: 20px; }
 
+/* made by a Pakistani for Pakistan: the flag beside the line (an SVG: the emoji is "PK" on Windows) */
+.made-in { margin: 10px 0 0; display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Noto Nastaliq Urdu', serif; font-size: 1.05rem; line-height: 2; color: var(--ink); } /* a tagline */
+.made-in .flag { flex: none; border-radius: 2px; box-shadow: 0 0 0 1px rgb(0 0 0 / .15); }
 .site-footer { border-top: 1.5px solid var(--border); padding: 16px 0; font-size: .85rem; color: var(--muted); text-align: center; }
 
 h1 + .muted { text-align: center; margin-top: 0; }
