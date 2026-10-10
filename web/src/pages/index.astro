@@ -4,7 +4,8 @@ import { api } from '../lib/api';
 import { asUser, COOKIE } from '../lib/auth';
 import { centuryName, yearLines, ud } from '../lib/urdu';
 
-type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null };
+type Poet = { id: number; url: string; nickname: string; birth_year_ah: number | null; death_year_ah: number | null; portrait?: string | null };
+import PoetAvatar from '../components/PoetAvatar.astro';
 // the home page sections, as arranged by moderators with the site permission (api/src/site.ts)
 const sections = (await api<{ id: number; title: string | null; century: number | null; poets: Poet[] }[]>('/api/home')) ?? [];
 const count = new Set(sections.flatMap((s) => s.poets.map((p) => p.id))).size;
@@ -30,8 +31,8 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so its rays can 
       <div class="poets">
         {s.poets.map((p) => (
           <a class={card(p)} href={p.url} title={p.nickname}>
-            <span class="name">{p.nickname}</span>
-            {yearLines(p).map((y) => <small>{y}</small>)}
+            <PoetAvatar poet={p} size={50} />
+            <span class="pc-text"><span class="name">{p.nickname}</span>{yearLines(p).map((y) => <small>{y}</small>)}</span>
           </a>
         ))}
       </div>

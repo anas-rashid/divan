@@ -1,0 +1,12 @@
+---
+// A poet's picture, the same everywhere: the portrait (from Wikimedia, api/src/portraits.ts) in a circle, turned to one
+// duotone in the palette's colours whatever the original (painting or photograph), in the logo's gold ring; without a
+// portrait, the pen name's first letter in Nastaliq on lapis, in the same ring.
+interface Props { poet: { id: number; nickname: string; portrait?: string | null }; size?: number; class?: string }
+const { poet, size = 56, class: cls } = Astro.props;
+// the pen name usually comes last (مرزا غالب, میر تقی میر, محمد اقبال): its first letter
+const letter = [...(poet.nickname.trim().split(/\s+/).pop() ?? poet.nickname)][0];
+---
+{poet.portrait
+  ? <span class:list={['poet-avatar', cls]} style={`--s: ${size}px`}><img src={`/portrait/${poet.id}?v=${poet.portrait.slice(0, 10)}`} alt="" width={size} height={size} loading="lazy" decoding="async" /></span>
+  : <span class:list={['poet-avatar', 'generic', cls]} style={`--s: ${size}px`} aria-hidden="true">{letter}</span>}

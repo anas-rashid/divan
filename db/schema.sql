@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS poets (
 ALTER TABLE poets ADD COLUMN IF NOT EXISTS pin_order integer;
 ALTER TABLE poets ADD COLUMN IF NOT EXISTS birth_year_ce integer;  -- Gregorian (عیسوی)
 ALTER TABLE poets ADD COLUMN IF NOT EXISTS death_year_ce integer;
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS image_url text;  -- a picture named by the source (Wikimedia Commons), from divan-data
+-- the portrait shown on the site (api/src/portraits.ts): a freely licensed picture from Wikimedia, kept in the file store
+-- ('<sha256>.jpg'), with its credit {artist, licence, licence_url, page, source}
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS portrait text;
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS portrait_credit jsonb;
 ALTER TABLE poets ADD COLUMN IF NOT EXISTS source_url text;   -- where the intro comes from when it is not Urdu Wikipedia (Ganjoor)
 
 CREATE TABLE IF NOT EXISTS categories (

@@ -25,6 +25,7 @@ import { siteRoutes } from './site.ts';
 import { tagRoutes, pageTags } from './tags.ts';
 import { ebookRoutes } from './ebooks.ts';
 import { feedRoutes } from './feeds.ts';
+import { portraitRoutes, SHOWN } from './portraits.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
 
@@ -54,7 +55,7 @@ app.get('/health', async () => {
 
 app.get('/api/poets', async () => {
   const { rows } = await pool.query(
-    'SELECT id, url, name, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, pin_order FROM poets ORDER BY birth_year_ah NULLS LAST, nickname',
+    `SELECT id, url, name, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, pin_order, ${SHOWN} AS portrait FROM poets ORDER BY birth_year_ah NULLS LAST, nickname`,
   );
   return rows;
 });
@@ -233,6 +234,7 @@ app.get<{ Querystring: { w?: string } }>('/api/word', async (req, reply) => {
 });
 
 authRoutes(app);
+portraitRoutes(app);
 adminRoutes(app);
 permissionRoutes(app);
 libraryRoutes(app);

@@ -32,13 +32,13 @@ for (const entry of manifest.Poets) {
   try {
     await client.query('BEGIN');
     await client.query(
-      `INSERT INTO poets (id, url, name, nickname, description, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, source_url)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+      `INSERT INTO poets (id, url, name, nickname, description, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, source_url, image_url)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
        ON CONFLICT (id) DO UPDATE SET url=$2, name=$3, nickname=$4, description=$5, birth_year_ah=$6, death_year_ah=$7,
-         birth_year_ce=$8, death_year_ce=$9, source_url=$10`,
+         birth_year_ce=$8, death_year_ce=$9, source_url=$10, image_url=$11`,
       [poet.Id, poet.FullUrl, poet.Name, poet.Nickname, poet.Description,
        poet.ValidBirthDate ? poet.BirthYearInLHijri : null, poet.ValidDeathDate ? poet.DeathYearInLHijri : null,
-       poet.BirthYearCE ?? null, poet.DeathYearCE ?? null, poet.SourceUrl ?? null],
+       poet.BirthYearCE ?? null, poet.DeathYearCE ?? null, poet.SourceUrl ?? null, poet.ImageUrl ?? null],
     );
     // categories depth-first so parents exist before children
     const walk = async (url: string, position: number): Promise<void> => {

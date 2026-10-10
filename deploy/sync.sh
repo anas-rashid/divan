@@ -5,6 +5,7 @@
 #   2. rebuild its search index and site export
 #   3. load the export into PostgreSQL (upserts; the site reads it live)
 #   3b. sync the word dictionary from Wiktionary (api/src/dict-sync.ts; first run imports ~700 MB)
+#   3c. fetch poets' portraits from Wikimedia (api/src/portraits.ts; only new or changed pictures download)
 #   4. optionally commit + push the refreshed data (DIVAN_DATA_PUSH=1, needs git push access)
 #
 # Schedule with cron, e.g. daily at 03:15:
@@ -49,4 +50,6 @@ node src/import.ts "$DATA_DIR"
 # word dictionary (Wiktionary): re-imports sources that changed upstream, then the day's edits.
 # A failure here must not fail the content sync.
 node src/dict-sync.ts || echo "$(date -u +%FT%TZ) dictionary sync failed"
+# poets' portraits (Wikimedia, free licences only); also must not fail the sync
+DIVAN_DATA_DIR="$DATA_DIR" node src/portraits.ts || echo "$(date -u +%FT%TZ) portraits failed"
 echo "== $(date -u +%FT%TZ) done"

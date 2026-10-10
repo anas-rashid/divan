@@ -58,6 +58,8 @@ The import upserts, so re-running it after a divan-data sync applies the changes
 
 The same script keeps the word dictionary current (`npm run dict-sync` in `api/`): the full Wiktionary data for Urdu, Persian and Arabic (English Wiktionary via [kaikki.org](https://kaikki.org), and the Urdu, Persian and Arabic Wiktionary dumps) is re-imported when upstream publishes new files, and each day's Wiktionary edits are applied from recent changes. The first run downloads about 700 MB.
 
+The same script fetches poets' portraits (`npm run portraits` in `api/`): for each poet, the picture named on their Wikisource author page or the lead image of their Urdu Wikipedia article, only when Wikimedia marks it free, kept in the file store with its artist and licence (shown under the portrait). Lead images wait for an admin's approval at `/admin/portraits`, since they are not always the poet. Poets without a picture get a generic avatar.
+
 Settings: `DIVAN_DATA_DIR` (default `/opt/divan-data`, cloned on first run), `DIVAN_APP_DIR` (default: this repo), `DIVAN_DATA_PUSH=1` to also commit and push data changes (needs git push access). Needs git, python3 and Node 24+.
 
 ## API

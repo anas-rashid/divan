@@ -1,5 +1,6 @@
 ---
 // Search: poets/writers by name and books/chapters by title (first page), then the content results, paged
+import PoetAvatar from '../components/PoetAvatar.astro';
 import Base from '../layouts/Base.astro';
 import Icon from '../components/Icon.astro';
 import Seg from '../components/Seg.astro';
@@ -49,7 +50,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
           <div class="poets">
             {res.poets.map((p: any) => (
               <div class="poet-result">
-                <a class="poet-card" href={p.url}><span class="name"><Seg s={hl(p.nickname)} /></span><small>{years(p)}</small></a>
+                <a class="poet-card" href={p.url}><PoetAvatar poet={p} size={50} /><span class="pc-text"><span class="name"><Seg s={hl(p.nickname)} /></span><small>{years(p)}</small></span></a>
                 <a class="muted small" href={link(1, [p.id])}>{ud(p.works)} کلام میں «{q}»</a>
               </div>
             ))}

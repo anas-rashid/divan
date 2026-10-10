@@ -1,0 +1,51 @@
+---
+// Admin: poets' portraits. Wikipedia lead images wait here for a look before the site shows them (they may be someone
+// else, or not a face); pictures chosen on Wikisource show at once but can be removed too. A removed one is not fetched again.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import PoetAvatar from '../../components/PoetAvatar.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/admin/portraits');
+if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value;
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const r = await asUser(token, `/api/admin/portraits/${Number(f.get('id')) || 0}`, { act: f.get('act') });
+  return Astro.redirect(`/admin/portraits?done=${r.ok ? f.get('act') : 'error'}`, 303);
+}
+const list: any[] = (await asUser(token, '/api/admin/portraits')).data.portraits ?? [];
+const waiting = (p: any) => p.credit?.from === 'wikipedia' && !p.credit?.reviewed;
+const done = Astro.url.searchParams.get('done');
+---
+<Base title="ایڈمن: تصاویر">
+  <h1>ایڈمن</h1>
+  <AdminNav current="portraits" />
+  {done && (done === 'error' ? <p class="form-error" role="alert">کچھ غلط ہو گیا</p> : <p class="form-done" role="status">{done === 'approve' ? 'تصویر منظور ہو گئی' : 'تصویر ہٹا دی گئی'}</p>)}
+  <p class="muted center">
+    {ud(list.length)} تصاویر · {ud(list.filter(waiting).length)} جائزے کی منتظر.
+    ویکی پیڈیا کے مضمون کی پہلی تصویر ہمیشہ شاعر کی نہیں ہوتی: منظوری کے بعد ہی سائٹ پر دکھائی جاتی ہے۔
+  </p>
+  <ul class="portrait-list">
+    {list.map((p) => (
+      <li class:list={['portrait-card', { waiting: waiting(p) }]}>
+        <PoetAvatar poet={p} size={96} />
+        <div class="who">
+          <a href={p.url}><strong>{p.nickname}</strong></a>
+          <a class="file" href={p.credit?.page} rel="noopener" dir="ltr">{p.credit?.source}</a>
+          <small class="muted"><bdi>{p.credit?.licence}</bdi>{p.credit?.artist && <> · <bdi>{p.credit.artist}</bdi></>}</small>
+          <span class:list={['badge', { warn: waiting(p) }]}>{p.credit?.from === 'wikipedia' ? (p.credit?.reviewed ? 'ویکی پیڈیا · منظور شدہ' : 'ویکی پیڈیا · جائزہ باقی') : 'ویکی ماخذ'}</span>
+        </div>
+        <div class="acts">
+          {waiting(p) && <form method="post"><input type="hidden" name="id" value={p.id} /><button class="btn ok" name="act" value="approve"><Icon name="check" size={16} /> منظور</button></form>}
+          <form method="post" data-confirm={`${p.nickname} کی یہ تصویر ہٹائیں؟ یہ دوبارہ نہیں لائی جائے گی۔`} data-danger data-ok="ہٹائیں">
+            <input type="hidden" name="id" value={p.id} /><button class="btn danger" name="act" value="remove"><Icon name="trash" size={16} /> ہٹائیں</button>
+          </form>
+        </div>
+      </li>
+    ))}
+  </ul>
+</Base>
