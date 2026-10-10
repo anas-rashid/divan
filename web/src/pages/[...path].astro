@@ -210,7 +210,7 @@ import TagsBox from '../components/TagsBox.astro';
         <p class="source divan-edit">
           دیوان کا ورژن {ud(page.divan.version)} · ترمیم: {page.divan.by}{page.divan.reviewedBy && <> · جائزہ: {page.divan.reviewedBy}</>} · اشاعت: {page.divan.publishedBy}
           · <bdi dir="ltr">{new Date(page.divan.at).toISOString().slice(0, 10)}</bdi>
-          {page.divan.commit_url && <> · <a href={page.divan.commit_url}>تبدیلی دیکھیں</a></>}
+          {page.divan.history_url && <> · <a href={page.divan.history_url} rel="noopener">تبدیلیاں دیکھیں</a></>}
         </p>
       )}
       {page.poem.source_url && (
