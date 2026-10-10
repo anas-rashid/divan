@@ -141,7 +141,7 @@ import TagsBox from '../components/TagsBox.astro';
   {page.type !== 'poem' && groups.map((g) => (
     <>
       {g.letter && <h2 class="radif-head">ردیف {g.letter}</h2>}
-      <ol class="toc">{g.poems.map((p: any) => <li><a class={glyph(p.id)} href={p.url}>{p.title}</a></li>)}</ol>
+      <ol class="toc">{g.poems.map((p: any) => <li><a class={glyph(p.id)} href={p.url}>{p.first_line ? <><span class="toc-no">{p.title}</span> {p.first_line.length >= 100 ? p.first_line + '…' : p.first_line}</> : p.title}</a></li>)}</ol>
     </>
   ))}
   {page.type !== 'poem' && <TagsBox tags={pageTags} />}
