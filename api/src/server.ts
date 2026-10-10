@@ -17,6 +17,7 @@ import { lookup, PUNCT } from './dictionary.ts';
 import { authRoutes } from './auth.ts';
 import { adminRoutes } from './admin.ts';
 import { statsRoutes } from './stats.ts';
+import { disk } from './health.ts';
 import { permissionRoutes } from './permissions.ts';
 import { libraryRoutes } from './library.ts';
 import { moderationRoutes } from './moderation.ts';
@@ -37,13 +38,12 @@ app.setErrorHandler((err: any, req, reply) => {
 
 // for the site's /health (uptime monitoring): the API answers and the database too
 app.get('/api/health', async (req, reply) => {
-  try {
-    await pool.query('SELECT 1');
-    return { ok: true, db: 'ok' };
-  } catch (err) {
-    req.log.error({ err }, 'health: database unreachable');
-    return reply.code(503).send({ ok: false, db: 'down' });
-  }
+  // the database answers, and the disk is not (nearly) full; the percentage goes to the log, not to the public
+  const db = await pool.query('SELECT 1').then(() => 'ok', (err) => (req.log.error({ err }, 'health: database unreachable'), 'down'));
+  const space = await disk().catch(() => null);
+  if (space?.full) req.log.error({ used: space.used }, 'health: disk nearly full');
+  const ok = db === 'ok' && !space?.full;
+  return reply.code(ok ? 200 : 503).send({ ok, db, disk: space?.full ? 'full' : 'ok' });
 });
 const PAGE_SIZE = 20;
 
