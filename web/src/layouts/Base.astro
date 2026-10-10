@@ -527,6 +527,9 @@ import { siteUrl } from '../lib/site-url';
       const menu = document.getElementById('selmenu');
       const oneWord = (t) => { const w = t.replace(TRIM, '').replace(/\u0614/g, ''); return /^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w) ? w : null; };
       let selText = '', selTimer;
+      // phones (the dictionary's bottom-sheet width): no Divan menu at all, only the phone's own (two menus confused and
+      // crowded the screen); a single word still opens the dictionary sheet. Desktops and tablets keep the menu.
+      const phone = matchMedia('(max-width: 700px)');
       const hideMenu = () => { menu.hidden = true; };
       document.addEventListener('selectionchange', () => {
         clearTimeout(selTimer);
@@ -545,14 +548,23 @@ import { siteUrl } from '../lib/site-url';
           menu.querySelector('[data-act=saveword]').hidden = !w;
           menu.querySelector('[data-act=bookmark]').hidden = menu.querySelector('[data-act=note]').hidden = !(source.poemId && Number.isInteger(source.couplet));
           menu.querySelector('[data-act=meaning]').hidden = !w;
+          if (phone.matches) { hideMenu(); if (w) showWord(w).then(keepInView); return; }
+          const r = sel.getRangeAt(0).getBoundingClientRect();
           menu.hidden = false;
-          // below the selection, centred, kept inside the viewport (absolute: moves with the page)
-          const r = sel.getRangeAt(0).getBoundingClientRect(), m = menu.getBoundingClientRect();
+          // below the selection, centred, kept inside the page's width (absolute: moves with the page)
+          const m = menu.getBoundingClientRect(), width = document.documentElement.clientWidth;
           menu.style.top = `${r.bottom + scrollY + 8}px`;
-          menu.style.left = `${Math.max(8, Math.min(innerWidth - m.width - 8, r.left + r.width / 2 - m.width / 2)) + scrollX}px`;
+          menu.style.left = `${Math.max(8, Math.min(width - m.width - 8, r.left + r.width / 2 - m.width / 2)) + scrollX}px`;
           if (w) showWord(w);
-        }, 350);
+        }, phone.matches ? 700 : 350); // a phone's selection handles move for a while: wait until it is still
       });
+      // a phone: the page scrolls so the selected word sits just above the dictionary sheet instead of under it
+      function keepInView() {
+        const sel = getSelection(); if (!sel?.rangeCount || dict.hidden) return;
+        // where the sheet ends up (it may still be sliding up): the window's height less the sheet's own height
+        const r = sel.getRangeAt(0).getBoundingClientRect(), top = innerHeight - dict.offsetHeight;
+        if (r.bottom > top - 12) scrollBy({ top: r.bottom - top + 24, behavior: 'smooth' });
+      }
       menu.onmousedown = (e) => e.preventDefault(); // keep the selection
       const cite = () => { // "text\n— poet، title\nlink" for copying
         const art = document.querySelector('[data-cite]');
