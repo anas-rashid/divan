@@ -115,7 +115,11 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
          GROUP BY c.id ORDER BY c.position, c.id`,
         [cat.id],
       ),
-      pool.query('SELECT id, url, title, radif_letter FROM poems WHERE category_id = $1 ORDER BY position, id', [cat.id]),
+      // a title that is only a number («شمارهٔ ۸۴», many Persian works from Ganjoor): the first line goes with it, so the
+      // contents say what each poem is
+      pool.query(`SELECT id, url, title, radif_letter, CASE WHEN title ~ '^[^0-9۰-۹]{0,20}[0-9۰-۹]+$'
+                    THEN (SELECT left(text, 100) FROM verses v WHERE v.poem_id = p.id ORDER BY vorder LIMIT 1) END AS first_line
+                  FROM poems p WHERE category_id = $1 ORDER BY position, id`, [cat.id]),
     ]);
     return {
       type: cat.parent_id === null ? 'poet' : 'category',

@@ -71,7 +71,9 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 /* The rule: the interface (menus, buttons, forms, paths, footers, admin and moderation) is always Naskh, compact and
    calm; the reading font (Naskh or Nastaliq, the reader's choice) is only for the literature: verses and prose, work,
    book and poet titles, contents lists, intros, excerpts, the editor and its preview. */
-.lit, .poem, .preview, .snippet, .intro, .toc, .lib-couplet, .ebook-text, .dv-editor, .masthead-text, .radif-head { font-family: var(--font); }
+.lit, .poem, .preview, .snippet, .intro, .toc, .lib-couplet, .ebook-text, .dv-editor, .masthead-text, /* a poem known only by its number (Ganjoor's «شمارهٔ ۸۴»): the number small, then the first line */
+.toc-no { font-family: var(--font-ui); font-size: .8em; color: var(--text-muted); margin-inline-end: .4em; }
+.radif-head { font-family: var(--font); }
 :where(a) { color: var(--link); text-decoration: none; }
 :where(a):hover { color: var(--active); }
 .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
