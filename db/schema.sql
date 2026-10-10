@@ -49,6 +49,7 @@ ALTER TABLE poems ADD COLUMN IF NOT EXISTS radif_letter text;
 CREATE INDEX IF NOT EXISTS poems_category ON poems(category_id);
 CREATE INDEX IF NOT EXISTS poems_search ON poems USING gin (search_text gin_trgm_ops);
 
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS language text;     -- 'ur-PK', or 'fa-IR' for Persian works from Ganjoor
 CREATE TABLE IF NOT EXISTS verses (
     poem_id  integer NOT NULL REFERENCES poems(id) ON DELETE CASCADE,
     vorder   integer NOT NULL,

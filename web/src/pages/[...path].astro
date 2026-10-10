@@ -159,7 +159,7 @@ import TagsBox from '../components/TagsBox.astro';
         {modCan.edit && <> <form method="post" action={`/mod/work/${poemId}`} class="inline-form"><button class="mod-edit-btn"><Icon name="edit" size={17} /> ترمیم کریں</button></form>
           <a class="icon-btn small" href={`/mod/work/${poemId}`} title="تاریخچہ" aria-label="تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}</div>
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
-      <div class="poem" data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
+      <div class="poem" lang={page.poem.language?.startsWith('fa') ? 'fa' : undefined} data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {
           const cn = noteOf(b.c), any = cn || notes.some((n) => n.couplet === b.c);
           // the bookmark, and beside it the note glyph (shown when this couplet or a phrase in it has a note)
@@ -214,7 +214,7 @@ import TagsBox from '../components/TagsBox.astro';
         </p>
       )}
       {page.poem.source_url && (
-        <p class="source">ماخذ: <a href={page.poem.source_url}>ویکی ماخذ</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
+        <p class="source">ماخذ: <a href={page.poem.source_url}>{/ganjoor\.net/.test(page.poem.source_url ?? '') ? 'گنجور' : 'ویکی ماخذ'}</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
       )}
     </>
   )}
