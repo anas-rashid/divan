@@ -1,9 +1,10 @@
 ---
-const { current } = Astro.props as { current?: 'queue' | 'log' | 'guide' | 'site' };
+const { current } = Astro.props as { current?: 'queue' | 'log' | 'guide' | 'site' | 'portraits' };
 ---
 <nav class="admin-nav">
   <a href="/mod" aria-current={current === 'queue' ? 'page' : undefined}>موڈریشن</a>
   <a href="/mod?log=1" aria-current={current === 'log' ? 'page' : undefined}>سرگرمی</a>
   <a href="/mod/site" aria-current={current === 'site' ? 'page' : undefined}>سرورق</a>
+  <a href="/mod/portraits" aria-current={current === 'portraits' ? 'page' : undefined}>تصاویر</a>
   <a href="/mod/guide" aria-current={current === 'guide' ? 'page' : undefined}>رہنمائی</a>
 </nav>

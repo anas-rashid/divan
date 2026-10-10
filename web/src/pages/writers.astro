@@ -21,6 +21,6 @@ const byUrl = new Map(((await api<any[]>('/api/poets')) ?? []).map((p) => [p.url
     ? <p class="muted center">ابھی کوئی لکھاری محفوظ نہیں۔ کسی شاعر یا ادیب کے صفحے پر "محفوظ کریں" دبائیں۔</p>
     : <>
         <p class="muted center">{ud(writers.length)} لکھاری</p>
-        <div class="poets">{writers.map((p: any) => <a class="poet-card" href={p.poet.url} title={p.poet.name}>{byUrl.get(p.poet.url) && <PoetAvatar poet={byUrl.get(p.poet.url)} size={50} />}<span class="pc-text"><span class="name">{p.poet.name}</span></span></a>)}</div>
+        <div class="poets">{writers.map((p: any) => <a class="poet-card" href={p.poet.url} title={p.poet.name}>{byUrl.get(p.poet.url) && <PoetAvatar poet={byUrl.get(p.poet.url)} size={68} />}<span class="pc-text"><span class="name">{p.poet.name}</span></span></a>)}</div>
       </>}
 </Base>

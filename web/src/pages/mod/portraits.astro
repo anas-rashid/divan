@@ -1,0 +1,107 @@
+---
+// Poets' portraits, for admins and for moderators with the "تصاویر" permission for a poet: frame on the face (edit), remove
+// (delete), upload a new one (create). Wikipedia lead images and uploads wait for an admin's approval before the site shows
+// them (they may be someone else, not a face, or not free to use); Wikisource's pictures show at once.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import ModNav from '../../components/ModNav.astro';
+import PoetAvatar from '../../components/PoetAvatar.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/mod/portraits');
+if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صرف موڈریٹرز کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value;
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  const r = await asUser(token, `/api/mod/portraits/${Number(f.get('id')) || 0}`, { act: f.get('act'), x: Number(f.get('x')) / 100, y: Number(f.get('y')) / 100, z: Number(f.get('z')) });
+  return Astro.redirect(`/mod/portraits?done=${r.ok ? f.get('act') : 'error'}`, 303);
+}
+const data = (await asUser(token, '/api/mod/portraits')).data ?? {};
+const list: any[] = data.portraits ?? [], uploadFor: any[] = data.upload ?? [];
+const done = Astro.url.searchParams.get('done');
+const DONE: Record<string, string> = { approve: 'تصویر منظور ہو گئی', focus: 'چہرے پر جگہ محفوظ ہو گئی', remove: 'تصویر ہٹا دی گئی', upload: 'تصویر بھیج دی گئی: ایڈمن کی منظوری کے بعد دکھائی دے گی', uploaded: 'تصویر لگ گئی' };
+---
+<Base title="تصاویر">
+  <h1>{me.role === 'admin' ? 'ایڈمن' : 'موڈریشن'}</h1>
+  {me.role === 'admin' ? <AdminNav current="portraits" /> : <ModNav current="portraits" />}
+  {done && (done === 'error' ? <p class="form-error" role="alert">کچھ غلط ہو گیا</p> : <p class="form-done" role="status">{DONE[done]}</p>)}
+  <p class="muted center">
+    {ud(list.length)} تصاویر · {ud(list.filter((p) => p.waiting).length)} منظوری کی منتظر.
+    ویکی پیڈیا کی پہلی تصویر اور بھیجی گئی تصاویر ایڈمن کی منظوری کے بعد ہی سائٹ پر دکھائی دیتی ہیں۔
+  </p>
+  {list.length === 0 && uploadFor.length === 0 && <p class="empty"><span aria-hidden="true">✤</span>تصاویر کی اجازت ابھی نہیں: ایڈمن سے «تصاویر» کی اجازت لیں۔</p>}
+  {uploadFor.length > 0 && (
+    <details class="new-portrait">
+      <summary class="btn primary"><Icon name="upload" size={16} /> نئی تصویر</summary>
+      <form class="portrait-upload account-form">
+        <label>شاعر <input name="poet" list="upload-poets" required autocomplete="off" placeholder="نام لکھیں" /></label>
+        <datalist id="upload-poets">{uploadFor.map((p) => <option value={p.nickname} data-id={p.id} />)}</datalist>
+        <label>تصویر <input name="file" type="file" accept="image/jpeg,image/png,image/webp" required /></label>
+        <label>ماخذ (تصویر کا صفحہ یا کتاب) <input name="source" required dir="auto" placeholder="https://commons.wikimedia.org/wiki/File:…" /></label>
+        <label>اجازت (لائسنس) <input name="licence" required dir="auto" placeholder="Public domain · CC BY-SA 4.0" /></label>
+        <label>مصور یا فوٹوگرافر (اگر معلوم ہو) <input name="artist" dir="auto" /></label>
+        <p class="muted small-line">صرف وہ تصویر جو استعمال کی اجازت کے ساتھ ہو۔ براؤزر اسے ۴۰۰ پکسل تک چھوٹا کر کے بھیجتا ہے؛ چہرہ خود ڈھونڈا جاتا ہے۔</p>
+        <p class="form-error" hidden></p>
+        <button class="btn primary"><Icon name="check" size={16} /> بھیجیں</button>
+      </form>
+    </details>
+  )}
+  <ul class="portrait-list">
+    {list.map((p) => (
+      <li class:list={['portrait-card', { waiting: p.waiting }]}>
+        <PoetAvatar poet={p} size={120} />
+        <div class="who">
+          <a href={p.url}><strong>{p.nickname}</strong></a>
+          <a class="file" href={p.credit?.page} rel="noopener" dir="ltr">{p.credit?.source}</a>
+          <small class="muted"><bdi>{p.credit?.licence}</bdi>{p.credit?.artist && <> · <bdi>{p.credit.artist}</bdi></>}</small>
+          <span class:list={['badge', { warn: p.waiting }]}>{({ wikipedia: 'ویکی پیڈیا', upload: 'بھیجی گئی' } as Record<string, string>)[p.credit?.from] ?? 'ویکی ماخذ'}{p.credit?.from !== 'wikisource' && p.credit?.from && (p.waiting ? ' · منظوری باقی' : ' · منظور شدہ')}</span>
+        </div>
+        {/* framing: move and zoom the picture onto the face; the avatar above follows the sliders */}
+        {p.may.edit && <form method="post" class="frame">
+          <input type="hidden" name="id" value={p.id} />
+          <label>چہرہ: بائیں دائیں <input type="range" dir="ltr" name="x" min="0" max="100" step="1" value={Math.round((p.focus?.x ?? .5) * 100)} /></label>
+          <label>چہرہ: اوپر نیچے <input type="range" name="y" min="0" max="100" step="1" value={Math.round((p.focus?.y ?? .22) * 100)} /></label>
+          <label>زوم <input type="range" name="z" min="1" max="3" step="0.05" value={p.focus?.z ?? 1} /></label>
+          <button class="btn" name="act" value="focus"><Icon name="check" size={16} /> جگہ محفوظ کریں</button>
+          {p.credit?.focus_manual ? <small class="muted">ہاتھ سے</small> : p.focus ? <small class="muted">خودکار: چہرہ ملا</small> : <small class="muted">چہرہ نہیں ملا</small>}
+        </form>}
+        <div class="acts">
+          {p.waiting && p.may.approve && <form method="post"><input type="hidden" name="id" value={p.id} /><button class="btn ok" name="act" value="approve"><Icon name="check" size={16} /> منظور</button></form>}
+          {p.may.delete && <form method="post" data-confirm={`${p.nickname} کی یہ تصویر ہٹائیں؟ یہ دوبارہ نہیں لائی جائے گی۔`} data-danger data-ok="ہٹائیں">
+            <input type="hidden" name="id" value={p.id} /><button class="btn danger" name="act" value="remove"><Icon name="trash" size={16} /> ہٹائیں</button>
+          </form>}
+        </div>
+      </li>
+    ))}
+  </ul>
+  <script>
+    // the sliders pick the face's point and the zoom, live in the avatar above (the same CSS variables the site uses)
+    // upload: the poet chosen by name, the picture shrunk to 400px (JPEG) here, sent with its source and licence
+    const up = document.querySelector<HTMLFormElement>('.portrait-upload');
+    up?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (n: string) => (up.elements.namedItem(n) as HTMLInputElement).value.trim(), err = up.querySelector<HTMLElement>('.form-error')!;
+      const opt = [...document.querySelectorAll<HTMLOptionElement>('#upload-poets option')].find((o) => o.value === v('poet'));
+      if (!opt) { err.textContent = 'فہرست میں سے شاعر چنیں'; err.hidden = false; return; }
+      const file = (up.elements.namedItem('file') as HTMLInputElement).files![0];
+      const bmp = await createImageBitmap(file), k = Math.min(1, 400 / Math.max(bmp.width, bmp.height));
+      const cv = Object.assign(document.createElement('canvas'), { width: Math.round(bmp.width * k), height: Math.round(bmp.height * k) });
+      cv.getContext('2d')!.drawImage(bmp, 0, 0, cv.width, cv.height);
+      const blob: Blob = await new Promise((done) => cv.toBlob((b) => done(b!), 'image/jpeg', .9));
+      const q = new URLSearchParams({ licence: v('licence'), source: v('source'), artist: v('artist') });
+      const r = await fetch(`/portrait/upload/${opt.dataset.id}?${q}`, { method: 'POST', body: blob });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) { err.textContent = d.error ?? 'تصویر نہیں بھیجی جا سکی'; err.hidden = false; return; }
+      location.href = `/mod/portraits?done=${d.waiting ? 'upload' : 'uploaded'}`;
+    });
+    document.querySelectorAll<HTMLFormElement>('.portrait-card .frame').forEach((form) => {
+      const av = form.closest('.portrait-card')!.querySelector<HTMLElement>('.poet-avatar')!;
+      const show = () => { const v = (n: string) => (form.elements.namedItem(n) as HTMLInputElement).value;
+        av.classList.add('framed'); av.style.setProperty('--px', String(+v('x') / 100)); av.style.setProperty('--py', String(+v('y') / 100)); av.style.setProperty('--z', v('z')); };
+      form.addEventListener('input', show);
+    });
+  </script>
+</Base>

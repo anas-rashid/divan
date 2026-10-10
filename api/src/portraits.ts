@@ -1,9 +1,12 @@
 // Poets' portraits: a freely licensed picture from Wikimedia for each poet who has one, kept in the file store and
 // shown with the same duotone everywhere (web/src/components/PoetAvatar.astro); a generic avatar for the rest.
 //   GET /api/poet/:id/portrait                 the stored picture (cached; the page adds ?v=<hash> to its link)
-//   GET  /api/admin/portraits                 every portrait for review (unapproved lead images first)
-//   POST /api/admin/portraits/:id {act}       approve | remove (a removed portrait is not fetched again)
-//   POST /api/admin/portraits/:id {act: 'focus', x, y, z}   frame it by hand: the face's point (fractions) and a zoom (kept from then on)
+//   GET  /api/mod/portraits                   the portraits this admin or moderator may work on, and the poets they may upload for
+//   POST /api/mod/portraits/:id {act}         approve (admins) | focus {x, y, z} (edit: the face's point and a zoom, kept from
+//                                              then on) | remove (delete; not fetched again)
+//   POST /api/mod/portraits/:id/upload?licence=&source=&artist=   a picture (jpg/png/webp, up to 2 MB) for a poet (create);
+//                                              shown once an admin approves it (an admin's own shows at once)
+// Moderators need the "تصاویر" (portraits) permission for the poet: edit, delete, create.
 //   npm run portraits [-- --force] [-- --focus]   --focus: frame every portrait again on its face (not the hand-framed ones)
 //   npm run portraits [-- --force]             fetch or refresh them; the daily sync runs it (only changed pictures download)
 // Where a picture comes from, in order: the file divan-data names (Wikisource's author page), else the lead image of the
@@ -15,13 +18,16 @@ import { createReadStream } from 'node:fs';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { pathOf, TYPES, imageOf } from './ebooks.ts';
-import { requireAdmin, audit } from './admin.ts';
+import { audit } from './admin.ts';
+import { sessionUser } from './auth.ts';
+import { can, MODERATORS } from './permissions.ts';
 
-// the portrait the site shows: a Wikipedia lead image only once an admin approved it (it may be someone else, or not a face)
-export const SHOWN = `CASE WHEN portrait_credit->>'from' = 'wikipedia' AND portrait_credit->>'reviewed' IS NULL THEN NULL ELSE portrait END`;
+// the portrait the site shows: a Wikipedia lead image or an upload only once an admin approved it (it may be someone else,
+// not a face, or not free to use)
+export const SHOWN = `CASE WHEN portrait_credit->>'from' IN ('wikipedia', 'upload') AND portrait_credit->>'reviewed' IS NULL THEN NULL ELSE portrait END`;
 
 export function portraitRoutes(app: FastifyInstance) {
   app.get<{ Params: { id: string } }>('/api/poet/:id/portrait', async (req, reply) => {
@@ -31,28 +37,68 @@ export function portraitRoutes(app: FastifyInstance) {
     return reply.send(createReadStream(pathOf(p.portrait)));
   });
 
-  app.get('/api/admin/portraits', async (req, reply) => {
-    if (!(await requireAdmin(req, reply))) return;
-    const { rows } = await pool.query(`SELECT id, url, nickname, portrait, portrait_credit AS credit, portrait_credit->'focus' AS focus FROM poets WHERE portrait IS NOT NULL
-      ORDER BY (portrait_credit->>'from' = 'wikipedia' AND portrait_credit->>'reviewed' IS NULL) DESC, nickname`);
-    return { portraits: rows };
+  const staff = async (req: FastifyRequest) => { const u = await sessionUser(req); return u && (u.role === 'admin' || (MODERATORS as readonly string[]).includes(u.role)) ? u : null; };
+  const waiting = (c: any) => ['wikipedia', 'upload'].includes(c?.from) && !c?.reviewed;
+
+  app.get('/api/mod/portraits', async (req, reply) => {
+    const u = await staff(req); if (!u) return reply.code(403).send({ error: 'صرف موڈریٹرز کے لیے' });
+    const { rows } = await pool.query(`SELECT id, url, nickname, portrait, portrait_credit AS credit, portrait_credit->'focus' AS focus FROM poets
+      WHERE portrait IS NOT NULL ORDER BY nickname`);
+    const portraits = [];
+    for (const p of rows) {
+      const may = { edit: await can(u, 'edit', 'portraits', { poetId: p.id }), delete: await can(u, 'delete', 'portraits', { poetId: p.id }), approve: u.role === 'admin' };
+      if (may.edit || may.delete) portraits.push({ ...p, waiting: waiting(p.credit), may });
+    }
+    portraits.sort((a, b) => Number(b.waiting) - Number(a.waiting)); // the ones waiting for approval first
+    const all = (await pool.query('SELECT id, nickname FROM poets ORDER BY nickname')).rows;
+    const upload = [];
+    for (const p of all) if (await can(u, 'create', 'portraits', { poetId: p.id })) upload.push(p);
+    return { portraits, upload, admin: u.role === 'admin' };
   });
-  app.post<{ Params: { id: string }; Body: { act?: string; x?: number; y?: number; z?: number } }>('/api/admin/portraits/:id', async (req, reply) => {
-    const admin = await requireAdmin(req, reply); if (!admin) return;
+
+  app.post<{ Params: { id: string }; Body: { act?: string; x?: number; y?: number; z?: number } }>('/api/mod/portraits/:id', async (req, reply) => {
+    const u = await staff(req); if (!u) return reply.code(403).send({ error: 'صرف موڈریٹرز کے لیے' });
     const id = Number(req.params.id) || 0, act = req.body?.act;
     const p = (await pool.query('SELECT id, nickname, portrait_credit FROM poets WHERE id = $1 AND portrait IS NOT NULL', [id])).rows[0];
     if (!p) return reply.code(404).send({ error: 'تصویر نہیں ملی' });
+    const need = act === 'approve' ? null : act === 'focus' ? 'edit' : act === 'remove' ? 'delete' : undefined;
+    if (need === undefined) return reply.code(400).send({ error: 'نامعلوم عمل' });
+    if (need === null ? u.role !== 'admin' : !(await can(u, need, 'portraits', { poetId: id }))) return reply.code(403).send({ error: 'اجازت نہیں' });
     if (act === 'approve') await pool.query(`UPDATE poets SET portrait_credit = portrait_credit || '{"reviewed": true}' WHERE id = $1`, [id]);
     else if (act === 'focus') {
       const n = (v: unknown, lo: number, hi: number) => Math.max(lo, Math.min(hi, Number(v) || 0));
       const b = req.body as any, focus = { x: n(b.x, 0, 1), y: n(b.y, 0, 1), z: n(b.z, 1, 3) || 1 };
       await pool.query(`UPDATE poets SET portrait_credit = portrait_credit || $2 WHERE id = $1`, [id, { focus, focus_manual: true }]);
-    }
-    else if (act === 'remove') await pool.query(`UPDATE poets SET portrait = NULL, portrait_credit = $2 WHERE id = $1`, [id, { removed: true, source: p.portrait_credit?.source }]);
-    else return reply.code(400).send({ error: 'نامعلوم عمل' });
-    if (act !== 'focus') await audit(admin, act === 'approve' ? 'portrait-approve' : 'portrait-remove', null, { poet: p.nickname, file: p.portrait_credit?.source });
+    } else await pool.query(`UPDATE poets SET portrait = NULL, portrait_credit = $2 WHERE id = $1`, [id, { removed: true, source: p.portrait_credit?.source }]);
+    await audit(u, `portrait-${act}`, null, { poet: p.nickname, file: p.portrait_credit?.source });
     return { ok: true };
   });
+
+  app.post<{ Params: { id: string }; Querystring: { licence?: string; source?: string; artist?: string } }>(
+    '/api/mod/portraits/:id/upload', { bodyLimit: 2 * 1024 * 1024 }, async (req, reply) => {
+      const u = await staff(req); if (!u) return reply.code(403).send({ error: 'صرف موڈریٹرز کے لیے' });
+      const id = Number(req.params.id) || 0;
+      if (!(await can(u, 'create', 'portraits', { poetId: id }))) return reply.code(403).send({ error: 'اجازت نہیں' });
+      const p = (await pool.query('SELECT id, nickname FROM poets WHERE id = $1', [id])).rows[0];
+      if (!p) return reply.code(404).send({ error: 'شاعر نہیں ملا' });
+      const clean = (v?: string, max = 300) => String(v ?? '').normalize('NFC').trim().slice(0, max);
+      const licence = clean(req.query.licence, 100), source = clean(req.query.source), artist = clean(req.query.artist, 100) || null;
+      if (!licence || !source) return reply.code(400).send({ error: 'ماخذ اور اجازت (لائسنس) لکھیں' });
+      // the picture arrives as a stream (the octet-stream parser in ebooks.ts): read it, at most 2 MB
+      const chunks: Buffer[] = []; let size = 0;
+      for await (const c of req.body as AsyncIterable<Buffer>) { size += c.length; if (size > 2 * 1024 * 1024) return reply.code(413).send({ error: 'تصویر 2 MB سے بڑی ہے' }); chunks.push(c); }
+      const img = Buffer.concat(chunks), ext = imageOf(img);
+      if (!ext) return reply.code(400).send({ error: 'تصویر (jpg، png یا webp) چاہیے' });
+      const name = `${createHash('sha256').update(img).digest('hex')}.${ext}`;
+      await mkdir(dirname(pathOf(name)), { recursive: true });
+      await writeFile(pathOf(name), img);
+      const focus = faceFocus([pathOf(name)])[pathOf(name)] ?? null;
+      const credit = { artist, licence, licence_url: null, page: /^https?:\/\//.test(source) ? source : null, source, from: 'upload', by: Number(u.id),
+        focus, ...(u.role === 'admin' ? { reviewed: true } : {}) };
+      await pool.query('UPDATE poets SET portrait = $1, portrait_credit = $2 WHERE id = $3', [name, credit, id]);
+      await audit(u, 'portrait-upload', null, { poet: p.nickname, licence, source });
+      return { ok: true, waiting: u.role !== 'admin' };
+    });
 }
 
 // where the face is, so the round avatar zooms onto it (tools/face_focus.py, OpenCV): {path: {tx, ty, z} | null}; nothing
@@ -118,7 +164,8 @@ async function run(force: boolean, focusAll = false) {
     }
   } catch { console.log(`no ${dataDir}/export/poets.jsonl: pictures named by divan-data only`); }
   // a poet whose portrait an admin removed (portrait_credit.removed) is left alone
-  const { rows } = await pool.query("SELECT id, name, nickname, image_url, portrait, portrait_credit FROM poets WHERE portrait_credit->>'removed' IS NULL ORDER BY id");
+  const { rows } = await pool.query(`SELECT id, name, nickname, image_url, portrait, portrait_credit FROM poets WHERE portrait_credit->>'removed' IS NULL
+    AND coalesce(portrait_credit->>'from', '') <> 'upload' ORDER BY id`);
   let got = 0, kept = 0, none = 0;
   for (const p of rows) {
     try {

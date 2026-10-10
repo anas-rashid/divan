@@ -31,7 +31,7 @@ import logo from '../../public/logo/turanj.svg?raw'; // inline, so its rays can 
       <div class="poets">
         {s.poets.map((p) => (
           <a class={card(p)} href={p.url} title={p.nickname}>
-            <PoetAvatar poet={p} size={50} />
+            <PoetAvatar poet={p} size={68} />
             <span class="pc-text"><span class="name">{p.nickname}</span>{yearLines(p).map((y) => <small>{y}</small>)}</span>
           </a>
         ))}

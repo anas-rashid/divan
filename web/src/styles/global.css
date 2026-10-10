@@ -137,7 +137,7 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .poets { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .poet-card {
   /* one size for every card: long names end in … (full name on hover) */
-  width: 236px; max-width: calc(50% - 5px); min-height: 4.4rem; display: flex; align-items: center; gap: 12px; text-align: start;
+  width: 250px; max-width: calc(50% - 5px); min-height: 5.4rem; display: flex; align-items: center; gap: 12px; text-align: start;
   background: var(--surface-raised); border: 1.5px solid var(--border); border-radius: var(--r-lg); padding: 8px 12px; padding-inline-end: 30px;
   color: var(--text); transition: transform .25s, border-color .25s; position: relative;
 }
@@ -1015,3 +1015,8 @@ p, li { text-wrap: pretty; }
 main:has(#tab-works:checked) .poet-intro { display: none; }
 main:has(#tab-intro:checked) :is(.cards, .toc, .radif-head, .tags-box) { display: none; }
 .poet-intro .intro { animation: rise .25s ease-out; }
+.new-portrait { max-width: 560px; margin: 0 auto 16px; text-align: center; }
+.new-portrait > summary { list-style: none; width: fit-content; margin: 0 auto; }
+.new-portrait > summary::-webkit-details-marker { display: none; }
+.new-portrait[open] > summary { display: none; }
+.portrait-upload { text-align: start; }
