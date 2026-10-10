@@ -52,7 +52,7 @@ async function sections(): Promise<Section[]> {
 // each section with its poets in order (sections with nobody in them are left out)
 export async function home() {
   const poets = (await pool.query(
-    `SELECT id, url, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, ${SHOWN} AS portrait FROM poets`)).rows;
+    `SELECT id, url, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, ${SHOWN} AS portrait, portrait_credit->'focus' AS focus FROM poets`)).rows;
   const byId = new Map(poets.map((p) => [p.id, p]));
   const timeline = (a: any, b: any) => (a.birth_year_ah ?? 1e9) - (b.birth_year_ah ?? 1e9) || urdu.compare(a.nickname, b.nickname);
   return (await sections()).map((s) => {

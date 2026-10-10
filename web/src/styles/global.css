@@ -975,12 +975,12 @@ p, li { text-wrap: pretty; }
 
 /* ── poets' pictures (PoetAvatar): one duotone in the palette's colours, whatever the original; the logo's gold ring.
    Without a portrait: the pen name's first letter in Nastaliq on lapis ── */
-.poet-avatar { position: relative; flex: none; display: grid; place-items: center; width: var(--s); height: var(--s); border-radius: 50%; overflow: hidden;
+.poet-avatar { position: relative; flex: none; display: grid; place-items: center; width: var(--s); height: var(--s); border-radius: 24%; overflow: hidden;
   background: light-dark(color-mix(in srgb, var(--accent) 42%, #fff), color-mix(in srgb, var(--accent) 62%, #fff));
   box-shadow: 0 0 0 2px var(--surface-raised), 0 0 0 calc(2px + max(1.5px, var(--s) / 40)) var(--accent); }
-.poet-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; /* faces sit in the upper part */
+.poet-avatar img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; /* no framing known: faces usually sit in the upper part */
   filter: grayscale(1) contrast(1.15) brightness(1.06); mix-blend-mode: multiply; }
-.poet-avatar.generic { background: radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--action) 80%, #fff), var(--action) 70%);
+.poet-avatar.generic { background: radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--action) 80%, #fff), var(--action) 70%);
   color: var(--surface-raised); font: 700 calc(var(--s) * .46)/1 'Noto Nastaliq Urdu', serif; padding-bottom: calc(var(--s) * .12); }
 /* the poet page: the portrait above the name */
 .poet-hero { margin: 4px auto 6px; }
@@ -993,3 +993,25 @@ p, li { text-wrap: pretty; }
 .portrait-card .file { font: var(--fs-xs) var(--font-latin); color: var(--text-muted); overflow-wrap: anywhere; }
 .portrait-card .acts { display: flex; gap: 8px; }
 .portrait-card .acts form { margin: 0; }
+/* framed on the face (--px, --py: the face's point in the picture, 0–1; --z: zoom): that point in view, the zoom around it,
+   then the face moved towards the middle by as much as the zoom leaves spare picture: the frame is always filled */
+.poet-avatar.framed img { object-position: calc(var(--px) * 100%) calc(var(--py) * 100%);
+  transform-origin: calc(var(--px) * 100%) calc(var(--py) * 100%);
+  --mx: clamp(calc((1 - var(--px)) * (1 - var(--z)) * 100%), calc((.5 - var(--px)) * 100%), calc(var(--px) * (var(--z) - 1) * 100%));
+  --my: clamp(calc((1 - var(--py)) * (1 - var(--z)) * 100%), calc((.5 - var(--py)) * 100%), calc(var(--py) * (var(--z) - 1) * 100%));
+  transform: translate(var(--mx), var(--my)) scale(var(--z)); }
+.portrait-card .frame { display: grid; gap: 2px; width: 100%; font-size: var(--fs-xs); }
+.portrait-card .frame label { display: grid; grid-template-columns: 8.5em 1fr; align-items: center; gap: 6px; text-align: start; }
+.portrait-card .frame input[type='range'] { width: 100%; accent-color: var(--accent); }
+.portrait-card .frame .btn { justify-self: center; margin-top: 2px; }
+/* the poet page: two tabs under the name, «کلام» (books and genres, first) and «تعارف» (the introduction, its source,
+   the picture's credit); plain radio buttons, so switching needs no script and no reload */
+.poet-tabs { display: flex; justify-content: center; gap: 6px; margin: 4px 0 14px; }
+.poet-tabs label { padding: 2px 18px; border: 1.5px solid var(--border); border-radius: var(--r-pill); background: var(--surface-sunken);
+  font: var(--fs-sm)/1.8 var(--font-ui); cursor: pointer; transition: border-color .15s, color .15s; }
+.poet-tabs label:hover { border-color: var(--active); color: var(--active); }
+.poet-tabs :checked + label { border-color: var(--active); color: var(--active); background: color-mix(in srgb, var(--active) 10%, var(--surface-sunken)); font-weight: 700; }
+.poet-tabs :focus-visible + label { outline: 2px solid var(--focus); outline-offset: 2px; }
+main:has(#tab-works:checked) .poet-intro { display: none; }
+main:has(#tab-intro:checked) :is(.cards, .toc, .radif-head, .tags-box) { display: none; }
+.poet-intro .intro { animation: rise .25s ease-out; }

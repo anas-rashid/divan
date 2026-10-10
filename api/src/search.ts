@@ -8,7 +8,7 @@ export async function nameMatches(terms: string[]) {
   const has = (text: string) => { const n = normalise(text); return terms.every((t) => n.includes(t)); };
   const [poets, cats] = await Promise.all([
     pool.query(`SELECT p.id, p.url, p.name, p.nickname, p.birth_year_ah, p.death_year_ah, p.birth_year_ce, p.death_year_ce,
-                       (SELECT count(*)::int FROM poems w WHERE w.poet_id = p.id) AS works, ${SHOWN} AS portrait FROM poets p`),
+                       (SELECT count(*)::int FROM poems w WHERE w.poet_id = p.id) AS works, ${SHOWN} AS portrait, portrait_credit->'focus' AS focus FROM poets p`),
     pool.query(`SELECT c.id, c.url, c.title, t.nickname AS poet, t.url AS poet_url,
                        (SELECT count(*)::int FROM poems w WHERE w.category_id = c.id) AS works
                 FROM categories c JOIN poets t ON t.id = c.poet_id WHERE c.parent_id IS NOT NULL`),
