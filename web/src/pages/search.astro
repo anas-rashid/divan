@@ -10,18 +10,24 @@ import { ud, years, highlighter, parts, excerpt } from '../lib/urdu';
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
 // one or more poets/writers to search within (?poet=1&poet=2, or ?poet=1,2)
 const poetIds = [...new Set(Astro.url.searchParams.getAll('poet').flatMap((v) => v.split(',')).map(Number).filter((n) => n > 0))];
+// and tags (#52): ?tag=3&tag=7, chosen from the tags the results carry
+const tagIds = [...new Set(Astro.url.searchParams.getAll('tag').flatMap((v) => v.split(',')).map(Number).filter((n) => n > 0))];
 const pageNo = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
-const res = q ? await api(`/api/search?q=${encodeURIComponent(q)}&page=${pageNo}${poetIds.length ? `&poet=${poetIds.join(',')}` : ''}`) : null;
+const res = q ? await api(`/api/search?q=${encodeURIComponent(q)}&page=${pageNo}${poetIds.length ? `&poet=${poetIds.join(',')}` : ''}${tagIds.length ? `&tag=${tagIds.join(',')}` : ''}`) : null;
 // every poet/writer for the name box (382; filtered in the browser)
 const allPoets = res ? ((await api('/api/poets')) ?? []).map((p: any) => ({ id: p.id, name: p.nickname })) : [];
 const pages = res ? Math.ceil(res.total / res.pageSize) : 0;
 const re = highlighter(q);
 const hl = (t: string) => parts(t, re).map((s, i): [string, string] => [s, i % 2 ? 'mark' : '']);
 const open = (url: string) => `${url}?hl=${encodeURIComponent(q)}`;
-const link = (n: number, poets: number[] = poetIds) => `/search?q=${encodeURIComponent(q)}${poets.length ? `&poet=${poets.join(',')}` : ''}${n > 1 ? `&page=${n}` : ''}`;
+const link = (n: number, poets: number[] = poetIds, tags: number[] = tagIds) =>
+  `/search?q=${encodeURIComponent(q)}${poets.length ? `&poet=${poets.join(',')}` : ''}${tags.length ? `&tag=${tags.join(',')}` : ''}${n > 1 ? `&page=${n}` : ''}`;
 // author chips: the selected ones first, then the authors the results come from
 const chips = res ? [...res.selected.map((p: any) => ({ ...p, n: res.authors.find((a: any) => a.id === p.id)?.n ?? 0 })),
   ...res.authors.filter((a: any) => !poetIds.includes(a.id))] : [];
+// tag chips: the chosen ones first (even with no results left), then the tags of the results
+const tagChips = res ? [...(res.chosenTags ?? []).map((t: any) => ({ ...t, n: res.tagFacets.find((f: any) => f.id === t.id)?.n ?? 0 })),
+  ...(res.tagFacets ?? []).filter((t: any) => !tagIds.includes(t.id))] : [];
 // numbered pages: first, last, and two either side of the current one; gaps shown as …
 const numbers = (() => {
   const keep = new Set([1, pages, pageNo - 2, pageNo - 1, pageNo, pageNo + 1, pageNo + 2].filter((n) => n >= 1 && n <= pages));
@@ -79,7 +85,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
 
       <section class="search-group">
         <h2>کلام <small class="muted">{ud(res.total)}</small></h2>
-        {chips.length > 0 && (
+        {(chips.length > 0 || tagChips.length > 0) && (
           <form method="get" action="/search" class="author-filter" id="author-filter">
             <input type="hidden" name="q" value={q} />
             <p class="muted">شاعر یا ادیب کے لحاظ سے محدود کریں:</p>
@@ -92,6 +98,18 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
               ))}
               {chips.length > 12 && <button type="button" class="chip more" onclick="this.parentElement.classList.add('all'); this.remove()">مزید {ud(chips.length - 12)}</button>}
             </div>
+            {tagChips.length > 0 && <>
+              <p class="muted">موضوع یا ٹیگ کے لحاظ سے:</p>
+              <div class="author-chips">
+                {tagChips.map((t: any, i: number) => (
+                  <label class={`chip${i >= 12 && !tagIds.includes(t.id) ? ' extra' : ''}`}>
+                    <input type="checkbox" name="tag" value={t.id} checked={tagIds.includes(t.id)} />
+                    <small class="muted">{t.type}:</small> {t.name} <small>{ud(t.n)}</small>
+                  </label>
+                ))}
+                {tagChips.length > 12 && <button type="button" class="chip more" onclick="this.parentElement.classList.add('all'); this.remove()">مزید {ud(tagChips.length - 12)}</button>}
+              </div>
+            </>}
             <div class="author-find in-box-field">
               <input id="author-name" data-urdu placeholder="کسی اور شاعر یا ادیب کا نام" autocomplete="off" aria-label="شاعر کا نام" />
               <button type="button" class="in-box rom" data-urdu-rom="author-name" aria-pressed="false" title="رومن حروف سے اردو">اب</button>
@@ -103,6 +121,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
             <p class="filter-actions">
               <button type="submit">نتائج محدود کریں</button>
               {poetIds.length > 0 && <a href={link(1, [])}>سب شعرا میں تلاش</a>}
+              {tagIds.length > 0 && <a href={link(1, poetIds, [])}>ٹیگ کے بغیر</a>}
             </p>
             <script type="application/json" id="all-poets" set:html={JSON.stringify(allPoets)} />
           </form>
@@ -139,7 +158,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
     // author filter: ticking a chip applies it; the name box suggests any poet/writer (Urdu-normalised)
     (() => {
       const form = document.getElementById('author-filter'); if (!form) return;
-      form.addEventListener('change', (e) => { if (e.target.name === 'poet') form.submit(); });
+      form.addEventListener('change', (e) => { if (e.target.name === 'poet' || e.target.name === 'tag') form.submit(); });
       const poets = JSON.parse(document.getElementById('all-poets').textContent);
       const norm = (s) => s.normalize('NFC').replace(/[\u064B-\u0652\u0654\u0670\u0614]/g, '').replace(/[يىئ]/g, 'ی').replace(/ك/g, 'ک').replace(/[هۂ]/g, 'ہ').replace(/[أإ]/g, 'ا');
       const box = document.getElementById('author-name'), list = document.getElementById('author-suggest');

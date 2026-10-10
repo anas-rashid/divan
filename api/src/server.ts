@@ -125,7 +125,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
   return reply.code(404).send({ error: 'not found' });
 });
 
-app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/search', async (req) => {
+app.get<{ Querystring: { q?: string; poet?: string; tag?: string; page?: string } }>('/api/search', async (req) => {
   // tag:عشق or ٹیگ:عشق (quotes for names with spaces) keeps works carrying the tag: on the work, one of its couplets,
   // or its book/chapter; the rest of the query is text as before
   const TAG = /(?:tag|ٹیگ):(?:"([^"]+)"|(\S+))/g;
@@ -141,7 +141,15 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
     where.push(`EXISTS (SELECT 1 FROM entity_tags e JOIN tags g ON g.id = e.tag_id WHERE g.name = $${params.length}
       AND ((e.entity = 'work' AND e.entity_id = p.id) OR (e.entity = 'category' AND e.entity_id = p.category_id)))`);
   }
-  const textWhere = where.join(' AND '), textParams = [...params];
+  // ?tag=3,7 (#52): works carrying every chosen tag (on the work, a couplet, or its book/chapter), like tag: but chosen
+  // from the tags of the results
+  const tagIds = [...new Set(String(req.query.tag ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 10);
+  for (const id of tagIds) {
+    params.push(id);
+    where.push(`EXISTS (SELECT 1 FROM entity_tags e WHERE e.tag_id = $${params.length}
+      AND ((e.entity = 'work' AND e.entity_id = p.id) OR (e.entity = 'category' AND e.entity_id = p.category_id)))`);
+  }
+  const filteredWhere = where.join(' AND '), filteredParams = [...params];
   const poetIds = [...new Set(String(req.query.poet ?? '').split(',').map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, 50);
   if (poetIds.length) {
     params.push(poetIds);
@@ -190,11 +198,18 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
   const tagRows = page === 1 && (ts.length || tagNames.length) ? (await pool.query(
     `SELECT g.type, g.name, count(*)::int AS n FROM tags g JOIN entity_tags e ON e.tag_id = g.id GROUP BY g.id ORDER BY n DESC`)).rows
     .filter((t) => tagNames.includes(t.name) || (ts.length && ts.every((w) => normalise(t.name).includes(w)))).slice(0, 20) : [];
-  // which poets/writers the matching content comes from (whatever the poet filter), for narrowing down
-  const [authors, selected] = await Promise.all([
+  // which poets/writers the matching content comes from (with the chosen tags, whatever the poet filter); and which tags it
+  // carries (within the poet filter), most used first, with the chosen ones
+  const tagFilterWhere = poetIds.length ? `${filteredWhere} AND p.poet_id = ANY($${filteredParams.length + 1})` : filteredWhere;
+  const [authors, selected, tagFacets, chosenTags] = await Promise.all([
     pool.query(`SELECT t.id, t.url, t.nickname, count(*)::int AS n FROM poems p JOIN poets t ON t.id = p.poet_id
-                WHERE ${textWhere} GROUP BY t.id ORDER BY n DESC, t.nickname LIMIT 40`, textParams),
+                WHERE ${filteredWhere} GROUP BY t.id ORDER BY n DESC, t.nickname LIMIT 40`, filteredParams),
     poetIds.length ? pool.query('SELECT id, url, nickname FROM poets WHERE id = ANY($1) ORDER BY nickname', [poetIds]) : { rows: [] },
+    pool.query(`SELECT g.id, g.type, g.name, count(DISTINCT p.id)::int AS n FROM poems p
+                JOIN entity_tags e ON (e.entity = 'work' AND e.entity_id = p.id) OR (e.entity = 'category' AND e.entity_id = p.category_id)
+                JOIN tags g ON g.id = e.tag_id WHERE ${tagFilterWhere} GROUP BY g.id ORDER BY n DESC, g.name LIMIT 30`,
+      poetIds.length ? [...filteredParams, poetIds] : filteredParams),
+    tagIds.length ? pool.query('SELECT id, type, name FROM tags WHERE id = ANY($1) ORDER BY name', [tagIds]) : { rows: [] },
   ]);
   // e-books whose title (or text, for text books) has the words, on the first page (trigram index)
   const ebooks = page === 1 && patterns.length && !tagNames.length ? (await pool.query(
@@ -203,7 +218,7 @@ app.get<{ Querystring: { q?: string; poet?: string; page?: string } }>('/api/sea
      ${poetIds.length ? `AND b.poet_id = ANY($${patterns.length + 1})` : ''} ORDER BY b.title LIMIT 20`,
     poetIds.length ? [...patterns, poetIds] : patterns)).rows : [];
   return { total: count.rows[0].n, page, pageSize: PAGE_SIZE, results, ...names, tags: tagRows, searchedTags: tagNames, ebooks,
-    authors: authors.rows, selected: selected.rows };
+    authors: authors.rows, selected: selected.rows, tagFacets: tagFacets.rows, chosenTags: chosenTags.rows };
 });
 
 // one word in Arabic script (Urdu, Persian, Arabic), as selected by a reader
