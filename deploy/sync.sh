@@ -30,7 +30,9 @@ cd "$DATA_DIR"
 # committed here: drop them, or the pull below refuses ("You have unstaged changes"). Commits are kept, including the
 # moderators' published edits (git.ts commits as it writes); ignored files (.ganjoor/, Ganjoor's checkout) stay.
 git reset -q --hard && git clean -qfd
-git pull -q --rebase   # keep commits made by publishing in the Divan app (git.ts)
+# keep commits made by publishing in the Divan app (git.ts); replaying them needs a committer name, which a server's
+# service user does not have (no real address: the same no-reply form as the moderators' in divan-data)
+git -c user.name="Divan server" -c user.email="divan-server@users.noreply.divan" pull -q --rebase
 
 if [ "${DIVAN_DATA_PUSH:-0}" = 1 ]; then
   ./update.sh                                   # fetch + rebuild, commit and push if the data changed
