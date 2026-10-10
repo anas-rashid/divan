@@ -79,8 +79,10 @@ v2 is reaching parity with Ganjoor's features in phases: reading, accounts, comm
 
 ## How it is built
 
-Divan is developed by Muhammad Anas Rashid with the help of AI agents and coding tools. Every change is reviewed and
-merged by the author before it is released.
+- **The code** of the site and its services (this repository) is written and maintained by Muhammad Anas Rashid with
+  the help of AI agents and coding tools. Every change is reviewed and merged by the author before it is released.
+- **The content** is maintained by people, not AI: the texts come from Urdu Wikisource and Wikipedia, and Divan's own
+  versions, arrangements, tags and e-books are written and reviewed by its human moderators ([divan-data](https://github.com/anas-rashid/divan-data)).
 
 ## License
 
