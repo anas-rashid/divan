@@ -26,6 +26,10 @@ if command -v flock >/dev/null && ! flock -n 9; then echo "$(date -u +%FT%TZ) sy
 echo "== $(date -u +%FT%TZ) divan sync"
 [ -d "$DATA_DIR/.git" ] || git clone -q https://github.com/anas-rashid/divan-data.git "$DATA_DIR"
 cd "$DATA_DIR"
+# the export rewrites tracked files (divan.db, poets/, index/) on every run, and without DIVAN_DATA_PUSH they are not
+# committed here: drop them, or the pull below refuses ("You have unstaged changes"). Commits are kept, including the
+# moderators' published edits (git.ts commits as it writes); ignored files (.ganjoor/, Ganjoor's checkout) stay.
+git reset -q --hard && git clean -qfd
 git pull -q --rebase   # keep commits made by publishing in the Divan app (git.ts)
 
 if [ "${DIVAN_DATA_PUSH:-0}" = 1 ]; then
