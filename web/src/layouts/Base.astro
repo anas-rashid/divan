@@ -527,14 +527,10 @@ import { siteUrl } from '../lib/site-url';
       const menu = document.getElementById('selmenu');
       const oneWord = (t) => { const w = t.replace(TRIM, '').replace(/\u0614/g, ''); return /^[\p{Script=Arabic}\p{M}\u200C]{1,40}$/u.test(w) ? w : null; };
       let selText = '', selTimer;
-      // phones and tablets: the phone draws its own menu by the selection, so Divan's stays at the bottom, away from it:
-      // inside the dictionary sheet for a word, docked at the bottom of the screen for a phrase (never by the selection)
-      const touch = matchMedia('(pointer: coarse)').matches;
+      // phones (the dictionary's bottom-sheet width): no Divan menu at all, only the phone's own (two menus confused and
+      // crowded the screen); a single word still opens the dictionary sheet. Desktops and tablets keep the menu.
+      const phone = matchMedia('(max-width: 700px)');
       const hideMenu = () => { menu.hidden = true; };
-      const placeMenu = (inSheet) => {
-        menu.classList.toggle('in-sheet', inSheet); menu.classList.toggle('docked', !inSheet);
-        if (inSheet) dict.insertBefore(menu, dictBody); else document.body.append(menu);
-      };
       document.addEventListener('selectionchange', () => {
         clearTimeout(selTimer);
         selTimer = setTimeout(() => {
@@ -551,23 +547,18 @@ import { siteUrl } from '../lib/site-url';
           source = block ? { poemId: Number(block.closest('[data-poem]')?.dataset.poem) || undefined, couplet: Number(block.dataset.c) } : {};
           menu.querySelector('[data-act=saveword]').hidden = !w;
           menu.querySelector('[data-act=bookmark]').hidden = menu.querySelector('[data-act=note]').hidden = !(source.poemId && Number.isInteger(source.couplet));
-          menu.querySelector('[data-act=meaning]').hidden = !w || touch; // on a phone the meaning shows at once
+          menu.querySelector('[data-act=meaning]').hidden = !w;
+          if (phone.matches) { hideMenu(); if (w) showWord(w).then(keepInView); return; }
           const r = sel.getRangeAt(0).getBoundingClientRect();
-          if (touch) {
-            placeMenu(!!w); menu.hidden = false;
-            menu.querySelector('[data-act=saveword]').hidden = true; // the sheet has its own word book button
-            if (w) showWord(w).then(keepInView);
-            return;
-          }
           menu.hidden = false;
           // below the selection, centred, kept inside the page's width (absolute: moves with the page)
           const m = menu.getBoundingClientRect(), width = document.documentElement.clientWidth;
           menu.style.top = `${r.bottom + scrollY + 8}px`;
           menu.style.left = `${Math.max(8, Math.min(width - m.width - 8, r.left + r.width / 2 - m.width / 2)) + scrollX}px`;
           if (w) showWord(w);
-        }, touch ? 700 : 350); // a phone's selection handles move for a while: wait until it is still
+        }, phone.matches ? 700 : 350); // a phone's selection handles move for a while: wait until it is still
       });
-      // a phone: the page scrolls so the selected word sits just above the sheet instead of under it
+      // a phone: the page scrolls so the selected word sits just above the dictionary sheet instead of under it
       function keepInView() {
         const sel = getSelection(); if (!sel?.rangeCount || dict.hidden) return;
         // where the sheet ends up (it may still be sliding up): the window's height less the sheet's own height
@@ -601,10 +592,7 @@ import { siteUrl } from '../lib/site-url';
           }
         }
       };
-      const closeDict = () => {
-        dict.hidden = true; current = ''; document.body.classList.remove('dict-open');
-        if (menu.classList.contains('in-sheet')) { hideMenu(); document.body.append(menu); } // its actions go with it
-      };
+      const closeDict = () => { dict.hidden = true; current = ''; document.body.classList.remove('dict-open'); };
       dict.querySelector('.dict-close').onclick = closeDict;
       document.addEventListener('keydown', (e) => {
         if (e.key !== 'Escape') return;
