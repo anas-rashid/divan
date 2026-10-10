@@ -11,7 +11,8 @@
     "import": "node src/import.ts",
     "test": "node --test --test-concurrency=1 src/*.test.ts",
     "dict-sync": "node src/dict-sync.ts",
-    "make-admin": "node src/admin-cli.ts"
+    "make-admin": "node src/admin-cli.ts",
+    "portraits": "node src/portraits.ts"
   },
   "dependencies": {
     "fastify": "^5.12.5",

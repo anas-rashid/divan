@@ -5,6 +5,7 @@
 //   GET /api/home        the sections with their poets (public)
 //   GET /api/mod/site    the sections as stored, and every poet (for the editor)
 //   POST /api/mod/site   {sections: [{title, century, sort, poets}]}: the whole layout, in order
+import { SHOWN } from './portraits.ts';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { sessionUser } from './auth.ts';
@@ -51,7 +52,7 @@ async function sections(): Promise<Section[]> {
 // each section with its poets in order (sections with nobody in them are left out)
 export async function home() {
   const poets = (await pool.query(
-    'SELECT id, url, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce FROM poets')).rows;
+    `SELECT id, url, nickname, birth_year_ah, death_year_ah, birth_year_ce, death_year_ce, ${SHOWN} AS portrait, portrait_credit->'focus' AS focus FROM poets`)).rows;
   const byId = new Map(poets.map((p) => [p.id, p]));
   const timeline = (a: any, b: any) => (a.birth_year_ah ?? 1e9) - (b.birth_year_ah ?? 1e9) || urdu.compare(a.nickname, b.nickname);
   return (await sections()).map((s) => {

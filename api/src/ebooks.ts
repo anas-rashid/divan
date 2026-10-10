@@ -28,12 +28,12 @@ import { can } from './permissions.ts';
 import { normalise } from './urdu.ts';
 
 const MAX = 100 * 1024 * 1024;
-const store = () => process.env.DIVAN_FILES_DIR ?? new URL('../../../divan-files', import.meta.url).pathname;
-const pathOf = (file: string) => join(store(), file.slice(0, 2), file.slice(2, 4), file);
-const TYPES: Record<string, string> = { pdf: 'application/pdf', epub: 'application/epub+zip', txt: 'text/plain; charset=utf-8',
+export const store = () => process.env.DIVAN_FILES_DIR ?? new URL('../../../divan-files', import.meta.url).pathname;
+export const pathOf = (file: string) => join(store(), file.slice(0, 2), file.slice(2, 4), file);
+export const TYPES: Record<string, string> = { pdf: 'application/pdf', epub: 'application/epub+zip', txt: 'text/plain; charset=utf-8',
   jpg: 'image/jpeg', png: 'image/png', webp: 'image/webp' };
 // an image's format from its first bytes
-const imageOf = (h: Buffer) => h[0] === 0xff && h[1] === 0xd8 ? 'jpg' : h.subarray(1, 4).toString() === 'PNG' ? 'png'
+export const imageOf = (h: Buffer) => h[0] === 0xff && h[1] === 0xd8 ? 'jpg' : h.subarray(1, 4).toString() === 'PNG' ? 'png'
   : h.subarray(0, 4).toString() === 'RIFF' && h.subarray(8, 12).toString() === 'WEBP' ? 'webp' : null;
 const KEYS = { title: 'عنوان', writer: 'مصنف', coauthors: 'شریک مصنفین', language: 'زبان', direction: 'سمت', tags: 'ٹیگ',
   source: 'ماخذ', licence: 'اجازت', note: 'تفصیل' } as const;

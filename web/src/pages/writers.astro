@@ -4,11 +4,15 @@ import Base from '../layouts/Base.astro';
 import LibraryNav from '../components/LibraryNav.astro';
 import { asUser, COOKIE } from '../lib/auth';
 import { ud } from '../lib/urdu';
+import { api } from '../lib/api';
+import PoetAvatar from '../components/PoetAvatar.astro';
 
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/writers');
 const lib = (await asUser(Astro.cookies.get(COOKIE)!.value, '/api/library')).data;
 const writers = lib.poets.filter((p: any) => p.poet);
+// each writer's picture, from the poets list (by page)
+const byUrl = new Map(((await api<any[]>('/api/poets')) ?? []).map((p) => [p.url, p]));
 ---
 <Base title="پسندیدہ لکھاری">
   <h1>پسندیدہ لکھاری</h1>
@@ -17,6 +21,6 @@ const writers = lib.poets.filter((p: any) => p.poet);
     ? <p class="muted center">ابھی کوئی لکھاری محفوظ نہیں۔ کسی شاعر یا ادیب کے صفحے پر "محفوظ کریں" دبائیں۔</p>
     : <>
         <p class="muted center">{ud(writers.length)} لکھاری</p>
-        <div class="poets">{writers.map((p: any) => <a class="poet-card" href={p.poet.url} title={p.poet.name}><span class="name">{p.poet.name}</span></a>)}</div>
+        <div class="poets">{writers.map((p: any) => <a class="poet-card" href={p.poet.url} title={p.poet.name}>{byUrl.get(p.poet.url) && <PoetAvatar poet={byUrl.get(p.poet.url)} size={68} />}<span class="pc-text"><span class="name">{p.poet.name}</span></span></a>)}</div>
       </>}
 </Base>

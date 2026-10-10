@@ -85,6 +85,7 @@ const arrange = catCan.arrange, tagCan = page.type === 'poem' ? modCan.tags : ca
 const pageTags = (page.tags ?? []).filter((t: any) => !t.couplet);
 const coupletTags = (c: number) => (page.tags ?? []).filter((t: any) => t.couplet === c + 1);
 // every poet has an ای بکس section beside their books and genres (/p17/ebooks)
+const credit = page.poet?.portrait_credit, portraitShown = !!page.poet?.portrait && !!credit && (credit.from !== 'wikipedia' || credit.reviewed);
 const ebookCount = page.type === 'poet' ? ((await api<any[]>(`/api/ebooks?poet=${poetId}`)) ?? []).length : 0;
 const tagTarget = page.type === 'poem' ? `work/${poemId}` : `category/${page.category?.id}`;
 const bookmark = (c: number) => JSON.stringify({ kind: 'couplet', poemId, couplet: c });
@@ -102,6 +103,7 @@ const jsonld = { '@context': 'https://schema.org', inLanguage: 'ur', url: here, 
 import { siteUrl } from '../lib/site-url';
 import Icon from '../components/Icon.astro';
 import TagsBox from '../components/TagsBox.astro';
+import PoetAvatar from '../components/PoetAvatar.astro';
 ---
 <Base author={page.poet?.nickname} jsonld={jsonld} title={page.type === 'poem' ? `${page.poem.title} · ${page.poet.nickname}` : title} description={description} ogType={page.type === 'poem' ? 'article' : 'website'}>
   {page.type !== 'poet' && (
@@ -114,12 +116,27 @@ import TagsBox from '../components/TagsBox.astro';
 
   {page.type === 'poet' && (
     <>
+      <PoetAvatar poet={{ ...page.poet, portrait: portraitShown ? page.poet.portrait : null, focus: credit?.focus }} size={120} class="poet-hero" />
       <h1 class="lit" data-readable>{page.poet.name}</h1>
       <div class="center"><button type="button" class="save" data-save={JSON.stringify({ kind: 'poet', poetId })} aria-pressed={String(!!saved.poet)} title="یہ شاعر محفوظ کریں">{label(saved.poet)}</button><button type="button" class="icon-btn small" data-reading-toggle title="مطالعے کا انداز: صرف متن" aria-label="مطالعے کا انداز"><Icon name="dict" size={17} /></button>{arrange && <> <form method="post" action={`/mod/order/${page.category.id}`} class="inline-form"><button class="mod-edit-btn"><Icon name="arrange" size={17} /> ترتیب دیں</button></form>
         <a class="icon-btn small" href={`/mod/order/${page.category.id}`} title="ترتیب کا تاریخچہ" aria-label="ترتیب کا تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}{catCan.poet && <> <form method="post" action={`/mod/details/poet/${poetId}`} class="inline-form"><button class="mod-edit-btn"><Icon name="edit" size={17} /> تفصیل</button></form></>}</div>
       <p class="muted">{years(page.poet)}</p>
-      {page.poet.description && <div class="intro" lang={page.poet.source_url?.includes('ganjoor.net') ? 'fa' : undefined}>{page.poet.description.split(/\n\s*\n/).map((p: string) => <p>{p}</p>)}</div>}
-      {page.poet.description && page.poet.source_url && <p class="muted center intro-src">تعارف: <a href={page.poet.source_url} rel="noopener">{/ganjoor\.net/.test(page.poet.source_url) ? 'گنجور' : 'ماخذ'}</a></p>}
+      {/* «تعارف» (open at first) then «کلام» (?tab=works opens it); each in its own tab, so a long introduction never pushes the books down */}
+      {page.poet.description && (
+        <div class="poet-tabs" role="tablist" aria-label="شاعر">
+          <input type="radio" name="poet-tab" id="tab-intro" class="sr-only" checked={Astro.url.searchParams.get('tab') !== 'works'} />
+          <label for="tab-intro" role="tab">تعارف</label>
+          <input type="radio" name="poet-tab" id="tab-works" class="sr-only" checked={Astro.url.searchParams.get('tab') === 'works'} />
+          <label for="tab-works" role="tab">کلام</label>
+        </div>
+      )}
+      <section class="poet-intro">
+        {page.poet.description && <div class="intro" lang={page.poet.source_url?.includes('ganjoor.net') ? 'fa' : undefined}>{page.poet.description.split(/\n\s*\n/).map((p: string) => <p>{p}</p>)}</div>}
+        {page.poet.description && page.poet.source_url && <p class="muted center intro-src">تعارف: <a href={page.poet.source_url} rel="noopener">{/ganjoor\.net/.test(page.poet.source_url) ? 'گنجور' : 'ماخذ'}</a></p>}
+        {portraitShown && (
+          <p class="muted center intro-src portrait-credit">تصویر: {credit.artist && <><bdi>{credit.artist}</bdi> · </>}{credit.licence_url ? <a href={credit.licence_url} rel="noopener"><bdi>{credit.licence}</bdi></a> : <bdi>{credit.licence}</bdi>} · <a href={credit.page} rel="noopener">ویکی میڈیا کامنز</a></p>
+        )}
+      </section>
     </>
   )}
   {page.type === 'category' && (
