@@ -77,6 +77,11 @@ Search normalises both stored text and queries: Arabic ي/ك/ه → Urdu ی/ک/�
 
 v2 is reaching parity with Ganjoor's features in phases: reading, accounts, community (comments, bookmarks), editorial tools, recitations, then operations and deployment.
 
+## How it is built
+
+Divan is developed by Muhammad Anas Rashid with the help of AI agents and coding tools. Every change is reviewed and
+merged by the author before it is released.
+
 ## License
 
 GPL-3.0 (see `LICENSE`), with additional terms under its section 7 (see `NOTICE`): keep the attribution "Based on Divan by Muhammad Anas Rashid", mark modified versions as different, and do not use Divan's name and logos for your own public site ([TRADEMARKS.md](TRADEMARKS.md); set your own in `web/src/lib/brand.ts`). Texts are public domain; the divan-data compilation is CC BY-SA 4.0 (Urdu Wikisource and Wikipedia contributors, and Divan).
