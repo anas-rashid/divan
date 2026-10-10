@@ -269,6 +269,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .dict ol.en { text-align: left; }
 .dict .ipa { font-family: var(--font-latin), system-ui, sans-serif; font-size: .88rem; color: var(--text-muted); }
 .dict .pron { margin: 2px 0; }
+.dict .base-of { margin: -2px 0 6px; font-size: .9rem; }
 .dict .pos { font-size: .8rem; color: var(--text-muted); margin: 8px 0 0; }
 .dict .note { font-size: .8rem; margin: 0; }
 .dict .via { margin: 2px 0; }

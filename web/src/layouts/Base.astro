@@ -401,7 +401,7 @@ import { siteUrl } from '../lib/site-url';
         dictBody.replaceChildren(el('h2', null, w), el('p', 'muted', 'تلاش جاری ہے…'));
         let d = null;
         // v: bump when the response format changes (responses are browser-cached for a day)
-        try { const r = await fetch('/api/word?v=6&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
+        try { const r = await fetch('/api/word?v=7&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
         if (w !== current) return; // a newer selection won
         const buttons = (items) => { // clickable words
           const box = el('div', 'similar');
@@ -415,6 +415,8 @@ import { siteUrl } from '../lib/site-url';
         const words = (title, items, into) => { if (items.length) into.push(el('h3', null, title), buttons(items)); };
         const list = (items, cls, attrs) => { const ol = el('ol', cls, null, attrs); items.forEach((x) => ol.append(el('li', null, x))); return ol; };
         const out = [el('h2', null, w), wordSave(w)];
+        // an inflected form: the entry shown is its base form's (ستاتا -> ستانا)
+        if (d?.base) out.splice(1, 0, el('p', 'base-of muted', `«${d.base}» کی ایک شکل`));
         if (!d || !d.found) {
           out.push(el('p', 'muted', 'ویکی لغت میں یہ لفظ نہیں ملا۔'));
           words('ملتے جلتے الفاظ', [...(d?.similar ?? []), ...(d?.variants ?? [])], out);
