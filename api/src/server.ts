@@ -86,13 +86,14 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
                 (SELECT url FROM poems WHERE category_id = $1 AND position > $2 ORDER BY position LIMIT 1) AS next`,
         [poem.category_id, poem.position],
       ),
-      // the latest Divan version (public names only) and its divan-data commit
+      // the latest Divan version (public names only) and the work's history in the public divan-data on GitHub (by file,
+    // not by commit: the public copy is published at releases with its own commit ids)
       pool.query(`SELECT version, published_at, credits, commit FROM revisions WHERE entity = 'work' AND entity_id = $1 AND status = 'published'
                   ORDER BY version DESC LIMIT 1`, [poem.id]),
     ]);
     const e = edited.rows[0];
     const divan = e && { version: e.version, at: e.published_at, ...e.credits,
-      commit_url: e.commit ? (process.env.DIVAN_DATA_COMMIT_URL ?? 'https://git.anasrashid.net/anas/divan-data/commit/{sha}').replace('{sha}', e.commit) : null };
+      history_url: (process.env.DIVAN_DATA_HISTORY_URL ?? 'https://github.com/anas-rashid/divan-data/commits/main/divan{path}.dtx').replace('{path}', poem.url) };
     const { search_text, ...rest } = poem;
     return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan,
       tags: await pageTags('work', poem.id) };
