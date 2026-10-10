@@ -6,6 +6,8 @@ An open-source site for reading and searching **classical Urdu poetry and prose*
 
 Divan follows the features of [GanjoorService](https://github.com/ganjoor/GanjoorService) (the software behind ganjoor.net), rebuilt in Node.js, TypeScript and PostgreSQL with its own UI. The first version was a fork of GanjoorService (.NET + SQL Server); that code is kept at the tag [`dotnet-final`](https://github.com/anas-rashid/divan/tree/dotnet-final).
 
+Divan is an independent project. It is not an official Ganjoor app, and it is not affiliated with or endorsed by Ganjoor. The Persian works of poets who wrote in both Urdu and Persian (Iqbal, Ghalib, Amir Khusrow) come from Ganjoor's public data, credited to Ganjoor with a link on every poem (see divan-data).
+
 ## Layout
 
 | Path | What |
