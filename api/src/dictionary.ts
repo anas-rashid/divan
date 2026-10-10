@@ -281,7 +281,7 @@ export async function sync(log = console.log) {
 const page = (lang: string, source: string, title: string) =>
   source === 'en' ? `https://en.wiktionary.org/wiki/${encodeURIComponent(title)}#${NAME[lang as 'ur']}` : `https://${lang}.wiktionary.org/wiki/${encodeURIComponent(title)}`;
 
-export async function lookup(word: string) {
+export async function lookup(word: string, inner = false): Promise<any> {
   const k = key(word);
   const { rows } = await pool.query('SELECT lang, source, title, data FROM wiktionary WHERE key = $1 ORDER BY id', [k]);
   // ar.wiktionary pointer pages: follow to the diacritised entries
@@ -326,6 +326,15 @@ export async function lookup(word: string) {
     l.urdu = (l.code === 'ur' ? !l.meanings.length : !inUrdu) ? await viaEnglish(l.readings[0]?.senses[0]?.defs.slice(0, 2).map((d: any) => d.gloss) ?? [], k) : [];
   }));
   const found = langs.length > 0;
+  // an inflected form not in the dictionary (ستاتا، کیے، رہے): the entry of its base form (ستانا، کرنا، رہنا). Also when
+  // the form is only a Persian or Arabic word (کرتی): the Urdu base form first, that entry after it.
+  if (!inUrdu && !inner) {
+    const base = await baseOf(k, found);
+    if (base) {
+      const b = await lookup(base, true);
+      return { ...b, word, base, langs: [...b.langs, ...langs.filter((l) => !b.langs.some((x: any) => x.code === l.code))] };
+    }
+  }
   // always: the same consonants with other long vowels (دل: دال، دول، دیل); not found: also stems and near spellings
   const [variants, near] = await Promise.all([vowelVariants(k), found ? [] : similar(k)]);
   return { word, langs, found, variants, similar: near.filter((n) => !variants.some((v) => v.title === n.title)) };
@@ -339,6 +348,39 @@ async function viaEnglish(glosses: string[], k: string) {
   return g.map((gloss) => ({
     gloss, urdu: rows.filter((r) => r.gloss === gloss && !seen.has(key(r.word)) && seen.add(key(r.word))).map((r) => r.word).slice(0, 8),
   })).filter((e) => e.urdu.length);
+}
+
+// ---- not found: the base form of an inflected word ----
+
+// common irregular verb forms -> the infinitive (in key form: ہ -> ه, ں -> ن)
+const IRREGULAR: Record<string, string> = Object.fromEntries(([
+  ['کرنا', 'کیا کیے کئے کیں'], ['جانا', 'گیا گئی گئے گئیں'], ['دینا', 'دیا دیے دئے دیں'], ['لینا', 'لیا لیے لئے لیں'],
+  ['ہونا', 'ہوا ہوئی ہوئے ہوئیں تھا تھی تھے تھیں ہوں ہو'],
+] as const).flatMap(([inf, forms]) => forms.split(' ').map((f) => [key(f), key(inf)])));
+// endings and what replaces them, most likely first: verb forms (-تا, -یا, -نے …) give the infinitive (-نا); noun and
+// adjective forms (-وں, -یں, -ے, -ی …) the plain form
+const FORMS: [string, string[]][] = ([
+  ['یاں', ['ی']], ['یوں', ['ی']], ['ئیں', ['نا', 'ی', '']], ['تا', ['نا']], ['تی', ['نا']], ['تے', ['نا']], ['یا', ['نا']], ['ئی', ['نا']],
+  ['ئے', ['نا']], ['یے', ['نا']], ['نے', ['نا']], ['نی', ['نا']], ['وں', ['', 'ا', 'ہ']], ['یں', ['', 'نا']], ['ؤ', ['نا']],
+  ['و', ['نا']], ['ے', ['ا', 'ہ', 'نا']], ['ی', ['ا', 'نا']], ['ا', ['نا']],
+] as [string, string[]][]).map(([e, r]) => [key(e), r.map(key)]);
+export function baseForms(k: string) {
+  const out: string[] = IRREGULAR[k] ? [IRREGULAR[k]] : [];
+  for (const [e, rs] of FORMS) {
+    if (!k.endsWith(e) || k.length - e.length < 2) continue;
+    for (const r of rs) { const b = k.slice(0, -e.length) + r; if (b !== k && !out.includes(b)) out.push(b); }
+  }
+  return out;
+}
+// the first base form in the dictionary, an Urdu entry before others (only Urdu ones when urduOnly)
+async function baseOf(k: string, urduOnly = false) {
+  const forms = baseForms(k);
+  if (!forms.length) return null;
+  const { rows } = await pool.query(
+    `SELECT key, (array_agg(title ORDER BY lang <> 'ur', title))[1] AS title, bool_or(lang = 'ur') AS ur FROM wiktionary WHERE key = ANY($1) GROUP BY key`, [forms]);
+  const at = (r: any) => forms.indexOf(r.key);
+  const best = rows.filter((r) => r.ur).sort((a, b) => at(a) - at(b))[0] ?? (urduOnly ? null : rows.sort((a, b) => at(a) - at(b))[0]);
+  return best ? clean(best.title) : null;
 }
 
 // ---- not found: similar words ----

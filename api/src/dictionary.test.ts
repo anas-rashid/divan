@@ -97,3 +97,17 @@ test('suggestion titles are shown clean', async () => {
   assert.equal(clean('دیوانه‌تر'), 'دیوانهتر');
   assert.equal(clean('بے ثبوت،'), 'بےثبوت');
 });
+
+test('base forms of inflected words, most likely first', async () => {
+  const { baseForms, key } = await import('./dictionary.ts');
+  const first = (w: string) => baseForms(key(w))[0];
+  assert.equal(first('ستاتا'), key('ستانا'), 'verb: -تا');
+  assert.equal(first('ستایا'), key('ستانا'), 'verb: -یا');
+  assert.equal(first('جانے'), key('جانا'), 'verb: -نے');
+  assert.equal(first('کیے'), key('کرنا'), 'irregular');
+  assert.equal(first('گئیں'), key('جانا'), 'irregular');
+  assert.equal(first('لڑکیاں'), key('لڑکی'), 'noun: -یاں');
+  assert.ok(baseForms(key('آنکھوں')).includes(key('آنکھ')), 'noun: -وں');
+  assert.ok(baseForms(key('لڑکے')).includes(key('لڑکا')), 'noun: -ے');
+  assert.deepEqual(baseForms(key('دل')), [], 'too short to have an ending');
+});
