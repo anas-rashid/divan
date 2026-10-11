@@ -129,9 +129,11 @@ import { siteUrl } from '../lib/site-url';
     </header>
     <!-- first visit: a welcome that stays until dismissed (remembered in this browser) -->
     <aside id="welcome" class="welcome" aria-label="خوش آمدید" hidden>
-      <p><strong>دیوان میں خوش آمدید!</strong> یہ اردو کی کلاسیکی شاعری اور نثر کا مفت اور آزاد ذخیرہ ہے (<a href="/about">تعارف</a>)۔
-        اس ذخیرے کو ہم سب مل کر بڑھا سکتے ہیں: اگر آپ کے پاس کسی کلاسیکی شاعر یا ادیب کا کلام یا تحریر ہے جو یہاں نہیں، تو اسے
-        ماخذ کے ساتھ <a href="/contribute" class="welcome-cta">دیوان میں شامل کریں</a>۔</p>
+      <div class="welcome-body">
+        <p><strong>دیوان میں خوش آمدید!</strong> یہ اردو کی کلاسیکی شاعری اور نثر کا مفت اور آزاد ذخیرہ ہے۔ اس ذخیرے کو ہم سب
+          مل کر بڑھا سکتے ہیں: اگر آپ کے پاس کسی کلاسیکی شاعر یا ادیب کا کلام یا تحریر ہے جو یہاں نہیں، تو اسے ماخذ کے ساتھ بھیجیے۔</p>
+        <p class="welcome-actions"><a class="btn primary" href="/contribute">دیوان میں شامل کریں</a> <a class="btn" href="/about">دیوان کا تعارف</a></p>
+      </div>
       <button type="button" class="welcome-close" aria-label="بند کریں" title="بند کریں"><Icon name="close" size={16} /></button>
     </aside>
     <script is:inline>

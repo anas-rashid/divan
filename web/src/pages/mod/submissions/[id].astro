@@ -38,7 +38,7 @@ const STATE: Record<string, string> = { pending: 'جائزے کا منتظر', a
     <dt>بھیجنے والا</dt><dd>{s.by_name || '—'} · <bdi dir="ltr">{s.by_email}</bdi> · {when(s.created_at)}</dd>
   </dl>
   <form method="post" class="account-form submission-review">
-    <label>کتاب یا حصہ (اس کا ربط، جیسے <bdi dir="ltr">/p238/shaeri/c641</bdi>)
+    <label>کتاب یا حصہ (اس کا لنک، جیسے <bdi dir="ltr">/p238/shaeri/c641</bdi>)
       <input name="category" dir="ltr" value={s.category_url ?? ''} placeholder="/p…/…" disabled={!open} /></label>
     {s.category && <p class="muted">{s.category}</p>}
     <label>دیوان کا متن (شائع ہونے والا)<textarea name="content" rows="18" class="dtx" data-urdu disabled={!open}>{s.content}</textarea></label>

@@ -51,7 +51,7 @@ async function decide(u: any, id: number, action: string, b: any) {
   if (action === 'publish' && u.role !== 'admin') throw err(403, 'صرف ایڈمن شائع کرتے ہیں');
   if (!(action === 'accept' ? ['pending'] : ['pending', 'accepted']).includes(s.status)) throw err(409, 'اس پر فیصلہ ہو چکا ہے');
   const cat = b.category ? await category(b.category) : s.category_id && (await pool.query('SELECT id, url, title FROM categories WHERE id = $1', [s.category_id])).rows[0];
-  if (!cat) throw err(400, 'کتاب یا حصہ چنیں (اس کا ربط، جیسے /p238/shaeri/c641)');
+  if (!cat) throw err(400, 'کتاب یا حصہ چنیں (اس کا لنک، جیسے /p238/shaeri/c641)');
   if (!(await can(u, 'create', 'works', { categoryId: cat.id }))) throw err(403, 'اس کتاب میں نیا کلام شامل کرنے کی اجازت نہیں');
   const content = clean(b.content, 200_000) || s.content || draftText(s);
   const doc = parse(content);

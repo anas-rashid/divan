@@ -203,7 +203,7 @@ export function ebookRoutes(app: FastifyInstance) {
     let kind: string, file: string | null = null, archive: string | null = null, size: number | null = null;
     if (b.archive) {
       archive = archiveId(b.archive);
-      if (!archive) return reply.code(400).send({ error: 'آرکائیو کا ربط درست نہیں (archive.org/details/…)' });
+      if (!archive) return reply.code(400).send({ error: 'آرکائیو کا لنک درست نہیں (archive.org/details/…)' });
       kind = 'archive';
     } else {
       file = /^[0-9a-f]{64}\.(pdf|epub|txt)$/.test(b.file ?? '') ? b.file : null;
