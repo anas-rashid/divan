@@ -127,6 +127,25 @@ import { siteUrl } from '../lib/site-url';
       </div>
       <div id="kb" class="wrap kb" hidden></div>
     </header>
+    <!-- first visit: a welcome that stays until dismissed (remembered in this browser) -->
+    <aside id="welcome" class="welcome" aria-label="خوش آمدید" hidden>
+      <p><strong>دیوان میں خوش آمدید!</strong> یہ اردو کی کلاسیکی شاعری اور نثر کا مفت اور آزاد ذخیرہ ہے (<a href="/about">تعارف</a>)۔
+        اس ذخیرے کو ہم سب مل کر بڑھا سکتے ہیں: اگر آپ کے پاس کسی کلاسیکی شاعر یا ادیب کا کلام یا تحریر ہے جو یہاں نہیں، تو اسے
+        ماخذ کے ساتھ <a href="/contribute" class="welcome-cta">دیوان میں شامل کریں</a>۔</p>
+      <button type="button" class="welcome-close" aria-label="بند کریں" title="بند کریں"><Icon name="close" size={16} /></button>
+    </aside>
+    <script is:inline>
+      (() => {
+        const el = document.getElementById('welcome'), KEY = 'divan-welcome';
+        let seen = true;
+        try { seen = !!localStorage.getItem(KEY); } catch (e) {} // no storage (private window): do not nag
+        if (seen) return;
+        el.hidden = false;
+        const done = () => { el.hidden = true; try { localStorage.setItem(KEY, '1'); } catch (e) {} };
+        el.querySelector('.welcome-close').addEventListener('click', done);
+        el.querySelectorAll('a').forEach((a) => a.addEventListener('click', done));
+      })();
+    </script>
     <main class="wrap"><slot /></main>
     <div id="selmenu" class="selmenu" role="toolbar" aria-label="منتخب عبارت" hidden>
       <button type="button" data-act="meaning" title="معنی اور تلفظ">معنی</button>
