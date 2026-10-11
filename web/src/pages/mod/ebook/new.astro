@@ -27,7 +27,7 @@ if (may && Astro.request.method === 'POST') {
     } as RequestInit);
     const up = await res.json().catch(() => ({}));
     if (res.ok) body = { ...fields, file: up.file }; else error = up.error ?? 'فائل اپ لوڈ نہیں ہوئی';
-  } else error = 'فائل چنیں یا archive.org کا ربط دیں';
+  } else error = 'فائل چنیں یا archive.org کا لنک دیں';
   if (body) {
     const r = await asUser(token, '/api/mod/ebooks', body);
     // the cover: made in the browser from the PDF's first page or the EPUB's cover, or the moderator's own image
@@ -51,7 +51,7 @@ if (may && Astro.request.method === 'POST') {
       <label>سرورق (PDF کے پہلے صفحے یا EPUB کے سرورق سے خود بنتا ہے؛ چاہیں تو اپنی تصویر چنیں)
         <input type="file" name="cover" accept="image/jpeg,image/png,image/webp" /></label>
       <img class="cover-small" id="cover-preview" alt="سرورق" hidden />
-      <label>یا archive.org کا ربط<input name="archive" dir="ltr" placeholder="https://archive.org/details/…" /></label>
+      <label>یا archive.org کا لنک<input name="archive" dir="ltr" placeholder="https://archive.org/details/…" /></label>
       <EbookFields v={{ writer: page.poet.nickname }} />
       <p class="muted note">کتاب جائزے کے بعد شاعر کے صفحے پر «ای بکس» میں نظر آئے گی۔ جائزہ لینے والے حقوق کی تصدیق کرتے ہیں۔</p>
       <button>اپ لوڈ کریں</button>

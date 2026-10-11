@@ -1043,8 +1043,9 @@ main:has(#tab-intro:checked) :is(.cards, .toc, .radif-head, .tags-box) { display
 .welcome { display: flex; align-items: flex-start; gap: 10px; max-width: calc(960px - 32px); margin: 10px auto 0; padding: 10px 14px;
   border: 1px solid var(--line); border-inline-start: 3px solid var(--brand); border-radius: var(--r-md); background: var(--surface-raised); }
 .welcome[hidden] { display: none; }
-.welcome p { margin: 0; flex: 1; line-height: 2; }
+.welcome-body { flex: 1; }
+.welcome p { margin: 0; line-height: 2; }
+.welcome .welcome-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; } /* links as buttons: clearly clickable */
 .welcome-close { flex: none; border: 0; background: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .welcome-close:hover { color: var(--active); }
 @media (max-width: 700px) { .welcome { margin-inline: 16px; } }
-.welcome-cta { font-weight: 600; white-space: nowrap; }

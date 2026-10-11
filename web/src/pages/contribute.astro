@@ -51,7 +51,7 @@ const mine = me && token ? ((await asUser(token, '/api/submissions/mine')).data 
     <ul>
       <li>متن ویسا ہی لکھیں جیسا کتاب میں ہے: الفاظ، املا اور ترتیب نہ بدلیں، اور اپنی طرف سے کچھ نہ بڑھائیں۔</li>
       <li>اردو (یونی کوڈ) میں ٹائپ کریں۔ شاعری میں ہر مصرع الگ سطر میں، اور ہر شعر یا بند کے بعد ایک خالی سطر۔ نثر میں ہر پیراگراف کے بعد خالی سطر۔</li>
-      <li><strong>ماخذ ضرور لکھیں:</strong> کتاب کا نام، مرتب، ناشر، سالِ اشاعت اور صفحہ، یا کسی کتب خانے یا archive.org کا ربط۔ ماخذ کے بغیر متن شامل نہیں ہو سکتا۔</li>
+      <li><strong>ماخذ <span dir="ltr" lang="en">(source)</span> ضرور لکھیں:</strong> کتاب کا نام، مرتب، ناشر، سالِ اشاعت اور صفحہ، یا کسی کتب خانے یا archive.org کا لنک۔ ماخذ کے بغیر متن شامل نہیں ہو سکتا۔</li>
     </ul>
 
     <h2>کیا نہ بھیجیں</h2>
@@ -88,7 +88,7 @@ const mine = me && token ? ((await asUser(token, '/api/submissions/mine')).data 
           <label><input type="radio" name="kind" value="prose" checked={form.kind === 'prose'} /> نثر</label>
         </fieldset>
         <label>متن<textarea name="text" required rows="14" maxlength="100000" data-urdu placeholder="ہر مصرع الگ سطر میں، ہر شعر کے بعد ایک خالی سطر">{form.text}</textarea></label>
-        <label>ماخذ<input name="source" required maxlength="1000" value={form.source} data-urdu placeholder="کتاب، مرتب، ناشر، سال، صفحہ؛ یا ربط" /></label>
+        <label>ماخذ<input name="source" required maxlength="1000" value={form.source} data-urdu placeholder="کتاب، مرتب، ناشر، سال، صفحہ؛ یا لنک" /></label>
         <label>ماڈریٹروں کے لیے کچھ کہنا ہو (اختیاری)<textarea name="note" rows="3" maxlength="2000" data-urdu>{form.note}</textarea></label>
         <label class="agree"><input type="checkbox" name="agree" required /> میں تصدیق کرتا/کرتی ہوں کہ یہ کلاسیکی، عوامی ملکیت کا متن ہے، اصل کے مطابق ہے، اور اس کا ماخذ درست ہے۔</label>
         <button>بھیجیں</button>
