@@ -139,7 +139,7 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 /* poet tiles: the poet's picture (PoetAvatar) at the start, the name and years beside it */
 .poets { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .poet-card {
-  /* one size for every card: long names end in … (full name on hover) */
+  /* one size for every card: long names take a second line */
   width: 250px; max-width: calc(50% - 5px); min-height: 5.4rem; display: flex; align-items: center; gap: 12px; text-align: start;
   background: var(--surface-raised); border: 1.5px solid var(--border); border-radius: var(--r-lg); padding: 8px 12px; padding-inline-end: 30px;
   color: var(--text); transition: transform .25s, border-color .25s; position: relative;
@@ -149,14 +149,14 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 .poet-card.mark-bm::after { position: absolute; top: 10px; left: 10px; margin: 0; }
 .poet-card:hover { transform: translateY(-3px); border-color: var(--active); color: var(--text); }
 .poet-card:hover .poet-avatar { box-shadow: 0 0 0 2px var(--surface-raised), 0 0 0 3.5px var(--active); }
-.poet-card .name { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the whole name, on up to two lines (a cut name hid who the poet was); longer still ends in … */
+.poet-card .name { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.7; }
 /* years in Naskh: compact lines whatever the reading font (Nastaliq's tall line boxes made cards grow in some browsers) */
 .poet-card small { display: block; color: var(--text-muted); font-family: var(--font-ui); font-size: .75rem; line-height: 1.6; white-space: nowrap; }
 /* narrow phones (two cards a row): the picture above the name, names wrap to two lines */
 @media (max-width: 480px) {
   .poet-card { flex-direction: column; text-align: center; gap: 6px; padding: 10px 8px 8px; }
   .pc-text { width: 100%; }
-  .poet-card .name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.7; }
   .poet-card small { white-space: normal; }
   .poet-card.mark-bm::after { top: 8px; left: 8px; }
 }
@@ -391,8 +391,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .poet-result { display: flex; flex-direction: column; align-items: center; gap: 2px; }
 .poet-result { width: 250px; max-width: calc(50% - 4px); } /* the wrapper takes the card's size (a card's 50% of a shrink-wrapped box was tiny) */
 .poet-result .poet-card { width: 100%; max-width: none; }
-/* in search the whole name matters: up to two lines, not cut short; the years wrap between their two ranges, never inside one */
-.poet-result .poet-card .name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.7; }
+/* in search the years are one line that wraps between their two ranges, never inside one */
 .poet-result .poet-card small { white-space: normal; }
 .poet-card .yr { white-space: nowrap; }
 .poet-result .small { font-size: .75rem; }
