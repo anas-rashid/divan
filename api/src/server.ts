@@ -24,6 +24,7 @@ import { moderationRoutes } from './moderation.ts';
 import { siteRoutes } from './site.ts';
 import { tagRoutes, pageTags } from './tags.ts';
 import { ebookRoutes } from './ebooks.ts';
+import { submissionRoutes } from './submissions.ts';
 import { feedRoutes } from './feeds.ts';
 import { portraitRoutes, SHOWN } from './portraits.ts';
 
@@ -242,6 +243,7 @@ moderationRoutes(app);
 siteRoutes(app);
 tagRoutes(app);
 ebookRoutes(app);
+submissionRoutes(app);
 feedRoutes(app);
 statsRoutes(app);
 

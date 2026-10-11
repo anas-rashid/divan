@@ -1020,3 +1020,18 @@ main:has(#tab-intro:checked) :is(.cards, .toc, .radif-head, .tags-box) { display
 .new-portrait > summary::-webkit-details-marker { display: none; }
 .new-portrait[open] > summary { display: none; }
 .portrait-upload { text-align: start; }
+
+/* readers' submissions (/contribute, /mod/submissions) */
+.s-rejected { border-color: var(--danger); color: var(--danger); }
+.contribute-form { max-width: 640px; }
+.contribute-form .kind { display: flex; gap: 18px; border: 0; padding: 0; margin: 0; }
+.contribute-form .kind label, .contribute-form .agree { flex-direction: row; align-items: baseline; gap: 6px; }
+.contribute-signin { font-size: 1.05rem; margin: 24px 0; }
+.submission-facts { display: grid; grid-template-columns: max-content 1fr; gap: 6px 14px; max-width: 720px; margin: 16px auto; }
+.submission-facts dt { color: var(--text-muted); }
+.submission-facts dd { margin: 0; overflow-wrap: anywhere; }
+.submission-review { max-width: 720px; }
+.submission-review .dtx { font-family: inherit; }
+.submission-review .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.submission-original { max-width: 720px; margin: 12px auto; }
+.submission-original pre { white-space: pre-wrap; font-family: inherit; line-height: 2; }
