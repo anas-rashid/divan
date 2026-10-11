@@ -42,6 +42,23 @@ export function terms(term: string): string[] {
   return (phrase ? [n] : n.split(' ')).filter(Boolean);
 }
 
+// Postgres full-text query over poems.search_tsv (the normalised text as 'simple' words, GIN index): every word, each
+// as a word start (دل finds دل، دلی، دلبر, not بدل); a "quoted phrase" its words in order. phrase, whole and plain rank
+// the results (see /api/search). Words are quoted, so nothing in them is tsquery syntax.
+const lexeme = (w: string) => `'${w.replace(/'/g, "''")}'`;
+export function tsQuery(term: string) {
+  const ts = terms(term);
+  if (!ts.length) return null;
+  const words = ts.flatMap((t) => t.split(' ')).filter(Boolean);
+  const exact = term.trim().length > 1 && term.trim().startsWith('"') && term.trim().endsWith('"');
+  return {
+    all: exact ? words.map(lexeme).join(' <-> ') : words.map((w) => `${lexeme(w)}:*`).join(' & '),
+    phrase: words.map(lexeme).join(' <-> '),
+    whole: words.map(lexeme).join(' & '), // the words themselves, not only as word starts (for ranking)
+    plain: words.join(' '),
+  };
+}
+
 // ILIKE patterns, one per term.
 export const likePatterns = (term: string) => terms(term).map((p) => '%' + p.replace(/[\\%_]/g, (c) => '\\' + c) + '%');
 
