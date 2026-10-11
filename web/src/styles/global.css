@@ -1049,3 +1049,10 @@ main:has(#tab-intro:checked) :is(.cards, .toc, .radif-head, .tags-box) { display
 .welcome-close { flex: none; border: 0; background: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
 .welcome-close:hover { color: var(--active); }
 @media (max-width: 700px) { .welcome { margin-inline: 16px; } }
+
+/* a search on its way (Base.astro): the page's content fades and a bar runs where the results will be */
+main[data-loading] > * { opacity: .35; pointer-events: none; transition: opacity .2s; }
+main[data-loading]::before { content: ''; display: block; height: 3px; margin: 14px auto; max-width: 700px; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent) 0 0 / 40% 100% no-repeat; animation: loading-bar 1.1s ease-in-out infinite; }
+@keyframes loading-bar { from { background-position: -40% 0; } to { background-position: 140% 0; } }
+@media (prefers-reduced-motion: reduce) { main[data-loading]::before { animation: none; background-size: 100% 100%; } }
