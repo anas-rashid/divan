@@ -389,8 +389,12 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .search-group h2 { font-size: 1.1rem; text-align: center; color: var(--brand); }
 .search-group h2 small { font-size: .8rem; font-weight: 400; }
 .poet-result { display: flex; flex-direction: column; align-items: center; gap: 2px; }
-.poet-result { width: 210px; max-width: calc(50% - 4px); } /* the wrapper takes the card's size (a card's 50% of a shrink-wrapped box was tiny) */
+.poet-result { width: 250px; max-width: calc(50% - 4px); } /* the wrapper takes the card's size (a card's 50% of a shrink-wrapped box was tiny) */
 .poet-result .poet-card { width: 100%; max-width: none; }
+/* in search the whole name matters: up to two lines, not cut short; the years wrap between their two ranges, never inside one */
+.poet-result .poet-card .name { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.7; }
+.poet-result .poet-card small { white-space: normal; }
+.poet-card .yr { white-space: nowrap; }
 .poet-result .small { font-size: .75rem; }
 .book-results { list-style: none; padding: 0; max-width: 700px; margin: 0 auto; }
 .book-results li { padding: 5px 4px; border-bottom: 1px dashed var(--line); text-align: center; }

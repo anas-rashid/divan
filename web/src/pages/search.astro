@@ -6,7 +6,7 @@ import Icon from '../components/Icon.astro';
 import Seg from '../components/Seg.astro';
 import Tags from '../components/Tags.astro';
 import { api } from '../lib/api';
-import { ud, years, highlighter, parts, excerpt } from '../lib/urdu';
+import { ud, years, highlighter, parts, excerpt, yearLines } from '../lib/urdu';
 
 const q = Astro.url.searchParams.get('q')?.trim() ?? '';
 // one or more poets/writers to search within (?poet=1&poet=2, or ?poet=1,2)
@@ -50,7 +50,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
           <div class="poets">
             {res.poets.map((p: any) => (
               <div class="poet-result">
-                <a class="poet-card" href={p.url}><PoetAvatar poet={p} size={68} /><span class="pc-text"><span class="name"><Seg s={hl(p.nickname)} /></span><small>{years(p)}</small></span></a>
+                <a class="poet-card" href={p.url}><PoetAvatar poet={p} size={68} /><span class="pc-text"><span class="name"><Seg s={hl(p.nickname)} /></span><small>{yearLines(p).map((y: string, i: number) => <>{i > 0 && ' · '}<span class="yr">{y}</span></>)}</small></span></a>
                 <a class="muted small" href={link(1, [p.id])}>{ud(p.works)} کلام میں «{q}»</a>
               </div>
             ))}
