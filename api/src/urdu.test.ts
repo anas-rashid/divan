@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalise, likePatterns, highlighter } from './urdu.ts';
+import { normalise, likePatterns, highlighter, tsQuery } from './urdu.ts';
 
 test('Urdu variants and diacritics normalise to the same form', () => {
   const same = (a: string, b: string) => assert.equal(normalise(a), normalise(b), `${a} vs ${b}`);
@@ -27,4 +27,15 @@ test('highlighter finds terms in original text despite variants and diacritics',
   assert.deepEqual(marks('نالہ', 'نالۂ دل'), ['نالۂ']);
   assert.deepEqual(marks('کہ', 'کچھ کھ کہ'), ['کہ']); // do-chashmi stays distinct
   assert.equal(highlighter('  '), null);
+});
+
+test('full-text queries: every word as a word start, a quoted phrase in order, words quoted', () => {
+  assert.equal(tsQuery(''), null);
+  const q = tsQuery('دلِ ناداں')!;
+  assert.equal(q.all, "'دل':* & 'ناداں':*", 'normalised (no kasra), each word as a word start');
+  assert.equal(q.phrase, "'دل' <-> 'ناداں'");
+  assert.equal(q.whole, "'دل' & 'ناداں'");
+  assert.equal(tsQuery('"دل ہی تو ہے"')!.all, "'دل' <-> 'ہی' <-> 'تو' <-> 'ہے'", 'a quoted phrase: its words, in order');
+  assert.equal(tsQuery("a'b & !c")!.all, "'ab':* & '&':* & 'c':*", 'nothing in a word is tsquery syntax (quoted)');
+  assert.equal(tsQuery("x'y")!.all, "'xy':*", 'quotes go with the punctuation');
 });

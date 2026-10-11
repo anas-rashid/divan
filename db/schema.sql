@@ -292,3 +292,10 @@ CREATE TABLE IF NOT EXISTS submissions (
 );
 CREATE INDEX IF NOT EXISTS submissions_status ON submissions (status, created_at);
 CREATE INDEX IF NOT EXISTS submissions_user ON submissions (user_id, created_at);
+
+-- fast search (api/src/server.ts /api/search): the normalised text as words, with a GIN index; whole-word and
+-- phrase queries, ranked. Generated from search_text, so the import and publishing keep it current.
+-- (Adding it rewrites the table once: about 20 s on the full data.)
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS search_tsv tsvector GENERATED ALWAYS AS (to_tsvector('simple', search_text)) STORED;
+CREATE INDEX IF NOT EXISTS poems_tsv ON poems USING gin (search_tsv);
+CREATE INDEX IF NOT EXISTS poems_poet ON poems(poet_id);  -- works per poet (search's name matches, poet pages)

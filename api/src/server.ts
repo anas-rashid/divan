@@ -11,7 +11,7 @@
 //   GET /health
 import Fastify from 'fastify';
 import { pool } from './db.ts';
-import { likePatterns, normalise, terms } from './urdu.ts';
+import { likePatterns, normalise, terms, tsQuery } from './urdu.ts';
 import { nameMatches } from './search.ts';
 import { lookup, PUNCT } from './dictionary.ts';
 import { authRoutes } from './auth.ts';
@@ -96,7 +96,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
     const e = edited.rows[0];
     const divan = e && { version: e.version, at: e.published_at, ...e.credits,
       history_url: (process.env.DIVAN_DATA_HISTORY_URL ?? 'https://github.com/anas-rashid/divan-data/commits/main/divan{path}.dtx').replace('{path}', poem.url) };
-    const { search_text, ...rest } = poem;
+    const { search_text, search_tsv, ...rest } = poem;
     return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan,
       tags: await pageTags('work', poem.id) };
   }
@@ -137,11 +137,14 @@ app.get<{ Querystring: { q?: string; poet?: string; tag?: string; page?: string 
   const TAG = /(?:tag|ٹیگ):(?:"([^"]+)"|(\S+))/g;
   const tagNames = [...new Set([...(req.query.q ?? '').matchAll(TAG)].map((m) => (m[1] ?? m[2]).trim()).filter(Boolean))].slice(0, 5);
   const q = (req.query.q ?? '').replace(TAG, ' ').trim();
-  const patterns = likePatterns(q);
+  const patterns = likePatterns(q), fts = tsQuery(q);
   if (!patterns.length && !tagNames.length) return { total: 0, page: 1, pageSize: PAGE_SIZE, results: [], poets: [], books: [], tags: [] };
   const page = Math.max(1, Number(req.query.page) || 1);
-  const params: unknown[] = [...patterns];
-  const where = patterns.map((_, i) => `p.search_text ILIKE $${i + 1}`);
+  // the text: whole words with the full-text index (fast, ranked); when that finds nothing (part of a word, e.g.
+  // the middle of a compound), any part of the text as before (the trigram index)
+  const wordsFound = fts && (await pool.query(`SELECT EXISTS (SELECT 1 FROM poems WHERE search_tsv @@ to_tsquery('simple', $1)) AS y`, [fts.all])).rows[0].y;
+  const params: unknown[] = wordsFound ? [fts.all] : [...patterns];
+  const where = wordsFound ? [`p.search_tsv @@ to_tsquery('simple', $1)`] : patterns.map((_, i) => `p.search_text ILIKE $${i + 1}`);
   for (const name of tagNames) {
     params.push(name);
     where.push(`EXISTS (SELECT 1 FROM entity_tags e JOIN tags g ON g.id = e.tag_id WHERE g.name = $${params.length}
@@ -162,15 +165,22 @@ app.get<{ Querystring: { q?: string; poet?: string; tag?: string; page?: string 
     where.push(`p.poet_id = ANY($${params.length})`);
   }
   const sql = `FROM poems p JOIN poets t ON t.id = p.poet_id WHERE ${where.join(' AND ')}`;
-  // several words: poems with them together as a phrase come first
-  const phrase = likePatterns(`"${q}"`)[0] ?? '%';
+  // order (words): the words together as a phrase; a title (a ghazal's first line) that starts with them, then one that
+  // has them; Urdu before Persian; the words themselves before words that only start with them (دل before دلبر);
+  // relevance (shorter works where they count more); the oldest poets. Without the index (part of a word): the phrase
+  // first, then the oldest poets, as before.
+  const n = params.length, head = `left(p.search_text, length(p.title))`; // the title as normalised (it leads search_text)
+  const order = wordsFound
+    ? `p.search_tsv @@ to_tsquery('simple', $${n + 1}) DESC, (${head} = $${n + 3} OR ${head} LIKE $${n + 3} || ' %') DESC,
+       to_tsvector('simple', ${head}) @@ to_tsquery('simple', $${n + 2}) DESC, p.language LIKE 'fa%',
+       p.search_tsv @@ to_tsquery('simple', $${n + 2}) DESC, ts_rank(p.search_tsv, to_tsquery('simple', $1), 1) DESC, t.birth_year_ah NULLS LAST, p.id`
+    : `p.search_text ILIKE $${n + 1} DESC, t.birth_year_ah NULLS LAST, p.id`;
   const [count, rows] = await Promise.all([
     pool.query(`SELECT count(*)::int AS n ${sql}`, params),
     pool.query(
       `SELECT p.id, p.url, p.title, t.nickname AS poet, t.url AS poet_url
-       ${sql} ORDER BY p.search_text ILIKE $${params.length + 1} DESC, t.birth_year_ah NULLS LAST, p.id
-       LIMIT ${PAGE_SIZE} OFFSET ${(page - 1) * PAGE_SIZE}`,
-      [...params, phrase],
+       ${sql} ORDER BY ${order} LIMIT ${PAGE_SIZE} OFFSET ${(page - 1) * PAGE_SIZE}`,
+      [...params, ...(wordsFound ? [fts!.phrase, fts!.whole, fts!.plain.replace(/[\\%_]/g, (c) => '\\' + c)] : [likePatterns(`"${q}"`)[0] ?? '%'])],
     ),
   ]);
   // snippet: the verse holding most of the terms, best the whole phrase (with its couplet partner), else the first line
