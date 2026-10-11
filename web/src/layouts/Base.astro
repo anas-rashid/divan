@@ -689,9 +689,15 @@ import { siteUrl } from '../lib/site-url';
             if (!(await ask(f.dataset.confirm, { danger: 'danger' in f.dataset, ok: f.dataset.ok }))) return;
             f.dataset.asked = '1'; f.requestSubmit(btn); delete f.dataset.asked; return;
           }
-          if (btn && !e.defaultPrevented && !f.hasAttribute('data-js')) btn.setAttribute('aria-busy', 'true');
+          if (e.defaultPrevented || f.hasAttribute('data-js')) return;
+          // a search: the results area shows it is loading (not a spinner in the search box's own button)
+          if (f.classList.contains('search-form') || f.getAttribute('action') === '/search') document.querySelector('main')?.setAttribute('data-loading', '');
+          else if (btn) btn.setAttribute('aria-busy', 'true');
         });
-        addEventListener('pageshow', () => document.querySelectorAll('[aria-busy=true]').forEach((b) => b.removeAttribute('aria-busy'))); // back button
+        addEventListener('pageshow', () => { // back button
+          document.querySelectorAll('[aria-busy=true]').forEach((b) => b.removeAttribute('aria-busy'));
+          document.querySelector('main')?.removeAttribute('data-loading');
+        });
       })();
     </script>
   </body>
