@@ -2,7 +2,10 @@
 import Base from '../layouts/Base.astro';
 import { auth, setSession } from '../lib/auth';
 
-if (Astro.locals.user) return Astro.redirect('/account');
+// back where the reader came from (only a path on this site)
+const next = (Astro.url.searchParams.get('next') ?? '').startsWith('/') && !(Astro.url.searchParams.get('next') ?? '').startsWith('//')
+  ? Astro.url.searchParams.get('next')! : '/account';
+if (Astro.locals.user) return Astro.redirect(next);
 let error = '', email = '';
 if (Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
@@ -13,7 +16,7 @@ if (Astro.request.method === 'POST') {
     const r = await auth('signup', { body: { email, password }, ip: Astro.clientAddress });
     if (r.ok) {
       setSession(Astro.cookies, r.data.token, Astro.url.protocol === 'https:');
-      return Astro.redirect('/account');
+      return Astro.redirect(next);
     }
     error = r.data.error ?? 'کچھ غلط ہو گیا';
   }

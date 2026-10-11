@@ -266,3 +266,29 @@ ALTER TABLE entity_tags ADD CONSTRAINT entity_tags_entity_check CHECK (entity IN
 CREATE TABLE IF NOT EXISTS stat_views (day date NOT NULL, path text NOT NULL, views integer NOT NULL DEFAULT 0, PRIMARY KEY (day, path));
 CREATE TABLE IF NOT EXISTS stat_visitors (day date NOT NULL, h text NOT NULL, PRIMARY KEY (day, h));
 CREATE TABLE IF NOT EXISTS stat_referrers (day date NOT NULL, host text NOT NULL, n integer NOT NULL DEFAULT 0, PRIMARY KEY (day, host));
+
+-- works sent in by readers (api/src/submissions.ts): pending -> accepted (a moderator chose the book and prepared the
+-- Divan text) -> published (an admin wrote it to divan-data; the site gets it with the next sync), or rejected
+CREATE TABLE IF NOT EXISTS submissions (
+    id          serial PRIMARY KEY,
+    user_id     bigint REFERENCES users(id) ON DELETE SET NULL,
+    poet        text NOT NULL,                   -- as the reader wrote it
+    book        text,
+    title       text NOT NULL,
+    kind        text NOT NULL CHECK (kind IN ('poetry', 'prose')),
+    text        text NOT NULL,
+    source      text NOT NULL,                   -- book, edition, page, or a link
+    note        text,
+    status      text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'rejected', 'published')),
+    category_id integer REFERENCES categories(id) ON DELETE SET NULL,   -- chosen by the moderator
+    content     text,                            -- the Divan text the moderator prepared
+    review_note text,                            -- to the reader (why rejected, what changed)
+    reviewer_id bigint REFERENCES users(id) ON DELETE SET NULL,
+    publisher_id bigint REFERENCES users(id) ON DELETE SET NULL,
+    url         text,                            -- where it is published
+    commit      text,
+    created_at  timestamptz NOT NULL DEFAULT now(),
+    updated_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS submissions_status ON submissions (status, created_at);
+CREATE INDEX IF NOT EXISTS submissions_user ON submissions (user_id, created_at);

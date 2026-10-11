@@ -1,0 +1,115 @@
+---
+// Contribute (public): the appeal to readers to send in classical Urdu works with their sources, the form (signed in),
+// and the reader's own submissions with what became of them (api/src/submissions.ts)
+import Base from '../layouts/Base.astro';
+import { api } from '../lib/api';
+import { asUser, COOKIE } from '../lib/auth';
+import { ud } from '../lib/urdu';
+
+const me = Astro.locals.user, token = Astro.cookies.get(COOKIE)?.value;
+const STATE: Record<string, [string, string]> = {
+  pending: ['جائزے کا منتظر', 's-submitted'], accepted: ['منظور، اشاعت کا منتظر', 's-approved'],
+  published: ['شائع شدہ', 's-published'], rejected: ['شامل نہیں کیا گیا', 's-rejected'],
+};
+let error = '', sent = Astro.url.searchParams.has('sent'), form: Record<string, string> = { kind: 'poetry' };
+if (me && token && Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  form = Object.fromEntries(['poet', 'book', 'title', 'kind', 'text', 'source', 'note'].map((k) => [k, String(f.get(k) ?? '')]));
+  if (!f.get('agree')) error = 'تصدیق کریں کہ یہ کلاسیکی، عوامی ملکیت کا متن ہے اور اس کا ماخذ درست ہے';
+  else {
+    const r = await asUser(token, '/api/submissions', form);
+    if (r.ok) return Astro.redirect('/contribute?sent=1#mine');
+    error = r.data.error ?? 'کچھ غلط ہو گیا، دوبارہ کوشش کریں';
+  }
+}
+const poets = (await api<{ nickname: string }[]>('/api/poets')) ?? [];
+const mine = me && token ? ((await asUser(token, '/api/submissions/mine')).data as any[]) : [];
+---
+<Base title="دیوان میں شامل کریں" description="اردو کے کلاسیکی ادب، شاعری اور نثر، کو اصل متن کے ساتھ محفوظ کرنے میں دیوان کا ساتھ دیجیے: کلام اور اس کا ماخذ بھیجیں">
+  <article class="guide about contribute">
+    <h1>کلاسیکی اردو ادب کو محفوظ کرنے میں ہمارا ساتھ دیجیے</h1>
+    <p>
+      اردو کا کلاسیکی ادب، میر و سودا اور درد سے لے کر غالب، انیس، حالی اور اقبال تک، اور میر امن کی داستانوں سے لے کر
+      غالب کے خطوط اور سر سید کے مضامین تک، ہمارا مشترکہ ورثہ ہے۔ مگر اس کا بڑا حصہ اب بھی پرانی کتابوں، کتب خانوں اور گھروں
+      کی الماریوں میں بند ہے، یا انٹرنیٹ پر صرف تصویروں کی صورت میں ہے جسے نہ تلاش کیا جا سکتا ہے نہ پڑھنے میں آسانی ہے۔
+    </p>
+    <p>
+      دیوان کا مقصد یہ ہے کہ یہ سارا ادب اپنے <strong>اصل متن</strong> کے ساتھ، درست اور قابلِ تلاش صورت میں، سب کے لیے مفت
+      اور ہمیشہ کے لیے محفوظ ہو جائے۔ یہ کام کوئی ایک شخص یا ادارہ نہیں کر سکتا؛ یہ ہم سب مل کر کر سکتے ہیں۔ اگر آپ کے پاس
+      کسی کلاسیکی شاعر یا ادیب کا ایسا کلام یا تحریر ہے جو دیوان میں موجود نہیں، تو اسے یہاں بھیجیے۔
+    </p>
+
+    <h2>کیا بھیجیں</h2>
+    <ul>
+      <li><strong>شاعری:</strong> غزل، نظم، قصیدہ، مثنوی، مرثیہ، سلام، رباعی، قطعہ؛ اور اردو شعرا کا فارسی کلام بھی۔</li>
+      <li><strong>نثر:</strong> داستان، خطوط، تذکرے، مضامین، سفرنامے، دیباچے اور دوسری کلاسیکی تحریریں۔</li>
+      <li>صرف وہ ادب جو <strong>عوامی ملکیت</strong> میں ہو، یعنی جس کے مصنف کی وفات کو پچاس برس سے زیادہ ہو چکے ہوں۔</li>
+      <li>کسی ایسے کلام کی تصحیح یا کمی بھی بتا سکتے ہیں جو دیوان میں غلط یا ادھورا ہے؛ ماخذ کے ساتھ لکھیں کہ کیا درست ہے۔</li>
+    </ul>
+
+    <h2>کیسے بھیجیں</h2>
+    <ul>
+      <li>متن ویسا ہی لکھیں جیسا کتاب میں ہے: الفاظ، املا اور ترتیب نہ بدلیں، اور اپنی طرف سے کچھ نہ بڑھائیں۔</li>
+      <li>اردو (یونی کوڈ) میں ٹائپ کریں۔ شاعری میں ہر مصرع الگ سطر میں، اور ہر شعر یا بند کے بعد ایک خالی سطر۔ نثر میں ہر پیراگراف کے بعد خالی سطر۔</li>
+      <li><strong>ماخذ ضرور لکھیں:</strong> کتاب کا نام، مرتب، ناشر، سالِ اشاعت اور صفحہ، یا کسی کتب خانے یا archive.org کا ربط۔ ماخذ کے بغیر متن شامل نہیں ہو سکتا۔</li>
+    </ul>
+
+    <h2>کیا نہ بھیجیں</h2>
+    <ul>
+      <li>آج کے یا حال ہی کے مصنفین کی تحریریں جو ابھی حقِ اشاعت کے تحت ہیں، اور جدید ترجمے یا شرحیں۔</li>
+      <li>ایسی ویب سائٹس یا ایپس سے نقل کیا ہوا متن جو اپنے مواد کی نقل کی اجازت نہیں دیتیں۔</li>
+      <li>اپنی شاعری یا تحریر: نئے لکھنے والوں کے لیے دیوان میں الگ حصہ بعد میں آئے گا۔</li>
+    </ul>
+
+    <h2>آگے کیا ہوتا ہے</h2>
+    <p>
+      دیوان کے ماڈریٹر ہر تحریر کو اس کے ماخذ سے ملاتے ہیں، ضرورت ہو تو تصحیح کرتے ہیں اور اسے شاعر کی صحیح کتاب یا حصے میں
+      رکھتے ہیں۔ شائع ہونے پر یہ دیوان کے کھلے ڈیٹا میں آپ کے نام کے ساتھ درج ہوتی ہے (اکاؤنٹ میں جو نام آپ نے لکھا ہے؛ ای میل
+      کبھی نہیں)۔ اگر کوئی تحریر شامل نہ ہو سکے تو ماڈریٹر اس کی وجہ لکھ دیتے ہیں۔ آپ اپنی بھیجی ہوئی تحریروں کا حال اسی صفحے پر
+      نیچے دیکھ سکتے ہیں۔ آپ کے تعاون کا بہت شکریہ!
+    </p>
+
+    {!me ? (
+      <p class="center contribute-signin">
+        بھیجنے کے لیے <a href="/signin?next=/contribute">لاگ ان کریں</a> یا <a href="/signup?next=/contribute">نیا اکاؤنٹ بنائیں</a>۔
+      </p>
+    ) : (
+      <form method="post" class="account-form contribute-form" id="send">
+        <h2>تحریر بھیجیں</h2>
+        {sent && <p class="form-done" role="status">شکریہ! آپ کی تحریر ماڈریٹروں کو پہنچ گئی ہے۔</p>}
+        {error && <p class="form-error" role="alert">{error}</p>}
+        <label>شاعر یا مصنف<input name="poet" required maxlength="200" list="poets" value={form.poet} data-urdu placeholder="مثلاً میر تقی میر" /></label>
+        <datalist id="poets">{poets.map((p) => <option value={p.nickname} />)}</datalist>
+        <label>کتاب یا مجموعہ<input name="book" maxlength="300" value={form.book} data-urdu placeholder="مثلاً کلیاتِ میر، دیوانِ اول" /></label>
+        <label>عنوان<input name="title" required maxlength="300" value={form.title} data-urdu placeholder="نظم کا عنوان، یا غزل کا پہلا مصرع" /></label>
+        <fieldset class="kind">
+          <legend>قسم</legend>
+          <label><input type="radio" name="kind" value="poetry" checked={form.kind !== 'prose'} /> شاعری</label>
+          <label><input type="radio" name="kind" value="prose" checked={form.kind === 'prose'} /> نثر</label>
+        </fieldset>
+        <label>متن<textarea name="text" required rows="14" maxlength="100000" data-urdu placeholder="ہر مصرع الگ سطر میں، ہر شعر کے بعد ایک خالی سطر">{form.text}</textarea></label>
+        <label>ماخذ<input name="source" required maxlength="1000" value={form.source} data-urdu placeholder="کتاب، مرتب، ناشر، سال، صفحہ؛ یا ربط" /></label>
+        <label>ماڈریٹروں کے لیے کچھ کہنا ہو (اختیاری)<textarea name="note" rows="3" maxlength="2000" data-urdu>{form.note}</textarea></label>
+        <label class="agree"><input type="checkbox" name="agree" required /> میں تصدیق کرتا/کرتی ہوں کہ یہ کلاسیکی، عوامی ملکیت کا متن ہے، اصل کے مطابق ہے، اور اس کا ماخذ درست ہے۔</label>
+        <button>بھیجیں</button>
+      </form>
+    )}
+
+    {me && mine.length > 0 && (
+      <section id="mine">
+        <h2>میری بھیجی ہوئی تحریریں <small class="muted">{ud(mine.length)}</small></h2>
+        <ul class="queue-list">
+          {mine.map((s) => (
+            <li class="queue-card">
+              <span class="what"><strong>{s.url ? <a href={s.url}>{s.title}</a> : s.title}</strong>
+                <small class="muted">{s.poet}</small>
+                {s.review_note && <small>{s.review_note}</small>}</span>
+              <span class={`status ${STATE[s.status]?.[1] ?? ''}`}>{STATE[s.status]?.[0] ?? s.status}</span>
+            </li>
+          ))}
+        </ul>
+        {mine.some((s) => s.status === 'published') && <p class="muted note">شائع شدہ تحریر اگلے دن سائٹ پر نظر آتی ہے۔</p>}
+      </section>
+    )}
+  </article>
+</Base>

@@ -1,0 +1,56 @@
+---
+// One submission: what the reader sent, and the moderator's decision. Accepting puts it in a book with its Divan text
+// (the reader's text, drafted; edit it like any work); an admin publishes it to divan-data. Rejecting tells the reader why.
+import Base from '../../../layouts/Base.astro';
+import ModNav from '../../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../../lib/auth';
+import { when } from '../../../lib/mod';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname)}`);
+if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صرف موڈریٹرز کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value, id = Number(Astro.params.id) || 0;
+let error = '', done = '';
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData(), action = String(f.get('action'));
+  const r = await asUser(token, `/api/mod/submissions/${id}/${action}`,
+    { category: f.get('category'), content: f.get('content'), note: f.get('note') });
+  if (r.ok) done = r.data.status === 'published' ? 'شائع ہو گیا؛ اگلے دن تک سائٹ پر نظر آئے گا۔' : r.data.status === 'accepted' ? 'منظور ہو گیا۔' : 'مسترد کر دیا گیا۔';
+  else error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+const res = await asUser(token, `/api/mod/submissions/${id}`);
+if (res.status === 404) return new Response('نہیں ملا', { status: 404 });
+const s = res.data, open = ['pending', 'accepted'].includes(s.status);
+const STATE: Record<string, string> = { pending: 'جائزے کا منتظر', accepted: 'منظور، اشاعت کا منتظر', published: 'شائع شدہ', rejected: 'مسترد' };
+---
+<Base title={`تحریر: ${s.title}`}>
+  <h1>{s.title}</h1>
+  <ModNav current="submissions" />
+  {done && <p class="form-done" role="status">{done}</p>}
+  {error && <p class="form-error" role="alert">{error}</p>}
+  <dl class="submission-facts">
+    <dt>حال</dt><dd>{STATE[s.status]}{s.url && <> · <a href={s.url}>{s.url}</a></>}</dd>
+    <dt>شاعر یا مصنف</dt><dd>{s.poet}</dd>
+    {s.book && <><dt>کتاب</dt><dd>{s.book}</dd></>}
+    <dt>قسم</dt><dd>{s.kind === 'prose' ? 'نثر' : 'شاعری'}</dd>
+    <dt>ماخذ</dt><dd>{/^https?:\/\//.test(s.source) ? <a href={s.source} rel="noopener" dir="ltr">{s.source}</a> : s.source}</dd>
+    {s.note && <><dt>بھیجنے والے کی بات</dt><dd>{s.note}</dd></>}
+    <dt>بھیجنے والا</dt><dd>{s.by_name || '—'} · <bdi dir="ltr">{s.by_email}</bdi> · {when(s.created_at)}</dd>
+  </dl>
+  <form method="post" class="account-form submission-review">
+    <label>کتاب یا حصہ (اس کا ربط، جیسے <bdi dir="ltr">/p238/shaeri/c641</bdi>)
+      <input name="category" dir="ltr" value={s.category_url ?? ''} placeholder="/p…/…" disabled={!open} /></label>
+    {s.category && <p class="muted">{s.category}</p>}
+    <label>دیوان کا متن (شائع ہونے والا)<textarea name="content" rows="18" class="dtx" data-urdu disabled={!open}>{s.content}</textarea></label>
+    <label>بھیجنے والے کے لیے نوٹ (مسترد کرنے پر ضروری)<textarea name="note" rows="3" data-urdu disabled={!open}>{s.review_note ?? ''}</textarea></label>
+    {open && (
+      <p class="actions">
+        {s.status === 'pending' && <button name="action" value="accept">منظور کریں</button>}
+        {s.admin && <button name="action" value="publish">شائع کریں</button>}
+        <button name="action" value="reject" class="danger">مسترد کریں</button>
+      </p>
+    )}
+  </form>
+  <details class="submission-original"><summary>بھیجا گیا اصل متن</summary><pre dir="rtl">{s.text}</pre></details>
+  <p class="muted note">متن لکھنے کا طریقہ: <a href="/mod/guide">رہنمائی</a>۔ منظوری کے لیے اس کتاب میں نیا کلام شامل کرنے کی اجازت چاہیے؛ شائع ایڈمن کرتے ہیں۔</p>
+</Base>

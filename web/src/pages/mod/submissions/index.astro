@@ -1,0 +1,37 @@
+---
+// Works sent in by readers (api/src/submissions.ts): pending, accepted (waiting for an admin), published, rejected
+import Base from '../../../layouts/Base.astro';
+import ModNav from '../../../components/ModNav.astro';
+import Icon from '../../../components/Icon.astro';
+import { asUser, COOKIE } from '../../../lib/auth';
+import { ud } from '../../../lib/urdu';
+import { ago } from '../../../lib/roles';
+import { when } from '../../../lib/mod';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/mod/submissions');
+if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صرف موڈریٹرز کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value;
+const TABS: [string, string][] = [['pending', 'جائزے کے منتظر'], ['accepted', 'اشاعت کے منتظر'], ['published', 'شائع شدہ'], ['rejected', 'مسترد']];
+const status = TABS.some(([k]) => k === Astro.url.searchParams.get('status')) ? Astro.url.searchParams.get('status')! : 'pending';
+const items = (await asUser(token, `/api/mod/submissions?status=${status}`)).data as any[];
+---
+<Base title="قارئین کی بھیجی ہوئی تحریریں">
+  <h1>قارئین کی بھیجی ہوئی تحریریں</h1>
+  <ModNav current="submissions" />
+  <nav class="admin-nav" aria-label="حال">
+    {TABS.map(([k, t]) => <a href={`?status=${k}`} aria-current={k === status ? 'page' : undefined}>{t}</a>)}
+  </nav>
+  {items.length === 0 ? <p class="empty"><span aria-hidden="true">✤</span>یہاں کچھ نہیں۔</p> : (
+    <ul class="queue-list">
+      {items.map((s) => (
+        <li><a class="queue-card" href={`/mod/submissions/${s.id}`}>
+          <span class="kind" aria-hidden="true"><Icon name={s.kind === 'prose' ? 'para' : 'couplet'} size={18} /></span>
+          <span class="what"><strong>{s.title}</strong><small class="muted">{s.poet}{s.book ? ` · ${s.book}` : ''}{s.category ? ` → ${s.category}` : ''}</small></span>
+          <span class="seen muted" title={when(s.created_at)}>{ago(s.created_at)}</span>
+        </a></li>
+      ))}
+    </ul>
+  )}
+  <p class="muted center note">{ud(items.length)} · قارئین <a href="/contribute">شامل کریں</a> کے صفحے سے بھیجتے ہیں۔</p>
+</Base>
