@@ -135,7 +135,7 @@ const from = res ? (pageNo - 1) * res.pageSize + 1 : 0, to = res ? Math.min(res.
           <div class="result">
             <a href={open(r.url)}><Seg s={hl(r.title)} /></a> · <a class="muted" href={r.poet_url}>{r.poet}</a>
             {r.snippet.length > 0 && (
-              <a class="snippet" href={open(r.url)}>
+              <a class="snippet lit" href={open(r.url)}>
                 {r.prose ? <p><Seg s={hl(excerpt(r.snippet[0], re))} /></p> : r.snippet.map((l: string) => <p><Seg s={hl(l)} /></p>)}
               </a>
             )}

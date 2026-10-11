@@ -34,7 +34,7 @@ const count = categories.length + works.length + ebooks.length;
         <div class="result">
           <a href={w.url}>{w.title}</a> · <a class="muted" href={w.poet_url}>{w.poet}</a>
           {w.couplets.map((c: any) => (
-            <a class="snippet" href={`${w.url}#c${c.anchor}`}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
+            <a class="snippet lit" href={`${w.url}#c${c.anchor}`}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
           ))}
         </div>
       ))}

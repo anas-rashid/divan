@@ -214,7 +214,7 @@ import Icon from '../../../components/Icon.astro';
 
   <section class="lib-section">
     <h2>پیش نظارہ</h2>
-    {order ? <ol class="toc">{items.map((it: any) => <li>{it.title}</li>)}</ol>
+    {order ? <ol class="toc lit">{items.map((it: any) => <li>{it.title}</li>)}</ol>
       : details ? <><dl class="eb-meta">{Object.entries(dv).filter(([k, v]) => k !== 'تعارف' && v).map(([k, v]) => <><dt>{k}</dt><dd>{ud(v)}</dd></>)}</dl>
           {dv['تعارف'] && <div class="poet-intro">{dv['تعارف'].split(/\n\s*\n/).map((p) => <p>{p}</p>)}</div>}</>
       : ebook ? <dl class="eb-meta">{EB.map(([k, label]) => ebMeta[k] && <><dt>{label}</dt><dd>{ebMeta[k]}</dd></>)}</dl>

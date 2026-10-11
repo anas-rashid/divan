@@ -36,7 +36,7 @@ import Icon from '../../components/Icon.astro';
     · زبان: {b.language} · {b.direction === 'ltr' ? 'بائیں سے دائیں (LTR)' : 'دائیں سے بائیں (RTL)'}
   </p>
   <Tags tags={b.tags ?? []} />
-  {b.note && <p class="intro">{b.note}</p>}
+  {b.note && <p class="intro lit">{b.note}</p>}
   {mayCover && (
     <p class="center cover-tools" data-id={b.id} data-kind={b.kind} data-src={file}>
       {b.cover && <img class="cover-small" src={`/ebooks/cover/${b.id}`} alt="سرورق" />}
@@ -61,7 +61,7 @@ import Icon from '../../components/Icon.astro';
     </div>
   )}
   {b.kind === 'archive' && <iframe class="ebook-frame" src={`https://archive.org/embed/${b.archive_id}`} title={b.title} allowfullscreen></iframe>}
-  {b.kind === 'text' && <article class="ebook-text" dir="auto">{b.text}</article>}
+  {b.kind === 'text' && <article class="ebook-text lit" dir="auto">{b.text}</article>}
   {b.kind === 'epub' && (
     <>
       <div id="epub-view" class="ebook-frame" data-src={file}></div>

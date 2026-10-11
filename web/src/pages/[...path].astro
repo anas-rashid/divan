@@ -131,7 +131,7 @@ import PoetAvatar from '../components/PoetAvatar.astro';
         </div>
       )}
       <section class="poet-intro">
-        {page.poet.description && <div class="intro" lang={page.poet.source_url?.includes('ganjoor.net') ? 'fa' : undefined}>{page.poet.description.split(/\n\s*\n/).map((p: string) => <p>{p}</p>)}</div>}
+        {page.poet.description && <div class="intro lit" lang={page.poet.source_url?.includes('ganjoor.net') ? 'fa' : undefined}>{page.poet.description.split(/\n\s*\n/).map((p: string) => <p>{p}</p>)}</div>}
         {page.poet.description && page.poet.source_url && <p class="muted center intro-src">تعارف: <a href={page.poet.source_url} rel="noopener">{/ganjoor\.net/.test(page.poet.source_url) ? 'گنجور' : 'ماخذ'}</a></p>}
         {portraitShown && (
           <p class="muted center intro-src portrait-credit">تصویر: {credit.artist && <><bdi>{credit.artist}</bdi> · </>}{credit.licence_url ? <a href={credit.licence_url} rel="noopener"><bdi>{credit.licence}</bdi></a> : <bdi>{credit.licence}</bdi>} · <a href={credit.page} rel="noopener">ویکی میڈیا کامنز</a></p>
@@ -157,8 +157,8 @@ import PoetAvatar from '../components/PoetAvatar.astro';
   )}
   {page.type !== 'poem' && groups.map((g) => (
     <>
-      {g.letter && <h2 class="radif-head">ردیف {g.letter}</h2>}
-      <ol class="toc">{g.poems.map((p: any) => <li><a class={glyph(p.id)} href={p.url}>{p.first_line ? <><span class="toc-no">{p.title}</span> {p.first_line.length >= 100 ? p.first_line + '…' : p.first_line}</> : p.title}</a></li>)}</ol>
+      {g.letter && <h2 class="radif-head lit">ردیف {g.letter}</h2>}
+      <ol class="toc lit">{g.poems.map((p: any) => <li><a class={glyph(p.id)} href={p.url}>{p.first_line ? <><span class="toc-no">{p.title}</span> {p.first_line.length >= 100 ? p.first_line + '…' : p.first_line}</> : p.title}</a></li>)}</ol>
     </>
   ))}
   {page.type !== 'poem' && <TagsBox tags={pageTags} />}
@@ -177,7 +177,7 @@ import PoetAvatar from '../components/PoetAvatar.astro';
         {modCan.edit && <> <form method="post" action={`/mod/work/${poemId}`} class="inline-form"><button class="mod-edit-btn"><Icon name="edit" size={17} /> ترمیم کریں</button></form>
           <a class="icon-btn small" href={`/mod/work/${poemId}`} title="تاریخچہ" aria-label="تاریخچہ"><Icon name="history" size={17} /></a></>}{tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn"><Icon name="tag" size={17} /> ٹیگ</button></form></>}</div>
       {page.poem.radif != null && <p class="muted radif">{page.poem.radif ? `ردیف: ${page.poem.radif}` : 'غیر مردف'}</p>}
-      <div class="poem" lang={page.poem.language?.startsWith('fa') ? 'fa' : undefined} data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
+      <div class="poem lit" lang={page.poem.language?.startsWith('fa') ? 'fa' : undefined} data-cite={`${page.poet.nickname}، ${page.poem.title}`} data-poem={poemId}>
         {blocks.map((b) => {
           const cn = noteOf(b.c), any = cn || notes.some((n) => n.couplet === b.c);
           // the bookmark, and beside it the note glyph (shown when this couplet or a phrase in it has a note)
