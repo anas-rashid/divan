@@ -40,7 +40,7 @@ const marked = (lines: string[], phrase: string | null) => !phrase ? lines.map((
             <nav class="crumbs">{[...n.poem.path, { title: n.poem.title, url: n.poem.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
             {n.bookmarked && <span class="badge plain" title="یہ شعر محفوظ شدہ میں بھی ہے">محفوظ شدہ</span>}
           </header>
-          <a class="lib-couplet" href={`${n.poem.url}#c${n.poem.couplet}`}>{marked(n.lines, n.phrase).map(([a, m, z]) => <p>{a}{m && <mark>{m}</mark>}{z}</p>)}</a>
+          <a class="lib-couplet lit" href={`${n.poem.url}#c${n.poem.couplet}`}>{marked(n.lines, n.phrase).map(([a, m, z]) => <p>{a}{m && <mark>{m}</mark>}{z}</p>)}</a>
         </> : <span class="muted">یہ شعر اب دستیاب نہیں</span>}
         <form method="post" class="note-edit">
           <input type="hidden" name="id" value={n.id} />

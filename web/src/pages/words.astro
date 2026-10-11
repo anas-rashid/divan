@@ -33,7 +33,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
             <button type="button" class="lib-word" data-word={w.word} title="معنی اور تلفظ">{w.word}</button>
             {w.source && <>
               <nav class="crumbs">{[...w.source.path, { title: w.source.title, url: w.source.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
-              {w.source.lines.length > 0 && <a class="lib-couplet small" href={at({ poem: w.source })}>{w.source.lines.map((l: string) => <p>{l}</p>)}</a>}
+              {w.source.lines.length > 0 && <a class="lib-couplet small lit" href={at({ poem: w.source })}>{w.source.lines.map((l: string) => <p>{l}</p>)}</a>}
             </>}
             <form method="post" class="lib-note">
               <input type="hidden" name="id" value={w.id} />

@@ -78,7 +78,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
           <li id={`i${c.id}`}>
             {c.poem ? <>
               <nav class="crumbs">{[...c.poem.path, { title: c.poem.title, url: c.poem.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
-              <a class="lib-couplet" href={at(c)}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
+              <a class="lib-couplet lit" href={at(c)}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
             </> : <span class="muted">یہ شعر اب دستیاب نہیں</span>}
             <form method="post" class="lib-note">
               <input type="hidden" name="id" value={c.id} />
@@ -100,7 +100,7 @@ const at = (item: any) => (item.poem ? `${item.poem.url}${item.poem.couplet != n
           <li id={`i${p.id}`}>
             {p.poem ? <>
               <nav class="crumbs">{[...p.poem.path, { title: p.poem.title, url: p.poem.url }].map((x: any) => <span><a href={x.url}>{x.title}</a></span>)}</nav>
-              <a class="lib-couplet" href={at(p)}>{marked(p.lines, p.phrase).map(([a, m, z]) => <p>{a}{m && <span class="bmk">{m}</span>}{z}</p>)}</a>
+              <a class="lib-couplet lit" href={at(p)}>{marked(p.lines, p.phrase).map(([a, m, z]) => <p>{a}{m && <span class="bmk">{m}</span>}{z}</p>)}</a>
             </> : <span class="muted">یہ عبارت اب دستیاب نہیں</span>}
             <form method="post" class="lib-note">
               <input type="hidden" name="id" value={p.id} />

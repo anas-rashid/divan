@@ -116,7 +116,7 @@ export function createEditor(element: HTMLElement, text: string) {
     extensions: [Document, Text, Unit, Misra, Para, Heading, Dict, Note, Variant, UndoRedo,
       Placeholder.configure({ placeholder: ({ node }) => (node.type.name === 'misra' ? 'مصرع' : node.type.name === 'para' ? 'پیراگراف' : 'عنوان') })],
     content: toEditor(doc),
-    editorProps: { attributes: { class: 'dv-editor poem', dir: 'rtl', 'data-urdu': '', spellcheck: 'false' } },
+    editorProps: { attributes: { class: 'dv-editor poem lit', dir: 'rtl', 'data-urdu': '', spellcheck: 'false' } },
   });
   return { editor, meta: doc.meta };
 }
