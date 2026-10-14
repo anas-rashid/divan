@@ -1,13 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import { auth, setSession } from '../lib/auth';
+import { auth, setSession, signupOpen } from '../lib/auth';
+import { brand } from '../lib/brand';
 
 // back where the reader came from (only a path on this site)
 const next = (Astro.url.searchParams.get('next') ?? '').startsWith('/') && !(Astro.url.searchParams.get('next') ?? '').startsWith('//')
   ? Astro.url.searchParams.get('next')! : '/account';
 if (Astro.locals.user) return Astro.redirect(next);
 let error = '', email = '';
-if (Astro.request.method === 'POST') {
+const open = signupOpen();
+if (open && Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   email = String(form.get('email') ?? '');
   const password = String(form.get('password') ?? '');
@@ -25,6 +27,15 @@ if (Astro.request.method === 'POST') {
 <Base title="نیا اکاؤنٹ">
   <img class="hero-logo" src="/logo/turanj.svg" width="96" height="96" alt="" />
   <h1>نیا اکاؤنٹ</h1>
+  {!open ? (
+    <div class="account-form">
+      <p>دیوان پر اکاؤنٹ ایڈمن بناتے ہیں۔ اگر آپ کلام محفوظ کرنا، اپنا ذخیرۂ الفاظ بنانا یا کلاسیکی ادب <a href="/contribute">بھیجنا</a>
+        چاہتے ہیں تو اپنا نام اور ای میل لکھ کر ہم سے رابطہ کریں؛ اکاؤنٹ بننے پر آپ کو عارضی پاس ورڈ
+        ملے گا جسے آپ لاگ ان کر کے بدل سکتے ہیں۔</p>
+      <p class="center"><a class="btn primary" href={brand.contact.url}>{brand.contact.text}</a></p>
+      <p class="muted">پہلے سے اکاؤنٹ ہے؟ <a href="/signin">لاگ ان کریں</a></p>
+    </div>
+  ) : (
   <form method="post" class="account-form">
     {error && <p class="form-error" role="alert">{error}</p>}
     <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>
@@ -34,4 +45,5 @@ if (Astro.request.method === 'POST') {
     <p class="muted small-line">اکاؤنٹ بنا کر آپ <a href="/terms">استعمال کی شرائط</a> مانتے ہیں؛ ہم کیا محفوظ رکھتے ہیں، یہ <a href="/privacy">رازداری</a> میں ہے۔</p>
     <p class="muted">پہلے سے اکاؤنٹ ہے؟ <a href="/signin">لاگ ان کریں</a></p>
   </form>
+  )}
 </Base>

@@ -3,6 +3,8 @@ import type { AstroCookies } from 'astro';
 
 const API = process.env.API_URL ?? 'http://127.0.0.1:4100';
 export const COOKIE = 'divan_session';
+// DIVAN_SIGNUP=0 (the public site): no sign-up page; an admin creates accounts on request
+export const signupOpen = () => process.env.DIVAN_SIGNUP !== '0';
 export type User = { id: number; email: string; role: string; created_at: string; full_name: string; bio: string };
 
 // call an /api/auth endpoint as the reader (their token, their IP for rate limits)

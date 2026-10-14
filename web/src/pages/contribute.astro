@@ -3,7 +3,7 @@
 // and the reader's own submissions with what became of them (api/src/submissions.ts)
 import Base from '../layouts/Base.astro';
 import { api } from '../lib/api';
-import { asUser, COOKIE } from '../lib/auth';
+import { asUser, COOKIE, signupOpen } from '../lib/auth';
 import { ud } from '../lib/urdu';
 
 const me = Astro.locals.user, token = Astro.cookies.get(COOKIE)?.value;
@@ -71,7 +71,7 @@ const mine = me && token ? ((await asUser(token, '/api/submissions/mine')).data 
 
     {!me ? (
       <p class="center contribute-signin">
-        بھیجنے کے لیے <a href="/signin?next=/contribute">لاگ ان کریں</a> یا <a href="/signup?next=/contribute">نیا اکاؤنٹ بنائیں</a>۔
+        بھیجنے کے لیے <a href="/signin?next=/contribute">لاگ ان کریں</a> یا {signupOpen() ? <a href="/signup?next=/contribute">نیا اکاؤنٹ بنائیں</a> : <a href="/signup">اکاؤنٹ کی درخواست کریں</a>}۔
       </p>
     ) : (
       <form method="post" class="account-form contribute-form" id="send">
