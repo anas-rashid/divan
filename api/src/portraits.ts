@@ -110,7 +110,7 @@ function faceFocus(paths: string[]): Record<string, { x: number; y: number; z: n
   try { return r.status === 0 ? JSON.parse(r.stdout) : {}; } catch { return {}; }
 }
 
-const UA = 'DivanBot/1.0 (https://divan.anasrashid.net; poet portraits from Wikimedia)';
+const UA = 'DivanBot/1.0 (https://divan.pk; poet portraits from Wikimedia)';
 const query = async (host: string, params: Record<string, string>) => {
   const url = `https://${host}/w/api.php?` + new URLSearchParams({ action: 'query', format: 'json', formatversion: '2', ...params });
   const r = await fetch(url, { headers: { 'user-agent': UA } });
