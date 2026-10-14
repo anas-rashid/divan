@@ -3,6 +3,7 @@
 import Base from '../layouts/Base.astro';
 import { api } from '../lib/api';
 import { ud } from '../lib/urdu';
+import { signupOpen } from '../lib/auth';
 
 const poets = ((await api<unknown[]>('/api/poets')) ?? []).length;
 ---
@@ -73,7 +74,7 @@ const poets = ((await api<unknown[]>('/api/poets')) ?? []).length;
 
     <h2>شامل ہوں</h2>
     <p>
-      <a href="/signup">اکاؤنٹ بنائیں</a> تو پسندیدہ شعرا، کلام، اشعار اور عبارتیں محفوظ کر سکتے ہیں اور اپنا ذخیرۂ الفاظ بنا
+      {signupOpen() ? <a href="/signup">اکاؤنٹ بنائیں</a> : <>اکاؤنٹ <a href="/signup">لیں</a></>} تو پسندیدہ شعرا، کلام، اشعار اور عبارتیں محفوظ کر سکتے ہیں اور اپنا ذخیرۂ الفاظ بنا
       سکتے ہیں۔ ماڈریٹر ایڈمن مقرر کرتے ہیں؛ اگر آپ کلاسیکی اردو کی خدمت میں ہاتھ بٹانا چاہتے ہیں تو اکاؤنٹ بنا کر ہم سے رابطہ کریں۔
       ماڈریٹروں کے لیے <a href="/mod/guide">لکھنے کا طریقہ</a> یہاں ہے۔
       کسی کلاسیکی شاعر یا ادیب کا کلام جو یہاں نہیں، ماخذ کے ساتھ <a href="/contribute">بھیجیے</a>۔

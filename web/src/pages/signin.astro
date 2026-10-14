@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { auth, setSession } from '../lib/auth';
+import { auth, setSession, signupOpen } from '../lib/auth';
 
 // back to where the reader was (same-site paths only)
 const next = (Astro.url.searchParams.get('next') ?? '').startsWith('/') && !(Astro.url.searchParams.get('next') ?? '').startsWith('//')
@@ -26,7 +26,7 @@ if (Astro.request.method === 'POST') {
     <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>
     <label>پاس ورڈ<input type="password" name="password" required autocomplete="current-password" dir="ltr" /></label>
     <button type="submit">لاگ ان کریں</button>
-    <p class="muted">اکاؤنٹ نہیں ہے؟ <a href="/signup">نیا اکاؤنٹ بنائیں</a></p>
+    <p class="muted">اکاؤنٹ نہیں ہے؟ <a href="/signup">{signupOpen() ? 'نیا اکاؤنٹ بنائیں' : 'اکاؤنٹ کی درخواست'}</a></p>
     <p class="muted note">پاس ورڈ بھول گئے؟ ایڈمن سے رابطہ کریں۔</p>
   </form>
 </Base>

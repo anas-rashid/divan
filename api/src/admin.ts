@@ -3,6 +3,8 @@
 // Every action is written to audit_log. Moderators' grants: permissions.ts.
 //   GET  /api/admin/users?q=&role=&page=     users (search by email or name; role: a role or 'disabled'), newest first,
 //                                            with counts per role and each moderator's number of grants
+//   POST /api/admin/users                    {email, name} -> {id, password}: a new account (where sign-up is closed, people
+//                                            ask for one); its temporary password is shown once, as for a reset
 //   POST /api/admin/users/:id/password       -> {password} (temporary, shown once)
 //   POST /api/admin/users/:id/disable        {disabled: boolean}
 //   POST /api/admin/users/:id/role           {role: 'reader' | 'mod-l2' | 'mod-l1' | 'admin'}
@@ -11,7 +13,7 @@
 import { randomInt } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
-import { hashPassword, sessionUser } from './auth.ts';
+import { hashPassword, sessionUser, normaliseEmail, validEmail } from './auth.ts';
 
 export const ROLES = ['reader', 'mod-l2', 'mod-l1', 'admin'] as const; // moderators: see permissions.ts
 const PAGE = 50;
@@ -65,6 +67,18 @@ export function adminRoutes(app: FastifyInstance) {
     if (notSelf && Number(u.id) === Number(admin.id)) return void reply.code(400).send({ error: 'یہ اپنے اکاؤنٹ پر نہیں ہو سکتا' });
     return u;
   };
+
+  app.post<{ Body: { email?: string; name?: string } }>('/api/admin/users', async (req, reply) => {
+    const admin = await requireAdmin(req, reply); if (!admin) return;
+    const email = normaliseEmail(req.body?.email), name = String(req.body?.name ?? '').trim().slice(0, 100);
+    if (!validEmail(email)) return reply.code(400).send({ error: 'درست ای میل پتہ لکھیں' });
+    const password = temporaryPassword();
+    const u = (await pool.query('INSERT INTO users (email, password_hash, full_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id, email',
+      [email, await hashPassword(password), name || null])).rows[0];
+    if (!u) return reply.code(409).send({ error: 'اس ای میل سے اکاؤنٹ پہلے سے موجود ہے' });
+    await audit(admin, 'create', u);
+    return { id: Number(u.id), password };
+  });
 
   app.post<{ Params: { id: string } }>('/api/admin/users/:id/password', async (req, reply) => {
     const admin = await requireAdmin(req, reply); if (!admin) return;

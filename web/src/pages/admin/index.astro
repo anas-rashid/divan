@@ -1,5 +1,6 @@
 ---
 // Admin: users. A list to find people (search, role filter); everything about one user is on their page (/admin/user/<id>).
+// «نیا اکاؤنٹ»: an account for someone who asked for one (the public site has no sign-up), with a temporary password.
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import AdminNav from '../../components/AdminNav.astro';
@@ -12,6 +13,12 @@ if (!me) return Astro.redirect('/signin?next=/admin');
 if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
 const token = Astro.cookies.get(COOKIE)!.value;
 
+let made: { id: number; password: string; email: string } | null = null, error = '';
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData(), email = String(f.get('email') ?? '');
+  const r = await asUser(token, '/api/admin/users', { email, name: f.get('name') });
+  if (r.ok) made = { ...r.data, email }; else error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
 const q = Astro.url.searchParams.get('q') ?? '', role = Astro.url.searchParams.get('role') ?? '';
 const page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
 const list = (await asUser(token, `/api/admin/users?q=${encodeURIComponent(q)}&role=${encodeURIComponent(role)}&page=${page}`)).data;
@@ -29,6 +36,23 @@ const initial = (u: any) => [...(u.full_name || u.email)][0]?.toUpperCase();
 <Base title="ایڈمن: صارفین">
   <h1>ایڈمن</h1>
   <AdminNav current="users" />
+
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {made && (
+    <div class="temp-password" role="status">
+      <p>اکاؤنٹ بن گیا: <bdi dir="ltr">{made.email}</bdi> (<a href={`/admin/user/${made.id}`}>صفحہ</a>)۔ عارضی پاس ورڈ (صرف ایک بار دکھایا جا رہا ہے):</p>
+      <p><code dir="ltr">{made.password}</code></p>
+      <p class="muted">یہ پاس ورڈ اور ای میل صارف کو دیں؛ وہ لاگ ان کر کے اپنے اکاؤنٹ کے صفحے سے پاس ورڈ بدل لیں۔</p>
+    </div>
+  )}
+  <details class="panel new-account" open={!!error}>
+    <summary>نیا اکاؤنٹ</summary>
+    <form method="post" class="account-form">
+      <label>ای میل<input type="email" name="email" required dir="ltr" autocomplete="off" /></label>
+      <label>نام (اختیاری)<input name="name" maxlength="100" data-urdu /></label>
+      <button>اکاؤنٹ بنائیں</button>
+    </form>
+  </details>
 
   <form method="get" class="admin-search">
     {role && <input type="hidden" name="role" value={role} />}

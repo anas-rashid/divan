@@ -71,3 +71,29 @@ test('admin panel: only admins; reset, disable, role, delete, self-protection, a
   await pool.query(`DELETE FROM audit_log WHERE actor_email = $1 OR target_email = $1`, [`admin-${run}@divan.test`]);
   await app.close();
 });
+
+test('closed sign-up: no self sign-up; an admin creates the account with a temporary password', async () => {
+  const app = Fastify();
+  authRoutes(app);
+  adminRoutes(app);
+  const run = Date.now();
+  const call = (method: string, url: string, body?: object, token?: string) =>
+    app.inject({ method: method as any, url, payload: body, headers: { ...(token && { authorization: `Bearer ${token}` }), 'x-client-ip': `accounts-test-${run}` } });
+  const a = (await call('POST', '/api/auth/signup', { email: `admin2-${run}@divan.test`, password: 'pass-word-1' })).json();
+  await pool.query(`UPDATE users SET role = 'admin' WHERE id = $1`, [a.user.id]);
+  process.env.DIVAN_SIGNUP = '0';
+  try {
+    assert.equal((await call('POST', '/api/auth/signup', { email: `self-${run}@divan.test`, password: 'pass-word-1' })).statusCode, 403, 'sign-up closed');
+    const email = `asked-${run}@divan.test`;
+    assert.equal((await call('POST', '/api/admin/users', { email }, undefined)).statusCode, 401);
+    assert.equal((await call('POST', '/api/admin/users', { email: 'not an email' }, a.token)).statusCode, 400);
+    const made = (await call('POST', '/api/admin/users', { email: ` ${email.toUpperCase()} `, name: 'نیا قاری' }, a.token)).json();
+    assert.ok(made.id && made.password.length === 12);
+    assert.equal((await call('POST', '/api/admin/users', { email }, a.token)).statusCode, 409, 'once per email');
+    const signin = (await call('POST', '/api/auth/signin', { email, password: made.password })).json();
+    assert.deepEqual([signin.user.email, signin.user.role, signin.user.full_name], [email, 'reader', 'نیا قاری'], 'a reader who can sign in');
+    assert.ok((await pool.query(`SELECT 1 FROM audit_log WHERE action = 'create' AND target_id = $1`, [made.id])).rowCount, 'audited');
+  } finally {
+    delete process.env.DIVAN_SIGNUP;
+  }
+});

@@ -39,6 +39,8 @@ export async function verifyPassword(password: string, stored: string) {
 // compared against when the email is unknown, so a wrong email takes as long as a wrong password
 const DUMMY = await hashPassword(randomBytes(16).toString('hex'));
 
+// DIVAN_SIGNUP=0 (the public site): no sign-up; an admin creates accounts on request (admin.ts POST /api/admin/users)
+export const signupOpen = () => process.env.DIVAN_SIGNUP !== '0';
 export const normaliseEmail = (e: unknown) => (typeof e === 'string' ? e.trim().toLowerCase() : '');
 export const validEmail = (e: string) => e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 export const passwordProblem = (p: unknown) =>
@@ -99,6 +101,7 @@ export const ip = (req: FastifyRequest) => (fromSite(req) && (req.headers['x-cli
 
 export function authRoutes(app: FastifyInstance) {
   app.post<{ Body: { email?: string; password?: string } }>('/api/auth/signup', async (req, reply) => {
+    if (!signupOpen()) return reply.code(403).send({ error: 'دیوان پر اکاؤنٹ ایڈمن بناتے ہیں: اکاؤنٹ کے لیے ہم سے رابطہ کریں۔' });
     if (!signupByIp(ip(req))) return reply.code(429).send({ error: 'بہت زیادہ کوششیں۔ کچھ دیر بعد دوبارہ کوشش کریں۔' });
     const email = normaliseEmail(req.body?.email), problem = passwordProblem(req.body?.password);
     if (!validEmail(email)) return reply.code(400).send({ error: 'درست ای میل پتہ لکھیں' });

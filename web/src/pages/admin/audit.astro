@@ -14,11 +14,11 @@ const page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
 const log = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/audit?page=${page}`)).data;
 const pages = Math.ceil(log.total / log.pageSize);
 const ACTION: Record<string, string> = {
-  'password-reset': 'پاس ورڈ ری سیٹ', disable: 'معطل', enable: 'بحال', role: 'کردار', delete: 'حذف', promote: 'ایڈمن (سرور سے)',
+  create: 'نیا اکاؤنٹ', 'password-reset': 'پاس ورڈ ری سیٹ', disable: 'معطل', enable: 'بحال', role: 'کردار', delete: 'حذف', promote: 'ایڈمن (سرور سے)',
   grant: 'اجازت دی', revoke: 'اجازت واپس لی',
 };
 const when = (d: string) => ud(new Date(d).toISOString().slice(0, 16).replace('T', ' '));
-const TONE: Record<string, string> = { grant: 'ok', enable: 'ok', role: 'action', promote: 'action', 'password-reset': 'accent', disable: 'danger', delete: 'danger', revoke: 'danger' };
+const TONE: Record<string, string> = { create: 'ok', grant: 'ok', enable: 'ok', role: 'action', promote: 'action', 'password-reset': 'accent', disable: 'danger', delete: 'danger', revoke: 'danger' };
 const detail = (e: any) => e.detail?.to ? `${ROLE[e.detail.from] ?? '—'} ← ${ROLE[e.detail.to] ?? e.detail.to}`.replace('— ← ', '')
   : e.detail?.content ? [e.detail.target, e.detail.content.map((c: string) => CONTENT[c]).join('، '), e.detail.actions.map((a: string) => DO[a]).join('، ')].filter(Boolean).join(' · ') : '';
 const kinds = [...new Set(log.entries.map((e: any) => e.action as string))];

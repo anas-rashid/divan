@@ -1059,3 +1059,4 @@ main[data-loading]::before { content: ''; display: block; height: 3px; margin: 1
   background: linear-gradient(90deg, transparent, var(--brand), transparent) 0 0 / 40% 100% no-repeat; animation: loading-bar 1.1s ease-in-out infinite; }
 @keyframes loading-bar { from { background-position: -40% 0; } to { background-position: 140% 0; } }
 @media (prefers-reduced-motion: reduce) { main[data-loading]::before { animation: none; background-size: 100% 100%; } }
+.new-account summary { cursor: pointer; font-weight: 600; } /* admin: «نیا اکاؤنٹ» */
