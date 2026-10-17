@@ -25,6 +25,7 @@ import { siteRoutes } from './site.ts';
 import { tagRoutes, pageTags } from './tags.ts';
 import { ebookRoutes } from './ebooks.ts';
 import { submissionRoutes } from './submissions.ts';
+import { joinRoutes } from './join.ts';
 import { feedRoutes } from './feeds.ts';
 import { portraitRoutes, SHOWN } from './portraits.ts';
 
@@ -254,6 +255,7 @@ siteRoutes(app);
 tagRoutes(app);
 ebookRoutes(app);
 submissionRoutes(app);
+joinRoutes(app);
 feedRoutes(app);
 statsRoutes(app);
 

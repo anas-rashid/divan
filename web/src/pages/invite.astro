@@ -1,0 +1,41 @@
+---
+// The emailed invitation (api auth.ts /api/auth/invite): an admin made the account; here its owner sets a password and is signed in.
+import Base from '../layouts/Base.astro';
+import { auth, setSession } from '../lib/auth';
+
+const token = Astro.url.searchParams.get('t') ?? '';
+let error = '';
+if (Astro.request.method === 'POST') {
+  const form = await Astro.request.formData(), password = String(form.get('password') ?? '');
+  if (password !== form.get('password2')) error = 'دونوں پاس ورڈ ایک جیسے نہیں';
+  else {
+    const r = await auth('invite', { body: { token, password }, ip: Astro.clientAddress });
+    if (r.ok) {
+      setSession(Astro.cookies, r.data.token, Astro.url.protocol === 'https:');
+      return Astro.redirect('/account');
+    }
+    error = r.data.error ?? 'کچھ غلط ہو گیا';
+  }
+}
+const check = await auth('invite', { body: { token }, ip: Astro.clientAddress });
+---
+<Base title="پاس ورڈ رکھیں">
+  <img class="hero-logo" src="/logo/turanj.svg" width="96" height="96" alt="" />
+  <h1>خوش آمدید</h1>
+  {check.ok ? (
+    <form method="post" class="account-form">
+      <p>دیوان پر آپ کا اکاؤنٹ بن گیا ہے: <bdi dir="ltr">{check.data.email}</bdi>۔ اپنا پاس ورڈ رکھیں، پھر آپ لاگ ان ہو جائیں گے۔</p>
+      {error && <p class="form-error" role="alert">{error}</p>}
+      <input type="email" name="email" value={check.data.email} autocomplete="username" hidden />
+      <label>پاس ورڈ (کم از کم ۸ حروف)<input type="password" name="password" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
+      <label>پاس ورڈ دوبارہ<input type="password" name="password2" required minlength="8" autocomplete="new-password" dir="ltr" /></label>
+      <button type="submit">پاس ورڈ رکھیں</button>
+      <p class="muted small-line">اکاؤنٹ استعمال کر کے آپ <a href="/terms">استعمال کی شرائط</a> مانتے ہیں؛ ہم کیا محفوظ رکھتے ہیں، یہ <a href="/privacy">رازداری</a> میں ہے۔</p>
+    </form>
+  ) : (
+    <div class="account-form">
+      <p class="form-error" role="alert">{check.data.error ?? 'کچھ غلط ہو گیا'}</p>
+      <p class="muted">پہلے ہی پاس ورڈ رکھ لیا ہے؟ <a href="/signin">لاگ ان کریں</a></p>
+    </div>
+  )}
+</Base>

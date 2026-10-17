@@ -1,14 +1,20 @@
 ---
 import Base from '../layouts/Base.astro';
 import { auth, setSession, signupOpen } from '../lib/auth';
-import { brand } from '../lib/brand';
 
 // back where the reader came from (only a path on this site)
 const next = (Astro.url.searchParams.get('next') ?? '').startsWith('/') && !(Astro.url.searchParams.get('next') ?? '').startsWith('//')
   ? Astro.url.searchParams.get('next')! : '/account';
 if (Astro.locals.user) return Astro.redirect(next);
-let error = '', email = '';
+let error = '', email = '', name = '', note = '', asked = false;
 const open = signupOpen();
+// sign-up closed (the public site): a request to join; the admins are emailed (api join.ts)
+if (!open && Astro.request.method === 'POST') {
+  const form = await Astro.request.formData();
+  [email, name, note] = ['email', 'name', 'note'].map((k) => String(form.get(k) ?? ''));
+  const r = await auth('join', { body: { email, name, note }, ip: Astro.clientAddress });
+  r.ok ? (asked = true) : (error = r.data.error ?? 'کچھ غلط ہو گیا');
+}
 if (open && Astro.request.method === 'POST') {
   const form = await Astro.request.formData();
   email = String(form.get('email') ?? '');
@@ -24,18 +30,27 @@ if (open && Astro.request.method === 'POST') {
   }
 }
 ---
-<Base title="نیا اکاؤنٹ">
+<Base title={open ? 'نیا اکاؤنٹ' : 'اکاؤنٹ کی درخواست'}>
   <img class="hero-logo" src="/logo/turanj.svg" width="96" height="96" alt="" />
-  <h1>نیا اکاؤنٹ</h1>
-  {!open ? (
-    <div class="account-form">
-      <p>دیوان پر اکاؤنٹ ایڈمن بناتے ہیں۔ اگر آپ کلام محفوظ کرنا، اپنا ذخیرۂ الفاظ بنانا یا کلاسیکی ادب <a href="/contribute">بھیجنا</a>
-        چاہتے ہیں تو اپنا نام اور ای میل لکھ کر ہم سے رابطہ کریں؛ اکاؤنٹ بننے پر آپ کو عارضی پاس ورڈ
-        ملے گا جسے آپ لاگ ان کر کے بدل سکتے ہیں۔</p>
-      <p class="center"><a class="btn primary" href={brand.contact.url}>{brand.contact.text}</a></p>
-      <p class="muted">پہلے سے اکاؤنٹ ہے؟ <a href="/signin">لاگ ان کریں</a></p>
+  <h1>{open ? 'نیا اکاؤنٹ' : 'اکاؤنٹ کی درخواست'}</h1>
+  {!open ? (asked ? (
+    <div class="account-form" role="status">
+      <p class="form-done">آپ کی درخواست مل گئی، شکریہ!</p>
+      <p>ایڈمن اسے دیکھ کر اکاؤنٹ بنائیں گے۔ اکاؤنٹ بننے پر <bdi dir="ltr">{email}</bdi> پر ای میل آئے گی جس کے لنک سے آپ اپنا پاس ورڈ رکھ سکیں گے۔</p>
+      <p class="center"><a class="btn" href="/">سرورق</a></p>
     </div>
   ) : (
+    <form method="post" class="account-form">
+      <p>دیوان پر اکاؤنٹ ایڈمن بناتے ہیں۔ اگر آپ کلام محفوظ کرنا، اپنا ذخیرۂ الفاظ بنانا یا کلاسیکی ادب <a href="/contribute">بھیجنا</a> چاہتے ہیں تو درخواست بھیجیں؛ اکاؤنٹ بننے پر آپ کو ای میل آئے گی۔</p>
+      {error && <p class="form-error" role="alert">{error}</p>}
+      <label>نام<input name="name" value={name} required maxlength="100" autocomplete="name" data-urdu /></label>
+      <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>
+      <label>آپ دیوان پر کیا کرنا چاہتے ہیں؟ (اختیاری)<textarea name="note" rows="3" maxlength="1000" data-urdu>{note}</textarea></label>
+      <button type="submit">درخواست بھیجیں</button>
+      <p class="muted small-line">ہم کیا محفوظ رکھتے ہیں، یہ <a href="/privacy">رازداری</a> میں ہے۔</p>
+      <p class="muted">پہلے سے اکاؤنٹ ہے؟ <a href="/signin">لاگ ان کریں</a></p>
+    </form>
+  )) : (
   <form method="post" class="account-form">
     {error && <p class="form-error" role="alert">{error}</p>}
     <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>

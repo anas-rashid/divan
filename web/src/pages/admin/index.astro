@@ -1,6 +1,7 @@
 ---
 // Admin: users. A list to find people (search, role filter); everything about one user is on their page (/admin/user/<id>).
-// «نیا اکاؤنٹ»: an account for someone who asked for one (the public site has no sign-up), with a temporary password.
+// «نیا اکاؤنٹ»: an account for someone who asked for one (the public site has no sign-up; most ask at /admin/requests),
+// and an emailed link to set its password (shown here instead when it could not be emailed).
 import Base from '../../layouts/Base.astro';
 import Icon from '../../components/Icon.astro';
 import AdminNav from '../../components/AdminNav.astro';
@@ -13,7 +14,7 @@ if (!me) return Astro.redirect('/signin?next=/admin');
 if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
 const token = Astro.cookies.get(COOKIE)!.value;
 
-let made: { id: number; password: string; email: string } | null = null, error = '';
+let made: { id: number; emailed: boolean; link?: string; email: string } | null = null, error = '';
 if (Astro.request.method === 'POST') {
   const f = await Astro.request.formData(), email = String(f.get('email') ?? '');
   const r = await asUser(token, '/api/admin/users', { email, name: f.get('name') });
@@ -38,13 +39,14 @@ const initial = (u: any) => [...(u.full_name || u.email)][0]?.toUpperCase();
   <AdminNav current="users" />
 
   {error && <p class="form-error" role="alert">{error}</p>}
-  {made && (
+  {made && (made.emailed
+    ? <p class="form-done" role="status">اکاؤنٹ بن گیا اور {made.email} کو پاس ورڈ رکھنے کا لنک ای میل ہو گیا</p>
+    : (
     <div class="temp-password" role="status">
-      <p>اکاؤنٹ بن گیا: <bdi dir="ltr">{made.email}</bdi> (<a href={`/admin/user/${made.id}`}>صفحہ</a>)۔ عارضی پاس ورڈ (صرف ایک بار دکھایا جا رہا ہے):</p>
-      <p><code dir="ltr">{made.password}</code></p>
-      <p class="muted">یہ پاس ورڈ اور ای میل صارف کو دیں؛ وہ لاگ ان کر کے اپنے اکاؤنٹ کے صفحے سے پاس ورڈ بدل لیں۔</p>
+      <p>اکاؤنٹ بن گیا: <bdi dir="ltr">{made.email}</bdi> (<a href={`/admin/user/${made.id}`}>صفحہ</a>)، مگر ای میل نہیں جا سکی۔ پاس ورڈ رکھنے کا یہ لنک انھیں خود بھیجیں (ایک ہفتے تک کام کرے گا):</p>
+      <p><code dir="ltr">{made.link}</code></p>
     </div>
-  )}
+  ))}
   <details class="panel new-account" open={!!error}>
     <summary>نیا اکاؤنٹ</summary>
     <form method="post" class="account-form">
