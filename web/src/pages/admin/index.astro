@@ -43,7 +43,7 @@ const initial = (u: any) => [...(u.full_name || u.email)][0]?.toUpperCase();
     ? <p class="form-done" role="status">اکاؤنٹ بن گیا اور {made.email} کو پاس ورڈ رکھنے کا لنک ای میل ہو گیا</p>
     : (
     <div class="temp-password" role="status">
-      <p>اکاؤنٹ بن گیا: <bdi dir="ltr">{made.email}</bdi> (<a href={`/admin/user/${made.id}`}>صفحہ</a>)، مگر ای میل نہیں جا سکی۔ پاس ورڈ رکھنے کا یہ لنک انھیں خود بھیجیں (ایک ہفتے تک کام کرے گا):</p>
+      <p>اکاؤنٹ بن گیا: <bdi dir="ltr">{made.email}</bdi> (<a href={`/admin/user/${made.id}`}>صفحہ</a>)۔ پاس ورڈ رکھنے کا یہ لنک انھیں بھیجیں؛ ایک ہفتے تک ایک بار کام کرے گا:</p>
       <p><code dir="ltr">{made.link}</code></p>
     </div>
   ))}

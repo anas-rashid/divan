@@ -1,5 +1,6 @@
 ---
-// Admin: requests to join (api join.ts). Approving makes the account and emails its invitation; declining tells no one.
+// Admin: requests to join (api join.ts). Approving makes a reader's account and its invitation link (emailed when email is
+// on; until then shown here for the admin to send); declining tells no one.
 import Base from '../../layouts/Base.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
@@ -19,7 +20,7 @@ if (Astro.request.method === 'POST') {
   if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
   else if (act !== 'approve') done = `${email} کی درخواست رد کر دی گئی`;
   else if (r.data.emailed) done = `${email} کا اکاؤنٹ بن گیا اور انھیں پاس ورڈ رکھنے کا لنک ای میل ہو گیا`;
-  else { done = `${email} کا اکاؤنٹ بن گیا، مگر ای میل نہیں جا سکی۔ یہ لنک انھیں خود بھیجیں (ایک ہفتے تک کام کرے گا):`; link = r.data.link; }
+  else { done = `${email} کا اکاؤنٹ (قاری) بن گیا۔ پاس ورڈ رکھنے کا یہ لنک انھیں بھیجیں؛ ایک ہفتے تک ایک بار کام کرے گا:`; link = r.data.link; }
 }
 const TABS: [string, string][] = [['pending', 'منتظر'], ['approved', 'منظور'], ['declined', 'رد']];
 const status = TABS.some(([k]) => k === Astro.url.searchParams.get('status')) ? Astro.url.searchParams.get('status')! : 'pending';

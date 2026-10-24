@@ -36,12 +36,12 @@ if (open && Astro.request.method === 'POST') {
   {!open ? (asked ? (
     <div class="account-form" role="status">
       <p class="form-done">آپ کی درخواست مل گئی، شکریہ!</p>
-      <p>ایڈمن اسے دیکھ کر اکاؤنٹ بنائیں گے۔ اکاؤنٹ بننے پر <bdi dir="ltr">{email}</bdi> پر ای میل آئے گی جس کے لنک سے آپ اپنا پاس ورڈ رکھ سکیں گے۔</p>
+      <p>ایڈمن اسے دیکھ کر آپ کا اکاؤنٹ بنائیں گے اور <bdi dir="ltr">{email}</bdi> پر آپ کو پاس ورڈ رکھنے کا لنک بھیجیں گے۔</p>
       <p class="center"><a class="btn" href="/">سرورق</a></p>
     </div>
   ) : (
     <form method="post" class="account-form">
-      <p>دیوان پر اکاؤنٹ ایڈمن بناتے ہیں۔ اگر آپ کلام محفوظ کرنا، اپنا ذخیرۂ الفاظ بنانا یا کلاسیکی ادب <a href="/contribute">بھیجنا</a> چاہتے ہیں تو درخواست بھیجیں؛ اکاؤنٹ بننے پر آپ کو ای میل آئے گی۔</p>
+      <p>دیوان پر اکاؤنٹ ایڈمن بناتے ہیں۔ اگر آپ کلام محفوظ کرنا، اپنا ذخیرۂ الفاظ بنانا یا کلاسیکی ادب <a href="/contribute">بھیجنا</a> چاہتے ہیں تو درخواست بھیجیں؛ اکاؤنٹ بننے پر ہم آپ کو اسی ای میل پر پاس ورڈ رکھنے کا لنک بھیجیں گے۔</p>
       {error && <p class="form-error" role="alert">{error}</p>}
       <label>نام<input name="name" value={name} required maxlength="100" autocomplete="name" data-urdu /></label>
       <label>ای میل<input type="email" name="email" value={email} required autocomplete="email" dir="ltr" /></label>

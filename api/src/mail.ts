@@ -2,8 +2,9 @@
 // told of new requests to join, and a welcome on sign-up. Sent through any SMTP provider, set in the .env:
 //   SMTP_URL=smtps://USER:PASSWORD@smtp.example.com:465     (or smtp://...:587, upgraded with STARTTLS)
 //   MAIL_FROM="دیوان <hello@divan.pk>"                        (an address of the domain the provider verified)
-// Without SMTP_URL (local development, tests) a message is logged and kept in `outbox`, not sent: mailOn() says which.
-// nodemailer is loaded only when there is somewhere to send (it is not needed for development or the tests)
+// Without SMTP_URL (for now everywhere: email is parked, owner 2026-10-25) a message is logged and kept in `outbox`, not
+// sent: mailOn() says which, and admins pass invitation links on themselves. To turn it on: `npm install nodemailer`
+// in api/ (it is loaded only when SMTP_URL is set), the provider's DNS records, then SMTP_URL and MAIL_FROM.
 const transport = process.env.SMTP_URL ? (await import('nodemailer')).default.createTransport(process.env.SMTP_URL) : null;
 const FROM = process.env.MAIL_FROM ?? 'دیوان <hello@divan.pk>';
 export const SITE = (process.env.SITE_URL ?? 'http://localhost:4321').replace(/\/$/, '');

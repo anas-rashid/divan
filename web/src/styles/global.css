@@ -326,7 +326,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .selmenu button:hover, .selmenu button:focus-visible { background: rgb(201 160 80 / .25); outline: none; }
 
 /* admin panel */
-.admin-nav { display: flex; justify-content: center; gap: 8px; margin: 0 0 16px; }
+.admin-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 16px; }
+.admin-nav a { white-space: nowrap; }
 .admin-table button { font-size: var(--fs-xs); padding: 0 10px; }
 .admin-table button.danger { color: var(--danger); }
 .admin-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 8px 0; }
@@ -1066,3 +1067,4 @@ main[data-loading]::before { content: ''; display: block; height: 3px; margin: 1
 .join-request .note-text { white-space: pre-line; margin: 0 0 8px; }
 .join-request .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .join-request .actions form { margin: 0; }
+.admin-nav .count { margin-inline-start: 6px; padding: 0 7px; line-height: 1.6; border-radius: var(--r-pill); background: var(--brand); color: #fff; font-size: var(--fs-xs); }
