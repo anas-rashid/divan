@@ -1,6 +1,8 @@
 ---
-// Admin: statistics (#86): readers (page views and visitors per day, top pages, where they came from), moderation
-// (steps taken, by whom, waiting) and accounts. Counts only: nothing here identifies a reader (see /privacy).
+// Admin: statistics (#86): readers (page views and visitors over time, on a world map, top pages, where they came
+// from), moderation (steps taken, by whom, waiting) and accounts. Counts only: nothing here identifies a reader (see
+// /privacy). The period comes from the address (a preset number of days, or from-to); within it, the histogram, its
+// timeline, the map and the place lists are drawn in the browser from the period's days and places (script below).
 import Base from '../../layouts/Base.astro';
 import AdminNav from '../../components/AdminNav.astro';
 import { asUser, COOKIE } from '../../lib/auth';
@@ -11,12 +13,15 @@ import { EVENT } from '../../lib/mod';
 const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/admin/stats');
 if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
-const days = [7, 30, 90, 365].includes(Number(Astro.url.searchParams.get('days'))) ? Number(Astro.url.searchParams.get('days')) : 30;
-const s = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/stats?days=${days}`)).data;
+const sp = Astro.url.searchParams, get = (k: string) => sp.get(k) ?? '';
+const s = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/stats?${new URLSearchParams(
+  Object.entries({ days: get('days'), from: get('from'), to: get('to') }).filter(([, v]) => v))}`)).data;
+const days = get('from') ? 0 : s.days;
 const sum = (k: 'views' | 'visitors') => s.daily.reduce((n: number, d: any) => n + d[k], 0);
-const max = Math.max(1, ...s.daily.map((d: any) => d.views));
 const LIB: Record<string, string> = { poet: 'شاعر', category: 'کتابیں', poem: 'کلام', couplet: 'اشعار', phrase: 'ٹکڑے', word: 'الفاظ', page: 'صفحات' };
-const label = (d: string) => ud(d.slice(5).replace('-', '/'));
+// for the script: each day's totals, and per day and city the counts and the city's point
+const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
+  places: s.places.map((p: any) => [p.day, p.country, p.city, p.views, p.visitors, p.lat, p.lon]) };
 ---
 <Base title="ایڈمن: اعداد و شمار">
   <h1>ایڈمن</h1>
@@ -24,6 +29,11 @@ const label = (d: string) => ud(d.slice(5).replace('-', '/'));
   <nav class="stats-range" aria-label="مدت">
     {[7, 30, 90, 365].map((d) => <a href={`?days=${d}`} aria-current={d === days ? 'page' : undefined} class="chip">{d === 365 ? 'ایک سال' : `${ud(d)} دن`}</a>)}
   </nav>
+  <form method="get" class="stats-period" aria-label="اپنی مدت">
+    <label>سے<input type="date" name="from" value={s.from} max={s.to} required /></label>
+    <label>تک<input type="date" name="to" value={s.to} required /></label>
+    <button class="btn">دکھائیں</button>
+  </form>
   <nav class="stat-tiles" aria-label="خلاصہ">
     <div class="stat"><strong>{ud(sum('views'))}</strong><span>صفحات دیکھے گئے</span></div>
     <div class="stat"><strong>{ud(sum('visitors'))}</strong><span>قارئین (روزانہ کا مجموعہ)</span></div>
@@ -31,16 +41,37 @@ const label = (d: string) => ud(d.slice(5).replace('-', '/'));
     <div class="stat"><strong>{ud(s.moderation.actions.find((a: any) => a.action === 'published')?.n ?? 0)}</strong><span>اشاعتیں</span></div>
   </nav>
 
-  <section class="lib-section">
-    <h2>روزانہ</h2>
-    <div class="bars" role="img" aria-label={`روزانہ صفحات: ${s.daily.map((d: any) => `${label(d.day)} ${ud(d.views)}`).join('، ')}`}>
-      {s.daily.map((d: any) => (
-        <div class="bar" title={`${label(d.day)}: ${ud(d.views)} صفحات، ${ud(d.visitors)} قارئین`}>
-          <span style={`height:${(d.views / max) * 100}%`}></span><i style={`height:${(d.visitors / max) * 100}%`}></i>
-        </div>
-      ))}
+  <section class="lib-section viz" data-stats={JSON.stringify(data)}>
+    <div class="viz-head">
+      <h2 class="viz-title">قارئین</h2>
+      <div class="viz-tools">
+        <span class="seg" role="group" aria-label="خانے">
+          <button class="chip" data-by="day" aria-pressed="true">روزانہ</button><button class="chip" data-by="week" aria-pressed="false">ہفتہ وار</button><button class="chip" data-by="month" aria-pressed="false">ماہانہ</button>
+        </span>
+        <button class="chip viz-play" aria-pressed="false" title="وقت کے ساتھ چلائیں">▶ چلائیں</button>
+      </div>
     </div>
-    <p class="muted center"><span class="key-views"></span> صفحات · <span class="key-visitors"></span> قارئین · {label(s.daily[0].day)} تا {label(s.daily.at(-1).day)}</p>
+    <div class="bars" role="img" aria-label="صفحات اور قارئین، وقت کے ساتھ"></div>
+    <div class="bar-ticks" aria-hidden="true"></div>
+    <div class="timeline" aria-label="دکھائی جانے والی مدت">
+      <input type="range" class="tl-from" min="0" value="0" aria-label="شروع" />
+      <input type="range" class="tl-to" min="0" value="0" aria-label="آخر" />
+    </div>
+    <p class="muted center viz-sum"></p>
+
+    <div class="map-wrap">
+      <svg class="world" viewBox="-180 -84 360 144" role="img" aria-label="دنیا کا نقشہ: کہاں سے پڑھا گیا">
+        <defs><pattern id="disputed-hatch" width="0.8" height="0.8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="0.8" height="0.8" fill="var(--surface-sunken)" /><line class="hatch" x1="0" y1="0" x2="0" y2="0.8" /></pattern></defs>
+        <g class="lands"></g><g class="dots"></g></svg>
+      <button class="chip map-back" hidden>← دنیا</button>
+      <div class="map-tip" hidden></div>
+    </div>
+    <div class="stats-grid places">
+      <div><h3>ممالک</h3><ul class="hbars p-countries"></ul></div>
+      <div><h3 class="p-cities-title">شہر</h3><ul class="hbars p-cities"></ul></div>
+    </div>
+    <p class="muted small-line">ہر سطر: صفحات <small>اور قارئین</small>۔ ملک یا شہر انٹرنیٹ پتے سے اندازہ ہے (<a href="https://db-ip.com" dir="ltr">IP Geolocation by DB-IP</a>)؛ پتا خود محفوظ نہیں ہوتا۔ ملک اور شہر سرور پر جگہ کی تلاش (nginx) چالو ہونے کے بعد سے گنے جاتے ہیں۔
+      نقشہ: <a href="https://www.naturalearthdata.com" dir="ltr">Natural Earth</a>۔</p>
   </section>
 
   <div class="stats-grid">
@@ -83,3 +114,250 @@ const label = (d: string) => ud(d.slice(5).replace('-', '/'));
   </div>
   <p class="muted center">ان اعداد میں کسی قاری کی شناخت نہیں: نہ کوکی، نہ پتا محفوظ ہوتا ہے (<a href="/privacy">رازداری</a>)۔</p>
 </Base>
+
+<script>
+  // Readers over the page's period, drawn here from its days and places: the histogram (day, week or month bars, grown
+  // in), a timeline whose two handles choose a window within the period (a bar's click chooses its own), the world map
+  // (countries shaded by readers in the window; a click zooms into the country and shows its cities), the place lists,
+  // and «چلائیں», which moves the window through the period.
+  // day, country, city, views, visitors, lat, lon, and DB-IP's own country
+  type Place = [string, string, string, number, number, number | null, number | null, string?];
+  const root = document.querySelector<HTMLElement>('.viz');
+  if (root) {
+    const data = JSON.parse(root.dataset.stats!) as { daily: [string, number, number][]; places: Place[] };
+    // Palestine (owner 2026-10-25): one country, with Israel's area (the map's shape, world.json) and its places. City
+    // names in Urdu script once city-names.json is in (Arabic ones for Palestine and the Arab countries), keyed by DB-IP's
+    // own country and English name; the stored counts keep DB-IP's codes and names
+    const places = data.places.map(([d, c, ...rest]): Place => [d, c === 'IL' ? 'PS' : c, ...rest, c]);
+    // IIOJK (the map's '_JK'): its own place in the counts, the lists and on the map, with the readers whose city lies in
+    // it (DB-IP counts them in India); found by the city's point once the map is in (below)
+    const JK = '_JK';
+    const daily = data.daily;
+    const $ = <T extends Element = HTMLElement>(q: string) => root.querySelector<T>(q)!;
+    const NS = 'http://www.w3.org/2000/svg';
+    const ud = (n: number | string) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d]);
+    const names = new Intl.DisplayNames(['ur'], { type: 'region' });
+    const place = (c: string) => (c === 'PS' ? 'فلسطین' : c === JK ? 'IIOJK: متنازع علاقہ' : c ? names.of(c) ?? c : 'نامعلوم');
+    const flag = (c: string) => (/^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map((ch) => 0x1f1a5 + ch.charCodeAt(0))) + ' ' : '');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const dayIndex = new Map(daily.map(([d], i) => [d, i]));
+    const last = daily.length - 1;
+    let by = 'day', a = 0, b = last, country = '', timer = 0;
+
+    // ── the histogram ──
+    const monday = (d: string) => { const t = new Date(d + 'T00:00:00Z'); t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7)); return t.toISOString().slice(0, 10); };
+    const keyOf = (d: string) => (by === 'day' ? d : by === 'month' ? d.slice(0, 7) : monday(d));
+    const label = (k: string) => ud(by === 'month' ? k.replace('-', '/') : k.slice(5).replace('-', '/'));
+    // each day's views and visitors: everyone's, or the chosen country's
+    const series = () => {
+      if (!country) return daily.map(([, v, u]) => [v, u]);
+      const s = daily.map(() => [0, 0]);
+      for (const [d, c, , v, u] of places) if (c === country) { const i = dayIndex.get(d)!; s[i][0] += v; s[i][1] += u; }
+      return s;
+    };
+    const bars = $('.bars'), ticks = $('.bar-ticks');
+    let buckets: { key: string; from: number; to: number }[] = [];
+    function drawBars() {
+      buckets = [];
+      daily.forEach(([d], i) => { const k = keyOf(d), x = buckets.at(-1); if (x?.key === k) x.to = i; else buckets.push({ key: k, from: i, to: i }); });
+      const s = series();
+      const vals = buckets.map((x) => { let v = 0, u = 0; for (let i = x.from; i <= x.to; i++) { v += s[i][0]; u += s[i][1]; } return [v, u]; });
+      const max = Math.max(1, ...vals.map(([v]) => v));
+      // gaps between bars only while there is room for them (180 days on a phone have none)
+      bars.style.gap = `${Math.min(2, (bars.clientWidth / buckets.length) * 0.25)}px`;
+      bars.replaceChildren(...buckets.map((x, j) => {
+        const el = document.createElement('button');
+        el.type = 'button'; el.className = 'bar';
+        el.title = `${label(x.key)}: ${ud(vals[j][0])} صفحات، ${ud(vals[j][1])} قارئین`;
+        el.append(document.createElement('span'), document.createElement('i'));
+        el.onclick = () => { stop(); a = x.from; b = x.to; update(); };
+        return el;
+      }));
+      // grown in: from nothing to their heights, one after another
+      requestAnimationFrame(() => requestAnimationFrame(() => [...bars.children].forEach((el, j) => {
+        (el as HTMLElement).style.setProperty('--delay', `${reduced ? 0 : Math.min(j * 15, 500)}ms`);
+        (el.firstChild as HTMLElement).style.height = `${(vals[j][0] / max) * 100}%`;
+        (el.lastChild as HTMLElement).style.height = `${(vals[j][1] / max) * 100}%`;
+      })));
+      const step = Math.max(1, Math.ceil(buckets.length / 6));
+      ticks.replaceChildren(...buckets.flatMap((x, j) => {
+        if (j % step) return [];
+        const t = document.createElement('span');
+        t.textContent = label(x.key); t.style.insetInlineStart = `${((j + 0.5) / buckets.length) * 100}%`;
+        return [t];
+      }));
+      update();
+    }
+
+    // ── the timeline: two handles over the period ──
+    const tl = $('.timeline'), tFrom = $<HTMLInputElement>('.tl-from'), tTo = $<HTMLInputElement>('.tl-to');
+    tFrom.max = tTo.max = String(last);
+    tFrom.oninput = () => { stop(); a = Math.min(+tFrom.value, b); update(); };
+    tTo.oninput = () => { stop(); b = Math.max(+tTo.value, a); update(); };
+
+    function update() {
+      tFrom.value = String(a); tTo.value = String(b);
+      tl.style.setProperty('--a', `${(a / Math.max(1, last)) * 100}%`); tl.style.setProperty('--b', `${(b / Math.max(1, last)) * 100}%`);
+      [...bars.children].forEach((el, j) => el.classList.toggle('out', buckets[j].to < a || buckets[j].from > b));
+      const s = series();
+      let v = 0, u = 0;
+      for (let i = a; i <= b; i++) { v += s[i][0]; u += s[i][1]; }
+      $('.viz-sum').innerHTML = `<span class="key-views"></span> ${ud(v)} صفحات · <span class="key-visitors"></span> ${ud(u)} قارئین · ` +
+        `${ud(daily[a][0].replaceAll('-', '/'))} تا ${ud(daily[b][0].replaceAll('-', '/'))}`;
+      drawPlaces();
+    }
+
+    // ── places in the window: the map and the lists ──
+    type Total = { c: string; city: string; v: number; u: number; lat: number | null; lon: number | null };
+    let byCountry = new Map<string, Total>(), cities: Total[] = [];
+    function totals() {
+      const from = daily[a][0], to = daily[b][0];
+      byCountry = new Map(); const byCity = new Map<string, Total>();
+      for (const [d, c, city, v, u, lat, lon] of places) {
+        if (d < from || d > to) continue;
+        const x = byCountry.get(c) ?? { c, city: '', v: 0, u: 0, lat: null, lon: null };
+        x.v += v; x.u += u; byCountry.set(c, x);
+        if (country && c !== country) continue;
+        const y = byCity.get(c + '|' + city) ?? { c, city, v: 0, u: 0, lat, lon };
+        y.v += v; y.u += u; byCity.set(c + '|' + city, y);
+      }
+      cities = [...byCity.values()].sort((p, q) => q.v - p.v);
+    }
+    const row = (name: string, x: Total, max: number, click?: () => void) => {
+      const li = document.createElement('li');
+      const n = document.createElement(click ? 'button' : 'span');
+      n.textContent = name; n.dir = 'auto';
+      if (click) { n.className = 'link'; n.onclick = click; }
+      if (x.c && x.c === country && !x.city) li.setAttribute('aria-current', 'true');
+      const bar = document.createElement('span'), fill = document.createElement('i'), num = document.createElement('span');
+      bar.className = 'hbar'; fill.style.width = `${(x.v / max) * 100}%`; bar.append(fill);
+      num.className = 'n'; num.title = `${ud(x.v)} صفحات، ${ud(x.u)} قارئین`; num.innerHTML = `${ud(x.v)} <small>${ud(x.u)}</small>`;
+      li.append(n, bar, num);
+      return li;
+    };
+    const lands = $<SVGGElement>('.lands'), dots = $<SVGGElement>('.dots'), svg = $<SVGSVGElement>('.world'), tip = $('.map-tip'), back = $('.map-back');
+    const paths = new Map<string, SVGPathElement>();
+    function drawPlaces() {
+      totals();
+      const list = [...byCountry.values()].sort((p, q) => q.v - p.v), top = Math.max(1, ...list.map((x) => x.v));
+      for (const [cc, p] of paths) {
+        p.style.setProperty('--t', String(Math.sqrt((byCountry.get(cc)?.v ?? 0) / top)));
+        p.classList.toggle('on', cc === country);
+      }
+      $('.p-countries').replaceChildren(...list.map((x) => row(flag(x.c) + place(x.c), x, top, x.c ? () => zoom(x.c) : undefined)));
+      const topCity = Math.max(1, ...cities.map((x) => x.v));
+      $('.p-cities').replaceChildren(...cities.slice(0, 40).map((x) => row((country ? '' : flag(x.c)) + (x.city || 'نامعلوم'), x, topCity)));
+      $('.p-cities-title').textContent = country ? `شہر (${place(country)})` : 'شہر';
+      if (!list.length) $('.p-countries').innerHTML = '<li class="muted">اس مدت میں کچھ نہیں</li>';
+      drawDots();
+    }
+    // cities as dots, sized by readers; their size stays the same on screen at any zoom; names when zoomed in
+    // the world, whole, in the map's proportions (wide on a desktop, taller on a phone: the oceans fill the rest)
+    const aspect = () => (svg.clientWidth || 800) / (svg.clientHeight || 320);
+    const world = () => { const h = Math.max(144, 360 / aspect()); return [-180, -84 - (h - 144) / 2, 360, h]; };
+    let vb = world();
+    svg.setAttribute('viewBox', vb.join(' '));
+    function drawDots() {
+      const px = vb[2] / (svg.clientWidth || 800), top = Math.max(1, ...cities.map((x) => x.v)), size = px * 12;
+      // names to the left of their dots (as Urdu reads), else to the right, the busiest city first; one that would cover another
+      // either way is left out
+      // (its dot still shows it on a tap). ponytail: the box is estimated from the name's length, not measured
+      const taken: number[][] = [];
+      const free = (b: number[]) => !taken.some((t) => b[0] < t[2] && t[0] < b[2] && b[1] < t[3] && t[1] < b[3]) && taken.push(b);
+      const ring = cities.filter((x) => x.lat !== null).map((x) => ({ x, r: px * (3 + 9 * Math.sqrt(x.v / top)) }));
+      for (const { x, r } of ring) taken.push([x.lon! - r, -x.lat! - r, x.lon! + r, -x.lat! + r]);
+      dots.replaceChildren(...ring.flatMap(({ x, r }, j) => {
+        const c = document.createElementNS(NS, 'circle');
+        c.setAttribute('cx', String(x.lon)); c.setAttribute('cy', String(-x.lat!)); c.setAttribute('r', String(r));
+        c.dataset.tip = `${flag(x.c)}${x.city}: ${ud(x.v)} صفحات، ${ud(x.u)} قارئین`;
+        if (!country || j >= 15) return [c];
+        const w = x.city.length * size * 0.55, y = -x.lat!, left = x.lon! - r - px * 3, right = x.lon! + r + px * 3;
+        const side = free([left - w, y - size / 2, left, y + size / 2]) ? 'end' : free([right, y - size / 2, right + w, y + size / 2]) ? 'start' : '';
+        if (!side) return [c];
+        const t = document.createElementNS(NS, 'text');
+        t.setAttribute('x', String(side === 'end' ? left : right)); t.setAttribute('y', String(y)); t.setAttribute('font-size', String(size));
+        t.setAttribute('text-anchor', side);
+        t.textContent = x.city;
+        return [c, t];
+      }));
+    }
+    Promise.all(['/maps/world.json', '/maps/city-names.json'].map((u) => fetch(u).then((r) => r.json()))).then(([world, urdu]: Record<string, string>[]) => {
+      for (const p of places) p[2] = urdu[`${p[7]}|${p[2]}`] ?? p[2];
+      for (const [cc, d] of Object.entries(world)) {
+        const p = document.createElementNS(NS, 'path');
+        p.setAttribute('d', d); p.dataset.cc = cc; paths.set(cc, p);
+      }
+      // '_JK': Indian Illegally Occupied Jammu and Kashmir (IIOJK), disputed territory: drawn last (over India), hatched,
+      // with a dashed boundary (owner 2026-10-25); Pakistan's own boundary is as drawn
+      const jk = paths.get(JK);
+      if (jk) { paths.delete(JK); paths.set(JK, jk); jk.classList.add('disputed'); }
+      // its name, in the map's own units: too small to read on the world, readable once zoomed in on the region
+      const name = document.createElementNS(NS, 'text');
+      name.setAttribute('x', '76.4'); name.setAttribute('y', '-33.6'); name.setAttribute('class', 'disputed-name'); name.textContent = 'IIOJK';
+      lands.replaceChildren(...paths.values(), name);
+      if (jk) for (const p of places) if (p[1] === 'IN' && p[5] !== null && jk.isPointInFill(new DOMPoint(p[6]!, -p[5]))) p[1] = JK;
+      drawBars();
+    });
+
+    // a country's frame: its largest piece (not France's islands or Alaska), with room around, in the map's proportions
+    function frame(cc: string) {
+      let best: DOMRect | null = null;
+      for (const piece of paths.get(cc)!.getAttribute('d')!.split(/(?=M)/)) {
+        const p = document.createElementNS(NS, 'path'); p.setAttribute('d', piece); lands.append(p);
+        const r = p.getBBox(); p.remove();
+        if (!best || r.width * r.height > best.width * best.height) best = r;
+      }
+      const ratio = aspect(), w = Math.max(3, best!.width * 1.5, best!.height * 1.5 * ratio), h = w / ratio;
+      return [best!.x + best!.width / 2 - w / 2, best!.y + best!.height / 2 - h / 2, w, h];
+    }
+    function flyTo(to: number[]) {
+      const from = [...vb], start = performance.now(), ms = reduced ? 1 : 750;
+      const step = (now: number) => {
+        const k = Math.min(1, (now - start) / ms), e = k < 0.5 ? 4 * k ** 3 : 1 - (-2 * k + 2) ** 3 / 2;
+        vb = from.map((x, i) => x + (to[i] - x) * e);
+        svg.setAttribute('viewBox', vb.join(' ')); drawDots();
+        if (k < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    }
+    function zoom(cc: string) {
+      if (cc && !paths.has(cc)) return;
+      country = cc; back.hidden = !cc;
+      $('.viz-title').textContent = cc ? `قارئین: ${flag(cc)}${place(cc)}` : 'قارئین';
+      drawBars();
+      flyTo(cc ? frame(cc) : world());
+    }
+    back.onclick = () => zoom('');
+    lands.onclick = (e) => { const cc = (e.target as SVGElement).dataset?.cc; if (cc) zoom(cc === country ? '' : cc); };
+    svg.onpointermove = svg.onpointerdown = (e) => {
+      const t = e.target as SVGElement, cc = t.dataset?.cc;
+      const text = t.dataset?.tip ?? (cc ? `${flag(cc)}${place(cc)}: ${ud(byCountry.get(cc)?.v ?? 0)} صفحات، ${ud(byCountry.get(cc)?.u ?? 0)} قارئین` : '');
+      tip.hidden = !text; if (!text) return;
+      tip.textContent = text;
+      const box = svg.getBoundingClientRect();
+      tip.style.left = `${Math.min(e.clientX - box.left + 12, box.width - tip.offsetWidth - 4)}px`; tip.style.top = `${e.clientY - box.top + 14}px`;
+    };
+    svg.onpointerleave = () => { tip.hidden = true; };
+    addEventListener('resize', drawDots);
+
+    // ── «چلائیں»: the window (or an eighth of the period) moves through it, a day at a time ──
+    const play = $('.viz-play');
+    function stop() {
+      if (!timer) return;
+      clearInterval(timer); timer = 0; play.setAttribute('aria-pressed', 'false'); play.textContent = '▶ چلائیں';
+    }
+    play.onclick = () => {
+      if (timer) return stop();
+      const len = b - a < last ? b - a : Math.max(0, Math.round(last / 8));
+      a = 0; b = len; update();
+      play.setAttribute('aria-pressed', 'true'); play.textContent = '⏸ روکیں';
+      timer = window.setInterval(() => { if (b >= last) return stop(); a++; b++; update(); }, Math.max(40, Math.min(250, 8000 / Math.max(1, last))));
+    };
+    root.querySelectorAll<HTMLButtonElement>('[data-by]').forEach((btn) => btn.onclick = () => {
+      by = btn.dataset.by!;
+      root.querySelectorAll('[data-by]').forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+      drawBars();
+    });
+    drawBars();
+  }
+</script>
