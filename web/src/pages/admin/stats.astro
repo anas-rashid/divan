@@ -60,7 +60,9 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
     <p class="muted center viz-sum"></p>
 
     <div class="map-wrap">
-      <svg class="world" viewBox="-180 -84 360 144" role="img" aria-label="دنیا کا نقشہ: کہاں سے پڑھا گیا"><g class="lands"></g><g class="dots"></g></svg>
+      <svg class="world" viewBox="-180 -84 360 144" role="img" aria-label="دنیا کا نقشہ: کہاں سے پڑھا گیا">
+        <defs><pattern id="disputed-hatch" width="0.8" height="0.8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="0.8" height="0.8" fill="var(--surface-sunken)" /><line class="hatch" x1="0" y1="0" x2="0" y2="0.8" /></pattern></defs>
+        <g class="lands"></g><g class="dots"></g></svg>
       <button class="chip map-back" hidden>← دنیا</button>
       <div class="map-tip" hidden></div>
     </div>
@@ -257,11 +259,19 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
       }));
     }
     fetch('/maps/world.json').then((r) => r.json()).then((world: Record<string, string>) => {
+      const disputed: SVGPathElement[] = [];
       for (const [cc, d] of Object.entries(world)) {
         const p = document.createElementNS(NS, 'path');
-        p.setAttribute('d', d); p.dataset.cc = cc; paths.set(cc, p);
+        p.setAttribute('d', d);
+        // '_JK': Indian Illegally Occupied Jammu and Kashmir (IIOJK), disputed territory: drawn over India, hatched, with a
+        // dashed boundary (owner 2026-10-25); Pakistan's own boundary is as drawn
+        if (cc.startsWith('_')) { p.classList.add('disputed'); p.dataset.tip = 'بھارت کے غیر قانونی زیرِ قبضہ جموں و کشمیر (IIOJK): متنازع علاقہ'; disputed.push(p); continue; }
+        p.dataset.cc = cc; paths.set(cc, p);
       }
-      lands.replaceChildren(...paths.values());
+      // its name, in the map's own units: too small to read on the world, readable once zoomed in on the region
+      const name = document.createElementNS(NS, 'text');
+      name.setAttribute('x', '76.4'); name.setAttribute('y', '-33.6'); name.setAttribute('class', 'disputed-name'); name.textContent = 'IIOJK';
+      lands.replaceChildren(...paths.values(), ...disputed, name);
       drawPlaces();
     });
 

@@ -1013,6 +1013,9 @@ p, li { text-wrap: pretty; }
 .world path { fill: color-mix(in srgb, var(--accent) calc(var(--t, 0) * 100%), var(--surface-sunken)); stroke: var(--surface-page); stroke-width: .5px; vector-effect: non-scaling-stroke; transition: fill .6s; cursor: pointer; }
 .world path:hover { stroke: var(--text); }
 .world path.on { stroke: var(--brand); stroke-width: 1.5px; }
+.world path.disputed { fill: url(#disputed-hatch); stroke: var(--text); stroke-width: 1px; stroke-dasharray: 4 3; cursor: default; }
+.world .hatch { stroke: var(--text-muted); stroke-width: .12; }
+.world .disputed-name { font-size: .7px; font-weight: 600; text-anchor: middle; stroke-width: 2px; }
 .world circle { fill: color-mix(in srgb, var(--brand) 75%, transparent); stroke: var(--surface-page); stroke-width: 1px; vector-effect: non-scaling-stroke; }
 .world text { fill: var(--text); stroke: var(--surface-page); stroke-width: 3px; paint-order: stroke; vector-effect: non-scaling-stroke; dominant-baseline: middle; font-family: system-ui, sans-serif; pointer-events: none; }
 .map-back { position: absolute; top: 8px; inset-inline-start: 8px; }
