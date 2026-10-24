@@ -123,13 +123,31 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
   type Place = [string, string, string, number, number, number | null, number | null]; // day, country, city, views, visitors, lat, lon
   const root = document.querySelector<HTMLElement>('.viz');
   if (root) {
-    const { daily, places } = JSON.parse(root.dataset.stats!) as { daily: [string, number, number][]; places: Place[] };
+    const data = JSON.parse(root.dataset.stats!) as { daily: [string, number, number][]; places: Place[] };
+    // Palestine (owner 2026-10-25): one country, Israel's places counted in it (the map's shape too, world.json), its
+    // cities by their Palestinian Arabic names; the stored counts keep DB-IP's own codes and names
+    const ARABIC: Record<string, string> = {
+      'Jerusalem': 'القدس', 'Tel Aviv': 'تل الربيع', 'Tel Aviv-Yafo': 'تل الربيع', 'Jaffa': 'يافا', 'Haifa': 'حيفا', 'Beersheba': 'بئر السبع',
+      "Be'er Sheva": 'بئر السبع', 'Nazareth': 'الناصرة', 'Acre': 'عكا', 'Akko': 'عكا', 'Eilat': 'أم الرشراش', 'Ashdod': 'أسدود',
+      'Ashkelon': 'عسقلان', 'Netanya': 'أم خالد', 'Rishon LeZion': 'عيون قارة', 'Petah Tikva': 'ملبس', 'Ramla': 'الرملة', 'Lod': 'اللد',
+      'Safed': 'صفد', 'Tiberias': 'طبريا', 'Kfar Saba': 'كفر سابا', 'Bnei Brak': 'ابن إبراق', 'Hadera': 'الخضيرة', 'Afula': 'العفولة',
+      'Umm al-Fahm': 'أم الفحم', 'Shefa-Amr': 'شفاعمرو', 'Tayibe': 'الطيبة', 'Rahat': 'رهط', 'Baqa al-Gharbiyye': 'باقة الغربية',
+      'Ramallah': 'رام الله', 'Al-Bireh': 'البيرة', 'Nablus': 'نابلس', 'Hebron': 'الخليل', 'Bethlehem': 'بيت لحم', 'Jenin': 'جنين',
+      'Jericho': 'أريحا', 'Tulkarm': 'طولكرم', 'Qalqilya': 'قلقيلية', 'Gaza': 'غزة', 'Gaza City': 'غزة', 'Khan Yunis': 'خان يونس',
+      'Rafah': 'رفح', 'Deir al-Balah': 'دير البلح', 'Jabalia': 'جباليا', 'Beit Lahia': 'بيت لاهيا',
+    };
+    // IIOJK (the map's '_JK'): its own place in the counts, the lists and on the map, with the readers whose city lies in
+    // it (DB-IP counts them in India); found by the city's point once the map is in (below)
+    const JK = '_JK';
+    const places = data.places.map(([d, c, city, ...rest]): Place =>
+      c === 'IL' || c === 'PS' ? [d, 'PS', ARABIC[city] ?? city, ...rest] : [d, c, city, ...rest]);
+    const daily = data.daily;
     const $ = <T extends Element = HTMLElement>(q: string) => root.querySelector<T>(q)!;
     const NS = 'http://www.w3.org/2000/svg';
     const ud = (n: number | string) => String(n).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d]);
     const names = new Intl.DisplayNames(['ur'], { type: 'region' });
-    const place = (c: string) => (c ? names.of(c) ?? c : 'نامعلوم');
-    const flag = (c: string) => (c ? String.fromCodePoint(...[...c].map((ch) => 0x1f1a5 + ch.charCodeAt(0))) + ' ' : '');
+    const place = (c: string) => (c === 'PS' ? 'فلسطین' : c === JK ? 'IIOJK: متنازع علاقہ' : c ? names.of(c) ?? c : 'نامعلوم');
+    const flag = (c: string) => (/^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map((ch) => 0x1f1a5 + ch.charCodeAt(0))) + ' ' : '');
     const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     const dayIndex = new Map(daily.map(([d], i) => [d, i]));
     const last = daily.length - 1;
@@ -259,19 +277,23 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
       }));
     }
     fetch('/maps/world.json').then((r) => r.json()).then((world: Record<string, string>) => {
-      const disputed: SVGPathElement[] = [];
       for (const [cc, d] of Object.entries(world)) {
         const p = document.createElementNS(NS, 'path');
-        p.setAttribute('d', d);
-        // '_JK': Indian Illegally Occupied Jammu and Kashmir (IIOJK), disputed territory: drawn over India, hatched, with a
-        // dashed boundary (owner 2026-10-25); Pakistan's own boundary is as drawn
-        if (cc.startsWith('_')) { p.classList.add('disputed'); p.dataset.tip = 'بھارت کے غیر قانونی زیرِ قبضہ جموں و کشمیر (IIOJK): متنازع علاقہ'; disputed.push(p); continue; }
-        p.dataset.cc = cc; paths.set(cc, p);
+        p.setAttribute('d', d); p.dataset.cc = cc; paths.set(cc, p);
       }
+      // '_JK': Indian Illegally Occupied Jammu and Kashmir (IIOJK), disputed territory: drawn last (over India), hatched,
+      // with a dashed boundary (owner 2026-10-25); Pakistan's own boundary is as drawn
+      const jk = paths.get(JK);
+      if (jk) { paths.delete(JK); paths.set(JK, jk); jk.classList.add('disputed'); }
       // its name, in the map's own units: too small to read on the world, readable once zoomed in on the region
       const name = document.createElementNS(NS, 'text');
       name.setAttribute('x', '76.4'); name.setAttribute('y', '-33.6'); name.setAttribute('class', 'disputed-name'); name.textContent = 'IIOJK';
-      lands.replaceChildren(...paths.values(), ...disputed, name);
+      lands.replaceChildren(...paths.values(), name);
+      if (jk) {
+        let moved = false;
+        for (const p of places) if (p[1] === 'IN' && p[5] !== null && jk.isPointInFill(new DOMPoint(p[6]!, -p[5]))) { p[1] = JK; moved = true; }
+        if (moved) return drawBars();
+      }
       drawPlaces();
     });
 
