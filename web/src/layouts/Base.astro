@@ -202,6 +202,9 @@ import { siteUrl } from '../lib/site-url';
           <span>متن: عوامی ملکیت · کوڈ: <span lang="en" dir="ltr">GNU GPL v3</span></span>
           <a href={brand.contact.url} rel="noopener">{brand.contact.text}</a>
           <a href={brand.basedOn.url} rel="noopener" lang="en" dir="ltr">{brand.basedOn.text}</a>
+          {__DIVAN_VERSION__ && (/^v\d/.test(__DIVAN_VERSION__)
+            ? <a href={`${brand.basedOn.url}/releases/tag/${__DIVAN_VERSION__.split('+')[0]}`} rel="noopener" lang="en" dir="ltr" title="سائٹ کا ورژن">{__DIVAN_VERSION__}</a>
+            : <span lang="en" dir="ltr" title="سائٹ کا ورژن">{__DIVAN_VERSION__}</span>)}
         </p>
       </div>
     </footer>
