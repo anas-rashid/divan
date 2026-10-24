@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS dict_meta (           -- upstream file versions and r
     value text NOT NULL
 );
 
--- Accounts (api/src/auth.ts): email address and password only; no email is sent
+-- Accounts (api/src/auth.ts): email address and password (emails: api/src/mail.ts)
 CREATE TABLE IF NOT EXISTS users (
     id            bigserial PRIMARY KEY,
     email         text NOT NULL UNIQUE,          -- stored lowercased
@@ -299,3 +299,25 @@ CREATE INDEX IF NOT EXISTS submissions_user ON submissions (user_id, created_at)
 ALTER TABLE poems ADD COLUMN IF NOT EXISTS search_tsv tsvector GENERATED ALWAYS AS (to_tsvector('simple', search_text)) STORED;
 CREATE INDEX IF NOT EXISTS poems_tsv ON poems USING gin (search_tsv);
 CREATE INDEX IF NOT EXISTS poems_poet ON poems(poet_id);  -- works per poet (search's name matches, poet pages)
+
+-- email (api/src/mail.ts). Invitations: a link that sets the password of an account an admin made (auth.ts), valid a week.
+CREATE TABLE IF NOT EXISTS invites (
+    id         text PRIMARY KEY,                 -- SHA-256 of the link's token (the token itself is never stored)
+    user_id    bigint NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at timestamptz NOT NULL
+);
+CREATE INDEX IF NOT EXISTS invites_user ON invites(user_id);
+-- requests to join (api/src/join.ts): sign-up is closed on the public site, so people ask; admins are emailed and
+-- approve (an account and an invitation) or decline
+CREATE TABLE IF NOT EXISTS join_requests (
+    id          serial PRIMARY KEY,
+    email       text NOT NULL,                   -- lowercased
+    name        text NOT NULL,
+    note        text,                            -- what they want to do on Divan
+    status      text NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'declined')),
+    decided_by  bigint REFERENCES users(id) ON DELETE SET NULL,
+    decided_at  timestamptz,
+    created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS join_requests_pending ON join_requests (email) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS join_requests_status ON join_requests (status, created_at);

@@ -1,0 +1,64 @@
+---
+// Admin: requests to join (api join.ts). Approving makes a reader's account and its invitation link (emailed when email is
+// on; until then shown here for the admin to send); declining tells no one.
+import Base from '../../layouts/Base.astro';
+import AdminNav from '../../components/AdminNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+import { ago } from '../../lib/roles';
+import { when } from '../../lib/mod';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect('/signin?next=/admin/requests');
+if (me.role !== 'admin') return new Response('صرف ایڈمن کے لیے', { status: 403 });
+const token = Astro.cookies.get(COOKIE)!.value;
+
+let error = '', done = '', link = '';
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData(), act = String(f.get('act')), email = String(f.get('email'));
+  const r = await asUser(token, `/api/admin/requests/${Number(f.get('id')) || 0}/${act === 'approve' ? 'approve' : 'decline'}`, {});
+  if (!r.ok) error = r.data.error ?? 'کچھ غلط ہو گیا';
+  else if (act !== 'approve') done = `${email} کی درخواست رد کر دی گئی`;
+  else if (r.data.emailed) done = `${email} کا اکاؤنٹ بن گیا اور انھیں پاس ورڈ رکھنے کا لنک ای میل ہو گیا`;
+  else { done = `${email} کا اکاؤنٹ (قاری) بن گیا۔ پاس ورڈ رکھنے کا یہ لنک انھیں بھیجیں؛ ایک ہفتے تک ایک بار کام کرے گا:`; link = r.data.link; }
+}
+const TABS: [string, string][] = [['pending', 'منتظر'], ['approved', 'منظور'], ['declined', 'رد']];
+const status = TABS.some(([k]) => k === Astro.url.searchParams.get('status')) ? Astro.url.searchParams.get('status')! : 'pending';
+const { requests, counts } = (await asUser(token, `/api/admin/requests?status=${status}`)).data;
+---
+<Base title="ایڈمن: اکاؤنٹ کی درخواستیں">
+  <h1>ایڈمن</h1>
+  <AdminNav current="requests" />
+  <nav class="role-filter" aria-label="حال">
+    {TABS.map(([k, t]) => <a class="chip" href={`?status=${k}`} aria-current={k === status ? 'page' : undefined}>{t} <small>{ud(counts?.[k] ?? 0)}</small></a>)}
+  </nav>
+  {error && <p class="form-error" role="alert">{error}</p>}
+  {done && (
+    <div class:list={[{ 'temp-password': link }]} role="status">
+      <p class:list={[{ 'form-done': !link }]}>{done}</p>
+      {link && <p><code dir="ltr">{link}</code></p>}
+    </div>
+  )}
+  {requests.length === 0 ? <p class="empty"><span aria-hidden="true">✤</span>یہاں کچھ نہیں۔</p> : requests.map((r: any) => (
+    <section class="panel join-request">
+      <h2>{r.name} <bdi class="email muted" dir="ltr">{r.email}</bdi></h2>
+      {r.note && <p class="note-text">{r.note}</p>}
+      <p class="muted small-line" title={when(r.created_at)}>
+        درخواست {ago(r.created_at)}
+        {r.decided_at && <> · {status === 'approved' ? 'منظور' : 'رد'} {ago(r.decided_at)} ({r.decided_by_name || r.decided_by_email})</>}
+        {r.user_id && <> · <a href={`/admin/user/${r.user_id}`}>اکاؤنٹ</a></>}
+      </p>
+      {status === 'pending' && (
+        <div class="actions">
+          {r.user_id ? <p class="muted">اس ای میل سے اکاؤنٹ پہلے سے موجود ہے۔</p> : (
+            <form method="post"><input type="hidden" name="id" value={r.id} /><input type="hidden" name="email" value={r.email} />
+              <button class="btn primary" name="act" value="approve">منظور کریں</button></form>
+          )}
+          <form method="post" data-confirm="یہ درخواست رد کریں؟ انھیں ای میل نہیں جائے گی۔" data-ok="رد کریں" data-danger>
+            <input type="hidden" name="id" value={r.id} /><input type="hidden" name="email" value={r.email} />
+            <button class="btn" name="act" value="decline">رد کریں</button></form>
+        </div>
+      )}
+    </section>
+  ))}
+</Base>

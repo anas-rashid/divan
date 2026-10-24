@@ -1,8 +1,14 @@
 ---
-const { current } = Astro.props as { current: 'users' | 'audit' | 'stats' | 'portraits' };
+// «درخواستیں» shows how many requests to join wait (there is no email yet to tell the admins)
+import { asUser, COOKIE } from '../lib/auth';
+import { ud } from '../lib/urdu';
+const token = Astro.cookies.get(COOKIE)?.value;
+const pending = token ? (await asUser(token, '/api/admin/requests')).data?.counts?.pending ?? 0 : 0;
+const { current } = Astro.props as { current: 'users' | 'requests' | 'audit' | 'stats' | 'portraits' };
 ---
 <nav class="admin-nav">
   <a href="/admin" aria-current={current === 'users' ? 'page' : undefined}>صارفین</a>
+  <a href="/admin/requests" aria-current={current === 'requests' ? 'page' : undefined}>درخواستیں{pending > 0 && <small class="count">{ud(pending)}</small>}</a>
   <a href="/admin/audit" aria-current={current === 'audit' ? 'page' : undefined}>ریکارڈ</a>
   <a href="/mod/portraits" aria-current={current === 'portraits' ? 'page' : undefined}>تصاویر</a>
   <a href="/admin/stats" aria-current={current === 'stats' ? 'page' : undefined}>اعداد و شمار</a>

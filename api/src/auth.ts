@@ -1,4 +1,5 @@
-// Accounts: email address and password only (no email is sent; owner decision 2026-10-08).
+// Accounts: email address and password. Emails (mail.ts): a welcome on sign-up; an invitation to set the password of
+// an account an admin made (admin.ts invite).
 // Passwords: scrypt with a per-user salt. Sessions: a random token held by the site in an HTTP-only
 // cookie; the database stores only its SHA-256, so a database leak does not give working sessions.
 // Rate limits go by the reader's address. The site passes it in x-client-ip, and only the site may: it proves itself
@@ -12,11 +13,14 @@
 //   POST   /api/auth/password  Bearer token {current, next} -> other sessions signed out
 //   POST   /api/auth/delete    Bearer token {password}      -> account and its data deleted
 //   POST   /api/auth/profile   Bearer token {full_name, bio} (Urdu or any text; trimmed, length-limited)
+//   POST   /api/auth/invite    {token}           -> {email} while the invitation is valid
+//                              {token, password} -> {token, user}: the password set, signed in, the invitation used up
 import { createHash, randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
+import { sendMail, SITE } from './mail.ts';
 
-const SESSION_DAYS = 30;
+const SESSION_DAYS = 30, INVITE_DAYS = 7;
 export { sha };
 const KDF = { N: 32768, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };
 
@@ -72,6 +76,13 @@ export const publicUser = (u: any) => ({
   id: Number(u.id), email: u.email, role: u.role as string, created_at: u.created_at, full_name: u.full_name ?? '', bio: u.bio ?? '',
 });
 
+// an invitation link for an account an admin made: sets its password once, within INVITE_DAYS
+export async function newInvite(userId: number) {
+  const token = randomBytes(32).toString('base64url');
+  await pool.query(`INSERT INTO invites (id, user_id, expires_at) VALUES ($1, $2, now() + interval '${INVITE_DAYS} days')`, [sha(token), userId]);
+  return `${SITE}/invite?t=${token}`;
+}
+
 async function newSession(userId: number) {
   const token = randomBytes(32).toString('base64url');
   await pool.query(`INSERT INTO sessions (id, user_id, expires_at) VALUES ($1, $2, now() + interval '${SESSION_DAYS} days')`, [sha(token), userId]);
@@ -109,6 +120,9 @@ export function authRoutes(app: FastifyInstance) {
     const { rows } = await pool.query(
       'INSERT INTO users (email, password_hash) VALUES ($1, $2) ON CONFLICT DO NOTHING RETURNING *', [email, await hashPassword(req.body!.password!)]);
     if (!rows[0]) return reply.code(409).send({ error: 'اس ای میل سے اکاؤنٹ پہلے سے موجود ہے' });
+    void sendMail(email, 'دیوان میں خوش آمدید', ['السلام علیکم! دیوان (اردو کا کلاسیکی ادب) پر آپ کا اکاؤنٹ بن گیا ہے۔',
+      'اب آپ پسندیدہ شعرا اور کلام محفوظ کر سکتے ہیں، اپنا ذخیرۂ الفاظ بنا سکتے ہیں اور کلاسیکی ادب بھیج سکتے ہیں۔',
+      'اگر یہ اکاؤنٹ آپ نے نہیں بنایا تو یہ ای میل نظر انداز کر دیں۔'], { text: 'کلاسیکی ادب بھیجیں', url: `${SITE}/contribute` });
     return { token: await newSession(rows[0].id), user: publicUser(rows[0]) };
   });
 
@@ -151,6 +165,20 @@ export function authRoutes(app: FastifyInstance) {
     const full_name = text(req.body?.full_name, 100).replace(/\s+/g, ' '), bio = text(req.body?.bio, 1000);
     const { rows } = await pool.query('UPDATE users SET full_name = $1, bio = $2 WHERE id = $3 RETURNING *', [full_name || null, bio || null, u.id]);
     return { user: publicUser(rows[0]) };
+  });
+
+  app.post<{ Body: { token?: string; password?: string } }>('/api/auth/invite', async (req, reply) => {
+    const id = sha(String(req.body?.token ?? ''));
+    const u = (await pool.query(`SELECT u.* FROM invites i JOIN users u ON u.id = i.user_id
+      WHERE i.id = $1 AND i.expires_at > now() AND u.disabled_at IS NULL`, [id])).rows[0];
+    if (!u) return reply.code(404).send({ error: 'یہ دعوت نامہ استعمال ہو چکا ہے یا اس کی مدت ختم ہو گئی ہے۔ نیا لنک ایڈمن سے لیں۔' });
+    if (req.body?.password === undefined) return { email: u.email };
+    const problem = passwordProblem(req.body.password);
+    if (problem) return reply.code(400).send({ error: problem });
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [await hashPassword(req.body.password), u.id]);
+    await pool.query('DELETE FROM invites WHERE user_id = $1', [u.id]);
+    await pool.query('DELETE FROM sessions WHERE user_id = $1', [u.id]);
+    return { token: await newSession(u.id), user: publicUser(u) };
   });
 
   app.post<{ Body: { password?: string } }>('/api/auth/delete', async (req, reply) => {

@@ -326,7 +326,8 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .selmenu button:hover, .selmenu button:focus-visible { background: rgb(201 160 80 / .25); outline: none; }
 
 /* admin panel */
-.admin-nav { display: flex; justify-content: center; gap: 8px; margin: 0 0 16px; }
+.admin-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 0 0 16px; }
+.admin-nav a { white-space: nowrap; }
 .admin-table button { font-size: var(--fs-xs); padding: 0 10px; }
 .admin-table button.danger { color: var(--danger); }
 .admin-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin: 8px 0; }
@@ -335,7 +336,7 @@ h1 + .muted { text-align: center; margin-top: 0; }
 .admin-table .actions { display: flex; flex-wrap: wrap; gap: 4px; }
 .admin-table .actions form { margin: 0; }
 .temp-password { max-width: 520px; margin: 10px auto; padding: 10px 16px; border: 1.5px solid var(--accent); border-radius: 12px; background: var(--surface-sunken); text-align: center; }
-.temp-password code { font-size: 1.2rem; letter-spacing: .08em; user-select: all; }
+.temp-password code { font-size: 1.2rem; letter-spacing: .08em; user-select: all; overflow-wrap: anywhere; }
 @media (max-width: 700px) { .admin-table thead { display: none; } .admin-table tr { display: block; border-bottom: 1px dashed var(--line); padding: 6px 0; } .admin-table td { display: inline-block; border: 0; padding: 2px 6px; } }
 
 
@@ -1060,3 +1061,10 @@ main[data-loading]::before { content: ''; display: block; height: 3px; margin: 1
 @keyframes loading-bar { from { background-position: -40% 0; } to { background-position: 140% 0; } }
 @media (prefers-reduced-motion: reduce) { main[data-loading]::before { animation: none; background-size: 100% 100%; } }
 .new-account summary { cursor: pointer; font-weight: 600; } /* admin: «نیا اکاؤنٹ» */
+/* admin: requests to join */
+.join-request h2 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.join-request h2 .email { font-size: var(--fs-sm); font-weight: 400; }
+.join-request .note-text { white-space: pre-line; margin: 0 0 8px; }
+.join-request .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.join-request .actions form { margin: 0; }
+.admin-nav .count { margin-inline-start: 6px; padding: 0 7px; line-height: 1.6; border-radius: var(--r-pill); background: var(--brand); color: #fff; font-size: var(--fs-xs); }

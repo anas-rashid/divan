@@ -1,19 +1,21 @@
-// Admin panel API (admins only). No email server yet, so password resets are done here on a reader's
-// request: a temporary password is generated, shown to the admin once, and the reader's sessions end.
+// Admin panel API (admins only). Password resets are done here on a reader's request: a temporary password is
+// generated, shown to the admin once, and the reader's sessions end. New accounts get an emailed invitation (mail.ts).
 // Every action is written to audit_log. Moderators' grants: permissions.ts.
 //   GET  /api/admin/users?q=&role=&page=     users (search by email or name; role: a role or 'disabled'), newest first,
 //                                            with counts per role and each moderator's number of grants
-//   POST /api/admin/users                    {email, name} -> {id, password}: a new account (where sign-up is closed, people
-//                                            ask for one); its temporary password is shown once, as for a reset
+//   POST /api/admin/users                    {email, name} -> {id, emailed, link?}: a new account (where sign-up is closed,
+//                                            people ask for one, join.ts) and an emailed link to set its password; the link
+//                                            is returned only when it could not be emailed, for the admin to send
 //   POST /api/admin/users/:id/password       -> {password} (temporary, shown once)
 //   POST /api/admin/users/:id/disable        {disabled: boolean}
 //   POST /api/admin/users/:id/role           {role: 'reader' | 'mod-l2' | 'mod-l1' | 'admin'}
 //   POST /api/admin/users/:id/delete
 //   GET  /api/admin/audit?page=
-import { randomInt } from 'node:crypto';
+import { randomBytes, randomInt } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
-import { hashPassword, sessionUser, normaliseEmail, validEmail } from './auth.ts';
+import { hashPassword, sessionUser, normaliseEmail, validEmail, newInvite } from './auth.ts';
+import { sendMail, mailOn } from './mail.ts';
 
 export const ROLES = ['reader', 'mod-l2', 'mod-l1', 'admin'] as const; // moderators: see permissions.ts
 const PAGE = 50;
@@ -34,6 +36,20 @@ export async function requireAdmin(req: FastifyRequest, reply: FastifyReply) {
 export const audit = (actor: any, action: string, target: any, detail?: object) =>
   pool.query('INSERT INTO audit_log (actor_id, actor_email, action, target_id, target_email, detail) VALUES ($1, $2, $3, $4, $5, $6)',
     [actor?.id ?? null, actor?.email ?? 'server', action, target?.id ?? null, target?.email ?? null, detail ?? null]);
+
+// a new account (no usable password until the invitation is used) and its invitation; null when the email has an account
+export async function invite(admin: any, email: string, name: string, detail?: object) {
+  const u = (await pool.query('INSERT INTO users (email, password_hash, full_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id, email',
+    [email, await hashPassword(randomBytes(24).toString('hex')), name || null])).rows[0];
+  if (!u) return null;
+  await audit(admin, 'create', u, detail);
+  const link = await newInvite(u.id);
+  const emailed = mailOn() && await sendMail(email, 'دیوان پر آپ کا اکاؤنٹ', [
+    `${name ? name + '، ' : ''}السلام علیکم!`,
+    'دیوان (اردو کا کلاسیکی ادب) پر آپ کا اکاؤنٹ بن گیا ہے۔ نیچے کے بٹن سے اپنا پاس ورڈ رکھیں؛ یہ لنک ایک ہفتے تک کام کرے گا۔',
+    `آپ کی ای میل: ${email}`], { text: 'پاس ورڈ رکھیں', url: link });
+  return { id: Number(u.id), emailed, ...(!emailed && { link }) };
+}
 
 export function adminRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { q?: string; role?: string; page?: string } }>('/api/admin/users', async (req, reply) => {
@@ -72,12 +88,7 @@ export function adminRoutes(app: FastifyInstance) {
     const admin = await requireAdmin(req, reply); if (!admin) return;
     const email = normaliseEmail(req.body?.email), name = String(req.body?.name ?? '').trim().slice(0, 100);
     if (!validEmail(email)) return reply.code(400).send({ error: 'درست ای میل پتہ لکھیں' });
-    const password = temporaryPassword();
-    const u = (await pool.query('INSERT INTO users (email, password_hash, full_name) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING RETURNING id, email',
-      [email, await hashPassword(password), name || null])).rows[0];
-    if (!u) return reply.code(409).send({ error: 'اس ای میل سے اکاؤنٹ پہلے سے موجود ہے' });
-    await audit(admin, 'create', u);
-    return { id: Number(u.id), password };
+    return (await invite(admin, email, name)) ?? reply.code(409).send({ error: 'اس ای میل سے اکاؤنٹ پہلے سے موجود ہے' });
   });
 
   app.post<{ Params: { id: string } }>('/api/admin/users/:id/password', async (req, reply) => {

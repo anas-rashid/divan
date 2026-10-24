@@ -72,7 +72,7 @@ test('admin panel: only admins; reset, disable, role, delete, self-protection, a
   await app.close();
 });
 
-test('closed sign-up: no self sign-up; an admin creates the account with a temporary password', async () => {
+test('closed sign-up: no self sign-up; an admin creates the account and invites them', async () => {
   const app = Fastify();
   authRoutes(app);
   adminRoutes(app);
@@ -88,10 +88,17 @@ test('closed sign-up: no self sign-up; an admin creates the account with a tempo
     assert.equal((await call('POST', '/api/admin/users', { email }, undefined)).statusCode, 401);
     assert.equal((await call('POST', '/api/admin/users', { email: 'not an email' }, a.token)).statusCode, 400);
     const made = (await call('POST', '/api/admin/users', { email: ` ${email.toUpperCase()} `, name: 'نیا قاری' }, a.token)).json();
-    assert.ok(made.id && made.password.length === 12);
+    assert.ok(made.id && !made.emailed && made.link, 'no SMTP_URL in the tests: the link is given to the admin');
     assert.equal((await call('POST', '/api/admin/users', { email }, a.token)).statusCode, 409, 'once per email');
-    const signin = (await call('POST', '/api/auth/signin', { email, password: made.password })).json();
-    assert.deepEqual([signin.user.email, signin.user.role, signin.user.full_name], [email, 'reader', 'نیا قاری'], 'a reader who can sign in');
+    // the invitation: shows whose it is, sets the password once, signs in
+    const t = new URL(made.link).searchParams.get('t');
+    assert.equal((await call('POST', '/api/auth/invite', { token: 'made-up' })).statusCode, 404);
+    assert.deepEqual((await call('POST', '/api/auth/invite', { token: t })).json(), { email });
+    assert.equal((await call('POST', '/api/auth/invite', { token: t, password: 'short' })).statusCode, 400);
+    const set = (await call('POST', '/api/auth/invite', { token: t, password: 'pass-word-2' })).json();
+    assert.deepEqual([set.user.email, set.user.role, set.user.full_name], [email, 'reader', 'نیا قاری'], 'a reader, signed in');
+    assert.equal((await call('POST', '/api/auth/invite', { token: t, password: 'pass-word-3' })).statusCode, 404, 'used up');
+    assert.equal((await call('POST', '/api/auth/signin', { email, password: 'pass-word-2' })).statusCode, 200);
     assert.ok((await pool.query(`SELECT 1 FROM audit_log WHERE action = 'create' AND target_id = $1`, [made.id])).rowCount, 'audited');
   } finally {
     delete process.env.DIVAN_SIGNUP;
