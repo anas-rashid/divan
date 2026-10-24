@@ -978,6 +978,45 @@ p, li { text-wrap: pretty; }
 .key-views, .key-visitors { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: middle; }
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 0 24px; }
 .stats-range { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 10px 0; }
+.stats-period { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: end; margin: 0 0 6px; }
+.stats-period label { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); }
+.stats-period input { padding: 2px 8px; direction: ltr; }
+.bar-ticks { position: relative; height: 1.6em; direction: ltr; margin: 2px 8px 0; font-size: var(--fs-xs); color: var(--text-muted); }
+.bar-ticks span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.hbars { list-style: none; margin: 0; padding: 0; }
+.hbars li { display: grid; grid-template-columns: minmax(0, 11em) 1fr auto; align-items: center; gap: 10px; padding: 3px 6px; border-radius: 6px; }
+.hbars li[aria-current] { background: var(--accent-soft); }
+.hbars li > :first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hbar { height: 10px; border-radius: 5px; background: var(--surface-sunken); overflow: hidden; }
+.hbar i { display: block; height: 100%; border-radius: 5px; background: var(--accent); }
+.hbars .n { font-variant-numeric: tabular-nums; }
+.hbars .n small { color: var(--text-muted); }
+.hbars button.link { padding: 0; border: 0; background: none; color: var(--link); font: inherit; text-align: start; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* the interactive readers' section: grown-in bars, a two-handled timeline, the world map */
+.viz-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.viz-head h2 { margin: 0; }
+.viz-tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.bars .bar { min-width: 0; padding: 0; border: 0; background: none; cursor: pointer; transition: opacity .3s; }
+.bars .bar.out { opacity: .25; }
+.bars .bar span, .bars .bar i { height: 0; transition: height .7s cubic-bezier(.2, .8, .2, 1) var(--delay, 0ms); }
+.timeline { position: relative; height: 26px; margin: 4px 8px 0; direction: ltr; --a: 0%; --b: 100%; }
+.timeline::before, .timeline::after { content: ''; position: absolute; top: 11px; height: 4px; border-radius: 2px; }
+.timeline::before { inset-inline: 0; background: var(--surface-sunken); }
+.timeline::after { left: var(--a); right: calc(100% - var(--b)); background: var(--accent); }
+.timeline input { position: absolute; inset: 0; z-index: 1; width: 100%; margin: 0; background: none; pointer-events: none; appearance: none; -webkit-appearance: none; }
+.timeline input::-webkit-slider-runnable-track { background: none; border: 0; }
+.timeline input::-moz-range-track { background: none; border: 0; }
+.timeline input::-webkit-slider-thumb { pointer-events: auto; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-raised); cursor: ew-resize; }
+.timeline input::-moz-range-thumb { pointer-events: auto; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-raised); cursor: ew-resize; }
+.map-wrap { position: relative; margin: 16px 0 8px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--surface-sunken) 45%, transparent); }
+.world { display: block; width: 100%; height: auto; aspect-ratio: 360 / 144; }
+.world path { fill: color-mix(in srgb, var(--accent) calc(var(--t, 0) * 100%), var(--surface-sunken)); stroke: var(--surface-page); stroke-width: .5px; vector-effect: non-scaling-stroke; transition: fill .6s; cursor: pointer; }
+.world path:hover { stroke: var(--text); }
+.world path.on { stroke: var(--brand); stroke-width: 1.5px; }
+.world circle { fill: color-mix(in srgb, var(--brand) 75%, transparent); stroke: var(--surface-page); stroke-width: 1px; vector-effect: non-scaling-stroke; }
+.world text { fill: var(--text); stroke: var(--surface-page); stroke-width: 3px; paint-order: stroke; vector-effect: non-scaling-stroke; dominant-baseline: middle; font-family: system-ui, sans-serif; pointer-events: none; }
+.map-back { position: absolute; top: 8px; inset-inline-start: 8px; }
+.map-tip { position: absolute; z-index: 2; pointer-events: none; padding: 3px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-raised); font-size: var(--fs-sm); white-space: nowrap; box-shadow: 0 2px 8px rgb(0 0 0 / .15); }
 
 /* ── poets' pictures (PoetAvatar): one duotone in the palette's colours, whatever the original; the logo's gold ring.
    Without a portrait: the pen name's first letter in Nastaliq on lapis ── */

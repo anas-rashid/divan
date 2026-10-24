@@ -266,6 +266,14 @@ ALTER TABLE entity_tags ADD CONSTRAINT entity_tags_entity_check CHECK (entity IN
 CREATE TABLE IF NOT EXISTS stat_views (day date NOT NULL, path text NOT NULL, views integer NOT NULL DEFAULT 0, PRIMARY KEY (day, path));
 CREATE TABLE IF NOT EXISTS stat_visitors (day date NOT NULL, h text NOT NULL, PRIMARY KEY (day, h));
 CREATE TABLE IF NOT EXISTS stat_referrers (day date NOT NULL, host text NOT NULL, n integer NOT NULL DEFAULT 0, PRIMARY KEY (day, host));
+-- where readers are (country and city from their address, looked up by nginx; the address itself is not kept);
+-- '' = not known. Visitors per place: stat_visitors' country and city (those before this: '').
+CREATE TABLE IF NOT EXISTS stat_places (day date NOT NULL, country text NOT NULL, city text NOT NULL, views integer NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, country, city));
+ALTER TABLE stat_visitors ADD COLUMN IF NOT EXISTS country text NOT NULL DEFAULT '';
+ALTER TABLE stat_visitors ADD COLUMN IF NOT EXISTS city text NOT NULL DEFAULT '';
+-- each city's place on the map (the database's point for the city, not the reader's)
+CREATE TABLE IF NOT EXISTS stat_cities (country text NOT NULL, city text NOT NULL, lat real NOT NULL, lon real NOT NULL, PRIMARY KEY (country, city));
 
 -- works sent in by readers (api/src/submissions.ts): pending -> accepted (a moderator chose the book and prepared the
 -- Divan text) -> published (an admin wrote it to divan-data; the site gets it with the next sync), or rejected
