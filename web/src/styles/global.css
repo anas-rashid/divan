@@ -1009,7 +1009,12 @@ p, li { text-wrap: pretty; }
 .timeline input::-webkit-slider-thumb { pointer-events: auto; -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-raised); cursor: ew-resize; }
 .timeline input::-moz-range-thumb { pointer-events: auto; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface-raised); cursor: ew-resize; }
 .map-wrap { position: relative; margin: 16px 0 8px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: color-mix(in srgb, var(--surface-sunken) 45%, transparent); }
-.world { display: block; width: 100%; height: auto; aspect-ratio: 360 / 144; }
+.world { display: block; width: 100%; height: auto; aspect-ratio: 360 / 144; direction: ltr; } /* a label's start and end are left and right */
+@media (max-width: 640px) { .world { aspect-ratio: 4 / 3; } }
+@media (pointer: coarse) {
+  .timeline { height: 32px; } .timeline::before, .timeline::after { top: 14px; }
+  .timeline input::-webkit-slider-thumb { width: 26px; height: 26px; } .timeline input::-moz-range-thumb { width: 22px; height: 22px; }
+}
 .world path { fill: color-mix(in srgb, var(--accent) calc(var(--t, 0) * 100%), var(--surface-sunken)); stroke: var(--surface-page); stroke-width: .5px; vector-effect: non-scaling-stroke; transition: fill .6s; cursor: pointer; }
 .world path:hover { stroke: var(--text); }
 .world path.on { stroke: var(--brand); stroke-width: 1.5px; }

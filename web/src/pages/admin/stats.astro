@@ -120,27 +120,18 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
   // in), a timeline whose two handles choose a window within the period (a bar's click chooses its own), the world map
   // (countries shaded by readers in the window; a click zooms into the country and shows its cities), the place lists,
   // and «چلائیں», which moves the window through the period.
-  type Place = [string, string, string, number, number, number | null, number | null]; // day, country, city, views, visitors, lat, lon
+  // day, country, city, views, visitors, lat, lon, and DB-IP's own country
+  type Place = [string, string, string, number, number, number | null, number | null, string?];
   const root = document.querySelector<HTMLElement>('.viz');
   if (root) {
     const data = JSON.parse(root.dataset.stats!) as { daily: [string, number, number][]; places: Place[] };
-    // Palestine (owner 2026-10-25): one country, Israel's places counted in it (the map's shape too, world.json), its
-    // cities by their Palestinian Arabic names; the stored counts keep DB-IP's own codes and names
-    const ARABIC: Record<string, string> = {
-      'Jerusalem': 'القدس', 'Tel Aviv': 'تل الربيع', 'Tel Aviv-Yafo': 'تل الربيع', 'Jaffa': 'يافا', 'Haifa': 'حيفا', 'Beersheba': 'بئر السبع',
-      "Be'er Sheva": 'بئر السبع', 'Nazareth': 'الناصرة', 'Acre': 'عكا', 'Akko': 'عكا', 'Eilat': 'أم الرشراش', 'Ashdod': 'أسدود',
-      'Ashkelon': 'عسقلان', 'Netanya': 'أم خالد', 'Rishon LeZion': 'عيون قارة', 'Petah Tikva': 'ملبس', 'Ramla': 'الرملة', 'Lod': 'اللد',
-      'Safed': 'صفد', 'Tiberias': 'طبريا', 'Kfar Saba': 'كفر سابا', 'Bnei Brak': 'ابن إبراق', 'Hadera': 'الخضيرة', 'Afula': 'العفولة',
-      'Umm al-Fahm': 'أم الفحم', 'Shefa-Amr': 'شفاعمرو', 'Tayibe': 'الطيبة', 'Rahat': 'رهط', 'Baqa al-Gharbiyye': 'باقة الغربية',
-      'Ramallah': 'رام الله', 'Al-Bireh': 'البيرة', 'Nablus': 'نابلس', 'Hebron': 'الخليل', 'Bethlehem': 'بيت لحم', 'Jenin': 'جنين',
-      'Jericho': 'أريحا', 'Tulkarm': 'طولكرم', 'Qalqilya': 'قلقيلية', 'Gaza': 'غزة', 'Gaza City': 'غزة', 'Khan Yunis': 'خان يونس',
-      'Rafah': 'رفح', 'Deir al-Balah': 'دير البلح', 'Jabalia': 'جباليا', 'Beit Lahia': 'بيت لاهيا',
-    };
+    // Palestine (owner 2026-10-25): one country, with Israel's area (the map's shape, world.json) and its places. City
+    // names in Urdu script once city-names.json is in (Arabic ones for Palestine and the Arab countries), keyed by DB-IP's
+    // own country and English name; the stored counts keep DB-IP's codes and names
+    const places = data.places.map(([d, c, ...rest]): Place => [d, c === 'IL' ? 'PS' : c, ...rest, c]);
     // IIOJK (the map's '_JK'): its own place in the counts, the lists and on the map, with the readers whose city lies in
     // it (DB-IP counts them in India); found by the city's point once the map is in (below)
     const JK = '_JK';
-    const places = data.places.map(([d, c, city, ...rest]): Place =>
-      c === 'IL' || c === 'PS' ? [d, 'PS', ARABIC[city] ?? city, ...rest] : [d, c, city, ...rest]);
     const daily = data.daily;
     const $ = <T extends Element = HTMLElement>(q: string) => root.querySelector<T>(q)!;
     const NS = 'http://www.w3.org/2000/svg';
@@ -261,22 +252,37 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
       drawDots();
     }
     // cities as dots, sized by readers; their size stays the same on screen at any zoom; names when zoomed in
-    let vb = [-180, -84, 360, 144];
-    const WORLD = [...vb];
+    // the world, whole, in the map's proportions (wide on a desktop, taller on a phone: the oceans fill the rest)
+    const aspect = () => (svg.clientWidth || 800) / (svg.clientHeight || 320);
+    const world = () => { const h = Math.max(144, 360 / aspect()); return [-180, -84 - (h - 144) / 2, 360, h]; };
+    let vb = world();
+    svg.setAttribute('viewBox', vb.join(' '));
     function drawDots() {
-      const px = vb[2] / (svg.clientWidth || 800), top = Math.max(1, ...cities.map((x) => x.v));
-      dots.replaceChildren(...cities.filter((x) => x.lat !== null).flatMap((x, j) => {
-        const r = px * (3 + 9 * Math.sqrt(x.v / top)), c = document.createElementNS(NS, 'circle');
+      const px = vb[2] / (svg.clientWidth || 800), top = Math.max(1, ...cities.map((x) => x.v)), size = px * 12;
+      // names to the left of their dots (as Urdu reads), else to the right, the busiest city first; one that would cover another
+      // either way is left out
+      // (its dot still shows it on a tap). ponytail: the box is estimated from the name's length, not measured
+      const taken: number[][] = [];
+      const free = (b: number[]) => !taken.some((t) => b[0] < t[2] && t[0] < b[2] && b[1] < t[3] && t[1] < b[3]) && taken.push(b);
+      const ring = cities.filter((x) => x.lat !== null).map((x) => ({ x, r: px * (3 + 9 * Math.sqrt(x.v / top)) }));
+      for (const { x, r } of ring) taken.push([x.lon! - r, -x.lat! - r, x.lon! + r, -x.lat! + r]);
+      dots.replaceChildren(...ring.flatMap(({ x, r }, j) => {
+        const c = document.createElementNS(NS, 'circle');
         c.setAttribute('cx', String(x.lon)); c.setAttribute('cy', String(-x.lat!)); c.setAttribute('r', String(r));
         c.dataset.tip = `${flag(x.c)}${x.city}: ${ud(x.v)} صفحات، ${ud(x.u)} قارئین`;
-        if (!country || j >= 10) return [c];
+        if (!country || j >= 15) return [c];
+        const w = x.city.length * size * 0.55, y = -x.lat!, left = x.lon! - r - px * 3, right = x.lon! + r + px * 3;
+        const side = free([left - w, y - size / 2, left, y + size / 2]) ? 'end' : free([right, y - size / 2, right + w, y + size / 2]) ? 'start' : '';
+        if (!side) return [c];
         const t = document.createElementNS(NS, 'text');
-        t.setAttribute('x', String(x.lon! + r + px * 3)); t.setAttribute('y', String(-x.lat!)); t.setAttribute('font-size', String(px * 12));
+        t.setAttribute('x', String(side === 'end' ? left : right)); t.setAttribute('y', String(y)); t.setAttribute('font-size', String(size));
+        t.setAttribute('text-anchor', side);
         t.textContent = x.city;
         return [c, t];
       }));
     }
-    fetch('/maps/world.json').then((r) => r.json()).then((world: Record<string, string>) => {
+    Promise.all(['/maps/world.json', '/maps/city-names.json'].map((u) => fetch(u).then((r) => r.json()))).then(([world, urdu]: Record<string, string>[]) => {
+      for (const p of places) p[2] = urdu[`${p[7]}|${p[2]}`] ?? p[2];
       for (const [cc, d] of Object.entries(world)) {
         const p = document.createElementNS(NS, 'path');
         p.setAttribute('d', d); p.dataset.cc = cc; paths.set(cc, p);
@@ -289,12 +295,8 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
       const name = document.createElementNS(NS, 'text');
       name.setAttribute('x', '76.4'); name.setAttribute('y', '-33.6'); name.setAttribute('class', 'disputed-name'); name.textContent = 'IIOJK';
       lands.replaceChildren(...paths.values(), name);
-      if (jk) {
-        let moved = false;
-        for (const p of places) if (p[1] === 'IN' && p[5] !== null && jk.isPointInFill(new DOMPoint(p[6]!, -p[5]))) { p[1] = JK; moved = true; }
-        if (moved) return drawBars();
-      }
-      drawPlaces();
+      if (jk) for (const p of places) if (p[1] === 'IN' && p[5] !== null && jk.isPointInFill(new DOMPoint(p[6]!, -p[5]))) p[1] = JK;
+      drawBars();
     });
 
     // a country's frame: its largest piece (not France's islands or Alaska), with room around, in the map's proportions
@@ -305,7 +307,7 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
         const r = p.getBBox(); p.remove();
         if (!best || r.width * r.height > best.width * best.height) best = r;
       }
-      const ratio = WORLD[2] / WORLD[3], w = Math.max(10, best!.width * 1.4, best!.height * 1.4 * ratio), h = w / ratio;
+      const ratio = aspect(), w = Math.max(3, best!.width * 1.5, best!.height * 1.5 * ratio), h = w / ratio;
       return [best!.x + best!.width / 2 - w / 2, best!.y + best!.height / 2 - h / 2, w, h];
     }
     function flyTo(to: number[]) {
@@ -323,11 +325,11 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
       country = cc; back.hidden = !cc;
       $('.viz-title').textContent = cc ? `قارئین: ${flag(cc)}${place(cc)}` : 'قارئین';
       drawBars();
-      flyTo(cc ? frame(cc) : WORLD);
+      flyTo(cc ? frame(cc) : world());
     }
     back.onclick = () => zoom('');
     lands.onclick = (e) => { const cc = (e.target as SVGElement).dataset?.cc; if (cc) zoom(cc === country ? '' : cc); };
-    svg.onpointermove = (e) => {
+    svg.onpointermove = svg.onpointerdown = (e) => {
       const t = e.target as SVGElement, cc = t.dataset?.cc;
       const text = t.dataset?.tip ?? (cc ? `${flag(cc)}${place(cc)}: ${ud(byCountry.get(cc)?.v ?? 0)} صفحات، ${ud(byCountry.get(cc)?.u ?? 0)} قارئین` : '');
       tip.hidden = !text; if (!text) return;
