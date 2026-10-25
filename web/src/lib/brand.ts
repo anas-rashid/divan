@@ -6,6 +6,8 @@ export const brand = {
   madeBy: 'ایک پاکستانی کی طرف سے، پاکستان کے لیے', // footer, beside Pakistan's flag
   // where readers write: questions, corrections, copyright claims (privacy and terms pages)
   contact: { text: 'ہم سے رابطہ کریں', url: 'https://github.com/anas-rashid/divan/issues' },
+  // the footer's credit, in Urdu (owner 2026-10-25); a fork shows basedOn's attribution there instead
+  credit: 'دیوان ڈاٹ پی کے، از محمد انس راشد',
   // the attribution forks keep (NOTICE, GPL v3 section 7(b))
   basedOn: { text: 'Divan by Muhammad Anas Rashid', url: 'https://github.com/anas-rashid/divan' },
 };
