@@ -8,7 +8,7 @@ export const brand = {
   contact: { text: 'ہم سے رابطہ کریں', url: 'https://github.com/anas-rashid/divan/issues' },
   // the footer's credit: the domain as written, then the rest in Urdu (owner 2026-10-25); a fork shows basedOn's
   // attribution there instead
-  credit: { domain: 'divan.pk', by: 'از محمد انس راشد' },
+  credit: { domain: 'divan.pk', by: 'از محمد انس رشید' },
   // the attribution forks keep (NOTICE, GPL v3 section 7(b))
   basedOn: { text: 'Divan by Muhammad Anas Rashid', url: 'https://github.com/anas-rashid/divan' },
 };
