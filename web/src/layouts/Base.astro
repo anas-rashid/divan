@@ -67,7 +67,7 @@ import { siteUrl } from '../lib/site-url';
       } catch (e) {}
     </script>
   </head>
-  <body data-user={Astro.locals.user ? '1' : undefined}>
+  <body data-user={Astro.locals.user ? '1' : undefined} data-mod={Astro.locals.user && Astro.locals.user.role !== 'reader' ? '1' : undefined}>
     <header class="site-header">
       <div class="wrap">
         <a class="wordmark" href="/" title="سرورق"><Fragment set:html={logo.replace('<svg ', '<svg class="logo" ')} /></a>
@@ -426,7 +426,7 @@ import { siteUrl } from '../lib/site-url';
         dictBody.replaceChildren(el('h2', null, w), el('p', 'muted', 'تلاش جاری ہے…'));
         let d = null;
         // v: bump when the response format changes (responses are browser-cached for a day)
-        try { const r = await fetch('/api/word?v=7&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
+        try { const r = await fetch('/api/word?v=8&w=' + encodeURIComponent(w)); if (r.ok) d = await r.json(); } catch (e) {}
         if (w !== current) return; // a newer selection won
         const buttons = (items) => { // clickable words
           const box = el('div', 'similar');
@@ -442,6 +442,30 @@ import { siteUrl } from '../lib/site-url';
         const out = [el('h2', null, w), wordSave(w)];
         // an inflected form: the entry shown is its base form's (ستاتا -> ستانا)
         if (d?.base) out.splice(1, 0, el('p', 'base-of muted', `«${d.base}» کی ایک شکل`));
+        // Divan's own entry (#35), before Wiktionary's: each meaning with its reading, transliteration and examples
+        if (d?.divan) {
+          const sec = el('section', 'dict-lang dict-divan');
+          sec.append(el('h3', null, 'دیوان کی لغت'));
+          if (d.divan.origin) sec.append(el('p', 'muted', 'اصل: ' + d.divan.origin));
+          const ol = el('ol');
+          for (const m of d.divan.meanings) {
+            const li = el('li');
+            if (m.form || m.tr || m.pos) {
+              const pr = el('p', 'pron');
+              if (m.form) pr.append(el('span', 'form', m.form), ' ');
+              if (m.tr) pr.append(el('bdi', 'en', m.tr), ' ');
+              if (m.pos) pr.append(el('span', 'muted', m.pos));
+              li.append(pr);
+            }
+            li.append(el('span', null, m.text));
+            m.examples.forEach((x) => li.append(el('p', 'example', x)));
+            ol.append(li);
+          }
+          sec.append(ol);
+          out.push(sec);
+        }
+        // moderators: edit Divan's entry for the word, or start one (permission checked on the next page)
+        if (document.body.dataset.mod) out.push(el('a', 'dict-edit', d?.divan ? 'دیوان کی لغت میں ترمیم' : 'دیوان کی لغت میں لکھیں', { href: '/mod/word?w=' + encodeURIComponent(d?.base ?? w) }));
         if (!d || !d.found) {
           out.push(el('p', 'muted', 'ویکی لغت میں یہ لفظ نہیں ملا۔'));
           words('ملتے جلتے الفاظ', [...(d?.similar ?? []), ...(d?.variants ?? [])], out);

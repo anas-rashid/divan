@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { pool } from './db.ts';
 import { normalise } from './urdu.ts';
 import { loadTags } from './tags.ts';
+import { loadWords } from './details.ts';
 
 const SOURCE = process.argv[2] ?? new URL('../../../divan-data', import.meta.url).pathname;
 const isHttp = /^https?:/.test(SOURCE);
@@ -88,5 +89,7 @@ for (const entry of manifest.Poets) {
 await pool.query(await readFile(new URL('../../db/featured.sql', import.meta.url), 'utf8'));
 // published tags (divan-data/divan/*.tags) back onto the pages they belong to
 if (!isHttp) console.log(`\ntags on ${await loadTags(SOURCE)} pages`);
+// Divan's own dictionary entries (divan-data/divan/dictionary/*.word), published
+if (!isHttp) console.log(`dictionary: ${await loadWords(SOURCE)} Divan entries`);
 console.log(`\nimported ${manifest.Poets.length} poets, ${poems} poems`);
 await pool.end();

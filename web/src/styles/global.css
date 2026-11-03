@@ -211,6 +211,9 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 }
 .poem-nav { display: flex; justify-content: center; gap: 12px; } /* RTL: پچھلا on the right, اگلا on the left */
 .source { text-align: center; font-size: .85rem; color: var(--text-muted); }
+.dict-divan { border-inline-start: 3px solid var(--accent); padding-inline-start: 10px; }
+.dict-word { font-size: 2.2rem; margin: 6px 0; }
+.dict-edit { display: inline-block; margin: 4px 0 10px; font-size: var(--fs-sm); }
 .import-note { margin: 6px 0; padding: 6px 12px; border: 1px solid var(--accent); border-radius: 8px; background: var(--accent-soft); font-size: var(--fs-sm); }
 /* an editor's footnotes on a work (e.g. which manuscript a verse comes from): small numbers, the notes under the poem */
 .fn-ref { font-size: .62em; line-height: 0; margin-inline-start: 2px; font-family: var(--font-ui); }

@@ -47,6 +47,19 @@ import { currentTags, checkTags, applyTags, writeTags, parseTags, tagsText, type
 import { currentEbook, checkEbook, applyEbook, writeEbook, mayUpload } from './ebooks.ts';
 import { publicName } from './auth.ts';
 import { isDetail, currentDetails, checkDetails, applyDetails, writeDetails, parseDetails, detailsText, type DetailKind } from './details.ts';
+import { key, PUNCT, lookup } from './dictionary.ts';
+
+// a new dictionary entry's first text: the word, and what Wiktionary has (Urdu meanings, or each reading's vowels,
+// transliteration and English meaning, to put into Urdu)
+async function wordDraft(word: string) {
+  const d = await lookup(word).catch(() => null), lines: string[] = [];
+  const ur = d?.langs?.find((l: any) => l.code === 'ur') ?? d?.langs?.[0];
+  for (const m of ur?.meanings ?? []) lines.push(typeof m === 'string' ? m : m.text ?? m.def ?? '');
+  for (const r of ur?.readings ?? []) for (const s of r.senses.slice(0, 1))
+    lines.push(`${r.form ?? word} (${[r.tr, s.pos].filter(Boolean).join('، ')}): ${s.defs.slice(0, 2).map((x: any) => x.gloss).join('؛ ')}`);
+  const lang = { ur: 'اردو', fa: 'فارسی', ar: 'عربی' }[ur?.code as 'ur'] ?? 'اردو';
+  return detailsText('word', { لفظ: word, زبان: lang, معانی: lines.filter(Boolean).slice(0, 12).join('\n') });
+}
 
 const dataDir = () => process.env.DIVAN_DATA_DIR ?? new URL('../../../divan-data', import.meta.url).pathname;
 const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
@@ -57,13 +70,14 @@ const mayTag = (u: any, kind: TagTarget, id: number) => can(u, 'edit', 'tags', k
 // may change what this revision changes (a work's text, a book/section's order, tags); reviewing needs L1 or admin
 const mayEbook = async (u: any, ebookId: number) =>
   mayUpload(u, (await pool.query('SELECT poet_id FROM ebooks WHERE id = $1', [ebookId])).rows[0]?.poet_id ?? 0);
-const mayDetails = (u: any, kind: DetailKind, id: number) =>
-  kind === 'poet' ? can(u, 'edit', 'poets', { poetId: id }) : can(u, 'edit', 'books', { categoryId: id });
+const mayDetails = async (u: any, kind: DetailKind, id: number) =>
+  kind === 'word' ? (await can(u, 'edit', 'dictionary', {})) || (await can(u, 'create', 'dictionary', {}))  // dictionary grants are site-wide
+  : kind === 'poet' ? can(u, 'edit', 'poets', { poetId: id }) : can(u, 'edit', 'books', { categoryId: id });
 const mayChange = (u: any, r: { entity: string; entity_id: number }) => isDetail(r.entity) ? mayDetails(u, r.entity, r.entity_id) :
   r.entity === 'order' ? mayArrange(u, r.entity_id) : r.entity.startsWith('tags-') ? mayTag(u, tagKind(r), r.entity_id)
     : r.entity === 'ebook' ? mayEbook(u, r.entity_id) : mayEdit(u, r.entity_id);
 const tagKind = (r: { entity: string }) => r.entity.slice('tags-'.length) as TagTarget;
-const ENTITIES = `('work', 'order', 'tags-category', 'tags-work', 'ebook', 'poet', 'book')`;
+const ENTITIES = `('work', 'order', 'tags-category', 'tags-work', 'ebook', 'poet', 'book', 'word')`;
 const mayReview = async (u: any, r: { entity: string; entity_id: number }) => ['mod-l1', 'admin'].includes(u?.role) && (await mayChange(u, r));
 const OPEN = ['draft', 'returned'];
 // a draft whose text is still the text it started from is not shown anywhere (opening the editor is not a change)
@@ -98,9 +112,10 @@ async function current(poemId: number) {
 const TARGET = `LEFT JOIN poems p ON r.entity IN ('work', 'tags-work') AND p.id = r.entity_id
   LEFT JOIN categories c ON r.entity IN ('order', 'tags-category', 'book') AND c.id = r.entity_id
   LEFT JOIN ebooks b ON r.entity = 'ebook' AND b.id = r.entity_id
-  LEFT JOIN poets pt ON r.entity = 'poet' AND pt.id = r.entity_id`;
+  LEFT JOIN poets pt ON r.entity = 'poet' AND pt.id = r.entity_id
+  LEFT JOIN divan_words dw ON r.entity = 'word' AND dw.id = r.entity_id`;
 // (not named URL: that would hide the global URL used for the default divan-data folder)
-const TARGET_TITLE = `coalesce(p.title, c.title, b.title, pt.nickname)`, TARGET_URL = `coalesce(p.url, c.url, '/ebook/' || b.id, pt.url)`;
+const TARGET_TITLE = `coalesce(p.title, c.title, b.title, pt.nickname, dw.title)`, TARGET_URL = `coalesce(p.url, c.url, '/ebook/' || b.id, pt.url, '/search?q=' || dw.title)`;
 const TARGET_COLS = `${TARGET_TITLE} AS work_title, ${TARGET_URL} AS work_url`;
 
 async function revision(id: number) {
@@ -132,7 +147,7 @@ async function publish(r: any, u: any, comment?: string) {
     : ebook ? checkEbook(r.content) : details ? checkDetails(r.entity, r.content) : null;
   if (stale) throw Object.assign(new Error(`اس دوران اس حصے کی چیزیں بدل گئی ہیں: ${stale}`), { code: 409 });
   const doc = order || tags || ebook || details ? null : parse(r.content), verses = doc ? toVerses(doc) : [];
-  const title = 'details' in cur ? `${r.entity === 'poet' ? 'شاعر' : 'عنوان'}: ${parseDetails(r.content)[r.entity === 'poet' ? 'تخلص' : 'عنوان']}`
+  const title = 'details' in cur ? `${{ poet: 'شاعر', book: 'عنوان', word: 'لغت' }[r.entity as DetailKind]}: ${parseDetails(r.content)[{ poet: 'تخلص', book: 'عنوان', word: 'لفظ' }[r.entity as DetailKind]]}`
     : 'cat' in cur ? `ترتیب: ${cur.cat.title}` : 'target' in cur ? `ٹیگ: ${cur.target.title}`
     : 'ebook' in cur ? `ای بک: ${cur.ebook.poet}، ${cur.ebook.title}` : doc!.meta['عنوان'] || cur.poem.title;
   const version = cur.version + 1, at = new Date().toISOString();
@@ -185,7 +200,7 @@ const currentOf = (entity: string, id: number): Promise<any> => entity === 'orde
   : entity.startsWith('tags-') ? currentTags(tagKind({ entity }), id) : entity === 'ebook' ? currentEbook(id)
   : isDetail(entity) ? currentDetails(entity, id) : current(id);
 // the kinds of change with versions to compare and bring back (an e-book's details are a one-off)
-const VERSIONED = ['work', 'order', 'tags-work', 'tags-category', 'poet', 'book'];
+const VERSIONED = ['work', 'order', 'tags-work', 'tags-category', 'poet', 'book', 'word'];
 // a published version's content; version 0 is what the first Divan draft started from (the Wikisource text)
 async function versionText(entity: string, id: number, v: number, cur: { version: number; content: string }) {
   if (v === cur.version) return cur.content;
@@ -326,6 +341,19 @@ export function moderationRoutes(app: FastifyInstance) {
        FROM revisions r WHERE entity = $1 AND entity_id = $2 AND ${CHANGED} ORDER BY coalesce(published_at, created_at) DESC`, [kind, cur.details.id]);
     return { kind, target: cur.details, version: cur.version, content: cur.content, fields: parseDetails(cur.content),
       history: rows.map((r) => ({ ...r, id: Number(r.id) })), may: { edit: await mayDetails(u, kind as DetailKind, cur.details.id) } };
+  });
+
+  // a dictionary entry (#35): the word's entry, Divan's own or new; a new one starts from what Wiktionary has
+  app.post<{ Body: { word?: string } }>('/api/mod/word', async (req, reply) => {
+    const u = await moderator(req, reply); if (!u) return;
+    const word = String(req.body?.word ?? '').replace(PUNCT, ' ').trim(), k = key(word);
+    if (!/^[\p{Script=Arabic}\p{M}\u200c ]{1,60}$/u.test(word) || !k) return reply.code(400).send({ error: 'ایک اردو، فارسی یا عربی لفظ' });
+    if (!(await mayDetails(u, 'word', 0))) return reply.code(403).send({ error: 'لغت میں ترمیم کی اجازت نہیں' });
+    const have = (await pool.query('SELECT id FROM divan_words WHERE key = $1', [k])).rows[0];
+    if (have) return { kind: 'word', id: Number(have.id) };
+    const { rows } = await pool.query('INSERT INTO divan_words (key, title, draft) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET key = EXCLUDED.key RETURNING id',
+      [k, word, await wordDraft(word)]);
+    return { kind: 'word', id: Number(rows[0].id) };
   });
 
   app.post<{ Params: { kind: string; id: string } }>('/api/mod/details/:kind/:id/draft', async (req, reply) => {
