@@ -33,13 +33,30 @@ export function period(p: { days?: string; from?: string; to?: string }) {
   return { from: new Date(Date.parse(to) - (days - 1) * 86_400_000).toISOString().slice(0, 10), to };
 }
 
+// a visit from a data centre (cloud and hosting companies: crawlers, scanners, link previews; readers almost never
+// browse from one), by the company that owns the address (nginx: DB-IP's ASN database). Counted apart from readers.
+// Cloudflare, Akamai and Fastly are left out on purpose: readers come through them (iCloud Private Relay, WARP).
+// ponytail: a list of names; widen it when another company shows up among the readers
+const READERS_THROUGH = /cloudflare|akamai|fastly/i;
+const DATACENTRE = new RegExp(['amazon', '\\baws\\b', 'google', 'microsoft', 'azure', 'digitalocean', 'hetzner', '\\bovh', 'linode', 'oracle',
+  'alibaba', 'tencent', 'huawei cloud', 'vultr', 'choopa', 'constant company', 'contabo', 'scaleway', 'online s\\.?a\\.?s', 'leaseweb', 'hostinger', 'ionos',
+  'godaddy', '\\bm247', 'datacamp', 'cdn77', 'equinix', 'servers\\.com', 'psychz', 'quadranet', 'colocrossing', 'hostwinds', 'interserver',
+  'liquid ?web', 'rackspace', 'softlayer', '\\bibm\\b', 'baidu', 'yandex', 'upcloud', 'netcup', 'hostroyale', 'tzulo', 'data ?cent', 'hosting', 'colo(?:cation)?\\b'].join('|'), 'i');
+export const datacentre = (org: string) => !!org && !READERS_THROUGH.test(org) && DATACENTRE.test(org);
+
 export function statsRoutes(app: FastifyInstance) {
-  app.post<{ Body: { path?: string; ref?: string; ip?: string; ua?: string; country?: string; city?: string; lat?: unknown; lon?: unknown } }>('/api/stats/hit', async (req, reply) => {
+  app.post<{ Body: { path?: string; ref?: string; ip?: string; ua?: string; country?: string; city?: string; lat?: unknown; lon?: unknown; org?: string } }>('/api/stats/hit', async (req, reply) => {
     if (!fromSite(req)) return reply.code(403).send({ error: 'forbidden' });
     const { path = '', ref = '', ip = '', ua = '' } = req.body ?? {};
     // '' = not known (no lookup on this server, or an address the database does not place)
     const country = /^[A-Z]{2}$/.test(req.body?.country ?? '') ? req.body!.country! : '', city = country ? String(req.body?.city ?? '').trim().slice(0, 100) : '';
     if (!path.startsWith('/') || path.length > 300) return reply.code(400).send({ error: 'path' });
+    const org = String(req.body?.org ?? '').trim().slice(0, 120);
+    if (datacentre(org)) {  // not a reader: its own count, nothing else
+      await pool.query(`INSERT INTO stat_datacentres (day, org, country, views) VALUES (${TODAY}, $1, $2, 1)
+                        ON CONFLICT (day, org, country) DO UPDATE SET views = stat_datacentres.views + 1`, [org, country]);
+      return { ok: true, datacentre: true };
+    }
     await pool.query(`INSERT INTO stat_views (day, path, views) VALUES (${TODAY}, $1, 1)
                       ON CONFLICT (day, path) DO UPDATE SET views = stat_views.views + 1`, [path]);
     await pool.query(`INSERT INTO stat_places (day, country, city, views) VALUES (${TODAY}, $1, $2, 1)
@@ -64,7 +81,7 @@ export function statsRoutes(app: FastifyInstance) {
     const days = Math.round((Date.parse(t) - Date.parse(f)) / 86_400_000) + 1;
     const bucket = `date_trunc('${by}', day::timestamp)`;
     const q = async (sql: string) => (await pool.query(sql)).rows;
-    const [daily, pages, referrers, actions, people, waiting, roles, accounts, library, content, countries, cities, places] = await Promise.all([
+    const [daily, pages, referrers, actions, people, waiting, roles, accounts, library, content, countries, cities, places, dcDaily, dcOrgs] = await Promise.all([
       // views and visitors per day, week or month (a week's visitors: the sum of each day's)
       q(`SELECT b::date::text AS day, coalesce(v.views, 0)::int AS views, coalesce(u.visitors, 0)::int AS visitors
          FROM generate_series(date_trunc('${by}', ${since}::timestamp), ${until}::timestamp, interval '1 ${by}') b
@@ -95,8 +112,12 @@ export function statsRoutes(app: FastifyInstance) {
       q(`SELECT p.day::text AS day, p.country, p.city, p.views, coalesce(v.n, 0)::int AS visitors, c.lat, c.lon FROM stat_places p
          LEFT JOIN (SELECT day, country, city, count(*) AS n FROM stat_visitors WHERE ${within} GROUP BY 1, 2, 3) v USING (day, country, city)
          LEFT JOIN stat_cities c USING (country, city) WHERE p.${within} ORDER BY p.day LIMIT 50000`),
+      // data centres, apart from readers: per day, and by company
+      q(`SELECT d::date::text AS day, coalesce(sum(s.views), 0)::int AS views FROM generate_series(${since}::timestamp, ${until}::timestamp, interval '1 day') d
+         LEFT JOIN stat_datacentres s ON s.day = d::date GROUP BY d ORDER BY d`),
+      q(`SELECT org, country, sum(views)::int AS views FROM stat_datacentres WHERE ${within} GROUP BY org, country ORDER BY views DESC LIMIT 30`),
     ]);
-    return { days, from: f, to: t, by, country, countries, cities, places, daily, pages, referrers, moderation: { actions, people, waiting: Object.fromEntries(waiting.map((r) => [r.status, r.n])) },
+    return { days, from: f, to: t, by, country, countries, cities, places, daily, pages, datacentres: { daily: dcDaily, orgs: dcOrgs }, referrers, moderation: { actions, people, waiting: Object.fromEntries(waiting.map((r) => [r.status, r.n])) },
       accounts: { ...accounts[0], roles: Object.fromEntries(roles.map((r) => [r.role, r.n])) },
       library: Object.fromEntries(library.map((r) => [r.kind, r.n])), content: content[0] };
   });

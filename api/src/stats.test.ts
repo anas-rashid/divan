@@ -43,6 +43,15 @@ test('statistics: hits only from the site, counts without addresses, admin-only 
     const zp = z.places.filter((p: any) => p.country === 'ZZ');
     assert.deepEqual(zp.map((p: any) => [p.city, p.views, p.visitors, p.lat, p.lon]), [['Ẓāhirābād', 2, 2, 31.52, 74.36]], 'the map: per day and city, the city\'s point');
     assert.ok(z.daily.length <= 2 && z.by === 'week', 'weeks');
+    // a data centre: counted apart, not as a reader; a reader through Cloudflare (WARP, Private Relay) still a reader
+    const dc = (await hit({ path, ip: '3.3.3.3', ua: 'Mozilla', country: 'US', city: 'Ashburn', org: 'Amazon.com, Inc.' }, site)).json();
+    assert.equal(dc.datacentre, true);
+    await hit({ path, ip: '4.4.4.4', ua: 'Mozilla', country: 'ZZ', city: 'Ẓāhirābād', org: 'Cloudflare, Inc.' }, site);
+    const d2 = (await app.inject({ method: 'GET', url: '/api/admin/stats?days=7&country=ZZ', headers: { authorization: `Bearer ${s.token}` } })).json();
+    assert.ok(d2.datacentres.orgs.some((o: any) => o.org === 'Amazon.com, Inc.' && o.country === 'US' && o.views >= 1), 'listed with the data centres');
+    assert.equal(d2.datacentres.daily.length, 7);
+    assert.equal(d2.cities.find((c: any) => c.city === 'Ẓāhirābād').views, 3, 'the Cloudflare visit counts as a reader; Amazon\'s does not');
+    assert.equal((await pool.query(`SELECT count(*)::int AS n FROM stat_places WHERE city = 'Ashburn' AND day = (now() AT TIME ZONE 'Asia/Karachi')::date`)).rows[0].n, 0);
     const bad = await app.inject({ method: 'GET', url: "/api/admin/stats?from=2026-01-01'--&by=hour&country=pk", headers: { authorization: `Bearer ${s.token}` } });
     assert.equal(bad.statusCode, 200, 'bad parameters fall back to the defaults');
     assert.deepEqual([bad.json().by, bad.json().country, bad.json().daily.length], ['day', null, 30]);
@@ -53,6 +62,7 @@ test('statistics: hits only from the site, counts without addresses, admin-only 
     await pool.query(`DELETE FROM stat_places WHERE country = 'ZZ'`);
     await pool.query(`DELETE FROM stat_visitors WHERE country = 'ZZ'`);
     await pool.query(`DELETE FROM stat_cities WHERE country = 'ZZ'`);
+    await pool.query(`DELETE FROM stat_datacentres WHERE org = 'Amazon.com, Inc.' AND country = 'US'`);
     await pool.query('DELETE FROM users WHERE email = $1', [`stats-${run}@divan.test`]);
     await app.close();
   }

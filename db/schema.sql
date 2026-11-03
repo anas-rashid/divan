@@ -333,3 +333,8 @@ CREATE INDEX IF NOT EXISTS join_requests_status ON join_requests (status, create
 -- a work's source as its data names it (نسخۂ اردو ویب, گنجور, ویکی ماخذ…), shown with its link; a line's footnotes
 ALTER TABLE poems ADD COLUMN IF NOT EXISTS source_name text;
 ALTER TABLE verses ADD COLUMN IF NOT EXISTS notes text[];
+
+-- visits from data centres (crawlers, scanners, link previews), by the company owning the address (api/src/stats.ts
+-- datacentre): counted here, not with readers
+CREATE TABLE IF NOT EXISTS stat_datacentres (day date NOT NULL, org text NOT NULL, country text NOT NULL, views integer NOT NULL DEFAULT 0,
+    PRIMARY KEY (day, org, country));
