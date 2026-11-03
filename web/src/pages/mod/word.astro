@@ -1,0 +1,28 @@
+---
+// A word's entry in Divan's dictionary (#35): the sidebar links here (moderators). Starts, or reopens, my draft of it:
+// a new entry begins with what Wiktionary has; publishing goes through the usual pipeline (details.ts kind 'word').
+import Base from '../../layouts/Base.astro';
+import ModNav from '../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+
+const me = Astro.locals.user, w = (Astro.url.searchParams.get('w') ?? '').trim();
+if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
+const token = Astro.cookies.get(COOKIE)!.value;
+let error = '';
+if (Astro.request.method === 'POST') {
+  const entry = await asUser(token, '/api/mod/word', { word: w });
+  const draft = entry.ok ? await asUser(token, `/api/mod/details/word/${entry.data.id}/draft`, {}) : entry;
+  if (draft.ok) return Astro.redirect(`/mod/rev/${draft.data.id}`);
+  error = draft.data.error ?? 'کچھ غلط ہو گیا';
+}
+---
+<Base title={`لغت: ${w}`}>
+  <h1>دیوان کی لغت</h1>
+  <ModNav current="queue" />
+  {error && <p class="form-error" role="alert">{error}</p>}
+  <form method="post" class="account-form center">
+    <p class="dict-word lit">{w || '—'}</p>
+    <p class="muted">اس لفظ کا اندراج دیوان کی لغت میں: پہلے سے ہو تو اس میں ترمیم، ورنہ نیا (ویکی لغت کے معانی سے شروع ہو کر)۔ شائع ہونے پر یہ لغت کی سائیڈ بار میں ویکی لغت سے پہلے دکھتا ہے۔</p>
+    <button class="btn primary" disabled={!w}>مسودہ شروع کریں</button>
+  </form>
+</Base>

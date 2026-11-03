@@ -338,3 +338,14 @@ ALTER TABLE verses ADD COLUMN IF NOT EXISTS notes text[];
 -- datacentre): counted here, not with readers
 CREATE TABLE IF NOT EXISTS stat_datacentres (day date NOT NULL, org text NOT NULL, country text NOT NULL, views integer NOT NULL DEFAULT 0,
     PRIMARY KEY (day, org, country));
+-- Divan's own dictionary entries (#35; api/src/details.ts kind 'word', dictionary.ts lookup): content is the published
+-- text (null until the first is published), draft the text a new entry's first draft starts from (from Wiktionary)
+CREATE TABLE IF NOT EXISTS divan_words (
+    id         serial PRIMARY KEY,
+    key        text NOT NULL UNIQUE,                 -- dictionary.ts key(): the spelling-insensitive lookup key
+    title      text NOT NULL,                        -- the word as written
+    lang       text NOT NULL DEFAULT 'ur',
+    content    text,
+    draft      text,
+    updated_at timestamptz
+);
