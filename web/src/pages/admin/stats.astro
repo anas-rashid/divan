@@ -58,7 +58,7 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
     </div>
     <div class="bars" role="img" aria-label="صفحات اور قارئین، وقت کے ساتھ"></div>
     <div class="bar-ticks" aria-hidden="true"></div>
-    <div class="timeline" aria-label="دکھائی جانے والی مدت">
+    <div class="tl-range" aria-label="دکھائی جانے والی مدت">
       <input type="range" class="tl-from" min="0" value="0" aria-label="شروع" />
       <input type="range" class="tl-to" min="0" value="0" aria-label="آخر" />
     </div>
@@ -208,7 +208,7 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
     }
 
     // ── the timeline: two handles over the period ──
-    const tl = $('.timeline'), tFrom = $<HTMLInputElement>('.tl-from'), tTo = $<HTMLInputElement>('.tl-to');
+    const tl = $('.tl-range'), tFrom = $<HTMLInputElement>('.tl-from'), tTo = $<HTMLInputElement>('.tl-to');
     tFrom.max = tTo.max = String(last);
     tFrom.oninput = () => { stop(); a = Math.min(+tFrom.value, b); update(); };
     tTo.oninput = () => { stop(); b = Math.max(+tTo.value, a); update(); };
