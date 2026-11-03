@@ -329,3 +329,7 @@ CREATE TABLE IF NOT EXISTS join_requests (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS join_requests_pending ON join_requests (email) WHERE status = 'pending';
 CREATE INDEX IF NOT EXISTS join_requests_status ON join_requests (status, created_at);
+
+-- a work's source as its data names it (نسخۂ اردو ویب, گنجور, ویکی ماخذ…), shown with its link; a line's footnotes
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS source_name text;
+ALTER TABLE verses ADD COLUMN IF NOT EXISTS notes text[];

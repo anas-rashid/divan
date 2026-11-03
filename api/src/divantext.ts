@@ -137,15 +137,17 @@ export const words = (text: string) =>
   text.split(/[\s،۔؟!؛:«»()"]+/).map((w) => w.replace(/ؔ/g, '')).filter(Boolean);
 
 // → the site's verse JSON (the ganjoor-data layout divan-data already exports)
+// a line's footnotes ride along as Notes (shown under the work), only when it has some
 export function toVerses(doc: Doc) {
-  const out: { VOrder: number; Position: string; Text: string; CoupletIndex: number; Level?: number }[] = [];
+  const out: { VOrder: number; Position: string; Text: string; CoupletIndex: number; Level?: number; Notes?: string[] }[] = [];
+  const notes = (l: Inline) => (l.notes.length ? { Notes: l.notes } : {});
   let couplet = 0;
   for (const b of doc.blocks) {
     // headings inside a work (chapter, sub-heading) are their own kind of verse entry
     if (b.type === 'heading') { out.push({ VOrder: 0, Position: 'Heading', Text: b.text, CoupletIndex: couplet++, Level: b.level }); continue; }
-    if (b.type === 'para') out.push({ VOrder: 0, Position: 'Paragraph', Text: b.line.text, CoupletIndex: couplet++ });
-    else if (b.type === 'couplet') { b.lines.forEach((l, i) => out.push({ VOrder: 0, Position: i ? 'Left' : 'Right', Text: l.text, CoupletIndex: couplet })); couplet++; }
-    else for (const l of b.lines) out.push({ VOrder: 0, Position: 'Single', Text: l.text, CoupletIndex: couplet++ });
+    if (b.type === 'para') out.push({ VOrder: 0, Position: 'Paragraph', Text: b.line.text, CoupletIndex: couplet++, ...notes(b.line) });
+    else if (b.type === 'couplet') { b.lines.forEach((l, i) => out.push({ VOrder: 0, Position: i ? 'Left' : 'Right', Text: l.text, CoupletIndex: couplet, ...notes(l) })); couplet++; }
+    else for (const l of b.lines) out.push({ VOrder: 0, Position: 'Single', Text: l.text, CoupletIndex: couplet++, ...notes(l) });
   }
   return out.map((v, i) => ({ ...v, VOrder: i + 1 }));
 }

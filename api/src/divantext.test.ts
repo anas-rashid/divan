@@ -75,3 +75,8 @@ test('writing back: parse(toText(doc)) is the same doc; segments keep links, not
     { variant: { shown: 'الف', others: ['ب'], source: 'س' } }]);
   assert.equal(segmentsText(l.segments), 'کوئی [[لغت:دیوانہ|دیوانے]] ہیں<ref>نوٹ</ref> اور {{نسخہ|الف|ب|ماخذ=س}}');
 });
+
+test('footnotes ride along with their line as Notes; lines without one carry none', () => {
+  const v = toVerses(parse('<poem>\nپہلا مصرع<ref>نسخۂ حمیدیہ سے</ref>\nدوسرا مصرع\n</poem>'));
+  assert.deepEqual(v.map((x) => [x.Text, x.Notes]), [['پہلا مصرع', ['نسخۂ حمیدیہ سے']], ['دوسرا مصرع', undefined]]);
+});

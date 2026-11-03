@@ -81,7 +81,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
   const poem = (await pool.query('SELECT * FROM poems WHERE url = $1', [url])).rows[0];
   if (poem) {
     const [verses, poet, crumbs, siblings, edited] = await Promise.all([
-      pool.query('SELECT vorder, position, couplet, text FROM verses WHERE poem_id = $1 ORDER BY vorder', [poem.id]),
+      pool.query('SELECT vorder, position, couplet, text, notes FROM verses WHERE poem_id = $1 ORDER BY vorder', [poem.id]),
       pool.query('SELECT id, url, nickname FROM poets WHERE id = $1', [poem.poet_id]),
       ancestors(poem.category_id),
       pool.query(
