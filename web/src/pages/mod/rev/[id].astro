@@ -186,12 +186,16 @@ import Icon from '../../../components/Icon.astro';
           <button type="button" class="tool" data-urdu-kb="dv-editor-host" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button>
           <span class="sep"></span>
           <button type="button" class="tool" data-cmd="code" aria-pressed="false" title="ساتھ ساتھ دیوان متن (کوڈ) دیکھیں" aria-label="ساتھ ساتھ دیوان متن (کوڈ) دیکھیں"><Icon name="code" size={18} /></button>
+          <span class="sep"></span>
+          <button type="button" class="tool" data-cmd="import" title="فائل سے متن لائیں (.docx، .odt، .txt)" aria-label="فائل سے متن لائیں"><Icon name="upload" size={18} /> فائل</button>
+          <input type="file" id="import-file" accept=".docx,.odt,.txt,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.oasis.opendocument.text" hidden />
         </div>
+        <p class="import-note" id="import-note" role="status" hidden></p>
         <div class="editor-split">
           <div id="dv-editor-host"></div>
           <pre id="live-code" class="live-code" dir="rtl" hidden aria-label="دیوان متن"></pre>
         </div>
-        <p class="muted note">Enter: اسی شعر یا بند میں نیا مصرع · خالی مصرع پر Enter: نیا شعر · <a href="/mod/guide" target="_blank">لکھنے کا مکمل طریقہ</a></p>
+        <p class="muted note">Enter: اسی شعر یا بند میں نیا مصرع · خالی مصرع پر Enter: نیا شعر · Word، LibreOffice یا ویب سے کئی سطریں چسپاں کریں یا «فائل» سے لائیں: شعر، بند اور نثر خود بن جاتے ہیں · <a href="/mod/guide" target="_blank">لکھنے کا مکمل طریقہ</a></p>
       </div>
       <label class="mod-text" id="source-pane" hidden>متن (دیوان متن)
         <textarea name="content" id="mod-content" data-urdu rows="22" dir="rtl" spellcheck="false">{rev.content}</textarea>
@@ -299,7 +303,7 @@ import Icon from '../../../components/Icon.astro';
     }
 
     // the structured editor (Tiptap) and the source view edit the same Divan text; saving always sends the text
-    import { createEditor, fromEditor, toEditor, actions } from '../../../lib/editor';
+    import { createEditor, fromEditor, toEditor, actions, importFile, insertDivanText } from '../../../lib/editor';
     import { parse } from '../../../../../api/src/divantext.ts';
     const host = document.getElementById('dv-editor-host');
     const source = document.getElementById('mod-content') as HTMLTextAreaElement | null;
@@ -346,8 +350,30 @@ import Icon from '../../../components/Icon.astro';
         else if (c === 'redo') editor.chain().focus().redo().run();
         else if (c === 'h2' || c === 'h3') actions.heading(editor, c === 'h2' ? 2 : 3);
         else if (c === 'label') actions.label(editor, b.dataset.label!);
+        else if (c === 'import') (document.getElementById('import-file') as HTMLInputElement).click();
         else (actions as any)[c](editor);
       });
+      // a document's text into the editor, and what came in, to check before saving
+      const note = document.getElementById('import-note')!;
+      const ud = (k: number) => String(k).replace(/\d/g, (d) => '۰۱۲۳۴۵۶۷۸۹'[+d]);
+      const told = (text: string) => {
+        const n = { couplet: 0, stanza: 0, line: 0, para: 0, heading: 0 } as Record<string, number>;
+        for (const b of parse(text).blocks) n[b.type]++;
+        const parts = [[n.couplet, 'شعر'], [n.stanza, 'بند'], [n.line, 'مصرعے'], [n.para, 'پیراگراف'], [n.heading, 'عنوان']].filter(([k]) => k).map(([k, w]) => `${ud(k)} ${w}`);
+        note.textContent = `آ گیا: ${parts.join('، ') || 'کچھ نہیں'}۔ محفوظ کرنے سے پہلے دیکھ لیں کہ شعر، بند اور نثر درست بنے ہیں۔`;
+        note.hidden = false;
+      };
+      const fileInput = document.getElementById('import-file') as HTMLInputElement;
+      fileInput.onchange = async () => {
+        const f = fileInput.files?.[0]; if (!f) return;
+        try {
+          const text = await importFile(f);
+          const where = !editor.getText().trim() || confirm('فائل کا متن موجودہ متن کی جگہ رکھیں؟\n«منسوخ» سے یہ موجودہ متن کے آخر میں جڑ جائے گا۔') ? 'replace' : 'end';
+          insertDivanText(editor, text, where); told(text); showCode();
+        }
+        catch (err: any) { note.textContent = `یہ فائل نہیں کھل سکی: ${err?.message ?? err}`; note.hidden = false; }
+        fileInput.value = '';
+      };
       // a note or variant shows its text when clicked
       host.addEventListener('click', (e) => {
         const n = (e.target as HTMLElement).closest('sup.note, span.variant');

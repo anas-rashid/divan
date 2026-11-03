@@ -83,7 +83,7 @@ const event = (revId: number, u: any, action: string, comment?: string | null) =
 // a work's current published text: its latest Divan version, or the Wikisource text as Divan text
 async function current(poemId: number) {
   const poem = (await pool.query(
-    'SELECT p.id, p.url, p.title, p.source_url, t.nickname AS poet FROM poems p JOIN poets t ON t.id = p.poet_id WHERE p.id = $1', [poemId])).rows[0];
+    'SELECT p.id, p.url, p.title, p.source_url, p.source_name, t.nickname AS poet FROM poems p JOIN poets t ON t.id = p.poet_id WHERE p.id = $1', [poemId])).rows[0];
   if (!poem) return null;
   const last = (await pool.query(
     `SELECT version, content FROM revisions WHERE entity = 'work' AND entity_id = $1 AND status = 'published' ORDER BY version DESC LIMIT 1`, [poemId])).rows[0];
@@ -91,7 +91,7 @@ async function current(poemId: number) {
   const own = await readFile(join(dataDir(), 'divan', poem.url.replace(/^\/+/, '') + '.dtx'), 'utf8').catch(() => null);
   if (own) return { poem, version: 0, content: own };
   const verses = (await pool.query('SELECT position AS "Position", couplet AS "CoupletIndex", text AS "Text" FROM verses WHERE poem_id = $1 ORDER BY vorder', [poemId])).rows;
-  return { poem, version: 0, content: fromPoem({ Title: poem.title, Verses: verses, SourceUrl: poem.source_url ?? undefined }, { شاعر: poem.poet }) };
+  return { poem, version: 0, content: fromPoem({ Title: poem.title, Verses: verses, SourceUrl: poem.source_url ?? undefined, SourceName: poem.source_name ?? undefined }, { شاعر: poem.poet }) };
 }
 
 // what a revision changes: a work, or a book/section's order (work_title/work_url name either)
