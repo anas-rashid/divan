@@ -1,5 +1,5 @@
 ---
-// A tag's page (#52): the poets, books/chapters, works and couplets carrying it
+// A tag's page (#52): the poets, books/chapters, works, couplets (their tagged phrases marked) and words carrying it
 import Base from '../../../layouts/Base.astro';
 import { api } from '../../../lib/api';
 import { ud } from '../../../lib/urdu';
@@ -7,8 +7,15 @@ import { ud } from '../../../lib/urdu';
 const { type = '', name = '' } = Astro.params;
 const res = await api(`/api/tag?type=${encodeURIComponent(type)}&name=${encodeURIComponent(name)}`);
 if (!res) return new Response(null, { status: 404, statusText: 'Not found' });
-const { tag, categories, works, ebooks = [] } = res;
-const count = categories.length + works.length + ebooks.length;
+const { tag, categories, works, ebooks = [], words = [] } = res;
+const count = categories.length + works.length + ebooks.length + words.length;
+// a couplet's line with its tagged phrases marked: [text, marked?] pieces
+const marked = (line: string, phrases: string[]) => {
+  const ps = phrases.filter((p) => line.includes(p));
+  if (!ps.length) return [[line, false]] as [string, boolean][];
+  const re = new RegExp(`(${ps.map((p) => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`);
+  return line.split(re).map((x, i) => [x, i % 2 === 1]) as [string, boolean][];
+};
 ---
 <Base title={`${tag.type}: ${tag.name}`} description={`${tag.type} «${tag.name}»: ${ud(count)} شاعر، کتابیں، تخلیقات اور اشعار`}>
   <h1><small class="muted">{tag.type}:</small> {tag.name}</h1>
@@ -27,14 +34,20 @@ const count = categories.length + works.length + ebooks.length;
       <ul class="book-results">{ebooks.map((b: any) => <li><a href={`/ebook/${b.id}`}>{b.title}</a> · <a class="muted" href={b.poet_url}>{b.poet}</a></li>)}</ul>
     </section>
   )}
-  {works.length > 0 && (
+  {words.length > 0 && (
     <section class="search-group">
+      <h2>الفاظ</h2>
+      <p class="tag-chips">{words.map((w: string) => <a class="tag-chip" href={`/search?q=${encodeURIComponent(w)}`}>{w}</a>)}</p>
+    </section>
+  )}
+  {works.length > 0 && (
+    <section class="search-group tag-page">
       <h2>کلام</h2>
       {works.map((w: any) => (
         <div class="result">
           <a href={w.url}>{w.title}</a> · <a class="muted" href={w.poet_url}>{w.poet}</a>
           {w.couplets.map((c: any) => (
-            <a class="snippet lit" href={`${w.url}#c${c.anchor}`}>{c.lines.map((l: string) => <p>{l}</p>)}</a>
+            <a class="snippet lit" href={`${w.url}#c${c.anchor}`}>{c.lines.map((l: string) => <p>{marked(l, c.phrases ?? []).map(([t, m]) => m ? <mark class="tagged">{t}</mark> : t)}</p>)}</a>
           ))}
         </div>
       ))}

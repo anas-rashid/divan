@@ -464,8 +464,18 @@ import { siteUrl } from '../lib/site-url';
           sec.append(ol);
           out.push(sec);
         }
-        // moderators: edit Divan's entry for the word, or start one (permission checked on the next page)
-        if (document.body.dataset.mod) out.push(el('a', 'dict-edit', d?.divan ? 'دیوان کی لغت میں ترمیم' : 'دیوان کی لغت میں لکھیں', { href: '/mod/word?w=' + encodeURIComponent(d?.base ?? w) }));
+        // the word's tags (#52), each to its tag page
+        if (d?.tags?.length) {
+          const p = el('p', 'tag-chips');
+          for (const t of d.tags) { const a = el('a', 'tag-chip', null, { href: `/tag/${encodeURIComponent(t.type)}/${encodeURIComponent(t.name)}` }); a.append(el('small', null, t.type), ' ' + t.name); p.append(a); }
+          out.push(p);
+        }
+        // moderators: edit Divan's entry for the word (or start one), and its tags (permissions checked on the next page)
+        if (document.body.dataset.mod) {
+          const at = encodeURIComponent(d?.base ?? w), p = el('p', 'dict-edit');
+          p.append(el('a', null, d?.divan ? 'دیوان کی لغت میں ترمیم' : 'دیوان کی لغت میں لکھیں', { href: '/mod/word?w=' + at }), ' · ', el('a', null, 'ٹیگ', { href: '/mod/word?for=tags&w=' + at }));
+          out.push(p);
+        }
         if (!d || !d.found) {
           out.push(el('p', 'muted', 'ویکی لغت میں یہ لفظ نہیں ملا۔'));
           words('ملتے جلتے الفاظ', [...(d?.similar ?? []), ...(d?.variants ?? [])], out);

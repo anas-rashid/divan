@@ -285,8 +285,10 @@ const page = (lang: string, source: string, title: string) =>
 export async function lookup(word: string, inner = false): Promise<any> {
   const k = key(word);
   const [{ rows }, own] = await Promise.all([pool.query('SELECT lang, source, title, data FROM wiktionary WHERE key = $1 ORDER BY id', [k]),
-    pool.query('SELECT content FROM divan_words WHERE key = $1 AND content IS NOT NULL', [k])]);
-  const divan = own.rows[0] ? divanEntry(own.rows[0].content) : null;  // Divan's own entry, shown before Wiktionary's
+    pool.query(`SELECT w.content, (SELECT json_agg(json_build_object('type', t.type, 'name', t.name)) FROM entity_tags e JOIN tags t ON t.id = e.tag_id
+                WHERE e.entity = 'word' AND e.entity_id = w.id) AS tags FROM divan_words w WHERE w.key = $1`, [k])]);
+  const divan = own.rows[0]?.content ? divanEntry(own.rows[0].content) : null;  // Divan's own entry, shown before Wiktionary's
+  const wordTags = own.rows[0]?.tags ?? [];  // the word's tags (#52)
   // ar.wiktionary pointer pages: follow to the diacritised entries
   const pointers = rows.filter((r) => r.source === 'own' && !r.data.defs.length).flatMap((r) => r.data.links.map((l: string) => [r.lang, l]));
   if (pointers.length) {
@@ -335,12 +337,12 @@ export async function lookup(word: string, inner = false): Promise<any> {
     const base = await baseOf(k, found);
     if (base) {
       const b = await lookup(base, true);
-      return { ...b, word, base, divan: divan ?? b.divan, langs: [...b.langs, ...langs.filter((l) => !b.langs.some((x: any) => x.code === l.code))] };
+      return { ...b, word, base, divan: divan ?? b.divan, tags: wordTags.length ? wordTags : b.tags, langs: [...b.langs, ...langs.filter((l) => !b.langs.some((x: any) => x.code === l.code))] };
     }
   }
   // always: the same consonants with other long vowels (دل: دال، دول، دیل); not found: also stems and near spellings
   const [variants, near] = await Promise.all([vowelVariants(k), found ? [] : similar(k)]);
-  return { word, divan, langs, found, variants, similar: near.filter((n) => !variants.some((v) => v.title === n.title)) };
+  return { word, divan, tags: wordTags, langs, found, variants, similar: near.filter((n) => !variants.some((v) => v.title === n.title)) };
 }
 
 // Divan's own entry (#35: details.ts kind 'word'), parsed for the sidebar: each meaning line «املا (تلفظ، قسم): معنی»,

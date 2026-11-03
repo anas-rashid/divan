@@ -349,3 +349,14 @@ CREATE TABLE IF NOT EXISTS divan_words (
     draft      text,
     updated_at timestamptz
 );
+
+-- tags on a phrase in a couplet (#52: phrase as written there; '' = the whole couplet or target) and on dictionary words
+ALTER TABLE entity_tags ADD COLUMN IF NOT EXISTS phrase text NOT NULL DEFAULT '';
+DO $$ BEGIN
+  IF (SELECT array_length(i.indkey::int2[], 1) FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid WHERE c.relname = 'entity_tags_pkey') = 4 THEN
+    ALTER TABLE entity_tags DROP CONSTRAINT entity_tags_pkey;
+    ALTER TABLE entity_tags ADD PRIMARY KEY (tag_id, entity, entity_id, couplet, phrase);
+  END IF;
+END $$;
+ALTER TABLE entity_tags DROP CONSTRAINT IF EXISTS entity_tags_entity_check;
+ALTER TABLE entity_tags ADD CONSTRAINT entity_tags_entity_check CHECK (entity IN ('category', 'work', 'ebook', 'word'));

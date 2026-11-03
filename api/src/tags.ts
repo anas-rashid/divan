@@ -1,10 +1,14 @@
-// Tags (#52): typed labels on books/chapters (a poet's page is their root category), works and a work's couplets.
-// Tagging is a revision like any other change (entity 'tags-category' or 'tags-work', entity_id = the target), so it
-// goes through the pipeline with the 'tags' permission and is published to divan-data as divan/<url>.tags.
-// The text is one tag per line, "<type>: <name>", or for one couplet of a work "شعر <n> › <type>: <name>" (n counts
-// from 1 as readers do; verses.couplet counts from 0, and couplet 0 here means the whole work):
+// Tags (#52): typed labels on books/chapters (a poet's page is their root category), works, a work's couplets and
+// phrases in them, and dictionary words (divan_words). Tagging is a revision like any other change (entity
+// 'tags-category', 'tags-work' or 'tags-word', entity_id = the target), so it goes through the pipeline with the
+// 'tags' permission (site-wide for words) and is published to divan-data as divan/<url>.tags (a word's next to its
+// dictionary entry: divan/dictionary/<word>.tags).
+// The text is one tag per line, "<type>: <name>", for one couplet of a work "شعر <n> › <type>: <name>" (n counts
+// from 1 as readers do; verses.couplet counts from 0, and couplet 0 here means the whole work), and for a phrase in
+// that couplet "شعر <n> › «<phrase>» › <type>: <name>" (the phrase as it is written there):
 //   موضوع: عشق
 //   شعر 3 › شخصیت: مجنوں
+//   شعر 1 › «دلِ ناداں» › موضوع: عشق
 //   GET /api/tags                     every tag with how often it is used, by type
 //   GET /api/tag?type=&name=          what carries a tag: books/chapters, works, couplets
 import { readdir, readFile, rm, writeFile, mkdir } from 'node:fs/promises';
@@ -14,11 +18,13 @@ import type { PoolClient } from 'pg';
 import { pool } from './db.ts';
 
 export const TAG_TYPES = ['موضوع', 'صنف', 'بحر', 'شخصیت', 'مقام', 'دور', 'ٹیگ'];
-export type Tag = { couplet: number; type: string; name: string };
-export type TagTarget = 'category' | 'work';
-const LINE = /^(?:شعر\s*(\d+)\s*›\s*)?([^:]+):\s*(.+)$/;
+export type Tag = { couplet: number; type: string; name: string; phrase?: string };
+export type TagTarget = 'category' | 'work' | 'word';
+const LINE = /^(?:شعر\s*(\d+)\s*›\s*(?:«([^»]+)»\s*›\s*)?)?([^:«»]+):\s*(.+)$/;
 const ud2en = (s: string) => s.replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)));
-const key = (t: Tag) => `${t.couplet}|${t.type}|${t.name}`;
+const key = (t: Tag) => `${t.couplet}|${t.phrase ?? ''}|${t.type}|${t.name}`;
+// a phrase compared with a couplet's text: without harakat, tatweel or zero-width marks, spacing collapsed
+const plain = (s: string) => s.normalize('NFC').replace(/[\u064b-\u065f\u0670\u0640\u200b-\u200f]/g, '').replace(/\s+/g, ' ').trim();
 
 // the text as tags; an error message for a bad line
 export function parseTags(text: string): Tag[] | string {
@@ -28,10 +34,12 @@ export function parseTags(text: string): Tag[] | string {
     if (!line) continue;
     const m = ud2en(line).match(LINE);
     if (!m) return `سمجھ نہیں آیا: «${line}»`;
-    const [type, name] = [m[2].trim(), m[3].trim()];
+    const [type, name, phrase] = [m[3].trim(), m[4].trim(), m[2]?.trim().replace(/\s+/g, ' ') ?? ''];
     if (!TAG_TYPES.includes(type)) return `ٹیگ کی قسم ${TAG_TYPES.join('، ')} میں سے ہو: «${type}»`;
     if (name.length > 60) return `ٹیگ کا نام بہت لمبا ہے: «${name}»`;
-    const t = { couplet: Number(m[1] ?? 0), type, name };
+    if (phrase.length > 120) return `عبارت بہت لمبی ہے: «${phrase}»`;
+    // the phrase keeps its own letters: the numerals were made ASCII only for reading the couplet number
+    const t = { couplet: Number(m[1] ?? 0), type, name, ...(phrase && { phrase: line.match(/«([^»]+)»/)![1].trim().replace(/\s+/g, ' ') }) };
     if (!out.some((x) => key(x) === key(t))) out.push(t);
   }
   return out;
@@ -39,17 +47,19 @@ export function parseTags(text: string): Tag[] | string {
 
 // tags in a fixed order (whole first, then by couplet; by type, then name), so equal sets give equal text
 export const tagsText = (tags: Tag[]) => [...tags]
-  .sort((a, b) => a.couplet - b.couplet || TAG_TYPES.indexOf(a.type) - TAG_TYPES.indexOf(b.type) || a.name.localeCompare(b.name, 'ur'))
-  .map((t) => `${t.couplet ? `شعر ${t.couplet} › ` : ''}${t.type}: ${t.name}`).join('\n');
+  .sort((a, b) => a.couplet - b.couplet || (a.phrase ?? '').localeCompare(b.phrase ?? '', 'ur')
+    || TAG_TYPES.indexOf(a.type) - TAG_TYPES.indexOf(b.type) || a.name.localeCompare(b.name, 'ur'))
+  .map((t) => `${t.couplet ? `شعر ${t.couplet} › ` : ''}${t.phrase ? `«${t.phrase}» › ` : ''}${t.type}: ${t.name}`).join('\n');
 
 const tagsOf = async (entity: TagTarget, id: number, db: { query: PoolClient['query'] } = pool) => (await db.query(
-  `SELECT et.couplet, t.type, t.name FROM entity_tags et JOIN tags t ON t.id = et.tag_id WHERE et.entity = $1 AND et.entity_id = $2`,
-  [entity, id])).rows as Tag[];
+  `SELECT et.couplet, t.type, t.name, nullif(et.phrase, '') AS phrase FROM entity_tags et JOIN tags t ON t.id = et.tag_id
+   WHERE et.entity = $1 AND et.entity_id = $2`, [entity, id])).rows.map(({ phrase, ...t }) => (phrase ? { ...t, phrase } : t)) as Tag[];
 
 // a target's published tags as text, and the latest published version of its tags
 export async function currentTags(entity: TagTarget, id: number) {
-  const target = (await pool.query(entity === 'work'
-    ? 'SELECT id, url, title, category_id FROM poems WHERE id = $1' : 'SELECT id, url, title, parent_id FROM categories WHERE id = $1', [id])).rows[0];
+  const target = (await pool.query(entity === 'work' ? 'SELECT id, url, title, category_id FROM poems WHERE id = $1'
+    : entity === 'word' ? `SELECT id, '/dictionary/' || title AS url, title FROM divan_words WHERE id = $1`
+    : 'SELECT id, url, title, parent_id FROM categories WHERE id = $1', [id])).rows[0];
   if (!target) return null;
   const last = (await pool.query(
     `SELECT max(version) AS v FROM revisions WHERE entity = $1 AND entity_id = $2 AND status = 'published'`, [`tags-${entity}`, id])).rows[0];
@@ -62,10 +72,16 @@ export async function currentTags(entity: TagTarget, id: number) {
 export async function checkTags(entity: TagTarget, id: number, text: string) {
   const tags = parseTags(text);
   if (typeof tags === 'string') return tags;
-  if (entity === 'category' && tags.some((t) => t.couplet)) return 'کتاب یا باب کے ٹیگ کسی شعر پر نہیں لگتے';
+  if (entity !== 'work' && tags.some((t) => t.couplet)) return entity === 'word' ? 'لفظ کے ٹیگ کسی شعر پر نہیں لگتے' : 'کتاب یا باب کے ٹیگ کسی شعر پر نہیں لگتے';
   const cur = await currentTags(entity, id);
   const bad = tags.find((t) => t.couplet > (cur?.couplets ?? 0));
-  return bad ? `اس کلام میں شعر ${bad.couplet} نہیں` : null;
+  if (bad) return `اس کلام میں شعر ${bad.couplet} نہیں`;
+  // a phrase is in its couplet (as written, harakat aside)
+  for (const t of tags.filter((t) => t.phrase)) {
+    const text = (await pool.query('SELECT string_agg(text, \' \' ORDER BY vorder) AS t FROM verses WHERE poem_id = $1 AND couplet = $2', [id, t.couplet - 1])).rows[0]?.t ?? '';
+    if (!plain(text).includes(plain(t.phrase!))) return `شعر ${t.couplet} میں «${t.phrase}» نہیں`;
+  }
+  return null;
 }
 
 // the site's tags for the target become the text's
@@ -75,8 +91,8 @@ export async function applyTags(client: PoolClient, entity: TagTarget, id: numbe
   for (const t of tags) {
     const tagId = (await client.query(
       `INSERT INTO tags (type, name) VALUES ($1, $2) ON CONFLICT (type, name) DO UPDATE SET name = EXCLUDED.name RETURNING id`, [t.type, t.name])).rows[0].id;
-    await client.query('INSERT INTO entity_tags (tag_id, entity, entity_id, couplet) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING',
-      [tagId, entity, id, t.couplet]);
+    await client.query('INSERT INTO entity_tags (tag_id, entity, entity_id, couplet, phrase) VALUES ($1, $2, $3, $4, $5) ON CONFLICT DO NOTHING',
+      [tagId, entity, id, t.couplet, t.phrase ?? '']);
   }
   await client.query('DELETE FROM tags t WHERE NOT EXISTS (SELECT 1 FROM entity_tags e WHERE e.tag_id = t.id)');
 }
@@ -101,11 +117,19 @@ export async function loadTags(dataDir: string) {
     await client.query('DELETE FROM entity_tags');
     for (const f of files.filter((f) => f.endsWith('.tags'))) {
       const url = '/' + f.slice(0, -'.tags'.length);
+      const text = await readFile(join(root, f), 'utf8');
+      if (typeof parseTags(text) === 'string') { console.warn(`bad tags in ${f}`); continue; }
+      if (url.startsWith('/dictionary/')) {  // a word's tags: its divan_words row (made when the word has no entry yet)
+        const { key } = await import('./dictionary.ts'), word = url.slice('/dictionary/'.length);
+        const w = (await client.query(`INSERT INTO divan_words (key, title) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET key = EXCLUDED.key RETURNING id`,
+          [key(word), word])).rows[0];
+        await applyTags(client, 'word', w.id, text);
+        n++;
+        continue;
+      }
       const work = (await client.query('SELECT id FROM poems WHERE url = $1', [url])).rows[0];
       const cat = work ? null : (await client.query('SELECT id FROM categories WHERE url = $1', [url])).rows[0];
       if (!work && !cat) { console.warn(`tags for an unknown page: ${url}`); continue; }
-      const text = await readFile(join(root, f), 'utf8');
-      if (typeof parseTags(text) === 'string') { console.warn(`bad tags in ${f}`); continue; }
       await applyTags(client, work ? 'work' : 'category', (work ?? cat).id, text);
       n++;
     }
@@ -126,7 +150,7 @@ export function tagRoutes(app: FastifyInstance) {
   app.get<{ Querystring: { type?: string; name?: string } }>('/api/tag', async (req, reply) => {
     const tag = (await pool.query('SELECT id, type, name FROM tags WHERE type = $1 AND name = $2', [req.query.type ?? '', req.query.name ?? ''])).rows[0];
     if (!tag) return reply.code(404).send({ error: 'ٹیگ نہیں ملا' });
-    const [cats, works, ebooks] = await Promise.all([
+    const [cats, works, ebooks, words, phrases] = await Promise.all([
       pool.query(`SELECT c.id, c.url, c.title, t.nickname AS poet, t.url AS poet_url, c.parent_id IS NULL AS is_poet
                   FROM entity_tags e JOIN categories c ON c.id = e.entity_id JOIN poets t ON t.id = c.poet_id
                   WHERE e.tag_id = $1 AND e.entity = 'category' ORDER BY t.birth_year_ah NULLS LAST, c.title`, [tag.id]),
@@ -135,6 +159,8 @@ export function tagRoutes(app: FastifyInstance) {
                   WHERE e.tag_id = $1 AND e.entity = 'work' GROUP BY p.id, t.id ORDER BY t.birth_year_ah NULLS LAST, p.title LIMIT 500`, [tag.id]),
       pool.query(`SELECT b.id, b.title, b.kind, t.nickname AS poet, t.url AS poet_url FROM entity_tags e JOIN ebooks b ON b.id = e.entity_id
                   JOIN poets t ON t.id = b.poet_id WHERE e.tag_id = $1 AND e.entity = 'ebook' AND b.published ORDER BY b.title`, [tag.id]),
+      pool.query(`SELECT w.title FROM entity_tags e JOIN divan_words w ON w.id = e.entity_id WHERE e.tag_id = $1 AND e.entity = 'word' ORDER BY w.title`, [tag.id]),
+      pool.query(`SELECT entity_id AS poem_id, couplet, phrase FROM entity_tags WHERE tag_id = $1 AND entity = 'work' AND phrase <> ''`, [tag.id]),
     ]);
     // the tagged couplets' lines
     const pairs = works.rows.flatMap((w) => w.couplets.filter((c: number) => c > 0).map((c: number) => [w.id, c]));
@@ -143,9 +169,11 @@ export function tagRoutes(app: FastifyInstance) {
        WHERE (poem_id, couplet + 1) IN (SELECT * FROM unnest($1::int[], $2::int[])) GROUP BY poem_id, couplet`,
       [pairs.map((p) => p[0]), pairs.map((p) => p[1])])).rows : [];
     return {
-      tag, categories: cats.rows, ebooks: ebooks.rows,
+      tag, categories: cats.rows, ebooks: ebooks.rows, words: words.rows.map((w) => w.title),
       works: works.rows.map((w) => ({ ...w, whole: w.couplets.includes(0),
-        couplets: lines.filter((l) => l.poem_id === w.id).map((l) => ({ couplet: l.couplet + 1, anchor: l.couplet, lines: l.lines })) })),
+        couplets: lines.filter((l) => l.poem_id === w.id).map((l) => ({ couplet: l.couplet + 1, anchor: l.couplet, lines: l.lines,
+          // the tagged phrases in this couplet (shown marked in its lines)
+          phrases: phrases.rows.filter((p) => p.poem_id === w.id && p.couplet === l.couplet + 1).map((p) => p.phrase) })) })),
     };
   });
 }
