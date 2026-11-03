@@ -18,8 +18,9 @@ function count(ctx: any, res: Response) {
   // where from: nginx's lookup of the address (nginx/divan-geo.conf); its city names are UTF-8, read by Node as Latin-1
   const h = (k: string) => ctx.request.headers.get(k) ?? '';
   const country = h('x-geo-country'), city = Buffer.from(h('x-geo-city'), 'latin1').toString('utf8'), lat = h('x-geo-lat'), lon = h('x-geo-lon');
+  const org = Buffer.from(h('x-geo-org'), 'latin1').toString('utf8');  // who owns the address: a data centre is counted apart
   fetch(`${API}/api/stats/hit`, { method: 'POST', headers: { 'content-type': 'application/json', ...(process.env.DIVAN_SITE_KEY && { 'x-site-key': process.env.DIVAN_SITE_KEY }) },
-    body: JSON.stringify({ path, ref, ip, ua, country, city, lat, lon }) }).catch(() => {});
+    body: JSON.stringify({ path, ref, ip, ua, country, city, lat, lon, org }) }).catch(() => {});
 }
 
 export const onRequest = defineMiddleware(async (ctx, next) => {

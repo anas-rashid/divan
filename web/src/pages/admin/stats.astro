@@ -18,6 +18,11 @@ const s = (await asUser(Astro.cookies.get(COOKIE)!.value, `/api/admin/stats?${ne
   Object.entries({ days: get('days'), from: get('from'), to: get('to') }).filter(([, v]) => v))}`)).data;
 const days = get('from') ? 0 : s.days;
 const sum = (k: 'views' | 'visitors') => s.daily.reduce((n: number, d: any) => n + d[k], 0);
+// data centres (counted apart from readers): the period's total and its busiest day
+const dcTotal = s.datacentres.daily.reduce((n: number, d: any) => n + d.views, 0), dcMax = Math.max(1, ...s.datacentres.daily.map((d: any) => d.views));
+const names = new Intl.DisplayNames(['ur'], { type: 'region' });
+const place = (c: string) => (c === 'PS' || c === 'IL' ? 'فلسطین' : names.of(c) ?? c);
+const flag = (c: string) => String.fromCodePoint(...[...c].map((ch) => 0x1f1a5 + ch.charCodeAt(0)));
 const LIB: Record<string, string> = { poet: 'شاعر', category: 'کتابیں', poem: 'کلام', couplet: 'اشعار', phrase: 'ٹکڑے', word: 'الفاظ', page: 'صفحات' };
 // for the script: each day's totals, and per day and city the counts and the city's point
 const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
@@ -72,6 +77,19 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
     </div>
     <p class="muted small-line">ہر سطر: صفحات <small>اور قارئین</small>۔ ملک یا شہر انٹرنیٹ پتے سے اندازہ ہے (<a href="https://db-ip.com" dir="ltr">IP Geolocation by DB-IP</a>)؛ پتا خود محفوظ نہیں ہوتا۔ ملک اور شہر سرور پر جگہ کی تلاش (nginx) چالو ہونے کے بعد سے گنے جاتے ہیں۔
       نقشہ: <a href="https://www.naturalearthdata.com" dir="ltr">Natural Earth</a>۔</p>
+  </section>
+
+  <section class="lib-section datacentres">
+    <h2>ڈیٹا سینٹر <small class="muted">(بوٹ، سرچ انجن، لنک کی جھلک، اسکینر)</small></h2>
+    <p class="muted small-line">کلاؤڈ اور ہوسٹنگ کمپنیوں (ایمازون، گوگل، مائیکروسافٹ، ہیٹزنر…) کے پتوں سے آنے والے صفحات: یہ قارئین میں نہیں گنے جاتے۔ اس مدت میں: <strong>{ud(dcTotal)}</strong> صفحات۔</p>
+    {dcTotal > 0 && <>
+      <div class="bars dc-bars" role="img" aria-label="ڈیٹا سینٹر، روزانہ">
+        {s.datacentres.daily.map((d: any) => <div class="bar" title={`${ud(d.day.slice(5).replace('-', '/'))}: ${ud(d.views)}`}><span style={`height:${(d.views / dcMax) * 100}%`}></span></div>)}
+      </div>
+      <table class="admin-table"><thead><tr><th>کمپنی</th><th>ملک</th><th>صفحات</th></tr></thead><tbody>
+        {s.datacentres.orgs.map((o: any) => <tr><td><bdi dir="ltr">{o.org}</bdi></td><td>{o.country ? `${flag(o.country)} ${place(o.country)}` : '—'}</td><td>{ud(o.views)}</td></tr>)}
+      </tbody></table>
+    </>}
   </section>
 
   <div class="stats-grid">
