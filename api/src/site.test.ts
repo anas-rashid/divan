@@ -36,7 +36,7 @@ test('home sections: default layout, the site permission, rename, sort, chosen p
 
     // rename the 13th century, sort it alphabetically, put it first; a new chosen section; no nameless list
     const c13 = ed.sections.find((s: any) => s.century === 13);
-    const iqbal = ed.poets.find((p: any) => p.name === 'محمد اقبال').id, ghalib = ed.poets.find((p: any) => p.name === 'مرزا غالب').id;
+    const iqbal = ed.poets.find((p: any) => p.id === 238).id, ghalib = ed.poets.find((p: any) => p.id === 266).id;  // by id: names are edited
     const layout = [{ ...c13, title: 'تیرھویں صدی کے شعرا', sort: 'alpha' }, { title: 'نئی فہرست', century: null, sort: 'manual', poets: [iqbal, ghalib, iqbal, 999999] },
       ...ed.sections.filter((s: any) => s !== c13)];
     assert.equal((await call('POST', '/api/mod/site', { sections: [{ title: '', century: null, poets: [] }] }, mod.token)).statusCode, 400);

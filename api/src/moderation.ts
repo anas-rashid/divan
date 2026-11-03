@@ -31,6 +31,8 @@
 //   GET  /api/mod/compare/:entity/:id?a=&b=  two published versions of a work, order or tags and their diff (0 = the
 //                                            Wikisource text before Divan's first version)
 //   POST /api/mod/revert/:entity/:id         {version}: a draft that brings back that version, through the pipeline
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { pool } from './db.ts';
 import { sessionUser } from './auth.ts';
@@ -86,6 +88,8 @@ async function current(poemId: number) {
   const last = (await pool.query(
     `SELECT version, content FROM revisions WHERE entity = 'work' AND entity_id = $1 AND status = 'published' ORDER BY version DESC LIMIT 1`, [poemId])).rows[0];
   if (last) return { poem, version: last.version as number, content: last.content as string };
+  const own = await readFile(join(dataDir(), 'divan', poem.url.replace(/^\/+/, '') + '.dtx'), 'utf8').catch(() => null);
+  if (own) return { poem, version: 0, content: own };
   const verses = (await pool.query('SELECT position AS "Position", couplet AS "CoupletIndex", text AS "Text" FROM verses WHERE poem_id = $1 ORDER BY vorder', [poemId])).rows;
   return { poem, version: 0, content: fromPoem({ Title: poem.title, Verses: verses, SourceUrl: poem.source_url ?? undefined }, { شاعر: poem.poet }) };
 }
@@ -161,8 +165,8 @@ async function publish(r: any, u: any, comment?: string) {
         [r.entity_id, title, normalise([title, ...verses.map((v) => v.Text)].join(' '))]);
       await client.query('DELETE FROM verses WHERE poem_id = $1', [r.entity_id]);
       for (const v of verses)
-        await client.query('INSERT INTO verses (poem_id, vorder, position, couplet, text) VALUES ($1, $2, $3, $4, $5)',
-          [r.entity_id, v.VOrder, v.Position, v.CoupletIndex, v.Text]);
+        await client.query('INSERT INTO verses (poem_id, vorder, position, couplet, text, notes) VALUES ($1, $2, $3, $4, $5, $6)',
+          [r.entity_id, v.VOrder, v.Position, v.CoupletIndex, v.Text, v.Notes ?? null]);
     }
     await client.query('COMMIT');
   } catch (e) {

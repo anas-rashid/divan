@@ -13,16 +13,20 @@ const page = await api(`/api/page?url=${encodeURIComponent(url)}`);
 if (!page) return new Response(null, { status: 404, statusText: 'Not found' });
 
 // group verses into couplets / single lines / paragraphs for rendering
-type Verse = { position: string; couplet: number; text: string };
-const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[]; c: number; mark?: string }[] = [];
+type Verse = { position: string; couplet: number; text: string; notes?: string[] | null };
+const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[]; refs: number[][]; c: number; mark?: string }[] = [];
+// the work's footnotes (an editor's, e.g. which manuscript a verse comes from), numbered in order; each line keeps its numbers
+const footnotes: string[] = [], seen = new Set<number>();
+// the same note on several lines (e.g. «from another manuscript») is one footnote with one number
+const refsOf = (v: Verse) => (v.notes ?? []).map((n) => footnotes.indexOf(n) + 1 || footnotes.push(n));
 if (page.type === 'poem') {
   const { matla, maqta } = page.poem;
   for (const v of page.verses as Verse[]) {
-    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text], c: v.couplet,
+    if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text], refs: [refsOf(v)], c: v.couplet,
       mark: v.couplet === matla ? 'مطلع' : v.couplet === maqta ? 'مقطع' : undefined });
-    else if (v.position === 'Left' && blocks.at(-1)?.kind === 'couplet' && blocks.at(-1)!.lines.length === 1) blocks.at(-1)!.lines.push(v.text);
-    else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text], c: v.couplet });
-    else blocks.push({ kind: 'single', lines: [v.text], c: v.couplet });
+    else if (v.position === 'Left' && blocks.at(-1)?.kind === 'couplet' && blocks.at(-1)!.lines.length === 1) { blocks.at(-1)!.lines.push(v.text); blocks.at(-1)!.refs.push(refsOf(v)); }
+    else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text], refs: [refsOf(v)], c: v.couplet });
+    else blocks.push({ kind: 'single', lines: [v.text], refs: [refsOf(v)], c: v.couplet });
   }
 }
 // pen name (marked ؔ in the text) set apart; split() with a capture group puts matches at odd indexes
@@ -191,11 +195,16 @@ import PoetAvatar from '../components/PoetAvatar.astro';
               aria-haspopup="menu" aria-label="محفوظ، نوٹ، بھیجیں" title={cn ? `نوٹ: ${cn}` : 'محفوظ، نوٹ، بھیجیں'}><i class="g-bm" /><i class="g-nt" /><i class="g-dots" /></button>
           </span>;
           const lm = lineMarks(b.c, b.lines);
-          return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} /></p>)}<Tags tags={coupletTags(b.c)} /></div>
-            : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>
-            : <p class="single" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} /></p>;
+          return b.kind === 'couplet' ? <div class="couplet" id={`c${b.c}`} data-c={b.c} data-mark={b.mark}>{bm}{b.lines.map((l, i) => <p><Seg s={show(l, lm[i])} />{b.refs[i].map((n) => <sup class="fn-ref"><a href={`#fn${n}`} id={seen.has(n) ? undefined : (seen.add(n), `fnr${n}`)} aria-label={`حاشیہ ${ud(n)}`}>{ud(n)}</a></sup>)}</p>)}<Tags tags={coupletTags(b.c)} /></div>
+            : b.kind === 'para' ? <p class="para" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} />{b.refs[0].map((n) => <sup class="fn-ref"><a href={`#fn${n}`} id={seen.has(n) ? undefined : (seen.add(n), `fnr${n}`)} aria-label={`حاشیہ ${ud(n)}`}>{ud(n)}</a></sup>)}</p>
+            : <p class="single" id={`c${b.c}`} data-c={b.c}>{bm}<Seg s={show(b.lines[0], lm[0])} />{b.refs[0].map((n) => <sup class="fn-ref"><a href={`#fn${n}`} id={seen.has(n) ? undefined : (seen.add(n), `fnr${n}`)} aria-label={`حاشیہ ${ud(n)}`}>{ud(n)}</a></sup>)}</p>;
         })}
       </div>
+      {footnotes.length > 0 && (
+        <ol class="footnotes" aria-label="حواشی">
+          {footnotes.map((n, i) => <li id={`fn${i + 1}`}><a href={`#fnr${i + 1}`} aria-label="واپس">{ud(i + 1)}</a> {n}</li>)}
+        </ol>
+      )}
       </article>
       <div id="c-menu" class="c-menu" popover role="menu" aria-label="شعر">
         <button type="button" role="menuitem" data-act="bm"><i class="g-bm" /><span>محفوظ کریں</span></button>
@@ -232,7 +241,7 @@ import PoetAvatar from '../components/PoetAvatar.astro';
         </p>
       )}
       {page.poem.source_url && (
-        <p class="source">ماخذ: <a href={page.poem.source_url}>{/ganjoor\.net/.test(page.poem.source_url ?? '') ? 'گنجور' : 'ویکی ماخذ'}</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
+        <p class="source">ماخذ: <a href={page.poem.source_url}>{page.poem.source_name || (/ganjoor\.net/.test(page.poem.source_url ?? '') ? 'گنجور' : 'ویکی ماخذ')}</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
       )}
     </>
   )}

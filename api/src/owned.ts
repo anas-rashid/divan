@@ -39,8 +39,10 @@ export async function writeOwned(dataDir: string, url: string, dtx: string,
   if (!/^[\w/-]+$/.test(url) || url.includes('..')) throw new Error(`not a work url: ${url}`);
   const base = join(dataDir, 'divan', url.replace(/^\/+|\/+$/g, ''));
   await mkdir(dirname(base), { recursive: true });
+  // what the work's last version carried besides its text (its source, an edition's radif letter): kept on a republish
+  const { FullUrl, Title, Verses, Edited, ...kept } = JSON.parse(await readFile(base + '.json', 'utf8').catch(() => '{}'));
   const json = { FullUrl: '/' + url.replace(/^\/+/, ''), Title: doc.meta['عنوان'] ?? '', Verses: verses.map(({ VOrder, ...v }) => ({ VOrder, ...v, SectionIndex1: 0 })),
-    Edited: { ...edited, at: edited.at ?? new Date().toISOString() }, ...extra };
+    Edited: { ...edited, at: edited.at ?? new Date().toISOString() }, ...kept, ...extra };
   await writeFile(base + '.dtx', dtx.endsWith('\n') ? dtx : dtx + '\n');
   await writeFile(base + '.json', JSON.stringify(json, null, 1) + '\n');
   return [base + '.dtx', base + '.json'];

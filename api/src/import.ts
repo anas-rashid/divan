@@ -53,23 +53,23 @@ for (const entry of manifest.Poets) {
         const searchText = normalise([p.Title, ...p.Verses.map((v: any) => v.Text)].join(' '));
         await client.query(
           `INSERT INTO poems (id, category_id, poet_id, url, title, full_title, source_url, position, search_text,
-             radif, matla, maqta, radif_letter, language)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)
+             radif, matla, maqta, radif_letter, language, source_name)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)
            ON CONFLICT (id) DO UPDATE SET category_id=$2, poet_id=$3, url=$4, title=$5, full_title=$6,
-             source_url=$7, position=$8, search_text=$9, radif=$10, matla=$11, maqta=$12, radif_letter=$13, language=$14`,
+             source_url=$7, position=$8, search_text=$9, radif=$10, matla=$11, maqta=$12, radif_letter=$13, language=$14, source_name=$15`,
           [p.Id, cat.Id, poet.Id, p.FullUrl, p.Title, p.FullTitle, p.SourceUrl ?? null, i, searchText,
-           p.Radif ?? null, p.Matla ?? null, p.Maqta ?? null, ref.RadifLetter ?? null, p.Language ?? null],
+           p.Radif ?? null, p.Matla ?? null, p.Maqta ?? null, ref.RadifLetter ?? null, p.Language ?? null, p.SourceName ?? null],
         );
         await client.query('DELETE FROM verses WHERE poem_id = $1', [p.Id]);
         if (p.Verses.length) {
           // one multi-row insert per poem
           const values: unknown[] = [];
           const rows = p.Verses.map((v: any, j: number) => {
-            values.push(p.Id, v.VOrder, v.Position, v.CoupletIndex ?? 0, v.Text);
-            const o = j * 5;
-            return `($${o + 1},$${o + 2},$${o + 3},$${o + 4},$${o + 5})`;
+            values.push(p.Id, v.VOrder, v.Position, v.CoupletIndex ?? 0, v.Text, v.Notes?.length ? v.Notes : null);
+            const o = j * 6;
+            return `($${o + 1},$${o + 2},$${o + 3},$${o + 4},$${o + 5},$${o + 6})`;
           });
-          await client.query(`INSERT INTO verses (poem_id, vorder, position, couplet, text) VALUES ${rows.join(',')}`, values);
+          await client.query(`INSERT INTO verses (poem_id, vorder, position, couplet, text, notes) VALUES ${rows.join(',')}`, values);
         }
         poems++;
       }

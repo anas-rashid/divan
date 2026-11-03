@@ -211,6 +211,13 @@ h1::after { content: ''; display: block; width: 140px; height: 2px; background: 
 }
 .poem-nav { display: flex; justify-content: center; gap: 12px; } /* RTL: پچھلا on the right, اگلا on the left */
 .source { text-align: center; font-size: .85rem; color: var(--text-muted); }
+/* an editor's footnotes on a work (e.g. which manuscript a verse comes from): small numbers, the notes under the poem */
+.fn-ref { font-size: .62em; line-height: 0; margin-inline-start: 2px; font-family: var(--font-ui); }
+.fn-ref a { color: var(--accent); text-decoration: none; padding: 0 2px; }
+.footnotes { max-width: 640px; margin: 4px auto 18px; padding: 10px 16px 6px; border-top: 1px dashed var(--line); font-size: var(--fs-sm); color: var(--text-muted); list-style: none; }
+.footnotes li { margin: 0 0 6px; }
+.footnotes li a { color: var(--accent); text-decoration: none; margin-inline-end: 6px; font-weight: 600; }
+:target.footnotes li, .footnotes li:target { color: var(--text); }
 
 /* search */
 .result { border-bottom: 1px dashed var(--line); padding: 8px 0; }
