@@ -66,7 +66,7 @@ const isModerator = (u: any) => ['mod-l2', 'mod-l1', 'admin'].includes(u?.role);
 const mayEdit = (u: any, poemId: number) => can(u, 'edit', 'works', { poemId });
 const mayArrange = async (u: any, categoryId: number) =>
   (await can(u, 'arrange', 'works', { categoryId })) || (await can(u, 'arrange', 'books', { categoryId }));
-const mayTag = (u: any, kind: TagTarget, id: number) => can(u, 'edit', 'tags', kind === 'work' ? { poemId: id } : { categoryId: id });
+const mayTag = (u: any, kind: TagTarget, id: number) => can(u, 'edit', 'tags', kind === 'work' ? { poemId: id } : kind === 'word' ? {} : { categoryId: id });  // a word: site-wide
 // may change what this revision changes (a work's text, a book/section's order, tags); reviewing needs L1 or admin
 const mayEbook = async (u: any, ebookId: number) =>
   mayUpload(u, (await pool.query('SELECT poet_id FROM ebooks WHERE id = $1', [ebookId])).rows[0]?.poet_id ?? 0);
@@ -77,7 +77,7 @@ const mayChange = (u: any, r: { entity: string; entity_id: number }) => isDetail
   r.entity === 'order' ? mayArrange(u, r.entity_id) : r.entity.startsWith('tags-') ? mayTag(u, tagKind(r), r.entity_id)
     : r.entity === 'ebook' ? mayEbook(u, r.entity_id) : mayEdit(u, r.entity_id);
 const tagKind = (r: { entity: string }) => r.entity.slice('tags-'.length) as TagTarget;
-const ENTITIES = `('work', 'order', 'tags-category', 'tags-work', 'ebook', 'poet', 'book', 'word')`;
+const ENTITIES = `('work', 'order', 'tags-category', 'tags-work', 'tags-word', 'ebook', 'poet', 'book', 'word')`;
 const mayReview = async (u: any, r: { entity: string; entity_id: number }) => ['mod-l1', 'admin'].includes(u?.role) && (await mayChange(u, r));
 const OPEN = ['draft', 'returned'];
 // a draft whose text is still the text it started from is not shown anywhere (opening the editor is not a change)
@@ -113,7 +113,7 @@ const TARGET = `LEFT JOIN poems p ON r.entity IN ('work', 'tags-work') AND p.id 
   LEFT JOIN categories c ON r.entity IN ('order', 'tags-category', 'book') AND c.id = r.entity_id
   LEFT JOIN ebooks b ON r.entity = 'ebook' AND b.id = r.entity_id
   LEFT JOIN poets pt ON r.entity = 'poet' AND pt.id = r.entity_id
-  LEFT JOIN divan_words dw ON r.entity = 'word' AND dw.id = r.entity_id`;
+  LEFT JOIN divan_words dw ON r.entity IN ('word', 'tags-word') AND dw.id = r.entity_id`;
 // (not named URL: that would hide the global URL used for the default divan-data folder)
 const TARGET_TITLE = `coalesce(p.title, c.title, b.title, pt.nickname, dw.title)`, TARGET_URL = `coalesce(p.url, c.url, '/ebook/' || b.id, pt.url, '/search?q=' || dw.title)`;
 const TARGET_COLS = `${TARGET_TITLE} AS work_title, ${TARGET_URL} AS work_url`;
@@ -200,7 +200,7 @@ const currentOf = (entity: string, id: number): Promise<any> => entity === 'orde
   : entity.startsWith('tags-') ? currentTags(tagKind({ entity }), id) : entity === 'ebook' ? currentEbook(id)
   : isDetail(entity) ? currentDetails(entity, id) : current(id);
 // the kinds of change with versions to compare and bring back (an e-book's details are a one-off)
-const VERSIONED = ['work', 'order', 'tags-work', 'tags-category', 'poet', 'book', 'word'];
+const VERSIONED = ['work', 'order', 'tags-work', 'tags-category', 'tags-word', 'poet', 'book', 'word'];
 // a published version's content; version 0 is what the first Divan draft started from (the Wikisource text)
 async function versionText(entity: string, id: number, v: number, cur: { version: number; content: string }) {
   if (v === cur.version) return cur.content;
@@ -304,7 +304,7 @@ export function moderationRoutes(app: FastifyInstance) {
   app.get<{ Params: { kind: string; id: string } }>('/api/mod/tags/:kind/:id', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
     const kind = req.params.kind as TagTarget;
-    if (kind !== 'work' && kind !== 'category') return reply.code(404).send({ error: 'نہیں ملا' });
+    if (kind !== 'work' && kind !== 'category' && kind !== 'word') return reply.code(404).send({ error: 'نہیں ملا' });
     const cur = await currentTags(kind, Number(req.params.id) || 0);
     if (!cur) return reply.code(404).send({ error: 'نہیں ملا' });
     const { rows } = await pool.query(
@@ -317,7 +317,7 @@ export function moderationRoutes(app: FastifyInstance) {
   app.post<{ Params: { kind: string; id: string } }>('/api/mod/tags/:kind/:id/draft', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
     const kind = req.params.kind as TagTarget, id = Number(req.params.id) || 0;
-    if (kind !== 'work' && kind !== 'category') return reply.code(404).send({ error: 'نہیں ملا' });
+    if (kind !== 'work' && kind !== 'category' && kind !== 'word') return reply.code(404).send({ error: 'نہیں ملا' });
     if (!(await mayTag(u, kind, id))) return reply.code(403).send({ error: 'یہاں ٹیگ لگانے کی اجازت نہیں' });
     const open = (await pool.query(
       `SELECT id FROM revisions WHERE entity = $1 AND entity_id = $2 AND author_id = $3 AND status IN ('draft', 'returned') LIMIT 1`, [`tags-${kind}`, id, u.id])).rows[0];
@@ -344,11 +344,13 @@ export function moderationRoutes(app: FastifyInstance) {
   });
 
   // a dictionary entry (#35): the word's entry, Divan's own or new; a new one starts from what Wiktionary has
-  app.post<{ Body: { word?: string } }>('/api/mod/word', async (req, reply) => {
+  // (for: 'tags': the word's row to tag it, with the tags permission instead of the dictionary's)
+  app.post<{ Body: { word?: string; for?: string } }>('/api/mod/word', async (req, reply) => {
     const u = await moderator(req, reply); if (!u) return;
     const word = String(req.body?.word ?? '').replace(PUNCT, ' ').trim(), k = key(word);
     if (!/^[\p{Script=Arabic}\p{M}\u200c ]{1,60}$/u.test(word) || !k) return reply.code(400).send({ error: 'ایک اردو، فارسی یا عربی لفظ' });
-    if (!(await mayDetails(u, 'word', 0))) return reply.code(403).send({ error: 'لغت میں ترمیم کی اجازت نہیں' });
+    if (req.body?.for === 'tags' ? !(await mayTag(u, 'word', 0)) : !(await mayDetails(u, 'word', 0)))
+      return reply.code(403).send({ error: req.body?.for === 'tags' ? 'لفظوں پر ٹیگ لگانے کی اجازت نہیں' : 'لغت میں ترمیم کی اجازت نہیں' });
     const have = (await pool.query('SELECT id FROM divan_words WHERE key = $1', [k])).rows[0];
     if (have) return { kind: 'word', id: Number(have.id) };
     const { rows } = await pool.query('INSERT INTO divan_words (key, title, draft) VALUES ($1, $2, $3) ON CONFLICT (key) DO UPDATE SET key = EXCLUDED.key RETURNING id',

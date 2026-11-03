@@ -38,8 +38,10 @@ const items = order ? rev.content.split('\n').filter(Boolean).map((l: string) =>
 // tagging (#52): one row per tag; a work's tags may be on one couplet (counted from 1)
 const tagging = rev.entity.startsWith('tags-'), tagKind = rev.entity.slice(5);
 const TAG_TYPES = ['موضوع', 'صنف', 'بحر', 'شخصیت', 'مقام', 'دور', 'ٹیگ'];
+// a tag may be on a phrase in that couplet: "شعر 3 › «دلِ ناداں» › موضوع: عشق"
 const tagRows = tagging ? rev.content.split('\n').filter(Boolean).map((l: string) => {
-  const m = l.match(/^(?:شعر (\d+) › )?([^:]+):\s*(.+)$/); return { couplet: Number(m?.[1] ?? 0), type: m?.[2] ?? 'ٹیگ', name: m?.[3] ?? l };
+  const m = l.match(/^(?:شعر (\d+) › (?:«([^»]+)» › )?)?([^:«»]+):\s*(.+)$/);
+  return { couplet: Number(m?.[1] ?? 0), phrase: m?.[2] ?? '', type: m?.[3] ?? 'ٹیگ', name: m?.[4] ?? l };
 }) : [];
 const couplets = tagging && tagKind === 'work' ? (await asUser(token, `/api/mod/tags/work/${rev.entity_id}`)).data.couplets ?? 0 : 0;
 const knownTags = tagging ? ((await api<{ name: string }[]>('/api/tags')) ?? []).map((t) => t.name) : [];
@@ -116,10 +118,11 @@ import Icon from '../../../components/Icon.astro';
   ) : may.save && tagging ? (
     <form method="post" class="mod-edit">
       <label>ترمیم کا خلاصہ<input name="summary" value={rev.summary ?? ''} maxlength="500" data-urdu placeholder="مثلاً: موضوعات اور شخصیات کے ٹیگ" /></label>
-      <p class="muted note">ہر ٹیگ کی قسم چنیں اور نام لکھیں۔{couplets > 0 && ' ٹیگ پورے کلام پر یا کسی ایک شعر پر لگ سکتا ہے۔'} پہلے سے موجود نام تجویز ہوتے ہیں۔</p>
+      <p class="muted note">ہر ٹیگ کی قسم چنیں اور نام لکھیں۔{couplets > 0 && ' ٹیگ پورے کلام پر، کسی ایک شعر پر، یا اس شعر کی کسی عبارت پر لگ سکتا ہے (عبارت ویسی ہی لکھیں جیسی شعر میں ہے)۔'} پہلے سے موجود نام تجویز ہوتے ہیں۔</p>
       <div id="tag-rows">
         {tagRows.map((t: any, i: number) => <div class="tag-row">
             {couplets > 0 && <select class="tool tag-couplet" aria-label="کہاں"><option value="0">پورا کلام</option>{Array.from({ length: couplets }, (_, i) => <option value={i + 1} selected={t.couplet === i + 1}>شعر {ud(i + 1)}</option>)}</select>}
+            {couplets > 0 && <input class="tag-phrase" value={t.phrase ?? ''} maxlength="120" data-urdu aria-label="شعر کی عبارت (اختیاری)" placeholder="عبارت (اختیاری)" title="شعر میں سے کوئی عبارت، جیسی وہاں لکھی ہے (شعر چننے پر)" />}
             <select class="tool tag-type" aria-label="قسم">{TAG_TYPES.map((x) => <option selected={x === t.type}>{x}</option>)}</select>
             <span class="in-box-field tag-name-box"><input class="tag-name" id={`tag-name-${i}`} list="tag-names" value={t.name} maxlength="60" data-urdu aria-label="ٹیگ کا نام" placeholder="ٹیگ کا نام" />
               <button type="button" class="in-box rom" data-urdu-rom={`tag-name-${i}`} aria-pressed="false" title="رومن حروف سے اردو">اب</button>
@@ -129,6 +132,7 @@ import Icon from '../../../components/Icon.astro';
       </div>
       <template id="tag-row">{[{ couplet: 0, type: 'موضوع', name: '' }].map((t, i) => <div class="tag-row">
             {couplets > 0 && <select class="tool tag-couplet" aria-label="کہاں"><option value="0">پورا کلام</option>{Array.from({ length: couplets }, (_, i) => <option value={i + 1} selected={t.couplet === i + 1}>شعر {ud(i + 1)}</option>)}</select>}
+            {couplets > 0 && <input class="tag-phrase" value={t.phrase ?? ''} maxlength="120" data-urdu aria-label="شعر کی عبارت (اختیاری)" placeholder="عبارت (اختیاری)" title="شعر میں سے کوئی عبارت، جیسی وہاں لکھی ہے (شعر چننے پر)" />}
             <select class="tool tag-type" aria-label="قسم">{TAG_TYPES.map((x) => <option selected={x === t.type}>{x}</option>)}</select>
             <span class="in-box-field tag-name-box"><input class="tag-name" id={`tag-name-${i}`} list="tag-names" value={t.name} maxlength="60" data-urdu aria-label="ٹیگ کا نام" placeholder="ٹیگ کا نام" />
               <button type="button" class="in-box rom" data-urdu-rom={`tag-name-${i}`} aria-pressed="false" title="رومن حروف سے اردو">اب</button>
@@ -271,7 +275,8 @@ import Icon from '../../../components/Icon.astro';
         tagText.value = [...rowsBox.querySelectorAll('.tag-row')].map((r) => {
           const c = Number((r.querySelector('.tag-couplet') as HTMLSelectElement | null)?.value ?? 0);
           const type = (r.querySelector('.tag-type') as HTMLSelectElement).value, name = (r.querySelector('.tag-name') as HTMLInputElement).value.trim();
-          return name ? `${c ? `شعر ${c} › ` : ''}${type}: ${name}` : '';
+          const phrase = c ? ((r.querySelector('.tag-phrase') as HTMLInputElement | null)?.value ?? '').replace(/[«»]/g, '').trim() : '';
+          return name ? `${c ? `شعر ${c} › ` : ''}${phrase ? `«${phrase}» › ` : ''}${type}: ${name}` : '';
         }).filter(Boolean).join('\n');
       };
       rowsBox.addEventListener('input', sync); rowsBox.addEventListener('change', sync);

@@ -19,7 +19,7 @@ if (Astro.request.method === 'POST') {
 const res = await asUser(token, `/api/mod/tags/${kind}/${id}`);
 if (!res.ok) return new Response(res.data.error ?? 'نہیں ملا', { status: res.status });
 const { target, version, content, history, may } = res.data;
-const current = content.split('\n').filter(Boolean).map((l: string) => { const [, type, name] = l.replace(/^شعر \d+ › /, '').match(/^([^:]+):\s*(.+)$/) ?? []; return { type, name }; });
+const current = content.split('\n').filter(Boolean).map((l: string) => { const [, phrase, type, name] = l.replace(/^شعر \d+ › /, '').match(/^(?:«([^»]+)» › )?([^:«»]+):\s*(.+)$/) ?? []; return { type, name, phrase }; });
 ---
 <Base title={`ٹیگ: ${target.title}`}>
   <h1>ٹیگ: {target.title}</h1>
