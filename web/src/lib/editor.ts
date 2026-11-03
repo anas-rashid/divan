@@ -12,6 +12,7 @@ import Document from '@tiptap/extension-document';
 import Text from '@tiptap/extension-text';
 import { Placeholder, UndoRedo } from '@tiptap/extensions';
 import { parse, toText, type Doc, type Segment } from '../../../api/src/divantext.ts';
+import { fromDocx, fromOdt, fromText, decodeText, toDivanText, type Block } from '../../../api/src/importdoc.ts';
 
 const Unit = Node.create({
   name: 'unit', group: 'block', content: 'misra+', defining: true,
@@ -116,9 +117,60 @@ export function createEditor(element: HTMLElement, text: string) {
     extensions: [Document, Text, Unit, Misra, Para, Heading, Dict, Note, Variant, UndoRedo,
       Placeholder.configure({ placeholder: ({ node }) => (node.type.name === 'misra' ? 'مصرع' : node.type.name === 'para' ? 'پیراگراف' : 'عنوان') })],
     content: toEditor(doc),
-    editorProps: { attributes: { class: 'dv-editor poem lit', dir: 'rtl', 'data-urdu': '', spellcheck: 'false' } },
+    editorProps: {
+      attributes: { class: 'dv-editor poem lit', dir: 'rtl', 'data-urdu': '', spellcheck: 'false' },
+      // pasting more than a line from Word, LibreOffice or a web page: its paragraphs become couplets, stanzas and prose
+      handlePaste: (_view, event) => {
+        const html = event.clipboardData?.getData('text/html') ?? '', plain = event.clipboardData?.getData('text/plain') ?? '';
+        if (html.includes('data-pm-slice')) return false;  // the editor's own copy: ProseMirror pastes it as it is
+        const fromHtml = html ? htmlBlocks(html) : [];
+        const blocks = fromHtml.filter((b) => 'heading' in b || b.lines.length).length ? fromHtml : fromText(plain);
+        if (blocks.reduce((n, b) => n + ('heading' in b ? 1 : b.lines.length), 0) < 2) return false;  // a word or a line: as usual
+        insertDivanText(editor, toDivanText(blocks));
+        return true;
+      },
+    },
   });
   return { editor, meta: doc.meta };
+}
+
+// ---- document import (#33): the result goes into the editor, to review before saving ----
+
+// pasted HTML -> blocks: headings, paragraphs with their line breaks, a table row's cells side by side (a couplet in two cells)
+export function htmlBlocks(html: string): Block[] {
+  const out: Block[] = [];
+  // a DOM node's text, line breaks kept (3 is a text node: `Node` here is Tiptap's, not the DOM's)
+  const text = (n: ChildNode): string => n.nodeType === 3 ? n.textContent ?? ''
+    : (n as Element).tagName === 'BR' ? '\n' : [...n.childNodes].map(text).join('');
+  const BLOCK = /^(P|DIV|LI|H[1-6]|TABLE|TBODY|THEAD|TR|UL|OL|BLOCKQUOTE|SECTION|ARTICLE|CENTER)$/;
+  const walk = (el: Element) => {
+    for (const c of el.children) {
+      const tag = c.tagName;
+      if (/^H[1-6]$/.test(tag)) { const t = text(c).replace(/\s+/g, ' ').trim(); if (t) out.push({ heading: tag <= 'H2' ? 2 : 3, text: t }); }
+      else if (tag === 'TR') out.push({ lines: [[...c.children].map((td) => text(td).replace(/\s+/g, ' ').trim()).filter(Boolean).join('\t')].filter(Boolean) });
+      else if ([...c.children].some((x) => BLOCK.test(x.tagName))) walk(c);
+      else if (BLOCK.test(tag)) out.push({ lines: text(c).split('\n').map((l) => l.replace(/[ \t\u00a0]+/g, ' ').trim()).filter(Boolean) });
+    }
+  };
+  walk(new DOMParser().parseFromString(html, 'text/html').body);
+  return out;
+}
+
+// a .docx, .odt or .txt file -> Divan text
+export async function importFile(file: File) {
+  const bytes = new Uint8Array(await file.arrayBuffer()), name = file.name.toLowerCase();
+  const blocks = name.endsWith('.docx') ? await fromDocx(bytes) : name.endsWith('.odt') ? await fromOdt(bytes) : fromText(decodeText(bytes));
+  return toDivanText(blocks);
+}
+
+// Divan text into the editor: the whole content when it is empty; else after the block at the cursor (a paste), at the
+// end ('end') or in place of everything ('replace')
+export function insertDivanText(editor: Editor, text: string, where: 'cursor' | 'end' | 'replace' = 'cursor') {
+  const content = toEditor(parse(text)).content;
+  if (where === 'replace' || !editor.getText().trim()) return editor.commands.setContent({ type: 'doc', content });
+  const { $from } = editor.state.selection;
+  const at = where === 'end' || $from.depth === 0 ? editor.state.doc.content.size : $from.after(1);
+  return editor.chain().insertContentAt(at, content).focus().run();
 }
 
 // toolbar actions on the block at the cursor
