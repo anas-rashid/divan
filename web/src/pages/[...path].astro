@@ -29,7 +29,14 @@ if (page.type === 'poem') {
     else blocks.push({ kind: 'single', lines: [v.text], refs: [refsOf(v)], c: v.couplet });
   }
 }
-// pen name (marked ؔ in the text) set apart; split() with a capture group puts matches at odd indexes
+// pen name set apart: marked ؔ in the text, or, in a maqta without the mark, the pen name the export found (takhallus,
+// its first use there); split() with a capture group puts matches at odd indexes
+const penIn = (() => {
+  const { maqta, takhallus } = page.poem ?? {};
+  if (maqta == null || !takhallus) return null;
+  const lines = (page.verses as Verse[]).filter((v) => v.couplet === maqta).map((v) => v.text);
+  return lines.some((l) => l.includes('\u0614')) ? null : lines.find((l) => l.split(/\s+/).some((t) => t.replace(/[،؛؟!.,:]/g, '') === takhallus)) ?? null;
+})();
 // ?hl= (from search results) marks the searched words on the page; segments: [text, 'mark' | 'pen' | '']
 const hlq = Astro.url.searchParams.get('hl') ?? '';
 const re = highlighter(hlq);
@@ -38,6 +45,10 @@ type Mark = { part: string; save: string };
 const show = (line: string, marks: Mark[] = []): [string, string, string?][] => {
   const plain = (text: string) => parts(text, re).flatMap((s, i): [string, string][] =>
     i % 2 ? [[s, 'mark']] : s.split(/(\S*\u0614\S*)/).map((t, j) => [t, j % 2 ? 'pen' : '']));
+  if (line === penIn) {  // the maqta's unmarked pen name: its first use, as a word
+    const at = line.split(/(\s+)/), k = at.findIndex((t) => t.replace(/[،؛؟!.,:]/g, '') === page.poem.takhallus);
+    return [...show(at.slice(0, k).join(''), marks), [at[k], 'pen'], ...show(at.slice(k + 1).join(''), marks)].filter(([t]) => t);
+  }
   if (!marks.length) return plain(line);
   const bm = new RegExp(`(${marks.map((m) => phraseRe(m.part).source).join('|')})`, 'u');
   return line.split(bm).flatMap((s, i): [string, string, string?][] =>

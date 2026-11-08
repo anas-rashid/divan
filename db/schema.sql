@@ -392,3 +392,7 @@ CREATE TABLE IF NOT EXISTS suggestion_votes (
     user_id       integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     PRIMARY KEY (suggestion_id, user_id)
 );
+
+-- a ghazal's pen name as written in its maqta, when the text does not mark it with ؔ (export_divan.py learns each
+-- poet's pen names from their ghazals); the work page sets it apart like a marked one
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS takhallus text;
