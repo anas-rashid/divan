@@ -12,7 +12,8 @@
 #   15 3 * * * /opt/divan/deploy/sync.sh >> /var/log/divan-sync.log 2>&1
 #
 # Settings (env): DIVAN_DATA_DIR (default /opt/divan-data), DIVAN_APP_DIR (default: this repo),
-#   DATABASE_URL (Postgres, as for the API), DIVAN_DATA_PUSH=1 to push data changes.
+#   DATABASE_URL (Postgres, as for the API), DIVAN_DATA_PUSH=1 to push data changes, DIVAN_DATA_REPO (the live
+#   copy to clone when DATA_DIR has none).
 # Needs: git, python3 (stdlib only), node 24+, curl and bzcat (dictionary dumps).
 set -euo pipefail
 
@@ -25,7 +26,12 @@ exec 9>"$LOCK"
 if command -v flock >/dev/null && ! flock -n 9; then echo "$(date -u +%FT%TZ) sync already running"; exit 0; fi
 
 echo "== $(date -u +%FT%TZ) divan sync"
-[ -d "$DATA_DIR/.git" ] || git clone -q https://github.com/anas-rashid/divan-data.git "$DATA_DIR"
+# a missing data folder is cloned from DIVAN_DATA_REPO: the live copy (the deployment's own repo), never the public
+# release copy, so there is no default
+if [ ! -d "$DATA_DIR/.git" ]; then
+  [ -n "${DIVAN_DATA_REPO:-}" ] || { echo "no divan-data in $DATA_DIR: clone the live copy there or set DIVAN_DATA_REPO"; exit 1; }
+  git clone -q "$DIVAN_DATA_REPO" "$DATA_DIR"
+fi
 cd "$DATA_DIR"
 # the export rewrites tracked files (divan.db, poets/, index/) on every run, and without DIVAN_DATA_PUSH they are not
 # committed here: drop them, or the pull below refuses ("You have unstaged changes"). Commits are kept, including the
