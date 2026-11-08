@@ -1131,3 +1131,8 @@ main[data-loading]::before { content: ''; display: block; height: 3px; margin: 1
 .join-request .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .join-request .actions form { margin: 0; }
 .admin-nav .count { margin-inline-start: 6px; padding: 0 7px; line-height: 1.6; border-radius: var(--r-pill); background: var(--brand); color: #fff; font-size: var(--fs-xs); }
+/* a work's metre and the works in its zameen (metres.ts) */
+.metre { text-align: center; font-size: .9rem; margin: 10px 0; }
+.zameen { max-width: 700px; margin: 6px auto 14px; }
+.zameen summary { text-align: center; cursor: pointer; color: var(--brand); }
+.zameen h3 { font-size: .95rem; text-align: center; color: var(--text-muted); margin: 12px 0 2px; }

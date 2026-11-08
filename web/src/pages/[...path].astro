@@ -6,7 +6,7 @@ import Tags from '../components/Tags.astro';
 import { api } from '../lib/api';
 import { asUser, COOKIE } from '../lib/auth';
 import { phraseParts, phraseRe } from '../lib/phrases';
-import { ud, years, highlighter, parts } from '../lib/urdu';
+import { ud, years, highlighter, parts, centuryName } from '../lib/urdu';
 
 const url = '/' + (Astro.params.path ?? '');
 const page = await api(`/api/page?url=${encodeURIComponent(url)}`);
@@ -86,7 +86,12 @@ const catCan = token && page.type !== 'poem' && ['mod-l2', 'mod-l1', 'admin'].in
   ? (await asUser(token, `/api/mod/can?category=${page.category.id}`)).data : {};
 const arrange = catCan.arrange, tagCan = page.type === 'poem' ? modCan.tags : catCan.tags;
 // tags (#52): the page's own, and each couplet's (tags count couplets from 1, verses from 0)
-const pageTags = (page.tags ?? []).filter((t: any) => !t.couplet);
+// a work's «بحر» tag is its corrected metre, shown with the metre below rather than among the tags
+const pageTags = (page.tags ?? []).filter((t: any) => !t.couplet && !(page.type === 'poem' && t.type === 'بحر' && !t.phrase));
+// metre (بحر) and the works in the same zameen (api metres.ts); by century, as the metre's page lists them
+const zameen = page.zameen ?? { metre: null, works: [] };
+const METRE_SOURCE: Record<string, string> = { ganjoor: 'گنجور سے', auto: 'خودکار', mod: 'درست کردہ' };
+const byCentury = Map.groupBy(zameen.works as any[], (w: any) => w.century);
 const coupletTags = (c: number) => (page.tags ?? []).filter((t: any) => t.couplet === c + 1);
 // every poet has an ای بکس section beside their books and genres (/p17/ebooks)
 const credit = page.poet?.portrait_credit, portraitShown = !!page.poet?.portrait && !!credit && (credit.from !== 'wikipedia' || credit.reviewed);
@@ -229,6 +234,24 @@ import PoetAvatar from '../components/PoetAvatar.astro';
       </dialog>
       <script type="application/json" id="notes-data" set:html={JSON.stringify({ poemId, notes, phrases: saved.phrases, signedIn: !!token })} />
       <TagsBox tags={pageTags} />
+      {zameen.metre && (
+        <p class="metre">بحر: <a href={`/bahr/${encodeURIComponent(zameen.metre)}`}>{zameen.metre}</a> <small class="muted">({METRE_SOURCE[zameen.source]})</small>
+          {tagCan && <> <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn" title="غلط ہو تو «بحر: …» ٹیگ لگائیں"><Icon name="edit" size={15} /> درست کریں</button></form></>}</p>
+      )}
+      {!zameen.metre && tagCan && page.poem.rhyme && (
+        <p class="metre muted">بحر معلوم نہیں · <form method="post" action={`/mod/tags/${tagTarget}`} class="inline-form"><button class="mod-edit-btn" title="«بحر: …» ٹیگ لگائیں"><Icon name="plus" size={15} /> بحر لکھیں</button></form></p>
+      )}
+      {zameen.works.length > 0 && (
+        <details class="zameen">
+          <summary>{zameen.rhymeOnly ? 'ہم قافیہ و ردیف' : 'ہم زمین'} <small class="muted">{ud(zameen.works.length)}{zameen.works.length === 50 && '+'}</small></summary>
+          {[...byCentury].map(([c, ws]) => (
+            <section>
+              <h3>{c ? centuryName(c) : 'زمانہ نامعلوم'}</h3>
+              <ul class="book-results">{ws.map((w: any) => <li><a href={w.url}>{w.title}</a> · <a class="muted" href={w.poet_url}>{w.poet}</a></li>)}</ul>
+            </section>
+          ))}
+        </details>
+      )}
       <nav class="poem-nav">
         {page.prev && <a class="icon-btn" href={page.prev} rel="prev" title="پچھلا" aria-label="پچھلا"><Icon name="prev" /></a>}
         {page.next && <a class="icon-btn" href={page.next} rel="next" title="اگلا" aria-label="اگلا"><Icon name="next" /></a>}
