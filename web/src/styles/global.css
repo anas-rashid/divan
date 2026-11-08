@@ -95,6 +95,8 @@ body { margin: 0; background: var(--surface-page); color: var(--text); font-fami
 :where(.btn, .mod-edit-btn, .save-like, .save, .wordbook, .tool, .chip, .tag-chip, .account-link, .poem-nav a, .admin-nav a, .pager .pages a, .pager .pages .current, .kb button, .dict .similar button, .dict .play, .account-form button, .admin-search button, .admin-table button, .lib-note button, .lib-remove button, .author-suggest button, .filter-actions button, .editor-tabs button, .display-panel button):disabled { opacity: .5; cursor: not-allowed; }
 :where(input:not([type='checkbox'], [type='radio'], [type='file'], [type='range'], [type='color']), textarea, select) {
   font: inherit; padding: 4px 12px; border: 1.5px solid var(--border); border-radius: var(--r-md); background: var(--surface-raised); color: var(--text); }
+/* a select's text needs room for Urdu's descenders (ی، ے، ں): the native control otherwise clips them */
+:where(select) { line-height: 2; min-height: 2.6em; padding-block: 2px; }
 :where(input:not([type='checkbox'], [type='radio'], [type='file'], [type='range'], [type='color']), textarea, select):focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 25%, transparent); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
