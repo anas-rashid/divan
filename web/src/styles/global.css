@@ -35,7 +35,7 @@
 }
 :root[data-theme='light'] { color-scheme: light; }
 :root[data-theme='dark'] { color-scheme: dark; }
-/* colour palettes (owner request): sepia (above), plain white, and four calmer colourful ones; chosen in the display settings (data-palette) */
+/* colour palettes (owner request): sepia (above), plain white, and three calmer colourful ones; chosen in the display settings (data-palette) */
 :root[data-palette='white'] {
   --surface-page: light-dark(#ffffff, #121212); --surface-raised: light-dark(#ffffff, #181818); --surface-poem: light-dark(#ffffff, #161616); --surface-sunken: light-dark(#f4f4f4, #222222);
   --text: light-dark(#111111, #e8e8e8); --text-muted: light-dark(#5e5e5e, #a3a3a3); --link: light-dark(#111111, #f2f2f2); --border: light-dark(#c6c6c6, #5c5c5c); --line: light-dark(#e5e5e5, #2e2e2e);
@@ -58,12 +58,6 @@
   --text: light-dark(#151f0f, #e0e8d8); --text-muted: light-dark(#54614a, #9aa88e); --link: light-dark(#1f5d3a, #eef5e8); --border: light-dark(#9db38c, #4f7a45); --line: light-dark(#d7cea2, #2c3a27);
   --brand: light-dark(#b5452f, #e0705a); --accent: light-dark(#a8872e, #c9a94e); --accent-soft: light-dark(#eff1e1, #1c251a);
   --action: light-dark(#1f5d3a, #84c79a); --action-ink: light-dark(#fff, #0d150f);
-}
-:root[data-palette='rose'] {
-  --surface-page: light-dark(#fbf4f6, #181214); --surface-raised: light-dark(#fffcfd, #1c1518); --surface-poem: light-dark(#f5e6ea, #22191c); --surface-sunken: light-dark(#f8edf0, #291e22);
-  --text: light-dark(#29141a, #efe0e4); --text-muted: light-dark(#6c5057, #b39aa1); --link: light-dark(#6b2c5e, #fbeef2); --border: light-dark(#c8a1a9, #8a5563); --line: light-dark(#e7c8ce, #3e2a30);
-  --brand: light-dark(#b0304a, #ef6f86); --accent: light-dark(#c27c88, #d792a0); --accent-soft: light-dark(#f7e8ec, #2a1d21);
-  --action: light-dark(#6b2c5e, #e3a3c3); --action-ink: light-dark(#fff, #1d1216);
 }
 :root.nastaliq { --font: 'Libron', 'Noto Nastaliq Urdu', var(--font-ui); --verse-lh: 2.7; }
 

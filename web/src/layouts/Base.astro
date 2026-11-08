@@ -60,6 +60,7 @@ import { siteUrl } from '../lib/site-url';
         if (z) document.documentElement.style.setProperty('--text-size', z + '%');
         const t = localStorage.getItem('divan-theme');
         if (t) document.documentElement.dataset.theme = t;
+        if (localStorage.getItem('divan-palette') === 'rose') localStorage.removeItem('divan-palette'); // rose was removed: back to sepia
         const pal = localStorage.getItem('divan-palette'); // sepia when unset
         if (pal) document.documentElement.dataset.palette = pal;
         if (document.cookie.includes('divan-digits=latn')) document.documentElement.dataset.digits = 'latn'; // Western numerals
@@ -103,7 +104,7 @@ import { siteUrl } from '../lib/site-url';
               <p>رنگ</p>
               <div class="swatches">
                 {[['', 'سپیا', '#fbf6ea', '#bf3f2a'], ['white', 'سفید', '#ffffff', '#111111'], ['teal', 'فیروزی', '#e2f0ee', '#0b4f6c'], ['lapis', 'نیلگوں', '#e6ebf8', '#1d3b8b'],
-                  ['green', 'سبز', '#e5eede', '#1f5d3a'], ['rose', 'گلابی', '#f5e6ea', '#6b2c5e']].map(([v, name, a, b]) => (
+                  ['green', 'سبز', '#e5eede', '#1f5d3a']].map(([v, name, a, b]) => (
                   <button type="button" data-palette={v} title={name} aria-label={name} style={`--a: ${a}; --b: ${b}`}><span></span>{name}</button>
                 ))}
               </div>
