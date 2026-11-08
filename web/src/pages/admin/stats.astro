@@ -35,8 +35,8 @@ const data = { daily: s.daily.map((d: any) => [d.day, d.views, d.visitors]),
     {[7, 30, 90, 365].map((d) => <a href={`?days=${d}`} aria-current={d === days ? 'page' : undefined} class="chip">{d === 365 ? 'ایک سال' : `${ud(d)} دن`}</a>)}
   </nav>
   <form method="get" class="stats-period" aria-label="اپنی مدت">
-    <label>سے<input type="date" name="from" value={s.from} max={s.to} required /></label>
-    <label>تک<input type="date" name="to" value={s.to} required /></label>
+    <label><input type="date" name="from" value={s.from} max={s.to} required /> سے</label>
+    <label><input type="date" name="to" value={s.to} required /> تک</label>
     <button class="btn">دکھائیں</button>
   </form>
   <nav class="stat-tiles" aria-label="خلاصہ">
