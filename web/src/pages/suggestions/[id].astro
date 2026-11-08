@@ -1,0 +1,44 @@
+---
+// One suggestion (api suggestions.ts): its text, the page it is about, votes; a moderator sets its status with a note
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { api } from '../../lib/api';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+import { ago } from '../../lib/roles';
+import { CATEGORY, STATUS } from '../../lib/suggest';
+
+const me = Astro.locals.user, token = me ? Astro.cookies.get(COOKIE)?.value : undefined, id = Number(Astro.params.id) || 0;
+let error = '';
+if (Astro.request.method === 'POST' && token) {
+  const f = await Astro.request.formData(), act = f.get('act');
+  const r = act === 'vote' ? await asUser(token, `/api/suggestions/${id}/vote`, {})
+    : act === 'status' ? await asUser(token, `/api/suggestions/${id}/status`, { status: f.get('status'), note: f.get('note') })
+    : act === 'delete' ? await asUser(token, `/api/suggestions/${id}/delete`, {}) : null;
+  if (r?.ok) return Astro.redirect(act === 'delete' ? '/suggestions' : `/suggestions/${id}`, 303);
+  error = r?.data.error ?? 'کچھ غلط ہو گیا';
+}
+const s = token ? (await asUser(token, `/api/suggestions/${id}`)).data : await api(`/api/suggestions/${id}`);
+if (!s?.id) return new Response(null, { status: 404, statusText: 'Not found' });
+---
+<Base title={s.title} description={`${CATEGORY[s.category]}: ${s.title}`}>
+  <h1>{s.title}</h1>
+  <p class="center muted">{CATEGORY[s.category]} · <strong>{STATUS[s.status]}</strong> · {s.author} · {ago(s.created_at)}{s.target_url && <> · <a href={s.target_url}>{s.target_title}</a></>}</p>
+  {error && <p class="form-error" role="alert">{error}</p>}
+  <article class="suggestion-body" dir="auto" set:html={s.html} />
+  <form method="post" class="vote center">
+    <button name="act" value="vote" disabled={!me || s.mine} aria-pressed={s.voted ? 'true' : 'false'}><Icon name="up" size={16} /> {ud(s.votes)} {s.voted ? 'ووٹ دیا' : 'ووٹ'}</button>
+    {!me && <small class="muted"> · <a href={`/signin?next=/suggestions/${s.id}`}>ووٹ کے لیے لاگ ان کریں</a></small>}
+  </form>
+  {s.mod_note && <div class="mod-answer"><p class="muted small-line">{s.moderator} کا جواب:</p><p>{s.mod_note}</p></div>}
+  {s.canModerate && (
+    <form method="post" class="account-form">
+      <input type="hidden" name="act" value="status" />
+      <label>حالت<select name="status">{Object.entries(STATUS).map(([k, l]) => <option value={k} selected={k === s.status}>{l}</option>)}</select></label>
+      <label>جواب (اختیاری: کیا کیا، یا کیوں نہیں)<textarea name="note" rows="3" maxlength="2000" data-urdu>{s.mod_note ?? ''}</textarea></label>
+      <button class="btn primary"><Icon name="save" size={18} /> محفوظ کریں</button>
+    </form>
+  )}
+  {s.canDelete && <form method="post" class="center"><button class="btn danger" name="act" value="delete" onclick="return confirm('یہ تجویز ہٹا دیں؟')"><Icon name="trash" size={16} /> ہٹائیں</button></form>}
+  <p class="center"><a href="/suggestions">تمام تجاویز</a></p>
+</Base>

@@ -21,7 +21,7 @@ if (Astro.request.method === 'POST') {
 const res = await asUser(token, `/api/mod/submissions/${id}`);
 if (res.status === 404) return new Response('نہیں ملا', { status: 404 });
 const s = res.data, open = ['pending', 'accepted'].includes(s.status);
-const STATE: Record<string, string> = { pending: 'جائزے کا منتظر', accepted: 'منظور، اشاعت کا منتظر', published: 'شائع شدہ', rejected: 'مسترد' };
+const STATE: Record<string, string> = { pending: 'جائزے کا منتظر', accepted: 'منظور شدہ، اشاعت کا منتظر', published: 'شائع شدہ', rejected: 'مسترد شدہ' };
 ---
 <Base title={`تحریر: ${s.title}`}>
   <h1>{s.title}</h1>

@@ -12,7 +12,7 @@ const me = Astro.locals.user;
 if (!me) return Astro.redirect('/signin?next=/mod/submissions');
 if (!['mod-l2', 'mod-l1', 'admin'].includes(me.role)) return new Response('صرف موڈریٹرز کے لیے', { status: 403 });
 const token = Astro.cookies.get(COOKIE)!.value;
-const TABS: [string, string][] = [['pending', 'جائزے کے منتظر'], ['accepted', 'اشاعت کے منتظر'], ['published', 'شائع شدہ'], ['rejected', 'مسترد']];
+const TABS: [string, string][] = [['pending', 'جائزے کے منتظر'], ['accepted', 'اشاعت کے منتظر'], ['published', 'شائع شدہ'], ['rejected', 'مسترد شدہ']];
 const status = TABS.some(([k]) => k === Astro.url.searchParams.get('status')) ? Astro.url.searchParams.get('status')! : 'pending';
 const items = (await asUser(token, `/api/mod/submissions?status=${status}`)).data as any[];
 ---

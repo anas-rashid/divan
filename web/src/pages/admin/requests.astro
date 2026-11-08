@@ -22,7 +22,7 @@ if (Astro.request.method === 'POST') {
   else if (r.data.emailed) done = `${email} کا اکاؤنٹ بن گیا اور انھیں پاس ورڈ رکھنے کا لنک ای میل ہو گیا`;
   else { done = `${email} کا اکاؤنٹ (قاری) بن گیا۔ پاس ورڈ رکھنے کا یہ لنک انھیں بھیجیں؛ ایک ہفتے تک ایک بار کام کرے گا:`; link = r.data.link; }
 }
-const TABS: [string, string][] = [['pending', 'منتظر'], ['approved', 'منظور'], ['declined', 'رد']];
+const TABS: [string, string][] = [['pending', 'منتظر'], ['approved', 'منظور شدہ'], ['declined', 'رد شدہ']];
 const status = TABS.some(([k]) => k === Astro.url.searchParams.get('status')) ? Astro.url.searchParams.get('status')! : 'pending';
 const { requests, counts } = (await asUser(token, `/api/admin/requests?status=${status}`)).data;
 ---
@@ -45,7 +45,7 @@ const { requests, counts } = (await asUser(token, `/api/admin/requests?status=${
       {r.note && <p class="note-text">{r.note}</p>}
       <p class="muted small-line" title={when(r.created_at)}>
         درخواست {ago(r.created_at)}
-        {r.decided_at && <> · {status === 'approved' ? 'منظور' : 'رد'} {ago(r.decided_at)} ({r.decided_by_name || r.decided_by_email})</>}
+        {r.decided_at && <> · {status === 'approved' ? 'منظور شدہ' : 'رد شدہ'} {ago(r.decided_at)} ({r.decided_by_name || r.decided_by_email})</>}
         {r.user_id && <> · <a href={`/admin/user/${r.user_id}`}>اکاؤنٹ</a></>}
       </p>
       {status === 'pending' && (

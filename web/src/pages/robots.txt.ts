@@ -7,7 +7,7 @@ export const GET: APIRoute = ({ url }) => {
   const closed = process.env.DIVAN_NOINDEX === '1';
   const body = closed ? 'User-agent: *\nDisallow: /\n' : [
     'User-agent: *',
-    ...['/admin', '/mod', '/account', '/library', '/writers', '/words', '/notes', '/signin', '/signup', '/search', '/api/', '/ebooks/file/', '/health']
+    ...['/admin', '/mod', '/account', '/library', '/writers', '/words', '/notes', '/signin', '/signup', '/search', '/suggestions', '/api/', '/ebooks/file/', '/health']
       .map((p) => `Disallow: ${p}`),
     '', `Sitemap: ${siteUrl(url)}/sitemap.xml`, '',
   ].join('\n');
