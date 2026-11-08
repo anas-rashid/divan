@@ -35,6 +35,11 @@ test('suggestions: a reader posts about a page, others vote, a moderator answers
     assert.deepEqual([s.target_url, s.author, s.votes, s.status, s.html], [work.url, 'ایک قاری', 0, 'open', '<p>دوسرا مصرع غلط ہے</p>']);
     assert.ok(s.target_title.startsWith(work.title));
 
+    // reading is open; every action needs a registered reader
+    assert.equal((await call('GET', `/api/suggestions/${id}`)).statusCode, 200);
+    assert.equal((await call('POST', `/api/suggestions/${id}/vote`, {})).statusCode, 401);
+    assert.equal((await call('POST', `/api/suggestions/${id}/delete`, {})).statusCode, 401);
+    assert.equal((await call('POST', `/api/suggestions/${id}/status`, { status: 'done' })).statusCode, 403);
     assert.match((await call('POST', `/api/suggestions/${id}/vote`, {}, a.token)).json().error, /اپنی/, 'not one\'s own');
     assert.deepEqual((await call('POST', `/api/suggestions/${id}/vote`, {}, b.token)).json(), { voted: true, votes: 1 });
     assert.equal((await call('GET', `/api/suggestions/${id}`, undefined, b.token)).json().voted, true);
