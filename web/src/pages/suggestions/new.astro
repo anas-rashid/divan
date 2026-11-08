@@ -1,0 +1,65 @@
+---
+// A new suggestion (api suggestions.ts): its kind, a title, the text in a small rich-text editor (lib/richtext.ts), and
+// the page it is about (filled in when it comes from that page's «تجویز دیں»)
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+import { CATEGORY } from '../../lib/suggest';
+
+const me = Astro.locals.user;
+if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
+const token = Astro.cookies.get(COOKIE)!.value;
+let error = '', v = { category: Astro.url.searchParams.get('category') ?? '', title: '', url: Astro.url.searchParams.get('url') ?? '', body: '' };
+if (Astro.request.method === 'POST') {
+  const f = await Astro.request.formData();
+  v = { category: String(f.get('category') ?? ''), title: String(f.get('title') ?? ''), url: String(f.get('url') ?? ''), body: String(f.get('body') ?? '') };
+  let body: unknown = null;
+  try { body = JSON.parse(v.body); } catch {}
+  const r = await asUser(token, '/api/suggestions', { category: v.category, title: v.title, url: v.url, body });
+  if (r.ok) return Astro.redirect(`/suggestions/${r.data.id}`, 303);
+  error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+---
+<Base title="نئی تجویز">
+  <h1>نئی تجویز</h1>
+  <p class="center muted">کیا غلط ہے اور درست کیا ہونا چاہیے؟ ہو سکے تو ماخذ (کتاب، صفحہ یا لنک) بھی لکھیں۔ <a href="/suggestions">تمام تجاویز</a></p>
+  {error && <p class="form-error" role="alert">{error}</p>}
+  <form method="post" class="account-form suggest-form" id="suggest">
+    <label>قسم
+      <select name="category" required>
+        <option value="">چنیں…</option>
+        {Object.entries(CATEGORY).map(([k, l]) => <option value={k} selected={k === v.category}>{l}</option>)}
+      </select>
+    </label>
+    <label>عنوان<input name="title" required minlength="3" maxlength="150" value={v.title} data-urdu placeholder="مثلاً: غزل کے تیسرے شعر میں «دل» کی جگہ «دم»" /></label>
+    <label>کس صفحے کے بارے میں (لنک، اختیاری)<input name="url" value={v.url} dir="ltr" maxlength="500" placeholder="https://divan.pk/…" /></label>
+    <div class="toolbar" role="toolbar" aria-label="ایڈیٹر">
+      <button type="button" class="tool" data-act="bold" title="جلی" aria-label="جلی"><b>B</b></button>
+      <button type="button" class="tool" data-act="italic" title="ترچھا" aria-label="ترچھا"><i>I</i></button>
+      <button type="button" class="tool" data-act="link" title="لنک" aria-label="لنک"><Icon name="external" size={16} /></button>
+      <span class="sep"></span>
+      <button type="button" class="tool" data-act="bulletList" title="فہرست" aria-label="فہرست">•</button>
+      <button type="button" class="tool" data-act="orderedList" title="نمبر وار فہرست" aria-label="نمبر وار فہرست">۱.</button>
+      <button type="button" class="tool" data-act="blockquote" title="اقتباس" aria-label="اقتباس">❝</button>
+      <span class="sep"></span>
+      <button type="button" class="tool" data-act="undo" title="واپس" aria-label="واپس"><Icon name="undo" size={16} /></button>
+      <button type="button" class="tool" data-act="redo" title="دوبارہ" aria-label="دوبارہ"><Icon name="redo" size={16} /></button>
+      <button type="button" class="tool" data-urdu-rom="rich-host" title="رومن حروف سے اردو" aria-label="رومن حروف سے اردو">اب</button>
+      <button type="button" class="tool" data-urdu-kb="rich-host" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><Icon name="keyboard" size={16} /></button>
+    </div>
+    <div id="rich-host"></div>
+    <textarea name="body" id="body" hidden>{v.body}</textarea>
+    <button class="btn primary"><Icon name="send" size={18} /> تجویز بھیجیں</button>
+  </form>
+  <script>
+    import { createRichEditor, richCommand } from '../../lib/richtext';
+    const form = document.getElementById('suggest') as HTMLFormElement, body = document.getElementById('body') as HTMLTextAreaElement;
+    const editor = createRichEditor(document.getElementById('rich-host')!, 'آپ کی تجویز…');
+    try { if (body.value) editor.commands.setContent(JSON.parse(body.value)); } catch {}  // after a refused send
+    form.querySelector('.toolbar')!.addEventListener('click', (e) => {
+      const act = (e.target as HTMLElement).closest<HTMLElement>('[data-act]')?.dataset.act;
+      if (act) richCommand(editor, act);
+    });
+    form.addEventListener('submit', () => { body.value = JSON.stringify(editor.getJSON()); });
+  </script>
+</Base>

@@ -1,0 +1,69 @@
+---
+// Readers' suggestions (api suggestions.ts), a section of their own: the open ones by votes, filtered by kind, status or
+// the page they are about; a signed-in reader votes here or writes a new one. Content pages only link here.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import { api } from '../../lib/api';
+import { asUser, COOKIE } from '../../lib/auth';
+import { ud } from '../../lib/urdu';
+import { ago } from '../../lib/roles';
+import { CATEGORY, STATUS } from '../../lib/suggest';
+
+const me = Astro.locals.user, token = me ? Astro.cookies.get(COOKIE)?.value : undefined;
+if (Astro.request.method === 'POST' && token) {
+  const id = Number((await Astro.request.formData()).get('id')) || 0;
+  await asUser(token, `/api/suggestions/${id}/vote`, {});
+  return Astro.redirect(`${Astro.url.pathname}${Astro.url.search}#s${id}`, 303);
+}
+const q = Astro.url.searchParams, category = q.get('category') ?? '', status = q.get('status') ?? 'open', url = q.get('url') ?? '';
+const sort = q.get('sort') === 'new' ? 'new' : 'votes', page = Math.max(1, Number(q.get('page')) || 1);
+const query = new URLSearchParams({ ...(category && { category }), status, ...(url && { url }), sort, page: String(page) });
+const res = (token ? (await asUser(token, `/api/suggestions?${query}`)).data : await api(`/api/suggestions?${query}`)) ?? { items: [], total: 0, pageSize: 30 };
+const link = (over: Record<string, string>) => {
+  const p = new URLSearchParams({ ...(category && { category }), ...(status !== 'open' && { status }), ...(url && { url }), ...(sort !== 'votes' && { sort }), ...over });
+  for (const [k, v] of [...p]) if (!v) p.delete(k);
+  return `/suggestions${p.size ? `?${p}` : ''}`;
+};
+const about = url && res.items[0]?.target_url === url ? res.items[0].target_title : url;
+const pages = Math.ceil(res.total / res.pageSize);
+---
+<Base title="تجاویز" description="دیوان کے متن، شعرا کے ناموں، تصاویر، تعارف، بحر اور ترتیب کی اصلاح کے لیے قارئین کی تجاویز">
+  <h1>تجاویز</h1>
+  <p class="center muted">متن، نام، تصویر، تعارف، بحر یا ترتیب میں کوئی غلطی دیکھیں تو بتائیں؛ دوسرے قارئین ووٹ دیتے ہیں اور موڈریٹرز درستی کرتے ہیں۔</p>
+  <p class="center">
+    {me ? <a class="btn primary" href={`/suggestions/new${url ? `?url=${encodeURIComponent(url)}` : ''}`}><Icon name="plus" size={18} /> نئی تجویز</a>
+      : <a class="btn" href={`/signin?next=${encodeURIComponent('/suggestions/new')}`}>لاگ ان کر کے تجویز دیں</a>}
+  </p>
+  {url && <p class="center">اس صفحے کے بارے میں: <a href={url}>{about}</a> · <a class="muted" href={link({ url: '' })}>سب تجاویز</a></p>}
+  <nav class="tag-chips center" aria-label="حالت">
+    {['open', 'planned', 'done', 'declined', 'all'].map((s) => <a class={`tag-chip${s === status ? ' on' : ''}`} href={link({ status: s === 'open' ? '' : s, page: '' })}>{s === 'all' ? 'سب' : STATUS[s]}</a>)}
+  </nav>
+  <nav class="tag-chips center" aria-label="قسم">
+    <a class={`tag-chip${!category ? ' on' : ''}`} href={link({ category: '', page: '' })}>ہر قسم</a>
+    {Object.entries(CATEGORY).map(([k, v]) => <a class={`tag-chip${k === category ? ' on' : ''}`} href={link({ category: k, page: '' })}>{v}</a>)}
+  </nav>
+  <p class="center muted small-line">{ud(res.total)} تجاویز · ترتیب: {sort === 'votes' ? <>ووٹ · <a href={link({ sort: 'new', page: '' })}>نئی</a></> : <><a href={link({ sort: '', page: '' })}>ووٹ</a> · نئی</>}</p>
+  {res.items.length === 0 && <p class="center muted">یہاں ابھی کوئی تجویز نہیں۔</p>}
+  <ul class="suggestions">
+    {res.items.map((s: any) => (
+      <li id={`s${s.id}`}>
+        <form method="post" class="vote">
+          <input type="hidden" name="id" value={s.id} />
+          <button disabled={!me} aria-pressed={s.voted ? 'true' : 'false'} title={me ? (s.voted ? 'ووٹ واپس لیں' : 'ووٹ دیں') : 'ووٹ کے لیے لاگ ان کریں'}><Icon name="up" size={16} /> {ud(s.votes)}</button>
+        </form>
+        <div>
+          <a class="s-title" href={`/suggestions/${s.id}`}>{s.title}</a>
+          <p class="muted small-line">{CATEGORY[s.category]} · {STATUS[s.status]}{s.target_url && <> · <a href={s.target_url}>{s.target_title}</a></>} · {s.author} · {ago(s.created_at)}</p>
+          <p class="s-excerpt">{s.excerpt}</p>
+        </div>
+      </li>
+    ))}
+  </ul>
+  {pages > 1 && (
+    <nav class="poem-nav">
+      {page > 1 && <a class="icon-btn" href={link({ page: String(page - 1) })} rel="prev">پچھلا</a>}
+      <span class="muted">{ud(page)} / {ud(pages)}</span>
+      {page < pages && <a class="icon-btn" href={link({ page: String(page + 1) })} rel="next">اگلا</a>}
+    </nav>
+  )}
+</Base>

@@ -268,6 +268,10 @@ import PoetAvatar from '../components/PoetAvatar.astro';
       )}
     </>
   )}
+  {/* readers' suggestions live in their own section (/suggestions); a page only links there */}
+  {(() => { const at = page.poem?.url ?? page.category?.url; return at && (
+    <p class="source suggest-link"><a href={`/suggestions/new?url=${encodeURIComponent(at)}`}>کوئی غلطی؟ تجویز دیں</a>
+      {page.suggestions > 0 && <> · <a href={`/suggestions?url=${encodeURIComponent(at)}`}>اس صفحے پر {ud(page.suggestions)} {page.suggestions === 1 ? 'تجویز' : 'تجاویز'}</a></>}</p>); })()}
   {re && <script is:inline>document.querySelector('.poem mark')?.scrollIntoView({ block: 'center' });</script>}
 </Base>
 

@@ -367,3 +367,28 @@ ALTER TABLE poems ADD COLUMN IF NOT EXISTS metre text;
 ALTER TABLE poems ADD COLUMN IF NOT EXISTS rhyme text;
 CREATE INDEX IF NOT EXISTS poems_metre ON poems(metre);
 CREATE INDEX IF NOT EXISTS poems_rhyme ON poems(rhyme);
+
+-- readers' suggestions (api/src/suggestions.ts): a fix to the content proposed by a signed-in reader, as rich text
+-- (the editor's JSON, richtext.ts), about a page of the site; other readers vote; a moderator sets its status
+CREATE TABLE IF NOT EXISTS suggestions (
+    id           serial PRIMARY KEY,
+    user_id      integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    category     text NOT NULL,                  -- name | portrait | intro | text | title | metre | order | tags | other
+    title        text NOT NULL,
+    body         jsonb NOT NULL,
+    body_text    text NOT NULL DEFAULT '',       -- plain text, for the list's excerpt
+    target_url   text,                           -- the page it is about ('/p266/ghazal/sh1'), or none
+    target_title text,
+    status       text NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'planned', 'done', 'declined', 'hidden')),
+    mod_note     text,                           -- the moderator's answer
+    mod_id       integer REFERENCES users(id) ON DELETE SET NULL,
+    created_at   timestamptz NOT NULL DEFAULT now(),
+    updated_at   timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS suggestions_target ON suggestions(target_url);
+CREATE INDEX IF NOT EXISTS suggestions_status ON suggestions(status, created_at);
+CREATE TABLE IF NOT EXISTS suggestion_votes (
+    suggestion_id integer NOT NULL REFERENCES suggestions(id) ON DELETE CASCADE,
+    user_id       integer NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    PRIMARY KEY (suggestion_id, user_id)
+);

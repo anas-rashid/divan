@@ -28,6 +28,7 @@ import { submissionRoutes } from './submissions.ts';
 import { joinRoutes } from './join.ts';
 import { feedRoutes } from './feeds.ts';
 import { metreRoutes, zameen } from './metres.ts';
+import { suggestionRoutes, openSuggestions } from './suggestions.ts';
 import { portraitRoutes, SHOWN } from './portraits.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
@@ -100,7 +101,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
       history_url: (process.env.DIVAN_DATA_HISTORY_URL ?? 'https://github.com/anas-rashid/divan-data/commits/main/divan{path}.dtx').replace('{path}', poem.url) };
     const { search_text, search_tsv, ...rest } = poem;
     return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan,
-      tags: await pageTags('work', poem.id), zameen: await zameen(poem) };
+      tags: await pageTags('work', poem.id), zameen: await zameen(poem), suggestions: await openSuggestions(poem.url) };
   }
 
   const cat = (await pool.query('SELECT * FROM categories WHERE url = $1', [url])).rows[0];
@@ -128,6 +129,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
     return {
       type: cat.parent_id === null ? 'poet' : 'category',
       category: cat, poet: poet.rows[0], breadcrumbs: crumbs, children: children.rows, poems: poems.rows, tags: await pageTags('category', cat.id),
+      suggestions: await openSuggestions(cat.url),
     };
   }
   return reply.code(404).send({ error: 'not found' });
@@ -259,6 +261,7 @@ submissionRoutes(app);
 joinRoutes(app);
 feedRoutes(app);
 metreRoutes(app);
+suggestionRoutes(app);
 statsRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);
