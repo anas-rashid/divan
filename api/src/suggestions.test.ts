@@ -58,6 +58,11 @@ test('suggestions: a reader posts about a page, others vote, a moderator answers
     assert.equal((await call('GET', `/api/suggestions/${h}`, undefined, b.token)).statusCode, 404);
     assert.equal((await call('GET', `/api/suggestions/${h}`, undefined, a.token)).statusCode, 200);
     assert.equal((await call('GET', `/api/suggestions/${h}`, undefined, mod.token)).statusCode, 200);
+    // the lists, as a moderator and as a reader: the hidden one only for the moderator (and its author)
+    const hiddenIn = async (token: string) => (await call('GET', '/api/suggestions?status=all', undefined, token)).json().items.some((x: any) => x.id === h);
+    assert.equal(await hiddenIn(mod.token), true);
+    assert.equal(await hiddenIn(b.token), false);
+    assert.equal(await hiddenIn(a.token), true);
 
     const d = (await post({ title: `واپس ${run}`, url: '' })).json().id;
     assert.equal((await call('GET', `/api/suggestions/${d}`)).json().target_url, null, 'about no particular page');
