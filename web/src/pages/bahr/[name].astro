@@ -1,0 +1,30 @@
+---
+// One metre's works (api metres.ts), by the poets' Hijri century, oldest first; 100 a page
+import Base from '../../layouts/Base.astro';
+import { api } from '../../lib/api';
+import { ud, centuryName } from '../../lib/urdu';
+
+const name = Astro.params.name ?? '', page = Math.max(1, Number(Astro.url.searchParams.get('page')) || 1);
+const res = await api(`/api/metre?name=${encodeURIComponent(name)}&page=${page}`);
+if (!res) return new Response(null, { status: 404, statusText: 'Not found' });
+const pages = Math.ceil(res.total / res.pageSize);
+const byCentury = Map.groupBy(res.works as any[], (w: any) => w.century);
+const link = (n: number) => `/bahr/${encodeURIComponent(name)}${n > 1 ? `?page=${n}` : ''}`;
+---
+<Base title={`بحر: ${res.name}`} description={`بحر «${res.name}» میں ${ud(res.total)} تخلیقات`}>
+  <h1><small class="muted">بحر:</small> {res.name}</h1>
+  <p class="center muted">{ud(res.total)} تخلیقات · <a href="/bahr">تمام بحریں</a></p>
+  {[...byCentury].map(([c, ws]) => (
+    <section class="search-group">
+      <h2>{c ? centuryName(c) : 'زمانہ نامعلوم'}</h2>
+      <ul class="book-results">{ws.map((w: any) => <li><a href={w.url}>{w.title}</a> · <a class="muted" href={w.poet_url}>{w.poet}</a></li>)}</ul>
+    </section>
+  ))}
+  {pages > 1 && (
+    <nav class="poem-nav">
+      {page > 1 && <a class="icon-btn" href={link(page - 1)} rel="prev">پچھلا</a>}
+      <span class="muted">{ud(page)} / {ud(pages)}</span>
+      {page < pages && <a class="icon-btn" href={link(page + 1)} rel="next">اگلا</a>}
+    </nav>
+  )}
+</Base>

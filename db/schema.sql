@@ -360,3 +360,10 @@ DO $$ BEGIN
 END $$;
 ALTER TABLE entity_tags DROP CONSTRAINT IF EXISTS entity_tags_entity_check;
 ALTER TABLE entity_tags ADD CONSTRAINT entity_tags_entity_check CHECK (entity IN ('category', 'work', 'ebook', 'word'));
+
+-- metres and rhyme (api/src/metres.ts): a work's metre (بحر; Ganjoor's for Persian works) and rhyme letters (قافیہ و
+-- ردیف, spaces dropped) from divan-data; together they find the works in the same zameen (ہم زمین)
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS metre text;
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS rhyme text;
+CREATE INDEX IF NOT EXISTS poems_metre ON poems(metre);
+CREATE INDEX IF NOT EXISTS poems_rhyme ON poems(rhyme);

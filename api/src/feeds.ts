@@ -1,6 +1,6 @@
 // What the site's sitemap.xml and rss.xml are made from (#83, #87).
 //   GET /api/sitemap      every public page: poets, books/chapters, works (with the date of their latest Divan
-//                         version), tags, e-books
+//                         version), tags, e-books, metres
 //   GET /api/feed?limit=  the latest published changes, newest first: new versions of works (version, summary, the
 //                         opening lines), e-books, arrangements and tags; who made each (public names)
 import type { FastifyInstance } from 'fastify';
@@ -8,7 +8,7 @@ import { pool } from './db.ts';
 
 export function feedRoutes(app: FastifyInstance) {
   app.get('/api/sitemap', async (_req, reply) => {
-    const [poets, cats, works, tags, ebooks] = await Promise.all([
+    const [poets, cats, works, tags, ebooks, metres] = await Promise.all([
       pool.query('SELECT url FROM poets ORDER BY id'),
       pool.query('SELECT url FROM categories WHERE parent_id IS NOT NULL ORDER BY id'),
       pool.query(`SELECT p.url, max(r.published_at) AS updated FROM poems p
@@ -16,6 +16,7 @@ export function feedRoutes(app: FastifyInstance) {
                   GROUP BY p.id ORDER BY p.id`),
       pool.query('SELECT DISTINCT t.type, t.name FROM tags t JOIN entity_tags e ON e.tag_id = t.id ORDER BY t.type, t.name'),
       pool.query('SELECT b.id, t.url AS poet_url FROM ebooks b JOIN poets t ON t.id = b.poet_id WHERE b.published ORDER BY b.id'),
+      pool.query('SELECT DISTINCT metre FROM poems WHERE metre IS NOT NULL ORDER BY metre'),
     ]);
     reply.header('cache-control', 'public, max-age=3600');
     return {
@@ -24,6 +25,7 @@ export function feedRoutes(app: FastifyInstance) {
       works: works.rows.map((r) => ({ url: r.url, updated: r.updated })),
       tags: tags.rows,
       ebooks: ebooks.rows,
+      metres: metres.rows.map((r) => r.metre),
     };
   });
 

@@ -27,6 +27,7 @@ import { ebookRoutes } from './ebooks.ts';
 import { submissionRoutes } from './submissions.ts';
 import { joinRoutes } from './join.ts';
 import { feedRoutes } from './feeds.ts';
+import { metreRoutes, zameen } from './metres.ts';
 import { portraitRoutes, SHOWN } from './portraits.ts';
 
 const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } });
@@ -99,7 +100,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
       history_url: (process.env.DIVAN_DATA_HISTORY_URL ?? 'https://github.com/anas-rashid/divan-data/commits/main/divan{path}.dtx').replace('{path}', poem.url) };
     const { search_text, search_tsv, ...rest } = poem;
     return { type: 'poem', poem: rest, poet: poet.rows[0], breadcrumbs: crumbs, verses: verses.rows, ...siblings.rows[0], divan,
-      tags: await pageTags('work', poem.id) };
+      tags: await pageTags('work', poem.id), zameen: await zameen(poem) };
   }
 
   const cat = (await pool.query('SELECT * FROM categories WHERE url = $1', [url])).rows[0];
@@ -257,6 +258,7 @@ ebookRoutes(app);
 submissionRoutes(app);
 joinRoutes(app);
 feedRoutes(app);
+metreRoutes(app);
 statsRoutes(app);
 
 const port = Number(process.env.PORT ?? 4100);

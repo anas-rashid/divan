@@ -1,0 +1,15 @@
+---
+// Every metre (بحر) with its number of works (api metres.ts), most used first
+import Base from '../../layouts/Base.astro';
+import { api } from '../../lib/api';
+import { ud } from '../../lib/urdu';
+
+const metres = (await api<{ name: string; n: number }[]>('/api/metres')) ?? [];
+---
+<Base title="بحریں" description="اردو اور فارسی کلاسیکی شاعری کی بحریں اور ہر بحر کا کلام">
+  <h1>بحریں</h1>
+  <p class="center muted">{ud(metres.length)} بحریں · {ud(metres.reduce((a, m) => a + m.n, 0))} تخلیقات</p>
+  <ul class="book-results">
+    {metres.map((m) => <li><a href={`/bahr/${encodeURIComponent(m.name)}`}>{m.name}</a> <small class="muted">{ud(m.n)}</small></li>)}
+  </ul>
+</Base>

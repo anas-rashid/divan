@@ -1,4 +1,4 @@
-// Every public page for the sitemap (poets, books/chapters, works, tags, e-books, and the fixed pages), as <url> entries.
+// Every public page for the sitemap (poets, books/chapters, works, tags, e-books, metres, and the fixed pages), as <url> entries.
 // A work's date is when its latest Divan version was published. Split into files of CHUNK (a file may hold 50,000;
 // the site has over 40,000 addresses), listed by the sitemap index /sitemap.xml.
 import { api } from './api';
@@ -20,5 +20,6 @@ export async function sitemapUrls(base: string) {
     ...s.works.map((w: any) => loc(w.url, w.updated)),
     ...s.tags.map((t: any) => loc(`/tag/${t.type}/${t.name}`)),
     ...s.ebooks.map((b: any) => loc(`/ebook/${b.id}`)),
+    loc('/bahr'), ...(s.metres ?? []).map((m: string) => loc(`/bahr/${m}`)),
   ] as string[];
 }
