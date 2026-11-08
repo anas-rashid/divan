@@ -220,6 +220,7 @@ export function moderationRoutes(app: FastifyInstance) {
     if (categoryId) {
       const poetId = (await pool.query('SELECT poet_id FROM categories WHERE id = $1', [categoryId])).rows[0]?.poet_id ?? 0;
       return { arrange: await mayArrange(u, categoryId), tags: await mayTag(u, 'category', categoryId), ebooks: await mayUpload(u, poetId),
+        create: await can(u, 'create', 'works', { categoryId }),  // a new work in this book (#20)
         book: await mayDetails(u, 'book', categoryId), poet: await mayDetails(u, 'poet', poetId) };
     }
     return { edit: await mayEdit(u, poemId), review: await mayReview(u, { entity: 'work', entity_id: poemId }), publish: u.role === 'admin',
