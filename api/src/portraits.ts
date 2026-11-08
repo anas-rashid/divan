@@ -11,7 +11,10 @@
 //   npm run portraits [-- --force]             fetch or refresh them; the daily sync runs it (only changed pictures download)
 // Where a picture comes from, in order: the file divan-data names (Wikisource's author page), else the lead image of the
 // poet's Urdu Wikipedia article. Only pictures Wikimedia marks as free are taken, and the artist and licence are kept
-// for the credit line under the portrait.
+// for the credit line under the portrait. A poet with neither but with a page on Ganjoor (poets.ganjoor) gets Ganjoor's
+// picture, credited to Ganjoor; once taken it stays (like an upload) until an admin changes it.
+//   npm run portraits -- --ganjoor             once (owner, 2026-11-09): Ganjoor's picture for every poet with a Ganjoor
+//                                              page, even where Wikimedia gave one (not uploads)
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
@@ -154,7 +157,23 @@ async function fileInfo(file: string) {
   return null;
 }
 
-async function run(force: boolean, focusAll = false) {
+// a poet's picture on Ganjoor (their small portrait, 82×100), stored like the others; false when Ganjoor has none
+async function fromGanjoor(p: { id: number; nickname: string; ganjoor: string }) {
+  const url = `https://api.ganjoor.net/api/ganjoor/poet/image/${encodeURIComponent(p.ganjoor)}.gif`;
+  const res = await fetch(url, { headers: { 'user-agent': UA } });
+  const img = Buffer.from(await res.arrayBuffer()), ext = res.ok && imageOf(img);
+  if (!ext) return false;
+  const name = `${createHash('sha256').update(img).digest('hex')}.${ext}`;
+  await mkdir(dirname(pathOf(name)), { recursive: true });
+  await writeFile(pathOf(name), img);
+  const focus = faceFocus([pathOf(name)])[pathOf(name)] ?? null;
+  await pool.query('UPDATE poets SET portrait = $1, portrait_credit = $2 WHERE id = $3',
+    [name, { from: 'ganjoor', source: url, page: `https://ganjoor.net/${p.ganjoor}`, artist: null, licence: null, focus }, p.id]);
+  console.log(`${p.nickname}: Ganjoor (${p.ganjoor})`);
+  return true;
+}
+
+async function run(force: boolean, focusAll = false, ganjoorFirst = false) {
   const dataDir = process.env.DIVAN_DATA_DIR ?? fileURLToPath(new URL('../../../divan-data', import.meta.url));
   // each poet's Urdu Wikipedia article, from divan-data's poet list (matched by name)
   const wiki = new Map<string, string>(), named = new Map<string, string>();
@@ -164,16 +183,19 @@ async function run(force: boolean, focusAll = false) {
     }
   } catch { console.log(`no ${dataDir}/export/poets.jsonl: pictures named by divan-data only`); }
   // a poet whose portrait an admin removed (portrait_credit.removed) is left alone
-  const { rows } = await pool.query(`SELECT id, name, nickname, image_url, portrait, portrait_credit FROM poets WHERE portrait_credit->>'removed' IS NULL
-    AND coalesce(portrait_credit->>'from', '') <> 'upload' ORDER BY id`);
+  // an upload, and a Ganjoor picture once taken, stay as they are
+  const { rows } = await pool.query(`SELECT id, name, nickname, image_url, portrait, portrait_credit, ganjoor FROM poets WHERE portrait_credit->>'removed' IS NULL
+    AND coalesce(portrait_credit->>'from', '') NOT IN ('upload', 'ganjoor') ORDER BY id`);
   let got = 0, kept = 0, none = 0;
   for (const p of rows) {
     try {
+      if (ganjoorFirst && p.ganjoor && await fromGanjoor(p)) { got++; continue; }
       const fromUrl = p.image_url ? decodeURIComponent(p.image_url.split('/Special:FilePath/')[1] ?? '') : '';
       const given = (fromUrl || named.get(p.name) || named.get(p.nickname) || '').replace(/_/g, ' ');
       const article = wiki.get(p.name) ?? wiki.get(p.nickname);
       const lead = !given && article ? await leadImage(article) : undefined;
       const file = given || (lead && !NOT_A_FACE.test(lead) ? lead : undefined);
+      if (!file && p.ganjoor && await fromGanjoor(p)) { got++; continue; }
       if (!file) { if (p.portrait && force) await pool.query('UPDATE poets SET portrait = NULL, portrait_credit = NULL WHERE id = $1', [p.id]); none++; continue; }
       if (!force && p.portrait && p.portrait_credit?.source === file) { kept++; continue; } // already have this picture
       const info = await fileInfo(file);
@@ -203,6 +225,6 @@ async function run(force: boolean, focusAll = false) {
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  await run(process.argv.includes('--force'), process.argv.includes('--focus'));
+  await run(process.argv.includes('--force'), process.argv.includes('--focus'), process.argv.includes('--ganjoor'));
   await pool.end();
 }

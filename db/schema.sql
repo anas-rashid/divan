@@ -396,3 +396,6 @@ CREATE TABLE IF NOT EXISTS suggestion_votes (
 -- a ghazal's pen name as written in its maqta, when the text does not mark it with ؔ (export_divan.py learns each
 -- poet's pen names from their ghazals); the work page sets it apart like a marked one
 ALTER TABLE poems ADD COLUMN IF NOT EXISTS takhallus text;
+
+-- the poet's page on Ganjoor (divan-data poet.json Ganjoor): its portrait when Wikimedia has none (api/src/portraits.ts)
+ALTER TABLE poets ADD COLUMN IF NOT EXISTS ganjoor text;

@@ -57,7 +57,7 @@ const DONE: Record<string, string> = { approve: 'تصویر منظور ہو گئ
           <a href={p.url}><strong>{p.nickname}</strong></a>
           <a class="file" href={p.credit?.page} rel="noopener" dir="ltr">{p.credit?.source}</a>
           <small class="muted"><bdi>{p.credit?.licence}</bdi>{p.credit?.artist && <> · <bdi>{p.credit.artist}</bdi></>}</small>
-          <span class:list={['badge', { warn: p.waiting }]}>{({ wikipedia: 'ویکی پیڈیا', upload: 'بھیجی گئی' } as Record<string, string>)[p.credit?.from] ?? 'ویکی ماخذ'}{p.credit?.from !== 'wikisource' && p.credit?.from && (p.waiting ? ' · منظوری باقی' : ' · منظور شدہ')}</span>
+          <span class:list={['badge', { warn: p.waiting }]}>{({ wikipedia: 'ویکی پیڈیا', upload: 'بھیجی گئی', ganjoor: 'گنجور' } as Record<string, string>)[p.credit?.from] ?? 'ویکی ماخذ'}{!['wikisource', 'ganjoor'].includes(p.credit?.from) && p.credit?.from && (p.waiting ? ' · منظوری باقی' : ' · منظور شدہ')}</span>
         </div>
         {/* framing: move and zoom the picture onto the face; the avatar above follows the sliders */}
         {p.may.edit && <form method="post" class="frame">

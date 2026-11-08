@@ -154,7 +154,9 @@ import PoetAvatar from '../components/PoetAvatar.astro';
         {page.poet.description && <div class="intro lit" lang={page.poet.source_url?.includes('ganjoor.net') ? 'fa' : undefined}>{page.poet.description.split(/\n\s*\n/).map((p: string) => <p>{p}</p>)}</div>}
         {page.poet.description && page.poet.source_url && <p class="muted center intro-src">تعارف: <a href={page.poet.source_url} rel="noopener">{/ganjoor\.net/.test(page.poet.source_url) ? 'گنجور' : 'ماخذ'}</a></p>}
         {portraitShown && (
-          <p class="muted center intro-src portrait-credit">تصویر: {credit.artist && <><bdi>{credit.artist}</bdi> · </>}{credit.licence_url ? <a href={credit.licence_url} rel="noopener"><bdi>{credit.licence}</bdi></a> : <bdi>{credit.licence}</bdi>} · <a href={credit.page} rel="noopener">ویکی میڈیا کامنز</a></p>
+          credit.from === 'ganjoor'
+            ? <p class="muted center intro-src portrait-credit">تصویر: <a href={credit.page} rel="noopener">گنجور</a></p>
+            : <p class="muted center intro-src portrait-credit">تصویر: {credit.artist && <><bdi>{credit.artist}</bdi> · </>}{credit.licence_url ? <a href={credit.licence_url} rel="noopener"><bdi>{credit.licence}</bdi></a> : <bdi>{credit.licence}</bdi>} · <a href={credit.page} rel="noopener">ویکی میڈیا کامنز</a></p>
         )}
       </section>
     </>
