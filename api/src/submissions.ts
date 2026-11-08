@@ -8,6 +8,9 @@
 //   GET  /api/mod/submissions?status=           moderators: pending (default), accepted, rejected, published
 //   GET  /api/mod/submissions/:id               one submission with its Divan text (prepared, or drafted from it)
 //   POST /api/mod/submissions/:id/:action       accept | reject | publish   {category, content, note}
+//   POST /api/mod/submissions/new               {category, content}: a moderator's own new work (#20) in a book they may add
+//                                               to, its Divan text ready (ماخذ in it): accepted when an L1 or admin makes it,
+//                                               an L2's waits for an L1; then published like any other
 import type { FastifyInstance } from 'fastify';
 import { pool } from './db.ts';
 import { sessionUser, publicName } from './auth.ts';
@@ -32,6 +35,9 @@ export function draftText(s: { title: string; poet: string; kind: string; text: 
 const err = (code: number, error: string) => Object.assign(new Error(error), { code });
 
 async function category(ref: unknown) {
+  // a book's id (the new-work page) or its link (/p238/shaeri/c641, as moderators paste it)
+  if (/^\d+$/.test(String(ref ?? '').trim()))
+    return (await pool.query('SELECT id, url, title FROM categories WHERE id = $1', [Number(ref)])).rows[0] as { id: number; url: string; title: string } | undefined;
   const url = '/' + String(ref ?? '').trim().replace(/^https?:\/\/[^/]+/, '').replace(/[?#].*$/, '').replace(/^\/+|\/+$/g, '');
   return (await pool.query('SELECT id, url, title FROM categories WHERE url = $1', [decodeURI(url)])).rows[0] as { id: number; url: string; title: string } | undefined;
 }
@@ -104,6 +110,27 @@ export function submissionRoutes(app: FastifyInstance) {
     const status = ['pending', 'accepted', 'rejected', 'published'].includes(req.query.status ?? '') ? req.query.status : 'pending';
     return (await pool.query(`SELECT s.id, s.poet, s.book, s.title, s.kind, s.status, s.created_at, s.updated_at, c.title AS category
       FROM submissions s LEFT JOIN categories c ON c.id = s.category_id WHERE s.status = $1 ORDER BY s.created_at LIMIT 500`, [status])).rows;
+  });
+
+  app.post<{ Body: any }>('/api/mod/submissions/new', async (req, reply) => {
+    const u = await sessionUser(req);
+    if (!u || !MODS.includes(u.role)) return reply.code(u ? 403 : 401).send({ error: 'صرف موڈریٹرز کے لیے' });
+    const cat = await category(req.body?.category);
+    if (!cat) return reply.code(400).send({ error: 'کتاب یا حصہ نہیں ملا' });
+    if (!(await can(u, 'create', 'works', { categoryId: cat.id }))) return reply.code(403).send({ error: 'اس کتاب میں نیا کلام شامل کرنے کی اجازت نہیں' });
+    const content = clean(req.body?.content, 200_000), doc = parse(content), verses = toVerses(doc);
+    const title = (doc.meta['عنوان'] ?? '').trim(), source = (doc.meta['ماخذ_لنک'] || doc.meta['ماخذ'] || '').trim();
+    if (!title) return reply.code(400).send({ error: 'عنوان لکھیں' });
+    if (!verses.length) return reply.code(400).send({ error: 'متن خالی ہے' });
+    if (!source) return reply.code(400).send({ error: 'ماخذ لکھیں: کتاب، ایڈیشن، صفحہ یا لنک' });
+    const poet = (await pool.query('SELECT t.nickname FROM categories c JOIN poets t ON t.id = c.poet_id WHERE c.id = $1', [cat.id])).rows[0]?.nickname ?? '';
+    const kind = verses.some((v) => ['Right', 'Left', 'Single'].includes(v.Position)) ? 'poetry' : 'prose';
+    const accepted = u.role !== 'mod-l2';  // an L2's own work is reviewed by an L1, as their edits are
+    const id = (await pool.query(`INSERT INTO submissions (user_id, poet, book, title, kind, text, source, status, category_id, content, reviewer_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
+      [u.id, poet, cat.title, title.slice(0, 300), kind, verses.map((v) => v.Text).join('\n').slice(0, 100_000), source.slice(0, 1000),
+        accepted ? 'accepted' : 'pending', cat.id, content, accepted ? u.id : null])).rows[0].id;
+    return { id, status: accepted ? 'accepted' : 'pending' };
   });
 
   app.get<{ Params: { id: string } }>('/api/mod/submissions/:id', async (req, reply) => {

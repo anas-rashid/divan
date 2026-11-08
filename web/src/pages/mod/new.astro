@@ -1,0 +1,92 @@
+---
+// A moderator's new work in a book (#20): title, source and the text in the Urdu editor (typed, pasted, or a .docx/.odt/.txt
+// imported). Saved as a submission already prepared (api submissions.ts /api/mod/submissions/new): accepted when an L1 or
+// admin makes it, an L2's reviewed by an L1; an admin publishes it to divan-data like any other.
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import ModNav from '../../components/ModNav.astro';
+import { asUser, COOKIE } from '../../lib/auth';
+
+const me = Astro.locals.user, category = Number(Astro.url.searchParams.get('category')) || 0, book = Astro.url.searchParams.get('book') ?? '';
+if (!me) return Astro.redirect(`/signin?next=${encodeURIComponent(Astro.url.pathname + Astro.url.search)}`);
+const token = Astro.cookies.get(COOKIE)!.value;
+let error = '', content = '';
+if (Astro.request.method === 'POST') {
+  content = String((await Astro.request.formData()).get('content') ?? '');
+  const r = await asUser(token, '/api/mod/submissions/new', { category, content });
+  if (r.ok) return Astro.redirect(`/mod/submissions/${r.data.id}`);
+  error = r.data.error ?? 'کچھ غلط ہو گیا';
+}
+const may = category ? (await asUser(token, `/api/mod/can?category=${category}`)).data : {};
+if (!may.create) return new Response('اس کتاب میں نیا کلام شامل کرنے کی اجازت نہیں', { status: 403 });
+---
+<Base title={`نیا کلام${book ? `: ${book}` : ''}`}>
+  <h1>نیا کلام{book && <small class="muted"> · {book}</small>}</h1>
+  <ModNav current="submissions" />
+  {error && <p class="form-error" role="alert">{error}</p>}
+  <form method="post" class="mod-edit" id="new-work">
+    <label>عنوان (غزل کا پہلا مصرع، یا نظم کا نام)<input id="nw-title" required maxlength="300" data-urdu /></label>
+    <label>ماخذ: کتاب، ایڈیشن، صفحہ<input id="nw-source" required maxlength="500" data-urdu placeholder="مثلاً: کلیاتِ میر، مجلسِ ترقیِ ادب، لاہور ۱۹۶۸، صفحہ ۱۲" /></label>
+    <label>ماخذ کا لنک (اختیاری: اسکین یا آن لائن نسخہ)<input id="nw-link" type="url" dir="ltr" maxlength="500" /></label>
+    <div class="toolbar" role="toolbar" aria-label="ایڈیٹر">
+      <button type="button" class="tool" data-cmd="couplet" title="نیا شعر (دو مصرعے)" aria-label="نیا شعر"><Icon name="couplet" size={18} /></button>
+      <button type="button" class="tool" data-cmd="para" title="نثر کا نیا پیراگراف" aria-label="نیا پیراگراف"><Icon name="para" size={18} /></button>
+      <button type="button" class="tool" data-cmd="h2" title="باب کا عنوان" aria-label="باب کا عنوان"><Icon name="h2" size={18} /></button>
+      <button type="button" class="tool" data-cmd="h3" title="ذیلی عنوان" aria-label="ذیلی عنوان"><Icon name="h3" size={18} /></button>
+      <span class="sep"></span>
+      <button type="button" class="tool" data-cmd="note" title="حاشیہ لگائیں" aria-label="حاشیہ"><Icon name="note" size={18} /></button>
+      <button type="button" class="tool" data-cmd="undo" title="پچھلی تبدیلی واپس" aria-label="واپس"><Icon name="undo" size={18} /></button>
+      <button type="button" class="tool" data-cmd="redo" title="تبدیلی دوبارہ" aria-label="دوبارہ"><Icon name="redo" size={18} /></button>
+      <button type="button" class="tool" data-urdu-rom="dv-editor-host" title="رومن حروف سے اردو" aria-label="رومن حروف سے اردو">اب</button>
+      <button type="button" class="tool" data-urdu-kb="dv-editor-host" title="اردو کی بورڈ" aria-label="اردو کی بورڈ"><Icon name="keyboard" size={18} /></button>
+      <span class="sep"></span>
+      <button type="button" class="tool" data-cmd="import" title="فائل سے متن لائیں (.docx، .odt، .txt)" aria-label="فائل سے متن لائیں"><Icon name="upload" size={18} /> فائل</button>
+      <input type="file" id="import-file" accept=".docx,.odt,.txt,text/plain" hidden />
+    </div>
+    <p class="import-note" id="import-note" role="status" hidden></p>
+    <div id="dv-editor-host"></div>
+    <p class="muted note">Enter: اسی شعر میں نیا مصرع · خالی مصرع پر Enter: نیا شعر · Word، LibreOffice یا ویب سے کئی سطریں چسپاں کریں یا «فائل» سے لائیں · <a href="/mod/guide" target="_blank">لکھنے کا طریقہ</a></p>
+    <textarea name="content" id="nw-content" hidden>{content}</textarea>
+    <div class="filter-actions">
+      <button class="btn primary"><Icon name={me.role === 'mod-l2' ? 'send' : 'save'} size={18} /> {me.role === 'mod-l2' ? 'جائزے کے لیے بھیجیں' : 'محفوظ کریں (اشاعت کے لیے)'}</button>
+    </div>
+  </form>
+  <script>
+    import { createEditor, fromEditor, actions, importFile, insertDivanText } from '../../lib/editor';
+    import { parse } from '../../../../api/src/divantext.ts';
+    const form = document.getElementById('new-work') as HTMLFormElement, content = document.getElementById('nw-content') as HTMLTextAreaElement;
+    const host = document.getElementById('dv-editor-host')!;
+    const { editor } = createEditor(host, content.value);
+    // after a refused save: the fields back from the text
+    const back = parse(content.value).meta;
+    const field = (id: string) => document.getElementById(id) as HTMLInputElement;
+    field('nw-title').value = back['عنوان'] ?? ''; field('nw-source').value = back['ماخذ'] ?? ''; field('nw-link').value = back['ماخذ_لنک'] ?? '';
+    form.addEventListener('submit', () => {
+      const meta: Record<string, string> = { عنوان: field('nw-title').value.trim(), ماخذ: field('nw-source').value.trim() };
+      if (field('nw-link').value.trim()) meta['ماخذ_لنک'] = field('nw-link').value.trim();
+      content.value = fromEditor(editor.getJSON(), meta);
+    });
+    const note = document.getElementById('import-note')!;
+    const file = document.getElementById('import-file') as HTMLInputElement;
+    file.onchange = async () => {
+      const f = file.files?.[0]; if (!f) return;
+      try {
+        const text = await importFile(f);
+        insertDivanText(editor, text, !editor.getText().trim() || confirm('فائل کا متن موجودہ متن کی جگہ رکھیں؟\n«منسوخ» سے یہ آخر میں جڑ جائے گا۔') ? 'replace' : 'end');
+        note.textContent = 'فائل کا متن آ گیا۔ محفوظ کرنے سے پہلے دیکھ لیں کہ شعر، بند اور نثر درست بنے ہیں۔'; note.hidden = false;
+      } catch (err: any) { note.textContent = `یہ فائل نہیں کھل سکی: ${err?.message ?? err}`; note.hidden = false; }
+      file.value = '';
+    };
+    const bar = form.querySelector('.toolbar')!;
+    bar.addEventListener('mousedown', (e) => e.preventDefault());  // keep the editor's selection
+    bar.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-cmd]'); if (!b) return;
+      const c = b.dataset.cmd!;
+      if (c === 'import') file.click();
+      else if (c === 'undo') editor.chain().focus().undo().run();
+      else if (c === 'redo') editor.chain().focus().redo().run();
+      else if (c === 'h2' || c === 'h3') actions.heading(editor, c === 'h2' ? 2 : 3);
+      else (actions as any)[c](editor);
+    });
+  </script>
+</Base>
