@@ -47,10 +47,12 @@ const pages = Math.ceil(res.total / res.pageSize);
   <ul class="suggestions">
     {res.items.map((s: any) => (
       <li id={`s${s.id}`}>
-        <form method="post" class="vote">
-          <input type="hidden" name="id" value={s.id} />
-          <button disabled={!me} aria-pressed={s.voted ? 'true' : 'false'} title={me ? (s.voted ? 'ووٹ واپس لیں' : 'ووٹ دیں') : 'ووٹ کے لیے لاگ ان کریں'}><Icon name="up" size={16} /> {ud(s.votes)}</button>
-        </form>
+        {me ? (
+          <form method="post" class="vote">
+            <input type="hidden" name="id" value={s.id} />
+            <button aria-pressed={s.voted ? 'true' : 'false'} title={s.voted ? 'ووٹ واپس لیں' : 'ووٹ دیں'}><Icon name="up" size={16} /> {ud(s.votes)}</button>
+          </form>
+        ) : <span class="vote-count" title="ووٹ"><Icon name="up" size={16} /> {ud(s.votes)}</span>}
         <div>
           <a class="s-title" href={`/suggestions/${s.id}`}>{s.title}</a>
           <p class="muted small-line">{CATEGORY[s.category]} · {STATUS[s.status]}{s.target_url && <> · <a href={s.target_url}>{s.target_title}</a></>} · {s.author} · {ago(s.created_at)}</p>

@@ -26,10 +26,11 @@ if (!s?.id) return new Response(null, { status: 404, statusText: 'Not found' });
   <p class="center muted">{CATEGORY[s.category]} · <strong>{STATUS[s.status]}</strong> · {s.author} · {ago(s.created_at)}{s.target_url && <> · <a href={s.target_url}>{s.target_title}</a></>}</p>
   {error && <p class="form-error" role="alert">{error}</p>}
   <article class="suggestion-body" dir="auto" set:html={s.html} />
-  <form method="post" class="vote center">
-    <button name="act" value="vote" disabled={!me || s.mine} aria-pressed={s.voted ? 'true' : 'false'}><Icon name="up" size={16} /> {ud(s.votes)} {s.voted ? 'ووٹ دیا' : 'ووٹ'}</button>
-    {!me && <small class="muted"> · <a href={`/signin?next=/suggestions/${s.id}`}>ووٹ کے لیے لاگ ان کریں</a></small>}
-  </form>
+  {me && !s.mine ? (
+    <form method="post" class="vote center">
+      <button name="act" value="vote" aria-pressed={s.voted ? 'true' : 'false'}><Icon name="up" size={16} /> {ud(s.votes)} {s.voted ? 'ووٹ دیا' : 'ووٹ'}</button>
+    </form>
+  ) : <p class="center"><span class="vote-count"><Icon name="up" size={16} /> {ud(s.votes)} ووٹ</span></p>}
   {s.mod_note && <div class="mod-answer"><p class="muted small-line">{s.moderator} کا جواب:</p><p>{s.mod_note}</p></div>}
   {s.canModerate && (
     <form method="post" class="account-form">

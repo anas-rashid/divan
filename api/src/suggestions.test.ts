@@ -35,6 +35,11 @@ test('suggestions: a reader posts about a page, others vote, a moderator answers
     assert.deepEqual([s.target_url, s.author, s.votes, s.status, s.html], [work.url, 'ایک قاری', 0, 'open', '<p>دوسرا مصرع غلط ہے</p>']);
     assert.ok(s.target_title.startsWith(work.title));
 
+    // reading is open; every action needs a registered reader
+    assert.equal((await call('GET', `/api/suggestions/${id}`)).statusCode, 200);
+    assert.equal((await call('POST', `/api/suggestions/${id}/vote`, {})).statusCode, 401);
+    assert.equal((await call('POST', `/api/suggestions/${id}/delete`, {})).statusCode, 401);
+    assert.equal((await call('POST', `/api/suggestions/${id}/status`, { status: 'done' })).statusCode, 403);
     assert.match((await call('POST', `/api/suggestions/${id}/vote`, {}, a.token)).json().error, /اپنی/, 'not one\'s own');
     assert.deepEqual((await call('POST', `/api/suggestions/${id}/vote`, {}, b.token)).json(), { voted: true, votes: 1 });
     assert.equal((await call('GET', `/api/suggestions/${id}`, undefined, b.token)).json().voted, true);
@@ -58,6 +63,11 @@ test('suggestions: a reader posts about a page, others vote, a moderator answers
     assert.equal((await call('GET', `/api/suggestions/${h}`, undefined, b.token)).statusCode, 404);
     assert.equal((await call('GET', `/api/suggestions/${h}`, undefined, a.token)).statusCode, 200);
     assert.equal((await call('GET', `/api/suggestions/${h}`, undefined, mod.token)).statusCode, 200);
+    // the lists, as a moderator and as a reader: the hidden one only for the moderator (and its author)
+    const hiddenIn = async (token: string) => (await call('GET', '/api/suggestions?status=all', undefined, token)).json().items.some((x: any) => x.id === h);
+    assert.equal(await hiddenIn(mod.token), true);
+    assert.equal(await hiddenIn(b.token), false);
+    assert.equal(await hiddenIn(a.token), true);
 
     const d = (await post({ title: `واپس ${run}`, url: '' })).json().id;
     assert.equal((await call('GET', `/api/suggestions/${d}`)).json().target_url, null, 'about no particular page');

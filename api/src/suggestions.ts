@@ -50,8 +50,8 @@ export function suggestionRoutes(app: FastifyInstance) {
     if ((CATEGORIES as readonly string[]).includes(q.category ?? '')) where.push(`s.category = $${args.push(q.category)}`);
     const status = q.status === 'all' ? null : (STATUSES as readonly string[]).includes(q.status ?? '') ? q.status : 'open';
     if (status) where.push(`s.status = $${args.push(status)}`);
-    // hidden ones only for moderators and their authors
-    if (!isModerator(u)) where.push(`(s.status <> 'hidden' OR s.user_id = $1)`);
+    // hidden ones only for moderators and their authors ($1 always appears, or Postgres cannot type it)
+    where.push(`(s.status <> 'hidden' OR s.user_id = $1::bigint OR ${isModerator(u)})`);
     if (q.url) where.push(`s.target_url = $${args.push(q.url)}`);
     const sql = `FROM suggestions s JOIN users u ON u.id = s.user_id WHERE ${where.join(' AND ')}`;
     const [total, rows] = await Promise.all([
