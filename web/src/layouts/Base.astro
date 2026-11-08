@@ -102,7 +102,7 @@ import { siteUrl } from '../lib/site-url';
                 <input type="range" min="90" max="150" step="10" value="100" data-size aria-label="حروف کا سائز" /></label>
               <p>رنگ</p>
               <div class="swatches">
-                {[['', 'سپیا', '#fbf6ea', '#bf3f2a'], ['teal', 'فیروزی', '#e2f0ee', '#0b4f6c'], ['lapis', 'نیلگوں', '#e6ebf8', '#1d3b8b'],
+                {[['', 'سپیا', '#fbf6ea', '#bf3f2a'], ['white', 'سفید', '#ffffff', '#111111'], ['teal', 'فیروزی', '#e2f0ee', '#0b4f6c'], ['lapis', 'نیلگوں', '#e6ebf8', '#1d3b8b'],
                   ['green', 'سبز', '#e5eede', '#1f5d3a'], ['rose', 'گلابی', '#f5e6ea', '#6b2c5e']].map(([v, name, a, b]) => (
                   <button type="button" data-palette={v} title={name} aria-label={name} style={`--a: ${a}; --b: ${b}`}><span></span>{name}</button>
                 ))}
