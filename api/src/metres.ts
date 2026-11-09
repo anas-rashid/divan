@@ -1,5 +1,5 @@
 // Metres (بحر) and works in the same zameen (ہم زمین), as Ganjoor builds them: a work's metre comes from divan-data
-// (Ganjoor's for Persian works; for Urdu works our scanner, later), and its rhyme letters (قافیہ و ردیف, spaces dropped)
+// (Ganjoor's for Persian works; else the scanner's suggestion, taqti.py, shown as «خودکار»), and its rhyme letters (قافیہ و ردیف, spaces dropped)
 // from the export (Ganjoor's FindRhyme, ported). A moderator corrects a metre with a published «بحر» tag on the work
 // (tags.ts, through the review pipeline); the tag wins over the data everywhere.
 //   GET /api/metres              every metre with its number of works, most used first
@@ -13,10 +13,10 @@ const PAGE = 100;
 const METRE = `coalesce((SELECT g.name FROM entity_tags e JOIN tags g ON g.id = e.tag_id
   WHERE g.type = 'بحر' AND e.entity = 'work' AND e.entity_id = p.id AND e.couplet = 0 AND e.phrase = '' ORDER BY e.tag_id LIMIT 1), p.metre)`;
 
-export async function zameen(poem: { id: number; metre: string | null; rhyme: string | null; language: string | null }) {
+export async function zameen(poem: { id: number; metre: string | null; rhyme: string | null; language: string | null; metre_auto?: boolean }) {
   const m = (await pool.query(`SELECT ${METRE} AS metre, ${METRE} IS DISTINCT FROM p.metre AS corrected FROM poems p WHERE p.id = $1`, [poem.id])).rows[0];
   const metre = m?.metre ?? null;
-  const source = !metre ? null : m.corrected ? 'mod' : poem.language?.startsWith('fa') ? 'ganjoor' : 'auto';
+  const source = !metre ? null : m.corrected ? 'mod' : poem.metre_auto || !poem.language?.startsWith('fa') ? 'auto' : 'ganjoor';
   // the same rhyme letters and the same metre; while a work has no metre (Urdu, until the scanner), the same rhyme
   // letters alone, long enough to be a radif or a full qafia (a single «ا» would match thousands)
   if (!poem.rhyme || (!metre && [...poem.rhyme].length < 3)) return { metre, source, rhymeOnly: !metre, works: [] };

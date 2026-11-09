@@ -17,6 +17,9 @@ test('metres: a metre\'s works, the same zameen (metre + rhyme), rhyme alone wit
     await set(ps[0], metre, rhyme); await set(ps[1], metre, rhyme); await set(ps[2], null, rhyme);
     const z = await zameen({ ...ps[0], metre, rhyme });
     assert.deepEqual([z.metre, z.source, z.rhymeOnly], [metre, 'auto', false]);
+    // a Persian work's metre is Ganjoor's, unless the scanner suggested it
+    assert.equal((await zameen({ ...ps[0], metre, rhyme, language: 'fa-IR' })).source, 'ganjoor');
+    assert.equal((await zameen({ ...ps[0], metre, rhyme, language: 'fa-IR', metre_auto: true })).source, 'auto');
     assert.equal(z.works.length, 1, 'the other work in the metre and rhyme; not the one without a metre');
     const list = (await app.inject(`/api/metre?name=${encodeURIComponent(metre)}`)).json();
     assert.equal(list.total, 2);
