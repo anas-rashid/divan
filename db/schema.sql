@@ -399,3 +399,6 @@ ALTER TABLE poems ADD COLUMN IF NOT EXISTS takhallus text;
 
 -- the poet's page on Ganjoor (divan-data poet.json Ganjoor): its portrait when Wikimedia has none (api/src/portraits.ts)
 ALTER TABLE poets ADD COLUMN IF NOT EXISTS ganjoor text;
+
+-- a metre the scanner suggested (divan-data taqti.py, Metre.Source auto), not the source's: shown as «خودکار»
+ALTER TABLE poems ADD COLUMN IF NOT EXISTS metre_auto boolean NOT NULL DEFAULT false;

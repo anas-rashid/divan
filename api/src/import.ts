@@ -54,14 +54,14 @@ for (const entry of manifest.Poets) {
         const searchText = normalise([p.Title, ...p.Verses.map((v: any) => v.Text)].join(' '));
         await client.query(
           `INSERT INTO poems (id, category_id, poet_id, url, title, full_title, source_url, position, search_text,
-             radif, matla, maqta, radif_letter, language, source_name, metre, rhyme, takhallus)
-           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18)
+             radif, matla, maqta, radif_letter, language, source_name, metre, rhyme, takhallus, metre_auto)
+           VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)
            ON CONFLICT (id) DO UPDATE SET category_id=$2, poet_id=$3, url=$4, title=$5, full_title=$6,
              source_url=$7, position=$8, search_text=$9, radif=$10, matla=$11, maqta=$12, radif_letter=$13, language=$14, source_name=$15,
-             metre=$16, rhyme=$17, takhallus=$18`,
+             metre=$16, rhyme=$17, takhallus=$18, metre_auto=$19`,
           [p.Id, cat.Id, poet.Id, p.FullUrl, p.Title, p.FullTitle, p.SourceUrl ?? null, i, searchText,
            p.Radif ?? null, p.Matla ?? null, p.Maqta ?? null, ref.RadifLetter ?? null, p.Language ?? null, p.SourceName ?? null,
-           p.Metre?.Rhythm ?? null, p.RhymeLetters ?? null, p.Takhallus ?? null],
+           p.Metre?.Rhythm ?? null, p.RhymeLetters ?? null, p.Takhallus ?? null, p.Metre?.Source === 'auto'],
         );
         await client.query('DELETE FROM verses WHERE poem_id = $1', [p.Id]);
         if (p.Verses.length) {
