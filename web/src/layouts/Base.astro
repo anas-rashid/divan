@@ -85,13 +85,13 @@ import { siteUrl } from '../lib/site-url';
         </form>
         <button type="button" class="icon-btn reading-exit" data-reading-toggle title="مطالعے کے انداز سے باہر" aria-label="مطالعے کے انداز سے باہر"><Icon name="close" /></button>
         <nav class="toggles" aria-label="سائٹ">
-          {Astro.locals.user?.role === 'admin' && <a class="icon-btn" href="/admin" title="ایڈمن" aria-label="ایڈمن"><Icon name="admin" /></a>}
-          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="icon-btn" href="/mod" title="موڈریشن" aria-label="موڈریشن"><Icon name="edit" /></a>}
-          {Astro.locals.user && <a class="icon-btn" href="/library" title="محفوظ شدہ" aria-label="محفوظ شدہ"><Icon name="bookmark" /></a>}
-          {Astro.locals.user && <a class="icon-btn" href="/notes" title="میرے نوٹس" aria-label="میرے نوٹس"><Icon name="note" /></a>}
-          {Astro.locals.user && <a class="icon-btn" href="/words" title="ذخیرۂ الفاظ" aria-label="ذخیرۂ الفاظ"><span class="glyph-icon"><Icon name="words" /><span aria-hidden="true">ع</span></span></a>}
+          {Astro.locals.user?.role === 'admin' && <a class="icon-btn user-link" href="/admin" title="ایڈمن" aria-label="ایڈمن"><Icon name="admin" /></a>}
+          {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user?.role ?? '') && <a class="icon-btn user-link" href="/mod" title="موڈریشن" aria-label="موڈریشن"><Icon name="edit" /></a>}
+          {Astro.locals.user && <a class="icon-btn user-link" href="/library" title="محفوظ شدہ" aria-label="محفوظ شدہ"><Icon name="bookmark" /></a>}
+          {Astro.locals.user && <a class="icon-btn user-link" href="/notes" title="میرے نوٹس" aria-label="میرے نوٹس"><Icon name="note" /></a>}
+          {Astro.locals.user && <a class="icon-btn user-link" href="/words" title="ذخیرۂ الفاظ" aria-label="ذخیرۂ الفاظ"><span class="glyph-icon"><Icon name="words" /><span aria-hidden="true">ع</span></span></a>}
           {Astro.locals.user
-            ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
+            ? <a class="icon-btn user-link" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
             : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
           {/* wider screens: the features (tags, metres, suggestions…) under «دیگر»; phones: every link behind a menu button */}
           <details class="more-menu">
@@ -100,7 +100,19 @@ import { siteUrl } from '../lib/site-url';
           </details>
           <details class="site-menu">
             <summary class="icon-btn" title="فہرست" aria-label="فہرست"><Icon name="menu" /></summary>
-            <nav class="site-menu-panel footer-links" aria-label="فہرست"><SiteLinks part="all" /></nav>
+            <nav class="site-menu-panel footer-links" aria-label="فہرست">
+              {Astro.locals.user && (  /* phones: the reader's own pages here, not as header buttons (only logout stays) */
+                <div><h2>آپ کا اکاؤنٹ</h2><ul>
+                  <li><a href="/account"><Icon name="user" size={18} /><span>اکاؤنٹ<small><bdi>{Astro.locals.user.full_name || Astro.locals.user.email}</bdi></small></span></a></li>
+                  <li><a href="/library"><Icon name="bookmark" size={18} /><span>محفوظ شدہ<small>شعرا، کلام، اشعار</small></span></a></li>
+                  <li><a href="/notes"><Icon name="note" size={18} /><span>میرے نوٹس<small>اشعار پر نوٹ</small></span></a></li>
+                  <li><a href="/words"><Icon name="words" size={18} /><span>ذخیرۂ الفاظ<small>محفوظ الفاظ اور معانی</small></span></a></li>
+                  {['mod-l2', 'mod-l1', 'admin'].includes(Astro.locals.user.role) && <li><a href="/mod"><Icon name="edit" size={18} /><span>موڈریشن<small>ترامیم اور جائزے</small></span></a></li>}
+                  {Astro.locals.user.role === 'admin' && <li><a href="/admin"><Icon name="admin" size={18} /><span>ایڈمن<small>صارفین، اجازتیں، اعداد و شمار</small></span></a></li>}
+                </ul></div>
+              )}
+              <SiteLinks part="all" />
+            </nav>
           </details>
           <details class="display-menu">
             <summary class="icon-btn" title="خط اور رنگ" aria-label="خط اور رنگ"><Icon name="settings" /></summary>
