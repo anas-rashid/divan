@@ -1153,3 +1153,27 @@ main[data-loading]::before { content: ''; display: block; height: 3px; margin: 1
 .rich-editor { min-height: 160px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-page); outline: none; }
 .rich-editor:focus { border-color: var(--brand); }
 .rich-editor p.is-editor-empty:first-child::before { content: attr(data-placeholder); color: var(--text-muted); float: inline-start; pointer-events: none; height: 0; }
+/* phones: the site's links behind the header's menu button (Base.astro .site-menu), not down the footer */
+.site-menu { display: none; position: relative; }
+.site-menu > summary { list-style: none; }
+.site-menu > summary::-webkit-details-marker { display: none; }
+.site-menu[open] > summary { border-color: var(--active); color: var(--active); }
+@media (max-width: 640px) {
+  .site-menu { display: flex; }
+  .site-footer .footer-links { display: none; }
+  .site-menu-panel.footer-links { position: fixed; top: var(--header-h, 80px); inset-inline: 8px; z-index: 30; display: grid; grid-template-columns: 1fr;
+    gap: 10px; max-height: calc(100dvh - var(--header-h, 80px) - 84px); overflow-y: auto; /* clear of the reading toolbar at the bottom */ padding: 12px 18px; border: 1.5px solid var(--border);
+    border-radius: var(--r-lg); background: var(--surface-raised); box-shadow: var(--shadow-lg); }
+}
+/* wider screens: «دیگر» in the header, the features (tags, metres, suggestions, changes) under it (Base.astro .more-menu) */
+.more-menu { position: relative; display: flex; }
+.more-menu > summary { list-style: none; }
+.more-menu > summary::-webkit-details-marker { display: none; }
+.more-btn { display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 12px; border: 1.5px solid var(--border); border-radius: var(--r-pill);
+  color: var(--text); font-size: var(--fs-sm); cursor: pointer; user-select: none; }
+.more-btn .icon { transform: rotate(-90deg); transition: transform .15s; }
+.more-menu[open] > .more-btn { border-color: var(--active); color: var(--active); }
+.more-menu[open] > .more-btn .icon { transform: rotate(90deg); }
+.more-panel.footer-links { position: absolute; top: calc(100% + 8px); left: 0; z-index: 30; display: block; width: 250px; padding: 10px 16px;
+  border: 1.5px solid var(--border); border-radius: var(--r-md); background: var(--surface-raised); box-shadow: var(--shadow-lg); }
+@media (max-width: 640px) { .more-menu { display: none; } }
