@@ -93,10 +93,14 @@ import { siteUrl } from '../lib/site-url';
           {Astro.locals.user
             ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
             : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
-          {/* phones: the site's links (the footer's on wider screens) behind a menu button */}
+          {/* wider screens: the features (tags, metres, suggestions…) under «دیگر»; phones: every link behind a menu button */}
+          <details class="more-menu">
+            <summary class="more-btn" title="ٹیگ، بحریں، تجاویز…">دیگر <Icon name="chevron" size={14} /></summary>
+            <nav class="more-panel footer-links" aria-label="دیگر"><SiteLinks part="features" /></nav>
+          </details>
           <details class="site-menu">
             <summary class="icon-btn" title="فہرست" aria-label="فہرست"><Icon name="menu" /></summary>
-            <nav class="site-menu-panel footer-links" aria-label="فہرست"><SiteLinks /></nav>
+            <nav class="site-menu-panel footer-links" aria-label="فہرست"><SiteLinks part="all" /></nav>
           </details>
           <details class="display-menu">
             <summary class="icon-btn" title="خط اور رنگ" aria-label="خط اور رنگ"><Icon name="settings" /></summary>
@@ -186,7 +190,7 @@ import { siteUrl } from '../lib/site-url';
             {brand.madeBy}
           </p>
         </div>
-        <nav class="footer-links" aria-label="سائٹ کے بارے میں"><SiteLinks /></nav>
+        <nav class="footer-links" aria-label="سائٹ کے بارے میں"><SiteLinks part="site" /></nav>
         <p class="footer-bar">
           <span>متن: عوامی ملکیت · کوڈ: <span lang="en" dir="ltr">GNU GPL v3</span></span>
           <a href={brand.contact.url} rel="noopener">{brand.contact.text}</a>
@@ -241,8 +245,8 @@ import { siteUrl } from '../lib/site-url';
 
       });
       document.addEventListener('click', (e) => { if (panel.open && !panel.contains(e.target)) panel.open = false; }); // close when clicking elsewhere
-      const siteMenu = document.querySelector('.site-menu');
-      document.addEventListener('click', (e) => { if (siteMenu.open && !siteMenu.contains(e.target)) siteMenu.open = false; });
+      for (const menu of document.querySelectorAll('.site-menu, .more-menu'))
+        document.addEventListener('click', (e) => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
       // Western numerals also in what scripts add later (word sidebar, page numbers, suggestions)
       function westernDigits(node) {
       const walk = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);
