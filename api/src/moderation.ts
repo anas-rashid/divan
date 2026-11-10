@@ -180,8 +180,8 @@ async function publish(r: any, u: any, comment?: string) {
         [r.entity_id, title, normalise([title, ...verses.map((v) => v.Text)].join(' '))]);
       await client.query('DELETE FROM verses WHERE poem_id = $1', [r.entity_id]);
       for (const v of verses)
-        await client.query('INSERT INTO verses (poem_id, vorder, position, couplet, text, notes) VALUES ($1, $2, $3, $4, $5, $6)',
-          [r.entity_id, v.VOrder, v.Position, v.CoupletIndex, v.Text, v.Notes ?? null]);
+        await client.query('INSERT INTO verses (poem_id, vorder, position, couplet, text, notes, label) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+          [r.entity_id, v.VOrder, v.Position, v.CoupletIndex, v.Text, v.Notes ?? null, v.Label ?? null]);
     }
     await client.query('COMMIT');
   } catch (e) {

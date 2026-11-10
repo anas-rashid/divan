@@ -83,7 +83,7 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
   const poem = (await pool.query('SELECT * FROM poems WHERE url = $1', [url])).rows[0];
   if (poem) {
     const [verses, poet, crumbs, siblings, edited] = await Promise.all([
-      pool.query('SELECT vorder, position, couplet, text, notes FROM verses WHERE poem_id = $1 ORDER BY vorder', [poem.id]),
+      pool.query('SELECT vorder, position, couplet, text, notes, label FROM verses WHERE poem_id = $1 ORDER BY vorder', [poem.id]),
       pool.query('SELECT id, url, nickname FROM poets WHERE id = $1', [poem.poet_id]),
       ancestors(poem.category_id),
       pool.query(
@@ -115,16 +115,24 @@ app.get<{ Querystring: { url?: string } }>('/api/page', async (req, reply) => {
            SELECT id AS root, id FROM categories WHERE parent_id = $1
            UNION ALL
            SELECT tree.root, c.id FROM categories c JOIN tree ON c.parent_id = tree.id)
-         SELECT c.id, c.url, c.title, count(p.id)::int AS poems
+         SELECT c.id, c.url, c.title, count(p.id)::int + (SELECT count(*)::int FROM category_links l JOIN tree t2 ON t2.id = l.category_id WHERE t2.root = c.id) AS poems
          FROM categories c JOIN tree ON tree.root = c.id LEFT JOIN poems p ON p.category_id = tree.id
          GROUP BY c.id ORDER BY c.position, c.id`,
         [cat.id],
       ),
       // a title that is only a number («شمارهٔ ۸۴», many Persian works from Ganjoor): the first line goes with it, so the
       // contents say what each poem is
-      pool.query(`SELECT id, url, title, radif_letter, CASE WHEN title ~ '^[^0-9۰-۹]{0,20}[0-9۰-۹]+$'
-                    THEN (SELECT left(text, 100) FROM verses v WHERE v.poem_id = p.id ORDER BY vorder LIMIT 1) END AS first_line
-                  FROM poems p WHERE category_id = $1 ORDER BY position, id`, [cat.id]),
+      // and the works the book lists from other sections (a divan's ghazals, which live in «غزل»), after its own, in its order
+      pool.query(`SELECT * FROM (
+                    SELECT id, url, title, radif_letter, 0 AS k, position AS pos FROM poems WHERE category_id = $1
+                    UNION ALL
+                    SELECT p.id, p.url, p.title, NULL, 1, l.position FROM category_links l JOIN poems p ON p.id = l.poem_id WHERE l.category_id = $1) x
+                  ORDER BY k, pos, id`, [cat.id])
+        .then(async (r) => {
+          const numbered = r.rows.filter((p) => /^[^0-9۰-۹]{0,20}[0-9۰-۹]+$/.test(p.title)).map((p) => p.id);
+          const first = numbered.length ? (await pool.query(`SELECT DISTINCT ON (poem_id) poem_id, left(text, 100) AS t FROM verses WHERE poem_id = ANY($1) ORDER BY poem_id, vorder`, [numbered])).rows : [];
+          return { rows: r.rows.map(({ k, pos, ...p }) => ({ ...p, first_line: first.find((f) => f.poem_id === p.id)?.t ?? null })) };
+        }),
     ]);
     return {
       type: cat.parent_id === null ? 'poet' : 'category',

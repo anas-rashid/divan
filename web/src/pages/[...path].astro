@@ -13,7 +13,7 @@ const page = await api(`/api/page?url=${encodeURIComponent(url)}`);
 if (!page) return new Response(null, { status: 404, statusText: 'Not found' });
 
 // group verses into couplets / single lines / paragraphs for rendering
-type Verse = { position: string; couplet: number; text: string; notes?: string[] | null };
+type Verse = { position: string; couplet: number; text: string; notes?: string[] | null; label?: string | null };
 const blocks: { kind: 'couplet' | 'single' | 'para'; lines: string[]; refs: number[][]; c: number; mark?: string }[] = [];
 // the work's footnotes (an editor's, e.g. which manuscript a verse comes from), numbered in order; each line keeps its numbers
 const footnotes: string[] = [], seen = new Set<number>();
@@ -23,7 +23,7 @@ if (page.type === 'poem') {
   const { matla, maqta } = page.poem;
   for (const v of page.verses as Verse[]) {
     if (v.position === 'Right') blocks.push({ kind: 'couplet', lines: [v.text], refs: [refsOf(v)], c: v.couplet,
-      mark: v.couplet === matla ? 'مطلع' : v.couplet === maqta ? 'مقطع' : undefined });
+      mark: v.label ?? (v.couplet === matla ? 'مطلع' : v.couplet === maqta ? 'مقطع' : undefined) });  // the text's own label (قطعہ…) first
     else if (v.position === 'Left' && blocks.at(-1)?.kind === 'couplet' && blocks.at(-1)!.lines.length === 1) { blocks.at(-1)!.lines.push(v.text); blocks.at(-1)!.refs.push(refsOf(v)); }
     else if (v.position === 'Paragraph') blocks.push({ kind: 'para', lines: [v.text], refs: [refsOf(v)], c: v.couplet });
     else blocks.push({ kind: 'single', lines: [v.text], refs: [refsOf(v)], c: v.couplet });
@@ -276,8 +276,8 @@ import PoetAvatar from '../components/PoetAvatar.astro';
           {page.divan.history_url && <> · <a href={page.divan.history_url} rel="noopener">تبدیلیاں دیکھیں</a></>}
         </p>
       )}
-      {page.poem.source_url && (
-        <p class="source">ماخذ: <a href={page.poem.source_url}>{page.poem.source_name || (/ganjoor\.net/.test(page.poem.source_url ?? '') ? 'گنجور' : 'ویکی ماخذ')}</a> · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
+      {(page.poem.source_url || page.poem.source_name) && (  // an edition with no address online is named without a link
+        <p class="source">ماخذ: {page.poem.source_url ? <a href={page.poem.source_url}>{page.poem.source_name || (/ganjoor\.net/.test(page.poem.source_url ?? '') ? 'گنجور' : 'ویکی ماخذ')}</a> : page.poem.source_name} · {page.poet && <a href={page.poet.url}>{page.poet.nickname}</a>}</p>
       )}
     </>
   )}

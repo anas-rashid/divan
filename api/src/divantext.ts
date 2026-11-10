@@ -9,6 +9,7 @@
 //                                                                          2 lines = شعر (couplet), 1 = مصرع, 3+ = بند
 //   blank-line paragraphs outside <poem>                                   prose
 //   {{مطلع}} {{حسن مطلع}} {{مقطع}} at the start of a unit                  overrides the computed labels
+//   {{قطعہ}} at the start of a unit                                       a qita inside a ghazal starts here (the editions' «ق»)
 //   [[لفظ]]  [[لغت:دیوانہ|دیوانے]]                                         word linked to the dictionary (lemma|shown)
 //   <ref>…</ref>                                                           footnote
 //   {{نسخہ|متن|دوسرا متن|ماخذ=…}}                                           variant reading (first is shown)
@@ -25,7 +26,7 @@ export type Block =
   | { type: 'couplet' | 'line' | 'stanza'; lines: Inline[]; label?: string };
 export type Doc = { meta: Record<string, string>; blocks: Block[] };
 
-const LABELS = ['مطلع', 'حسن مطلع', 'مقطع'];
+const LABELS = ['مطلع', 'حسن مطلع', 'مقطع', 'قطعہ'];
 
 // {{name | a = b | …}} → fields (positional ones as 1, 2, …); nested templates and links kept as text
 function template(src: string) {
@@ -122,7 +123,7 @@ export function parse(src: string): Doc {
         continue;
       }
       let label: string | undefined;
-      const m = lines[0].match(/^\{\{(مطلع|حسن مطلع|مقطع)\}\}\s*/);
+      const m = lines[0].match(/^\{\{(مطلع|حسن مطلع|مقطع|قطعہ)\}\}\s*/);
       if (m) { label = m[1]; lines[0] = lines[0].slice(m[0].length); }
       lines = lines.filter(Boolean);
       const type = lines.length === 2 ? 'couplet' : lines.length === 1 ? 'line' : 'stanza';
@@ -139,15 +140,16 @@ export const words = (text: string) =>
 // → the site's verse JSON (the ganjoor-data layout divan-data already exports)
 // a line's footnotes ride along as Notes (shown under the work), only when it has some
 export function toVerses(doc: Doc) {
-  const out: { VOrder: number; Position: string; Text: string; CoupletIndex: number; Level?: number; Notes?: string[] }[] = [];
+  const out: { VOrder: number; Position: string; Text: string; CoupletIndex: number; Level?: number; Notes?: string[]; Label?: string }[] = [];
   const notes = (l: Inline) => (l.notes.length ? { Notes: l.notes } : {});
   let couplet = 0;
   for (const b of doc.blocks) {
     // headings inside a work (chapter, sub-heading) are their own kind of verse entry
     if (b.type === 'heading') { out.push({ VOrder: 0, Position: 'Heading', Text: b.text, CoupletIndex: couplet++, Level: b.level }); continue; }
     if (b.type === 'para') out.push({ VOrder: 0, Position: 'Paragraph', Text: b.line.text, CoupletIndex: couplet++, ...notes(b.line) });
-    else if (b.type === 'couplet') { b.lines.forEach((l, i) => out.push({ VOrder: 0, Position: i ? 'Left' : 'Right', Text: l.text, CoupletIndex: couplet, ...notes(l) })); couplet++; }
-    else for (const l of b.lines) out.push({ VOrder: 0, Position: 'Single', Text: l.text, CoupletIndex: couplet++, ...notes(l) });
+    // a unit's label (مطلع, مقطع, قطعہ…) goes with its first line
+    else if (b.type === 'couplet') { b.lines.forEach((l, i) => out.push({ VOrder: 0, Position: i ? 'Left' : 'Right', Text: l.text, CoupletIndex: couplet, ...notes(l), ...(!i && b.label && { Label: b.label }) })); couplet++; }
+    else b.lines.forEach((l, i) => out.push({ VOrder: 0, Position: 'Single', Text: l.text, CoupletIndex: couplet++, ...notes(l), ...(!i && b.label && { Label: b.label }) }));
   }
   return out.map((v, i) => ({ ...v, VOrder: i + 1 }));
 }
@@ -170,7 +172,7 @@ export function toTEI(doc: Doc) {
     else if (b.type === 'para') body.push(`<p>${teiLine(b.line)}</p>`);
     else {
       const type = b.type === 'couplet' ? 'sher' : b.type === 'stanza' ? 'band' : 'misra';
-      const ana = b.label ? ` ana="#${b.label === 'مطلع' ? 'matla' : b.label === 'مقطع' ? 'maqta' : 'husn-e-matla'}"` : '';
+      const ana = b.label ? ` ana="#${({ مطلع: 'matla', مقطع: 'maqta', قطعہ: 'qita' } as Record<string, string>)[b.label] ?? 'husn-e-matla'}"` : '';
       body.push(`<lg type="${type}" n="${++n}"${ana}>${b.lines.map((l, i) => `<l n="${i + 1}">${teiLine(l)}</l>`).join('')}</lg>`);
     }
   }

@@ -402,3 +402,15 @@ ALTER TABLE poets ADD COLUMN IF NOT EXISTS ganjoor text;
 
 -- a metre the scanner suggested (divan-data taqti.py, Metre.Source auto), not the source's: shown as «خودکار»
 ALTER TABLE poems ADD COLUMN IF NOT EXISTS metre_auto boolean NOT NULL DEFAULT false;
+
+-- a unit's label as its text gives it ({{قطعہ}}: a qita inside a ghazal starts here), on the unit's first line
+ALTER TABLE verses ADD COLUMN IF NOT EXISTS label text;
+-- works a book lists that live in another section (divan-data _cat.json Links): a poet's divans list their ghazals,
+-- which live in the poet's «غزل» (one page and address each)
+CREATE TABLE IF NOT EXISTS category_links (
+    category_id integer NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    poem_id     integer NOT NULL REFERENCES poems(id) ON DELETE CASCADE,
+    position    integer NOT NULL,
+    PRIMARY KEY (category_id, poem_id)
+);
+CREATE INDEX IF NOT EXISTS category_links_poem ON category_links(poem_id);

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { parse, toVerses, toTEI, words, inline } from './divantext.ts';
+import { parse, toVerses, toTEI, toText, words, inline } from './divantext.ts';
 
 const doc = (f: string) => readFileSync(new URL(`../../docs/content-model/${f}`, import.meta.url), 'utf8');
 const ghazal = parse(doc('ghalib-ghazal.dtx')), prose = parse(doc('sir-syed-azadi-e-rai.dtx'));
@@ -79,4 +79,13 @@ test('writing back: parse(toText(doc)) is the same doc; segments keep links, not
 test('footnotes ride along with their line as Notes; lines without one carry none', () => {
   const v = toVerses(parse('<poem>\nپہلا مصرع<ref>نسخۂ حمیدیہ سے</ref>\nدوسرا مصرع\n</poem>'));
   assert.deepEqual(v.map((x) => [x.Text, x.Notes]), [['پہلا مصرع', ['نسخۂ حمیدیہ سے']], ['دوسرا مصرع', undefined]]);
+});
+
+test('{{قطعہ}}: a qita inside a ghazal starts at that couplet; the label goes with its first line', () => {
+  const doc = parse('<poem>\nپہلا مصرع\nدوسرا مصرع\n\n{{قطعہ}} تیسرا مصرع\nچوتھا مصرع\n</poem>');
+  assert.equal((doc.blocks[1] as any).label, 'قطعہ');
+  const v = toVerses(doc);
+  assert.deepEqual(v.map((x) => x.Label ?? null), [null, null, 'قطعہ', null]);
+  assert.equal(v[2].Text, 'تیسرا مصرع');
+  assert.match(toText(doc), /\{\{قطعہ\}\} تیسرا مصرع/, 'kept when written back');
 });
