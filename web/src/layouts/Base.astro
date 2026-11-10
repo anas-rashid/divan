@@ -14,6 +14,7 @@ const { title, description = 'اردو کا کلاسیکی ادب', q = '', auth
 const canonical = siteUrl(Astro.url) + Astro.url.pathname;
 const fullTitle = title ? `${title} · ${brand.name}` : `${brand.name} · ${brand.tagline}`;
 import Icon from '../components/Icon.astro';
+import SiteLinks from '../components/SiteLinks.astro';
 import logo from '../../public/logo/turanj.svg?raw'; // inline, so the page can turn its rays
 import { brand } from '../lib/brand';
 import { siteUrl } from '../lib/site-url';
@@ -92,6 +93,11 @@ import { siteUrl } from '../lib/site-url';
           {Astro.locals.user
             ? <a class="icon-btn" href="/account" title={`اکاؤنٹ: ${Astro.locals.user.full_name || Astro.locals.user.email}`} aria-label="اکاؤنٹ"><Icon name="user" /></a>
             : <a class="icon-btn" href={`/signin?next=${encodeURIComponent(Astro.url.pathname)}`} title="لاگ ان" aria-label="لاگ ان"><Icon name="login" /></a>}
+          {/* phones: the site's links (the footer's on wider screens) behind a menu button */}
+          <details class="site-menu">
+            <summary class="icon-btn" title="فہرست" aria-label="فہرست"><Icon name="menu" /></summary>
+            <nav class="site-menu-panel footer-links" aria-label="فہرست"><SiteLinks /></nav>
+          </details>
           <details class="display-menu">
             <summary class="icon-btn" title="خط اور رنگ" aria-label="خط اور رنگ"><Icon name="settings" /></summary>
             <div class="display-panel">
@@ -180,27 +186,7 @@ import { siteUrl } from '../lib/site-url';
             {brand.madeBy}
           </p>
         </div>
-        <nav class="footer-links" aria-label="سائٹ کے بارے میں">
-          <div><h2>{brand.name}</h2><ul>
-            <li><a href="/about"><Icon name="info" size={18} /><span>{brand.name} کے بارے میں<small>مقصد اور طریقۂ کار</small></span></a></li>
-            <li><a href="/contribute"><Icon name="plus" size={18} /><span>شامل کریں<small>کلاسیکی ادب بھیجیں</small></span></a></li>
-            <li><a href="/help"><Icon name="help" size={18} /><span>استعمال کا طریقہ<small>سائٹ کی سہولتیں</small></span></a></li>
-            <li><a href="/suggestions"><Icon name="note" size={18} /><span>تجاویز<small>غلطیوں کی نشاندہی، ووٹ</small></span></a></li>
-            <li><a href="/tags"><Icon name="tag" size={18} /><span>ٹیگ<small>موضوعات سے کلام</small></span></a></li>
-            <li><a href="/bahr"><Icon name="couplet" size={18} /><span>بحریں<small>ہر بحر کا کلام، ہم زمین غزلیں</small></span></a></li>
-            <li><a href="/rss.xml"><Icon name="rss" size={18} /><span>نئی تبدیلیاں<small>RSS: نئے ورژن اور ای بکس</small></span></a></li>
-            <li><a href="/privacy"><Icon name="lock" size={18} /><span>رازداری<small>ہم کیا محفوظ رکھتے ہیں</small></span></a></li>
-            <li><a href="/terms"><Icon name="scale" size={18} /><span>استعمال کی شرائط<small>لائسنس اور ذمہ داریاں</small></span></a></li>
-          </ul></div>
-          <div><h2>ماخذ</h2><ul>
-            <li><a href="https://ur.wikisource.org" rel="noopener"><Icon name="dict" size={18} /><span>ویکی ماخذ<small>متن · عوامی ملکیت</small></span><Icon name="external" size={13} class="ext" /></a></li>
-            <li><a href="https://ur.wikipedia.org" rel="noopener"><Icon name="globe" size={18} /><span>ویکیپیڈیا<small>شعرا کے تعارف</small></span><Icon name="external" size={13} class="ext" /></a></li>
-          </ul></div>
-          <div><h2>کھلا منبع</h2><ul>
-            <li><a href="https://github.com/anas-rashid/divan-data" rel="noopener"><Icon name="database" size={18} /><span>ڈیٹا<small>تمام متن، آزادانہ</small></span><Icon name="external" size={13} class="ext" /></a></li>
-            <li><a href="https://github.com/anas-rashid/divan" rel="noopener"><Icon name="code" size={18} /><span>کوڈ<small>سائٹ کا سورس</small></span><Icon name="external" size={13} class="ext" /></a></li>
-          </ul></div>
-        </nav>
+        <nav class="footer-links" aria-label="سائٹ کے بارے میں"><SiteLinks /></nav>
         <p class="footer-bar">
           <span>متن: عوامی ملکیت · کوڈ: <span lang="en" dir="ltr">GNU GPL v3</span></span>
           <a href={brand.contact.url} rel="noopener">{brand.contact.text}</a>
@@ -255,6 +241,8 @@ import { siteUrl } from '../lib/site-url';
 
       });
       document.addEventListener('click', (e) => { if (panel.open && !panel.contains(e.target)) panel.open = false; }); // close when clicking elsewhere
+      const siteMenu = document.querySelector('.site-menu');
+      document.addEventListener('click', (e) => { if (siteMenu.open && !siteMenu.contains(e.target)) siteMenu.open = false; });
       // Western numerals also in what scripts add later (word sidebar, page numbers, suggestions)
       function westernDigits(node) {
       const walk = document.createTreeWalker(node, NodeFilter.SHOW_TEXT);

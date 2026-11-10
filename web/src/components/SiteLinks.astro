@@ -1,0 +1,24 @@
+---
+// The site's links, by group: in the footer on wider screens, behind the header's menu button on phones (Base.astro)
+import Icon from './Icon.astro';
+import { brand } from '../lib/brand';
+---
+      <div><h2>{brand.name}</h2><ul>
+        <li><a href="/about"><Icon name="info" size={18} /><span>{brand.name} کے بارے میں<small>مقصد اور طریقۂ کار</small></span></a></li>
+        <li><a href="/contribute"><Icon name="plus" size={18} /><span>شامل کریں<small>کلاسیکی ادب بھیجیں</small></span></a></li>
+        <li><a href="/help"><Icon name="help" size={18} /><span>استعمال کا طریقہ<small>سائٹ کی سہولتیں</small></span></a></li>
+        <li><a href="/suggestions"><Icon name="note" size={18} /><span>تجاویز<small>غلطیوں کی نشاندہی، ووٹ</small></span></a></li>
+        <li><a href="/tags"><Icon name="tag" size={18} /><span>ٹیگ<small>موضوعات سے کلام</small></span></a></li>
+        <li><a href="/bahr"><Icon name="couplet" size={18} /><span>بحریں<small>ہر بحر کا کلام، ہم زمین غزلیں</small></span></a></li>
+        <li><a href="/rss.xml"><Icon name="rss" size={18} /><span>نئی تبدیلیاں<small>RSS: نئے ورژن اور ای بکس</small></span></a></li>
+        <li><a href="/privacy"><Icon name="lock" size={18} /><span>رازداری<small>ہم کیا محفوظ رکھتے ہیں</small></span></a></li>
+        <li><a href="/terms"><Icon name="scale" size={18} /><span>استعمال کی شرائط<small>لائسنس اور ذمہ داریاں</small></span></a></li>
+      </ul></div>
+      <div><h2>ماخذ</h2><ul>
+        <li><a href="https://ur.wikisource.org" rel="noopener"><Icon name="dict" size={18} /><span>ویکی ماخذ<small>متن · عوامی ملکیت</small></span><Icon name="external" size={13} class="ext" /></a></li>
+        <li><a href="https://ur.wikipedia.org" rel="noopener"><Icon name="globe" size={18} /><span>ویکیپیڈیا<small>شعرا کے تعارف</small></span><Icon name="external" size={13} class="ext" /></a></li>
+      </ul></div>
+      <div><h2>کھلا منبع</h2><ul>
+        <li><a href="https://github.com/anas-rashid/divan-data" rel="noopener"><Icon name="database" size={18} /><span>ڈیٹا<small>تمام متن، آزادانہ</small></span><Icon name="external" size={13} class="ext" /></a></li>
+        <li><a href="https://github.com/anas-rashid/divan" rel="noopener"><Icon name="code" size={18} /><span>کوڈ<small>سائٹ کا سورس</small></span><Icon name="external" size={13} class="ext" /></a></li>
+      </ul></div>
