@@ -41,6 +41,7 @@ for (const entry of manifest.Poets) {
        poet.ValidBirthDate ? poet.BirthYearInLHijri : null, poet.ValidDeathDate ? poet.DeathYearInLHijri : null,
        poet.BirthYearCE ?? null, poet.DeathYearCE ?? null, poet.SourceUrl ?? null, poet.ImageUrl ?? null, poet.Ganjoor ?? null],
     );
+    const links: any[] = [];  // books listing works of other sections (_cat.json Links)
     // categories depth-first so parents exist before children
     const walk = async (url: string, position: number): Promise<void> => {
       const cat = await read(`poets${url}/_cat.json`);
@@ -68,17 +69,24 @@ for (const entry of manifest.Poets) {
           // one multi-row insert per poem
           const values: unknown[] = [];
           const rows = p.Verses.map((v: any, j: number) => {
-            values.push(p.Id, v.VOrder, v.Position, v.CoupletIndex ?? 0, v.Text, v.Notes?.length ? v.Notes : null);
-            const o = j * 6;
-            return `($${o + 1},$${o + 2},$${o + 3},$${o + 4},$${o + 5},$${o + 6})`;
+            values.push(p.Id, v.VOrder, v.Position, v.CoupletIndex ?? 0, v.Text, v.Notes?.length ? v.Notes : null, v.Label ?? null);
+            const o = j * 7;
+            return `($${o + 1},$${o + 2},$${o + 3},$${o + 4},$${o + 5},$${o + 6},$${o + 7})`;
           });
-          await client.query(`INSERT INTO verses (poem_id, vorder, position, couplet, text, notes) VALUES ${rows.join(',')}`, values);
+          await client.query(`INSERT INTO verses (poem_id, vorder, position, couplet, text, notes, label) VALUES ${rows.join(',')}`, values);
         }
         poems++;
       }
+      if (cat.Links) links.push(cat);
       for (const [i, child] of cat.ChildCats.entries()) await walk(child.FullUrl, i);
     };
     await walk(entry.FullUrl, 0);
+    // a book's listed works, once all the poet's works are in
+    for (const cat of links) {
+      await client.query('DELETE FROM category_links WHERE category_id = $1', [cat.Id]);
+      for (const [i, ref] of cat.Links.entries())
+        await client.query('INSERT INTO category_links (category_id, poem_id, position) SELECT $1, id, $3 FROM poems WHERE id = $2 ON CONFLICT DO NOTHING', [cat.Id, ref.Id, i]);
+    }
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
